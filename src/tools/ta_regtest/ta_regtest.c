@@ -223,10 +223,14 @@ int main( int argc, char **argv )
          codegen_pipe_close(&abstractPipe);
    }
 
-   /* Cross-language introspection parity (dev / merge-loop gate via --codegen):
-    * run the abstract metadata checks (TA_GetFuncInfo + the param-info getters)
-    * against the Rust server, comparing to the C reference. Only the metadata RPCs
-    * are exercised (not the beta-scoped abstract_call dynamic dispatch).
+   /* Cross-language abstract parity (dev / merge-loop gate via --codegen):
+    * run the full ta_abstract path against the Rust server, comparing to the C
+    * reference. Two complementary passes:
+    *   1. test_abstract_server_metadata — the metadata RPCs (TA_GetFuncInfo + the
+    *      param-info getters), which the dynamic path below does NOT exercise.
+    *   2. test_abstract — the dynamic-dispatch path (abstract_call /
+    *      abstract_get_lookback / TA_FunctionDescriptionXML), comparing output
+    *      VALUES (not just metadata) for every function.
     * NOTE: the autotools dist nightly runs ta_regtest with no args, so this block
     * only runs under --codegen/--codegen-only (build.py regtest / regtest.py),
     * not the dist verification path. */
@@ -252,6 +256,14 @@ int main( int argc, char **argv )
             printf( "Testing Abstract metadata parity (Rust server vs c-ref)\n" );
             test_abstract_set_server(&rustAbstractPipe);
             e = test_abstract_server_metadata(functionFilter);
+            /* Full dynamic-dispatch path (abstract_call / abstract_get_lookback /
+             * TA_FunctionDescriptionXML) against the Rust server, comparing output
+             * VALUES to the c-ref for every function. */
+            if( e == TA_TEST_PASS )
+            {
+               printf( "Testing Abstract dynamic dispatch (Rust server vs c-ref)\n" );
+               e = test_abstract();
+            }
             test_abstract_set_server(NULL);
             codegen_pipe_close(&rustAbstractPipe);
             if( retValue == TA_TEST_PASS && e != TA_TEST_PASS )

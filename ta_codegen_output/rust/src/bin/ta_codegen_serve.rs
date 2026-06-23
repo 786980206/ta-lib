@@ -50,6 +50,33 @@ fn retcode_to_int(rc: RetCode) -> i32 {
     }
 }
 
+fn json_f64_array(data: &[f64]) -> String {
+    let mut s = String::with_capacity(data.len() * 8 + 2);
+    s.push('[');
+    for (i, &v) in data.iter().enumerate() {
+        if i > 0 { s.push(','); }
+        match serde_json::Number::from_f64(v) {
+            Some(n) => s.push_str(&n.to_string()),
+            None => s.push_str(
+                if v.is_nan() { if v.is_sign_negative() { "-nan" } else { "nan" } }
+                else if v < 0.0 { "-inf" } else { "inf" }),
+        }
+    }
+    s.push(']');
+    s
+}
+
+fn json_i32_array(data: &[i32]) -> String {
+    let mut s = String::with_capacity(data.len() * 4 + 2);
+    s.push('[');
+    for (i, &v) in data.iter().enumerate() {
+        if i > 0 { s.push(','); }
+        s.push_str(&v.to_string());
+    }
+    s.push(']');
+    s
+}
+
 fn func_unst_id_from_int(id: usize) -> Option<FuncUnstId> {
     match id {
         0 => Some(FuncUnstId::Adx),
@@ -91,6 +118,10 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
     };
     let params = &req["params"];
 
+    dispatch(core, ref_data, method, params)
+}
+
+fn dispatch(core: &mut Core, ref_data: &mut RefData, method: &str, params: &Value) -> String {
     match method {
         "load_data" => {
             let open = parse_f64_array(&params["open"]);
@@ -163,17 +194,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp["outReal2"] = serde_json::json!(&outBuf2[..outNBElement]);
-            resp.to_string()
+            let lookback = core.accbands_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push_str(",\"outReal2\":"); resp.push_str(&json_f64_array(&outBuf2[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ACOS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -211,15 +238,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.acos_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_AD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -278,15 +301,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ad_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ADD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -331,15 +350,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.add_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ADOSC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -404,15 +419,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.adosc_lookback(optInFastPeriod, optInSlowPeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ADX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -470,15 +481,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.adx_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ADXR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -536,15 +543,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.adxr_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_APO" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -591,15 +594,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.apo_lookback(optInFastPeriod, optInSlowPeriod, optInMAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_AROON" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -648,16 +647,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.aroon_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_AROONOSC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -705,15 +700,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.aroonosc_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ASIN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -751,15 +742,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.asin_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ATAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -797,15 +784,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.atan_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ATR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -863,15 +846,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.atr_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_AVGDEV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -912,15 +891,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.avgdev_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_AVGPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -979,15 +954,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.avgprice_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_BBANDS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1039,17 +1010,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp["outReal2"] = serde_json::json!(&outBuf2[..outNBElement]);
-            resp.to_string()
+            let lookback = core.bbands_lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push_str(",\"outReal2\":"); resp.push_str(&json_f64_array(&outBuf2[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_BETA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1097,15 +1064,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.beta_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_BOP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1164,15 +1127,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.bop_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CCI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1227,15 +1186,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cci_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDL2CROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1294,15 +1249,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdl2crows_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDL3BLACKCROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1361,15 +1312,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdl3blackcrows_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDL3INSIDE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1428,15 +1375,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdl3inside_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDL3LINESTRIKE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1495,15 +1438,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdl3linestrike_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDL3OUTSIDE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1562,15 +1501,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdl3outside_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDL3STARSINSOUTH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1629,15 +1564,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdl3starsinsouth_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDL3WHITESOLDIERS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1696,15 +1627,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdl3whitesoldiers_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLABANDONEDBABY" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1766,15 +1693,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlabandonedbaby_lookback(optInPenetration);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLADVANCEBLOCK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1833,15 +1756,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdladvanceblock_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLBELTHOLD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1900,15 +1819,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlbelthold_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLBREAKAWAY" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -1967,15 +1882,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlbreakaway_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLCLOSINGMARUBOZU" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2034,15 +1945,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlclosingmarubozu_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLCONCEALBABYSWALL" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2101,15 +2008,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlconcealbabyswall_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLCOUNTERATTACK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2168,15 +2071,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlcounterattack_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLDARKCLOUDCOVER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2238,15 +2137,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdldarkcloudcover_lookback(optInPenetration);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2305,15 +2200,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdldoji_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLDOJISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2372,15 +2263,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdldojistar_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLDRAGONFLYDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2439,15 +2326,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdldragonflydoji_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLENGULFING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2506,15 +2389,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlengulfing_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLEVENINGDOJISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2576,15 +2455,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdleveningdojistar_lookback(optInPenetration);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLEVENINGSTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2646,15 +2521,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdleveningstar_lookback(optInPenetration);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLGAPSIDESIDEWHITE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2713,15 +2584,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlgapsidesidewhite_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLGRAVESTONEDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2780,15 +2647,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlgravestonedoji_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHAMMER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2847,15 +2710,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlhammer_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHANGINGMAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2914,15 +2773,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlhangingman_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHARAMI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -2981,15 +2836,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlharami_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHARAMICROSS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3048,15 +2899,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlharamicross_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHIGHWAVE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3115,15 +2962,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlhighwave_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHIKKAKE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3182,15 +3025,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlhikkake_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHIKKAKEMOD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3249,15 +3088,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlhikkakemod_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLHOMINGPIGEON" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3316,15 +3151,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlhomingpigeon_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLIDENTICAL3CROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3383,15 +3214,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlidentical3crows_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLINNECK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3450,15 +3277,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlinneck_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLINVERTEDHAMMER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3517,15 +3340,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlinvertedhammer_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLKICKING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3584,15 +3403,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlkicking_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLKICKINGBYLENGTH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3651,15 +3466,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlkickingbylength_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLLADDERBOTTOM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3718,15 +3529,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlladderbottom_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLLONGLEGGEDDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3785,15 +3592,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdllongleggeddoji_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLLONGLINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3852,15 +3655,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdllongline_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLMARUBOZU" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3919,15 +3718,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlmarubozu_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLMATCHINGLOW" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -3986,15 +3781,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlmatchinglow_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLMATHOLD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4056,15 +3847,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlmathold_lookback(optInPenetration);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLMORNINGDOJISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4126,15 +3913,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlmorningdojistar_lookback(optInPenetration);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLMORNINGSTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4196,15 +3979,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlmorningstar_lookback(optInPenetration);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLONNECK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4263,15 +4042,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlonneck_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLPIERCING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4330,15 +4105,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlpiercing_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLRICKSHAWMAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4397,15 +4168,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlrickshawman_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLRISEFALL3METHODS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4464,15 +4231,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlrisefall3methods_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLSEPARATINGLINES" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4531,15 +4294,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlseparatinglines_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLSHOOTINGSTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4598,15 +4357,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlshootingstar_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLSHORTLINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4665,15 +4420,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlshortline_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLSPINNINGTOP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4732,15 +4483,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlspinningtop_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLSTALLEDPATTERN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4799,15 +4546,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlstalledpattern_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLSTICKSANDWICH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4866,15 +4609,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlsticksandwich_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLTAKURI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -4933,15 +4672,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdltakuri_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLTASUKIGAP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5000,15 +4735,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdltasukigap_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLTHRUSTING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5067,15 +4798,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlthrusting_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLTRISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5134,15 +4861,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdltristar_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLUNIQUE3RIVER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5201,15 +4924,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlunique3river_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLUPSIDEGAP2CROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5268,15 +4987,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlupsidegap2crows_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CDLXSIDEGAP3METHODS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5335,15 +5050,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cdlxsidegap3methods_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CEIL" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5381,15 +5092,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ceil_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CMO" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5433,15 +5140,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cmo_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_CORREL" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5489,15 +5192,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.correl_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_COS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5535,15 +5234,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cos_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_COSH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5581,15 +5276,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.cosh_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_DEMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5630,15 +5321,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.dema_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_DIV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5683,15 +5370,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.div_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_DX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5749,15 +5432,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.dx_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_EMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5801,15 +5480,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ema_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_EXP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5847,15 +5522,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.exp_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_FLOOR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5893,15 +5564,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.floor_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_HT_DCPERIOD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5942,15 +5609,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ht_dcperiod_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_HT_DCPHASE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -5991,15 +5654,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ht_dcphase_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_HT_PHASOR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6041,16 +5700,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ht_phasor_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_HT_SINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6092,16 +5747,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ht_sine_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_HT_TRENDLINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6142,15 +5793,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ht_trendline_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_HT_TRENDMODE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6191,15 +5838,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ht_trendmode_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_IMI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6250,15 +5893,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.imi_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_KAMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6302,15 +5941,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.kama_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_LINEARREG" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6351,15 +5986,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.linearreg_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_LINEARREG_ANGLE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6400,15 +6031,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.linearreg_angle_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_LINEARREG_INTERCEPT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6449,15 +6076,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.linearreg_intercept_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_LINEARREG_SLOPE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6498,15 +6121,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.linearreg_slope_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_LN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6544,15 +6163,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ln_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_LOG10" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6590,15 +6205,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.log10_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6642,15 +6253,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ma_lookback(optInTimePeriod, optInMAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MACD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6699,17 +6306,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp["outReal2"] = serde_json::json!(&outBuf2[..outNBElement]);
-            resp.to_string()
+            let lookback = core.macd_lookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push_str(",\"outReal2\":"); resp.push_str(&json_f64_array(&outBuf2[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MACDEXT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6767,17 +6370,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp["outReal2"] = serde_json::json!(&outBuf2[..outNBElement]);
-            resp.to_string()
+            let lookback = core.macdext_lookback(optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push_str(",\"outReal2\":"); resp.push_str(&json_f64_array(&outBuf2[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MACDFIX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6820,17 +6419,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp["outReal2"] = serde_json::json!(&outBuf2[..outNBElement]);
-            resp.to_string()
+            let lookback = core.macdfix_lookback(optInSignalPeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push_str(",\"outReal2\":"); resp.push_str(&json_f64_array(&outBuf2[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MAMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6878,16 +6473,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.mama_lookback(optInFastLimit, optInSlowLimit);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MAVP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6941,15 +6532,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.mavp_lookback(optInMinPeriod, optInMaxPeriod, optInMAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MAX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -6990,15 +6577,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.max_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MAXINDEX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7039,15 +6622,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.maxindex_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MEDPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7092,15 +6671,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.medprice_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MFI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7165,15 +6740,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.mfi_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MIDPOINT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7214,15 +6785,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.midpoint_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MIDPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7270,15 +6837,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.midprice_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MIN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7319,15 +6882,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.min_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MININDEX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7368,15 +6927,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.minindex_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MINMAX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7418,16 +6973,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.minmax_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MINMAXINDEX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7469,16 +7020,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
-            resp["outInteger1"] = serde_json::json!(&outIntBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.minmaxindex_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outInteger\":"); resp.push_str(&json_i32_array(&outIntBuf0[..outNBElement]));
+            resp.push_str(",\"outInteger1\":"); resp.push_str(&json_i32_array(&outIntBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MINUS_DI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7536,15 +7083,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.minus_di_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MINUS_DM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7595,15 +7138,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.minus_dm_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MOM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7644,15 +7183,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.mom_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_MULT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7697,15 +7232,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.mult_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_NATR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7763,15 +7294,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.natr_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_OBV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7816,15 +7343,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.obv_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_PLUS_DI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7882,15 +7405,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.plus_di_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_PLUS_DM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7941,15 +7460,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.plus_dm_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_PPO" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -7996,15 +7511,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ppo_lookback(optInFastPeriod, optInSlowPeriod, optInMAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ROC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8045,15 +7556,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.roc_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ROCP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8094,15 +7601,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.rocp_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ROCR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8143,15 +7646,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.rocr_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ROCR100" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8192,15 +7691,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.rocr100_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_RSI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8244,15 +7739,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.rsi_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8303,15 +7794,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sar_lookback(optInAcceleration, optInMaximum);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SAREXT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8380,15 +7867,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sarext_lookback(optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SIN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8426,15 +7909,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sin_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SINH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8472,15 +7951,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sinh_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8521,15 +7996,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sma_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SQRT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8567,15 +8038,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sqrt_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_STDDEV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8619,15 +8086,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.stddev_lookback(optInTimePeriod, optInNbDev);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_STOCH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8695,16 +8158,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.stoch_lookback(optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_STOCHF" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8766,16 +8225,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_STOCHRSI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8829,16 +8284,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
-            resp.to_string()
+            let lookback = core.stochrsi_lookback(optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push_str(",\"outReal1\":"); resp.push_str(&json_f64_array(&outBuf1[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SUB" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8883,15 +8334,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sub_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_SUM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8932,15 +8379,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.sum_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_T3" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -8987,15 +8430,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.t3_lookback(optInTimePeriod, optInVFactor);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9033,15 +8472,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.tan_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TANH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9079,15 +8514,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.tanh_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TEMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9128,15 +8559,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.tema_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TRANGE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9188,15 +8615,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.trange_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TRIMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9237,15 +8660,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.trima_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TRIX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9286,15 +8705,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.trix_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TSF" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9335,15 +8750,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.tsf_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_TYPPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9395,15 +8806,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.typprice_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_ULTOSC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9464,15 +8871,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.ultosc_lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_VAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9516,15 +8919,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.var_lookback(optInTimePeriod, optInNbDev);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_WCLPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9576,15 +8975,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.wclprice_lookback();
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_WILLR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9639,15 +9034,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.willr_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "TA_WMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
@@ -9688,15 +9079,11 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
+            let lookback = core.wma_lookback(optInTimePeriod);
+            let mut resp = format!("{{\"retCode\":{},\"outBegIdx\":{},\"outNBElement\":{},\"lookback\":{},\"timing_ns\":{},\"timing_ns_unguarded\":{}", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);
+            resp.push_str(",\"outReal\":"); resp.push_str(&json_f64_array(&outBuf0[..outNBElement]));
+            resp.push('}');
+            resp
         }
         "list_functions" => {
             let funcs: Vec<&str> = vec![
@@ -9990,9 +9377,647 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
                 None => "{\"retCode\":2}".to_string(),
             }
         }
+        "abstract_call" => {
+            let fname = params["funcName"].as_str().unwrap_or("");
+            if fname.is_empty() {
+                return "{\"error\":\"Missing funcName\"}".to_string();
+            }
+            let rerouted = format!("TA_{}", fname);
+            dispatch(core, ref_data, &rerouted, params)
+        }
+        "abstract_get_lookback" => {
+            let fname = params["funcName"].as_str().unwrap_or("");
+            match abstract_lookback(core, fname, params) {
+                Some(lb) => format!("{{\"lookback\":{}}}", lb),
+                None => format!("{{\"error\":\"Unknown function: {}\"}}", fname),
+            }
+        }
+        "abstract_for_each_func" => {
+            let mut arr: Vec<Value> = Vec::new();
+            abstract_api::for_each_func(|fi| {
+                arr.push(serde_json::json!({
+                    "name": fi.name,
+                    "group": fi.group.as_str(),
+                    "nbInput": fi.nb_input(),
+                    "nbOptInput": fi.nb_opt_input(),
+                    "nbOutput": fi.nb_output(),
+                }));
+            });
+            serde_json::json!({ "functions": arr }).to_string()
+        }
+        "TA_FunctionDescriptionXML" => {
+            let xml = abstract_api::function_description_xml();
+            let length = xml.len();
+            let checksum: u64 = xml.bytes().map(|b| u64::from(b)).sum();
+            format!("{{\"length\":{},\"checksum\":{}}}", length, checksum)
+        }
         _ => {
             format!("{{\"error\":\"Unknown method: {}\"}}", method)
         }
+    }
+}
+
+fn abstract_lookback(core: &Core, func_name: &str, params: &Value) -> Option<usize> {
+    match func_name {
+        "ACCBANDS" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(20) as i32;
+            Some(core.accbands_lookback(optInTimePeriod))
+        }
+        "ACOS" => {
+            Some(core.acos_lookback())
+        }
+        "AD" => {
+            Some(core.ad_lookback())
+        }
+        "ADD" => {
+            Some(core.add_lookback())
+        }
+        "ADOSC" => {
+            let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(3) as i32;
+            let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(10) as i32;
+            Some(core.adosc_lookback(optInFastPeriod, optInSlowPeriod))
+        }
+        "ADX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.adx_lookback(optInTimePeriod))
+        }
+        "ADXR" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.adxr_lookback(optInTimePeriod))
+        }
+        "APO" => {
+            let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
+            let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
+            let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.apo_lookback(optInFastPeriod, optInSlowPeriod, optInMAType))
+        }
+        "AROON" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.aroon_lookback(optInTimePeriod))
+        }
+        "AROONOSC" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.aroonosc_lookback(optInTimePeriod))
+        }
+        "ASIN" => {
+            Some(core.asin_lookback())
+        }
+        "ATAN" => {
+            Some(core.atan_lookback())
+        }
+        "ATR" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.atr_lookback(optInTimePeriod))
+        }
+        "AVGDEV" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.avgdev_lookback(optInTimePeriod))
+        }
+        "AVGPRICE" => {
+            Some(core.avgprice_lookback())
+        }
+        "BBANDS" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
+            let optInNbDevUp = params["optInNbDevUp"].as_f64().unwrap_or(2.0) as f64;
+            let optInNbDevDn = params["optInNbDevDn"].as_f64().unwrap_or(2.0) as f64;
+            let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.bbands_lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType))
+        }
+        "BETA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
+            Some(core.beta_lookback(optInTimePeriod))
+        }
+        "BOP" => {
+            Some(core.bop_lookback())
+        }
+        "CCI" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.cci_lookback(optInTimePeriod))
+        }
+        "CDL2CROWS" => {
+            Some(core.cdl2crows_lookback())
+        }
+        "CDL3BLACKCROWS" => {
+            Some(core.cdl3blackcrows_lookback())
+        }
+        "CDL3INSIDE" => {
+            Some(core.cdl3inside_lookback())
+        }
+        "CDL3LINESTRIKE" => {
+            Some(core.cdl3linestrike_lookback())
+        }
+        "CDL3OUTSIDE" => {
+            Some(core.cdl3outside_lookback())
+        }
+        "CDL3STARSINSOUTH" => {
+            Some(core.cdl3starsinsouth_lookback())
+        }
+        "CDL3WHITESOLDIERS" => {
+            Some(core.cdl3whitesoldiers_lookback())
+        }
+        "CDLABANDONEDBABY" => {
+            let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
+            Some(core.cdlabandonedbaby_lookback(optInPenetration))
+        }
+        "CDLADVANCEBLOCK" => {
+            Some(core.cdladvanceblock_lookback())
+        }
+        "CDLBELTHOLD" => {
+            Some(core.cdlbelthold_lookback())
+        }
+        "CDLBREAKAWAY" => {
+            Some(core.cdlbreakaway_lookback())
+        }
+        "CDLCLOSINGMARUBOZU" => {
+            Some(core.cdlclosingmarubozu_lookback())
+        }
+        "CDLCONCEALBABYSWALL" => {
+            Some(core.cdlconcealbabyswall_lookback())
+        }
+        "CDLCOUNTERATTACK" => {
+            Some(core.cdlcounterattack_lookback())
+        }
+        "CDLDARKCLOUDCOVER" => {
+            let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.5) as f64;
+            Some(core.cdldarkcloudcover_lookback(optInPenetration))
+        }
+        "CDLDOJI" => {
+            Some(core.cdldoji_lookback())
+        }
+        "CDLDOJISTAR" => {
+            Some(core.cdldojistar_lookback())
+        }
+        "CDLDRAGONFLYDOJI" => {
+            Some(core.cdldragonflydoji_lookback())
+        }
+        "CDLENGULFING" => {
+            Some(core.cdlengulfing_lookback())
+        }
+        "CDLEVENINGDOJISTAR" => {
+            let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
+            Some(core.cdleveningdojistar_lookback(optInPenetration))
+        }
+        "CDLEVENINGSTAR" => {
+            let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
+            Some(core.cdleveningstar_lookback(optInPenetration))
+        }
+        "CDLGAPSIDESIDEWHITE" => {
+            Some(core.cdlgapsidesidewhite_lookback())
+        }
+        "CDLGRAVESTONEDOJI" => {
+            Some(core.cdlgravestonedoji_lookback())
+        }
+        "CDLHAMMER" => {
+            Some(core.cdlhammer_lookback())
+        }
+        "CDLHANGINGMAN" => {
+            Some(core.cdlhangingman_lookback())
+        }
+        "CDLHARAMI" => {
+            Some(core.cdlharami_lookback())
+        }
+        "CDLHARAMICROSS" => {
+            Some(core.cdlharamicross_lookback())
+        }
+        "CDLHIGHWAVE" => {
+            Some(core.cdlhighwave_lookback())
+        }
+        "CDLHIKKAKE" => {
+            Some(core.cdlhikkake_lookback())
+        }
+        "CDLHIKKAKEMOD" => {
+            Some(core.cdlhikkakemod_lookback())
+        }
+        "CDLHOMINGPIGEON" => {
+            Some(core.cdlhomingpigeon_lookback())
+        }
+        "CDLIDENTICAL3CROWS" => {
+            Some(core.cdlidentical3crows_lookback())
+        }
+        "CDLINNECK" => {
+            Some(core.cdlinneck_lookback())
+        }
+        "CDLINVERTEDHAMMER" => {
+            Some(core.cdlinvertedhammer_lookback())
+        }
+        "CDLKICKING" => {
+            Some(core.cdlkicking_lookback())
+        }
+        "CDLKICKINGBYLENGTH" => {
+            Some(core.cdlkickingbylength_lookback())
+        }
+        "CDLLADDERBOTTOM" => {
+            Some(core.cdlladderbottom_lookback())
+        }
+        "CDLLONGLEGGEDDOJI" => {
+            Some(core.cdllongleggeddoji_lookback())
+        }
+        "CDLLONGLINE" => {
+            Some(core.cdllongline_lookback())
+        }
+        "CDLMARUBOZU" => {
+            Some(core.cdlmarubozu_lookback())
+        }
+        "CDLMATCHINGLOW" => {
+            Some(core.cdlmatchinglow_lookback())
+        }
+        "CDLMATHOLD" => {
+            let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.5) as f64;
+            Some(core.cdlmathold_lookback(optInPenetration))
+        }
+        "CDLMORNINGDOJISTAR" => {
+            let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
+            Some(core.cdlmorningdojistar_lookback(optInPenetration))
+        }
+        "CDLMORNINGSTAR" => {
+            let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
+            Some(core.cdlmorningstar_lookback(optInPenetration))
+        }
+        "CDLONNECK" => {
+            Some(core.cdlonneck_lookback())
+        }
+        "CDLPIERCING" => {
+            Some(core.cdlpiercing_lookback())
+        }
+        "CDLRICKSHAWMAN" => {
+            Some(core.cdlrickshawman_lookback())
+        }
+        "CDLRISEFALL3METHODS" => {
+            Some(core.cdlrisefall3methods_lookback())
+        }
+        "CDLSEPARATINGLINES" => {
+            Some(core.cdlseparatinglines_lookback())
+        }
+        "CDLSHOOTINGSTAR" => {
+            Some(core.cdlshootingstar_lookback())
+        }
+        "CDLSHORTLINE" => {
+            Some(core.cdlshortline_lookback())
+        }
+        "CDLSPINNINGTOP" => {
+            Some(core.cdlspinningtop_lookback())
+        }
+        "CDLSTALLEDPATTERN" => {
+            Some(core.cdlstalledpattern_lookback())
+        }
+        "CDLSTICKSANDWICH" => {
+            Some(core.cdlsticksandwich_lookback())
+        }
+        "CDLTAKURI" => {
+            Some(core.cdltakuri_lookback())
+        }
+        "CDLTASUKIGAP" => {
+            Some(core.cdltasukigap_lookback())
+        }
+        "CDLTHRUSTING" => {
+            Some(core.cdlthrusting_lookback())
+        }
+        "CDLTRISTAR" => {
+            Some(core.cdltristar_lookback())
+        }
+        "CDLUNIQUE3RIVER" => {
+            Some(core.cdlunique3river_lookback())
+        }
+        "CDLUPSIDEGAP2CROWS" => {
+            Some(core.cdlupsidegap2crows_lookback())
+        }
+        "CDLXSIDEGAP3METHODS" => {
+            Some(core.cdlxsidegap3methods_lookback())
+        }
+        "CEIL" => {
+            Some(core.ceil_lookback())
+        }
+        "CMO" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.cmo_lookback(optInTimePeriod))
+        }
+        "CORREL" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.correl_lookback(optInTimePeriod))
+        }
+        "COS" => {
+            Some(core.cos_lookback())
+        }
+        "COSH" => {
+            Some(core.cosh_lookback())
+        }
+        "DEMA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.dema_lookback(optInTimePeriod))
+        }
+        "DIV" => {
+            Some(core.div_lookback())
+        }
+        "DX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.dx_lookback(optInTimePeriod))
+        }
+        "EMA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.ema_lookback(optInTimePeriod))
+        }
+        "EXP" => {
+            Some(core.exp_lookback())
+        }
+        "FLOOR" => {
+            Some(core.floor_lookback())
+        }
+        "HT_DCPERIOD" => {
+            Some(core.ht_dcperiod_lookback())
+        }
+        "HT_DCPHASE" => {
+            Some(core.ht_dcphase_lookback())
+        }
+        "HT_PHASOR" => {
+            Some(core.ht_phasor_lookback())
+        }
+        "HT_SINE" => {
+            Some(core.ht_sine_lookback())
+        }
+        "HT_TRENDLINE" => {
+            Some(core.ht_trendline_lookback())
+        }
+        "HT_TRENDMODE" => {
+            Some(core.ht_trendmode_lookback())
+        }
+        "IMI" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.imi_lookback(optInTimePeriod))
+        }
+        "KAMA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.kama_lookback(optInTimePeriod))
+        }
+        "LINEARREG" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.linearreg_lookback(optInTimePeriod))
+        }
+        "LINEARREG_ANGLE" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.linearreg_angle_lookback(optInTimePeriod))
+        }
+        "LINEARREG_INTERCEPT" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.linearreg_intercept_lookback(optInTimePeriod))
+        }
+        "LINEARREG_SLOPE" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.linearreg_slope_lookback(optInTimePeriod))
+        }
+        "LN" => {
+            Some(core.ln_lookback())
+        }
+        "LOG10" => {
+            Some(core.log10_lookback())
+        }
+        "MA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.ma_lookback(optInTimePeriod, optInMAType))
+        }
+        "MACD" => {
+            let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
+            let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
+            let optInSignalPeriod = params["optInSignalPeriod"].as_i64().unwrap_or(9) as i32;
+            Some(core.macd_lookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod))
+        }
+        "MACDEXT" => {
+            let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
+            let optInFastMAType = params["optInFastMAType"].as_i64().unwrap_or(0) as i32;
+            let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
+            let optInSlowMAType = params["optInSlowMAType"].as_i64().unwrap_or(0) as i32;
+            let optInSignalPeriod = params["optInSignalPeriod"].as_i64().unwrap_or(9) as i32;
+            let optInSignalMAType = params["optInSignalMAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.macdext_lookback(optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType))
+        }
+        "MACDFIX" => {
+            let optInSignalPeriod = params["optInSignalPeriod"].as_i64().unwrap_or(9) as i32;
+            Some(core.macdfix_lookback(optInSignalPeriod))
+        }
+        "MAMA" => {
+            let optInFastLimit = params["optInFastLimit"].as_f64().unwrap_or(0.5) as f64;
+            let optInSlowLimit = params["optInSlowLimit"].as_f64().unwrap_or(0.05) as f64;
+            Some(core.mama_lookback(optInFastLimit, optInSlowLimit))
+        }
+        "MAVP" => {
+            let optInMinPeriod = params["optInMinPeriod"].as_i64().unwrap_or(2) as i32;
+            let optInMaxPeriod = params["optInMaxPeriod"].as_i64().unwrap_or(30) as i32;
+            let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.mavp_lookback(optInMinPeriod, optInMaxPeriod, optInMAType))
+        }
+        "MAX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.max_lookback(optInTimePeriod))
+        }
+        "MAXINDEX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.maxindex_lookback(optInTimePeriod))
+        }
+        "MEDPRICE" => {
+            Some(core.medprice_lookback())
+        }
+        "MFI" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.mfi_lookback(optInTimePeriod))
+        }
+        "MIDPOINT" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.midpoint_lookback(optInTimePeriod))
+        }
+        "MIDPRICE" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.midprice_lookback(optInTimePeriod))
+        }
+        "MIN" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.min_lookback(optInTimePeriod))
+        }
+        "MININDEX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.minindex_lookback(optInTimePeriod))
+        }
+        "MINMAX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.minmax_lookback(optInTimePeriod))
+        }
+        "MINMAXINDEX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.minmaxindex_lookback(optInTimePeriod))
+        }
+        "MINUS_DI" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.minus_di_lookback(optInTimePeriod))
+        }
+        "MINUS_DM" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.minus_dm_lookback(optInTimePeriod))
+        }
+        "MOM" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
+            Some(core.mom_lookback(optInTimePeriod))
+        }
+        "MULT" => {
+            Some(core.mult_lookback())
+        }
+        "NATR" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.natr_lookback(optInTimePeriod))
+        }
+        "OBV" => {
+            Some(core.obv_lookback())
+        }
+        "PLUS_DI" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.plus_di_lookback(optInTimePeriod))
+        }
+        "PLUS_DM" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.plus_dm_lookback(optInTimePeriod))
+        }
+        "PPO" => {
+            let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
+            let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
+            let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.ppo_lookback(optInFastPeriod, optInSlowPeriod, optInMAType))
+        }
+        "ROC" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
+            Some(core.roc_lookback(optInTimePeriod))
+        }
+        "ROCP" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
+            Some(core.rocp_lookback(optInTimePeriod))
+        }
+        "ROCR" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
+            Some(core.rocr_lookback(optInTimePeriod))
+        }
+        "ROCR100" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
+            Some(core.rocr100_lookback(optInTimePeriod))
+        }
+        "RSI" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.rsi_lookback(optInTimePeriod))
+        }
+        "SAR" => {
+            let optInAcceleration = params["optInAcceleration"].as_f64().unwrap_or(0.02) as f64;
+            let optInMaximum = params["optInMaximum"].as_f64().unwrap_or(0.2) as f64;
+            Some(core.sar_lookback(optInAcceleration, optInMaximum))
+        }
+        "SAREXT" => {
+            let optInStartValue = params["optInStartValue"].as_f64().unwrap_or(0.0) as f64;
+            let optInOffsetOnReverse = params["optInOffsetOnReverse"].as_f64().unwrap_or(0.0) as f64;
+            let optInAccelerationInitLong = params["optInAccelerationInitLong"].as_f64().unwrap_or(0.02) as f64;
+            let optInAccelerationLong = params["optInAccelerationLong"].as_f64().unwrap_or(0.02) as f64;
+            let optInAccelerationMaxLong = params["optInAccelerationMaxLong"].as_f64().unwrap_or(0.2) as f64;
+            let optInAccelerationInitShort = params["optInAccelerationInitShort"].as_f64().unwrap_or(0.02) as f64;
+            let optInAccelerationShort = params["optInAccelerationShort"].as_f64().unwrap_or(0.02) as f64;
+            let optInAccelerationMaxShort = params["optInAccelerationMaxShort"].as_f64().unwrap_or(0.2) as f64;
+            Some(core.sarext_lookback(optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort))
+        }
+        "SIN" => {
+            Some(core.sin_lookback())
+        }
+        "SINH" => {
+            Some(core.sinh_lookback())
+        }
+        "SMA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.sma_lookback(optInTimePeriod))
+        }
+        "SQRT" => {
+            Some(core.sqrt_lookback())
+        }
+        "STDDEV" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
+            let optInNbDev = params["optInNbDev"].as_f64().unwrap_or(1.0) as f64;
+            Some(core.stddev_lookback(optInTimePeriod, optInNbDev))
+        }
+        "STOCH" => {
+            let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
+            let optInSlowK_Period = params["optInSlowK_Period"].as_i64().unwrap_or(3) as i32;
+            let optInSlowK_MAType = params["optInSlowK_MAType"].as_i64().unwrap_or(0) as i32;
+            let optInSlowD_Period = params["optInSlowD_Period"].as_i64().unwrap_or(3) as i32;
+            let optInSlowD_MAType = params["optInSlowD_MAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.stoch_lookback(optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType))
+        }
+        "STOCHF" => {
+            let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
+            let optInFastD_Period = params["optInFastD_Period"].as_i64().unwrap_or(3) as i32;
+            let optInFastD_MAType = params["optInFastD_MAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType))
+        }
+        "STOCHRSI" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
+            let optInFastD_Period = params["optInFastD_Period"].as_i64().unwrap_or(3) as i32;
+            let optInFastD_MAType = params["optInFastD_MAType"].as_i64().unwrap_or(0) as i32;
+            Some(core.stochrsi_lookback(optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType))
+        }
+        "SUB" => {
+            Some(core.sub_lookback())
+        }
+        "SUM" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.sum_lookback(optInTimePeriod))
+        }
+        "T3" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
+            let optInVFactor = params["optInVFactor"].as_f64().unwrap_or(0.7) as f64;
+            Some(core.t3_lookback(optInTimePeriod, optInVFactor))
+        }
+        "TAN" => {
+            Some(core.tan_lookback())
+        }
+        "TANH" => {
+            Some(core.tanh_lookback())
+        }
+        "TEMA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.tema_lookback(optInTimePeriod))
+        }
+        "TRANGE" => {
+            Some(core.trange_lookback())
+        }
+        "TRIMA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.trima_lookback(optInTimePeriod))
+        }
+        "TRIX" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.trix_lookback(optInTimePeriod))
+        }
+        "TSF" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.tsf_lookback(optInTimePeriod))
+        }
+        "TYPPRICE" => {
+            Some(core.typprice_lookback())
+        }
+        "ULTOSC" => {
+            let optInTimePeriod1 = params["optInTimePeriod1"].as_i64().unwrap_or(7) as i32;
+            let optInTimePeriod2 = params["optInTimePeriod2"].as_i64().unwrap_or(14) as i32;
+            let optInTimePeriod3 = params["optInTimePeriod3"].as_i64().unwrap_or(28) as i32;
+            Some(core.ultosc_lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3))
+        }
+        "VAR" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
+            let optInNbDev = params["optInNbDev"].as_f64().unwrap_or(1.0) as f64;
+            Some(core.var_lookback(optInTimePeriod, optInNbDev))
+        }
+        "WCLPRICE" => {
+            Some(core.wclprice_lookback())
+        }
+        "WILLR" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
+            Some(core.willr_lookback(optInTimePeriod))
+        }
+        "WMA" => {
+            let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
+            Some(core.wma_lookback(optInTimePeriod))
+        }
+        _ => None,
     }
 }
 

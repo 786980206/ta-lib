@@ -2739,6 +2739,22 @@ fn render_expr(
                     }
                 }
             }
+            // C pointer-identity buffer comparisons (BBANDS' `inReal == outRealUpperBand`,
+            // DEMA's `inReal == outReal`, and the alias-optimization guards) must become
+            // Rust *pointer* comparisons, not value comparisons. In the borrow-checked
+            // slice API an input and an output buffer can never alias, so identity is the
+            // correct semantics; a value comparison wrongly trips on coincidentally-equal
+            // contents (e.g. an all-zero input vs a zero-initialized output → false
+            // TA_BAD_PARAM).
+            if matches!(op, BinOp::Eq | BinOp::NotEq)
+                && is_buffer_operand(left, ctx)
+                && is_buffer_operand(right, ctx)
+            {
+                let l = render_expr(left, ctx, opt_real_params, registry, helpers);
+                let r = render_expr(right, ctx, opt_real_params, registry, helpers);
+                let cmp = if matches!(op, BinOp::Eq) { "==" } else { "!=" };
+                return format!("{l}.as_ptr() {cmp} {r}.as_ptr()");
+            }
             let op_str = match op {
                 BinOp::Add => " + ",
                 BinOp::Sub => " - ",
@@ -3968,6 +3984,36 @@ fn has_any_i32_operand(expr: &Expr) -> bool {
         }
         _ => expr_is_i32_typed(expr),
     }
+}
+
+/// True if `e` is a bare buffer/slice variable — an input slice (`inReal`,
+/// `inHigh`, …), an output slice (`outReal`, `outRealUpperBand`, …), or a
+/// Vec/array local (`tempBuffer1`, `firstEMA`, …).
+///
+/// Used to translate C *pointer-identity* comparisons of whole buffers into Rust
+/// pointer comparisons instead of (wrong) element-wise value comparisons. The
+/// scalar out-params `outBegIdx`/`outNBElement` are dereferenced as `PointerDeref`
+/// in the IR (not bare `Var`) and are excluded by name for belt-and-suspenders.
+fn is_buffer_operand(e: &Expr, ctx: &RustRenderCtx) -> bool {
+    if let Expr::Var(name) = e {
+        if ctx.vec_vars.contains(name)
+            || ctx.int_vec_vars.contains(name)
+            || ctx.real_array_vars.contains(name)
+            || is_vec_local_var(name)
+        {
+            return true;
+        }
+        if (name.starts_with("in") || name.starts_with("out"))
+            && name != "outBegIdx"
+            && name != "outNBElement"
+            && !ctx.index_vars.contains(name)
+            && !ctx.real_vars.contains(name)
+            && !ctx.sentinel_vars.contains(name)
+        {
+            return true;
+        }
+    }
+    false
 }
 
 /// Check if a variable name is likely a Vec<T> local variable (allocated via malloc).

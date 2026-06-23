@@ -1834,6 +1834,39 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     s.push_str("    }\n");
     s.push_str("}\n\n");
 
+    // Helper: serialize an f64 slice as a JSON-ish array. Finite values use
+    // serde_json's (ryu) formatting; non-finite values emit bare `nan`/`-nan`/
+    // `inf`/`-inf` tokens to match the C server's `%.15g` output, which the test
+    // harness's strtod-based parser understands (serde_json's `null` would not
+    // advance the parser, ballooning the parsed element count).
+    s.push_str("fn json_f64_array(data: &[f64]) -> String {\n");
+    s.push_str("    let mut s = String::with_capacity(data.len() * 8 + 2);\n");
+    s.push_str("    s.push('[');\n");
+    s.push_str("    for (i, &v) in data.iter().enumerate() {\n");
+    s.push_str("        if i > 0 { s.push(','); }\n");
+    s.push_str("        match serde_json::Number::from_f64(v) {\n");
+    s.push_str("            Some(n) => s.push_str(&n.to_string()),\n");
+    s.push_str("            None => s.push_str(\n");
+    s.push_str("                if v.is_nan() { if v.is_sign_negative() { \"-nan\" } else { \"nan\" } }\n");
+    s.push_str("                else if v < 0.0 { \"-inf\" } else { \"inf\" }),\n");
+    s.push_str("        }\n");
+    s.push_str("    }\n");
+    s.push_str("    s.push(']');\n");
+    s.push_str("    s\n");
+    s.push_str("}\n\n");
+
+    // Helper: serialize an i32 slice as a JSON array.
+    s.push_str("fn json_i32_array(data: &[i32]) -> String {\n");
+    s.push_str("    let mut s = String::with_capacity(data.len() * 4 + 2);\n");
+    s.push_str("    s.push('[');\n");
+    s.push_str("    for (i, &v) in data.iter().enumerate() {\n");
+    s.push_str("        if i > 0 { s.push(','); }\n");
+    s.push_str("        s.push_str(&v.to_string());\n");
+    s.push_str("    }\n");
+    s.push_str("    s.push(']');\n");
+    s.push_str("    s\n");
+    s.push_str("}\n\n");
+
     // Helper: FuncUnstId from integer
     s.push_str("fn func_unst_id_from_int(id: usize) -> Option<FuncUnstId> {\n");
     s.push_str("    match id {\n");
@@ -1880,8 +1913,13 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     );
     s.push_str("    };\n");
     s.push_str("    let params = &req[\"params\"];\n\n");
+    s.push_str("    dispatch(core, ref_data, method, params)\n");
+    s.push_str("}\n\n");
 
-    // Dispatch match
+    // dispatch — the method router. Split out from handle_request so the
+    // abstract_call RPC can re-enter it (reroute funcName -> \"TA_<funcName>\"),
+    // mirroring C's handle_abstract_call which dispatches generically.
+    s.push_str("fn dispatch(core: &mut Core, ref_data: &mut RefData, method: &str, params: &Value) -> String {\n");
     s.push_str("    match method {\n");
 
     // load_data handler
@@ -2075,14 +2113,25 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         s.push_str("            }\n"); // end unguarded bench loop
         s.push_str("            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;\n");
 
-        // Build response JSON
-        s.push_str("            let mut resp = serde_json::json!({\n");
-        s.push_str("                \"retCode\": retcode_to_int(rc),\n");
-        s.push_str("                \"outBegIdx\": outBegIdx,\n");
-        s.push_str("                \"outNBElement\": outNBElement,\n");
-        s.push_str("                \"timing_ns\": elapsed_ns,\n");
-        s.push_str("                \"timing_ns_unguarded\": elapsed_ns_ung,\n");
-        s.push_str("            });\n");
+        // Lookback (mirrors C's TA_<NAME>_Lookback). Emitted on every response so the
+        // abstract_call reroute returns the `lookback` field the C ta_abstract path
+        // exposes; harmless extra field for the regular per-function path. Computed
+        // after the unstable-period assignment above so it reflects that state.
+        s.push_str(&format!("            let lookback = core.{fn_name}_lookback("));
+        let lb_args: Vec<String> = func
+            .optional_inputs
+            .iter()
+            .map(|o| o.name.clone())
+            .collect();
+        s.push_str(&lb_args.join(", "));
+        s.push_str(");\n");
+
+        // Build the response string manually (not via serde_json) so non-finite
+        // f64 outputs serialize as `nan`/`-nan`/`inf`/`-inf` — matching the C
+        // server's `%.15g` — rather than serde_json's `null` (which the test
+        // harness's strtod-based array parser cannot advance past, ballooning the
+        // element count). Finite values use json_f64_array (serde_json formatting).
+        s.push_str("            let mut resp = format!(\"{{\\\"retCode\\\":{},\\\"outBegIdx\\\":{},\\\"outNBElement\\\":{},\\\"lookback\\\":{},\\\"timing_ns\\\":{},\\\"timing_ns_unguarded\\\":{}\", retcode_to_int(rc), outBegIdx, outNBElement, lookback, elapsed_ns, elapsed_ns_ung);\n");
 
         // Add output arrays to response
         real_idx = 0;
@@ -2091,18 +2140,19 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
             let key = output_json_key(outputs, k);
             if out.param_type == ParamType::Integer {
                 s.push_str(&format!(
-                    "            resp[\"{key}\"] = serde_json::json!(&outIntBuf{int_idx}[..outNBElement]);\n"
+                    "            resp.push_str(\",\\\"{key}\\\":\"); resp.push_str(&json_i32_array(&outIntBuf{int_idx}[..outNBElement]));\n"
                 ));
                 int_idx += 1;
             } else {
                 s.push_str(&format!(
-                    "            resp[\"{key}\"] = serde_json::json!(&outBuf{real_idx}[..outNBElement]);\n"
+                    "            resp.push_str(\",\\\"{key}\\\":\"); resp.push_str(&json_f64_array(&outBuf{real_idx}[..outNBElement]));\n"
                 ));
                 real_idx += 1;
             }
         }
 
-        s.push_str("            resp.to_string()\n");
+        s.push_str("            resp.push('}');\n");
+        s.push_str("            resp\n");
         s.push_str("        }\n");
     }
 
@@ -2159,12 +2209,62 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     // Rust introspection metadata parity against the C reference.
     s.push_str(RUST_ABSTRACT_METADATA_HANDLERS);
 
+    // Abstract dynamic-dispatch handlers (abstract_call, abstract_get_lookback,
+    // abstract_for_each_func) + TA_FunctionDescriptionXML. Completes the Rust mirror
+    // of C's ta_abstract serve path so the full test_abstract() drives the Rust
+    // server (numeric output comparison, not just metadata). abstract_call reroutes
+    // through dispatch(); abstract_get_lookback uses the generated abstract_lookback().
+    s.push_str(RUST_ABSTRACT_DYNAMIC_HANDLERS);
+
     // Unknown method
     s.push_str("        _ => {\n");
     s.push_str(
         "            format!(\"{{\\\"error\\\":\\\"Unknown method: {}\\\"}}\", method)\n",
     );
     s.push_str("        }\n");
+    s.push_str("    }\n");
+    s.push_str("}\n\n");
+
+    // abstract_lookback — generic lookback dispatcher used by the abstract_get_lookback
+    // RPC (funcName + opt params -> Core::<fn>_lookback). Opt-param parsing mirrors the
+    // per-function arm exactly (same defaults/types), so the lookback matches c-ref's
+    // TA_GetLookback for the same parameters. Returns None for an unknown funcName.
+    s.push_str("fn abstract_lookback(core: &Core, func_name: &str, params: &Value) -> Option<usize> {\n");
+    s.push_str("    match func_name {\n");
+    for func in funcs {
+        let fn_name = func.name.to_lowercase();
+        s.push_str(&format!("        \"{}\" => {{\n", func.name));
+        for opt in &func.optional_inputs {
+            let default_val = opt.default.unwrap_or(0.0);
+            if opt.param_type == ParamType::Real {
+                s.push_str(&format!(
+                    "            let {} = params[\"{}\"].as_f64().unwrap_or({}) as f64;\n",
+                    opt.name,
+                    opt.name,
+                    format_default_f64(default_val)
+                ));
+            } else {
+                #[allow(clippy::cast_possible_truncation)]
+                let default_i = default_val as i64;
+                s.push_str(&format!(
+                    "            let {} = params[\"{}\"].as_i64().unwrap_or({}) as i32;\n",
+                    opt.name, opt.name, default_i
+                ));
+            }
+        }
+        let lb_args: Vec<String> = func
+            .optional_inputs
+            .iter()
+            .map(|o| o.name.clone())
+            .collect();
+        s.push_str(&format!(
+            "            Some(core.{}_lookback({}))\n",
+            fn_name,
+            lb_args.join(", ")
+        ));
+        s.push_str("        }\n");
+    }
+    s.push_str("        _ => None,\n");
     s.push_str("    }\n");
     s.push_str("}\n\n");
 
@@ -2304,5 +2404,53 @@ const RUST_ABSTRACT_METADATA_HANDLERS: &str = r##"        "TA_GetFuncInfo" => {
                 }
                 None => "{\"retCode\":2}".to_string(),
             }
+        }
+"##;
+
+/// Rust server match arms for the abstract dynamic-dispatch RPCs. Mirrors C's
+/// `ta_abstract_serve.c` (`handle_abstract_call`, `handle_abstract_get_lookback`,
+/// `handle_abstract_for_each_func`) plus `TA_FunctionDescriptionXML`, so the same
+/// `test_abstract.c` comparator drives Rust-vs-C numeric parity.
+///
+///  * `abstract_call` re-enters `dispatch()` as `TA_<funcName>` — the request keys
+///    (startIdx/endIdx/inReal.../optIn... ) are identical to the per-function RPC, and
+///    that arm now emits `lookback`, so the response matches the C abstract_call shape.
+///  * `abstract_get_lookback` uses the generated `abstract_lookback()` dispatcher.
+///  * `abstract_for_each_func` enumerates via the `abstract_api` registry.
+///  * `TA_FunctionDescriptionXML` returns the byte length + byte-sum checksum of the
+///    embedded `ta_func_api.xml` (order-independent content check vs the C reference).
+const RUST_ABSTRACT_DYNAMIC_HANDLERS: &str = r##"        "abstract_call" => {
+            let fname = params["funcName"].as_str().unwrap_or("");
+            if fname.is_empty() {
+                return "{\"error\":\"Missing funcName\"}".to_string();
+            }
+            let rerouted = format!("TA_{}", fname);
+            dispatch(core, ref_data, &rerouted, params)
+        }
+        "abstract_get_lookback" => {
+            let fname = params["funcName"].as_str().unwrap_or("");
+            match abstract_lookback(core, fname, params) {
+                Some(lb) => format!("{{\"lookback\":{}}}", lb),
+                None => format!("{{\"error\":\"Unknown function: {}\"}}", fname),
+            }
+        }
+        "abstract_for_each_func" => {
+            let mut arr: Vec<Value> = Vec::new();
+            abstract_api::for_each_func(|fi| {
+                arr.push(serde_json::json!({
+                    "name": fi.name,
+                    "group": fi.group.as_str(),
+                    "nbInput": fi.nb_input(),
+                    "nbOptInput": fi.nb_opt_input(),
+                    "nbOutput": fi.nb_output(),
+                }));
+            });
+            serde_json::json!({ "functions": arr }).to_string()
+        }
+        "TA_FunctionDescriptionXML" => {
+            let xml = abstract_api::function_description_xml();
+            let length = xml.len();
+            let checksum: u64 = xml.bytes().map(|b| u64::from(b)).sum();
+            format!("{{\"length\":{},\"checksum\":{}}}", length, checksum)
         }
 "##;

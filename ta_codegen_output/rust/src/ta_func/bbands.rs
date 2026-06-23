@@ -110,20 +110,20 @@ impl Core {
         let mut tempReal2: f64 = 0.0_f64;
         let mut tempBuffer1: Vec<f64> = Vec::new();
         let mut tempBuffer2: Vec<f64> = Vec::new();
-        if inReal == outRealUpperBand {
+        if inReal.as_ptr() == outRealUpperBand.as_ptr() {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealLowerBand.to_vec();
-        } else if inReal == outRealLowerBand {
+        } else if inReal.as_ptr() == outRealLowerBand.as_ptr() {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealUpperBand.to_vec();
-        } else if inReal == outRealMiddleBand {
+        } else if inReal.as_ptr() == outRealMiddleBand.as_ptr() {
             tempBuffer1 = outRealLowerBand.to_vec();
             tempBuffer2 = outRealUpperBand.to_vec();
         } else {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealUpperBand.to_vec();
         }
-        if tempBuffer1 == inReal || tempBuffer2 == inReal {
+        if tempBuffer1.as_ptr() == inReal.as_ptr() || tempBuffer2.as_ptr() == inReal.as_ptr() {
             return RetCode::BadParam;
         }
         retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
@@ -178,7 +178,7 @@ impl Core {
                 return retCode;
             }
         }
-        if tempBuffer1 != outRealMiddleBand {
+        if tempBuffer1.as_ptr() != outRealMiddleBand.as_ptr() {
             {
             let _n = ((*outNBElement) * 1) as usize;
             let _di = (0) as usize;
@@ -268,20 +268,20 @@ impl Core {
         assert!(endIdx - startIdx < outRealUpperBand.len());
         assert!(endIdx - startIdx < outRealMiddleBand.len());
         assert!(endIdx - startIdx < outRealLowerBand.len());
-        if inReal == outRealUpperBand {
+        if inReal.as_ptr() == outRealUpperBand.as_ptr() {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealLowerBand.to_vec();
-        } else if inReal == outRealLowerBand {
+        } else if inReal.as_ptr() == outRealLowerBand.as_ptr() {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealUpperBand.to_vec();
-        } else if inReal == outRealMiddleBand {
+        } else if inReal.as_ptr() == outRealMiddleBand.as_ptr() {
             tempBuffer1 = outRealLowerBand.to_vec();
             tempBuffer2 = outRealUpperBand.to_vec();
         } else {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealUpperBand.to_vec();
         }
-        if tempBuffer1 == inReal || tempBuffer2 == inReal {
+        if tempBuffer1.as_ptr() == inReal.as_ptr() || tempBuffer2.as_ptr() == inReal.as_ptr() {
             return RetCode::BadParam;
         }
         retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
@@ -336,7 +336,7 @@ impl Core {
                 return retCode;
             }
         }
-        if tempBuffer1 != outRealMiddleBand {
+        if tempBuffer1.as_ptr() != outRealMiddleBand.as_ptr() {
             {
             let _n = ((*outNBElement) * 1) as usize;
             let _di = (0) as usize;

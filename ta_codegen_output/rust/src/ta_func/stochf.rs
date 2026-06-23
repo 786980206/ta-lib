@@ -152,9 +152,9 @@ impl Core {
         highest = lowest;
         diff = highest;
         bufferIsAllocated = 0;
-        if outFastK == inHigh || outFastK == inLow || outFastK == inClose {
+        if outFastK.as_ptr() == inHigh.as_ptr() || outFastK.as_ptr() == inLow.as_ptr() || outFastK.as_ptr() == inClose.as_ptr() {
             tempBuffer = outFastK.to_vec();
-        } else if outFastD == inHigh || outFastD == inLow || outFastD == inClose {
+        } else if outFastD.as_ptr() == inHigh.as_ptr() || outFastD.as_ptr() == inLow.as_ptr() || outFastD.as_ptr() == inClose.as_ptr() {
             tempBuffer = outFastD.to_vec();
         } else {
             bufferIsAllocated = 1;
@@ -289,9 +289,9 @@ impl Core {
         highest = lowest;
         diff = highest;
         bufferIsAllocated = 0;
-        if outFastK == inHigh || outFastK == inLow || outFastK == inClose {
+        if outFastK.as_ptr() == inHigh.as_ptr() || outFastK.as_ptr() == inLow.as_ptr() || outFastK.as_ptr() == inClose.as_ptr() {
             tempBuffer = outFastK.to_vec();
-        } else if outFastD == inHigh || outFastD == inLow || outFastD == inClose {
+        } else if outFastD.as_ptr() == inHigh.as_ptr() || outFastD.as_ptr() == inLow.as_ptr() || outFastD.as_ptr() == inClose.as_ptr() {
             tempBuffer = outFastD.to_vec();
         } else {
             bufferIsAllocated = 1;
