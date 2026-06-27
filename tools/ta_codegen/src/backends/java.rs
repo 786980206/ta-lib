@@ -8,6 +8,7 @@ use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
 use super::expr_walk::ExprEmitter;
+use super::stmt_walk::StatementEmitter;
 
 /// Candle helper function names that should be rendered inline (as ternary
 /// expressions) rather than hoisted into switch-block temporaries.  Keeping
@@ -760,7 +761,366 @@ pub fn render_statement(
     render_statement_ctx(stmt, indent, &ctx, enums, registry, helpers)
 }
 
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+/// Java-backend leaf formatting for the shared [`StatementEmitter`] tree-walk.
+/// Bundles the render context with the enum/registry/helper services the hooks
+/// need; the recursion and variant dispatch live in [`StatementEmitter::walk_stmt`].
+struct JavaStmt<'a> {
+    ctx: &'a JavaRenderCtx<'a>,
+    enums: &'a HashMap<String, EnumDef>,
+    registry: &'a Registry,
+    helpers: &'a HelperRegistry,
+}
+
+impl StatementEmitter for JavaStmt<'_> {
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn var_decl(&self, var_type: &VarType, name: &str, init: &Option<Expr>, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Top-level VarDecls are emitted by the function renderer and skipped
+        // before calling render_statement. This arm handles block-scoped VarDecls
+        // (inside while/for/if bodies) that need local declarations.
+        let type_str = match var_type {
+            VarType::RealArray(size) => {
+                return format!(
+                    "{pad}double[] {name} = new double[{size}];\n"
+                );
+            }
+            VarType::IntArray(size) => {
+                return format!("{pad}int[] {name} = new int[{size}];\n");
+            }
+            _ => java_type_str(var_type),
+        };
+        if let Some(init_expr) = init {
+            let mut hoisted_vec = Vec::new();
+            let mut cnt = self.ctx.inline_counter.get();
+            let new_init = hoist_block_helpers(
+                init_expr, self.helpers, &mut hoisted_vec, &mut cnt, JAVA_CANDLE_FNS,
+            );
+            self.ctx.inline_counter.set(cnt);
+            let mut out = render_hoisted_blocks(
+                &hoisted_vec, indent, self.ctx, self.enums, self.registry, self.helpers,
+            );
+            let init_str = render_expr(&new_init, self.ctx, self.registry, self.helpers);
+            out.push_str(&format!("{pad}{type_str} {name} = {init_str};\n"));
+            out
+        } else {
+            format!("{pad}{type_str} {name};\n")
+        }
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn assign(&self, target: &Expr, value: &Expr, compound: bool, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Handle output scalar assignments via .value
+        if let Expr::Var(name) = target {
+            if name == "outBegIdx" || name == "outNBElement" {
+                return format!(
+                    "{}{}.value = {};\n",
+                    pad,
+                    name,
+                    render_expr(value, self.ctx, self.registry, self.helpers)
+                );
+            }
+        }
+
+        // Hoist multi-statement helpers from the value expression
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_value = hoist_block_helpers(
+            value, self.helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
+        );
+        self.ctx.inline_counter.set(cnt);
+        let mut out = render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        );
+
+        // Only fold compound assignments if the original source used +=/-=/etc.
+        if compound {
+            if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
+                if let Expr::Var(lname) = left.as_ref() {
+                    if lname == tname {
+                        let op_str = match op {
+                            BinOp::Add => "+=",
+                            BinOp::Sub => "-=",
+                            BinOp::Mul => "*=",
+                            BinOp::Div => "/=",
+                            BinOp::Mod
+                            | BinOp::LessEq
+                            | BinOp::Less
+                            | BinOp::Greater
+                            | BinOp::GreaterEq
+                            | BinOp::Eq
+                            | BinOp::NotEq
+                            | BinOp::And
+                            | BinOp::Or
+                            | BinOp::BitwiseOr
+                            | BinOp::Shr
+                            | BinOp::Shl => "",
+                        };
+                        if !op_str.is_empty() {
+                            let target_str = render_assign_target(target, self.ctx, self.registry, self.helpers);
+                            out.push_str(&format!(
+                                "{}{} {} {};\n",
+                                pad,
+                                target_str,
+                                op_str,
+                                render_expr(right, self.ctx, self.registry, self.helpers)
+                            ));
+                            return out;
+                        }
+                    }
+                }
+            }
+        }
+
+        let target_str = render_assign_target(target, self.ctx, self.registry, self.helpers);
+        let value_str = render_expr(&new_value, self.ctx, self.registry, self.helpers);
+        out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
+        out
+    }
+
+    fn expr_stmt(&self, e: &Expr, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Statement-level expression: render a bare call/macro for its side effects.
+        // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+        if matches!(e, Expr::Var(_)) {
+            return String::new();
+        }
+        if let Expr::FuncCall(fname, args) = e {
+            // Check if helper inlines to a bare variable (identity helper)
+            if let Some(helper) = self.helpers.get(fname) {
+                if let Some(inlined) = try_inline_expr(helper, args) {
+                    if matches!(inlined, Expr::Var(_)) {
+                        return String::new();
+                    }
+                }
+            }
+            let rendered = render_func_call(fname, args, self.ctx, self.registry, self.helpers);
+            // Skip empty renders (e.g. free() returns "")
+            if rendered.is_empty() {
+                return String::new();
+            }
+            return format!("{pad}{rendered};\n");
+        }
+        String::new()
+    }
+
+    fn while_loop(&self, condition: &Expr, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Hoist multi-statement helpers from the condition expression
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_condition = hoist_block_helpers(
+            condition, self.helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
+        );
+        self.ctx.inline_counter.set(cnt);
+        let mut out = render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        );
+        let cond_str = render_expr(&new_condition, self.ctx, self.registry, self.helpers);
+        let cond_java = if is_boolean_expr(&new_condition) {
+            cond_str
+        } else {
+            format!("({cond_str}) != 0")
+        };
+        out.push_str(&format!("{pad}while( {cond_java} ) {{\n"));
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    fn do_while(&self, condition: &Expr, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Hoist multi-statement helpers from the condition expression.
+        // For do-while, hoisted blocks go INSIDE the loop body (before the
+        // closing `} while(cond)`) so they execute each iteration.
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_condition = hoist_block_helpers(
+            condition, self.helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
+        );
+        self.ctx.inline_counter.set(cnt);
+        let mut out = format!("{pad}do {{\n");
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        out.push_str(&render_hoisted_blocks(
+            &hoisted, indent + 3, self.ctx, self.enums, self.registry, self.helpers,
+        ));
+        let cond_str = render_expr(&new_condition, self.ctx, self.registry, self.helpers);
+        let cond_java = if is_boolean_expr(&new_condition) {
+            cond_str
+        } else {
+            format!("({cond_str}) != 0")
+        };
+        out.push_str(&format!("{pad}}} while( {cond_java} );\n"));
+        out
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Skip post-allocation null-check blocks (dead code in Java — `new` never returns null)
+        if contains_alloc_err_return(then_body) {
+            return String::new();
+        }
+        // Split `if(A && B)` into nested `if(A) { if(B)` when both sides
+        // contain a candle helper call (ta_candlerange/ta_candleaverage).
+        // This preserves short-circuit evaluation so the expensive ternary
+        // on the right side is only computed when the left side is true.
+        if let Expr::BinOp(left, BinOp::And, right) = condition {
+            if expr_directly_contains_candle_call(left)
+                && expr_directly_contains_candle_call(right)
+            {
+                let inner_if = Statement::If {
+                    condition: *right.clone(),
+                    then_body: then_body.to_vec(),
+                    else_body: else_body.to_vec(),
+                };
+                let outer_if = Statement::If {
+                    condition: *left.clone(),
+                    then_body: vec![inner_if],
+                    else_body: else_body.to_vec(),
+                };
+                return self.walk_stmt(&outer_if, indent);
+            }
+        }
+        // Hoist multi-statement helpers from the condition expression
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_condition = hoist_block_helpers(
+            condition, self.helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
+        );
+        self.ctx.inline_counter.set(cnt);
+        let mut out = render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        );
+        let cond_str = render_expr(&new_condition, self.ctx, self.registry, self.helpers);
+        let cond_java = if is_boolean_expr(&new_condition) {
+            cond_str
+        } else {
+            format!("({cond_str}) != 0")
+        };
+        out.push_str(&format!("{pad}if( {cond_java} ) {{\n"));
+        for s in then_body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        if else_body.is_empty() {
+            out.push_str(&format!("{pad}}}\n"));
+        } else {
+            out.push_str(&format!("{pad}}} else "));
+            if else_body.len() == 1 {
+                if let Statement::If { .. } = &else_body[0] {
+                    let if_str = self.walk_stmt(&else_body[0], indent);
+                    out.push_str(if_str.trim_start());
+                    return out;
+                }
+            }
+            out.push_str("{\n");
+            for s in else_body {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}}}\n"));
+        }
+        out
+    }
+
+    fn return_stmt(&self, value: &Option<Expr>, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        match value {
+            Some(expr) => {
+                let rendered = render_return_expr(expr, self.ctx, self.registry, self.helpers);
+                format!("{pad}return {rendered} ;\n")
+            }
+            None => format!("{pad}return ;\n"),
+        }
+    }
+
+    fn for_loop(&self, var: &str, count: &Expr, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = format!(
+            "{}for( {} = {}; {} > 0; {}-- ) {{\n",
+            pad,
+            var,
+            render_expr(count, self.ctx, self.registry, self.helpers),
+            var,
+            var,
+        );
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    fn for_c(&self, init: &Statement, condition: &Expr, update: &Statement, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let init_str = render_forc_part(init, self.ctx, self.enums, self.registry, self.helpers);
+        let update_str = render_forc_part(update, self.ctx, self.enums, self.registry, self.helpers);
+        // Hoist multi-statement helpers from the condition expression
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_condition = hoist_block_helpers(
+            condition, self.helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
+        );
+        self.ctx.inline_counter.set(cnt);
+        let mut out = render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        );
+        out.push_str(&format!(
+            "{}for( {}; {}; {} ) {{\n",
+            pad,
+            init_str.trim(),
+            render_expr(&new_condition, self.ctx, self.registry, self.helpers),
+            update_str.trim()
+        ));
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn switch(&self, expr: &Expr, cases: &[(String, Vec<Statement>)], default: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Hoist multi-statement helpers from the switch expression
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_expr = hoist_block_helpers(
+            expr, self.helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
+        );
+        self.ctx.inline_counter.set(cnt);
+        let mut out = render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        );
+        out.push_str(&format!(
+            "{}switch( {} )\n{}{{\n",
+            pad,
+            render_expr(&new_expr, self.ctx, self.registry, self.helpers),
+            pad
+        ));
+        for (label, case_body) in cases {
+            let java_label = render_java_switch_label(label, self.enums);
+            out.push_str(&format!("{pad}case {java_label}:\n"));
+            for s in case_body {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}   break;\n"));
+        }
+        if !default.is_empty() {
+            out.push_str(&format!("{pad}default:\n"));
+            for s in default {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}   break;\n"));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+}
+
 fn render_statement_ctx(
     stmt: &Statement,
     indent: usize,
@@ -769,387 +1129,7 @@ fn render_statement_ctx(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    let pad = " ".repeat(indent);
-    match stmt {
-        Statement::VarDecl {
-            var_type,
-            name,
-            init,
-        } => {
-            // Top-level VarDecls are emitted by the function renderer and skipped
-            // before calling render_statement. This arm handles block-scoped VarDecls
-            // (inside while/for/if bodies) that need local declarations.
-            let type_str = match var_type {
-                VarType::RealArray(size) => {
-                    return format!(
-                        "{pad}double[] {name} = new double[{size}];\n"
-                    );
-                }
-                VarType::IntArray(size) => {
-                    return format!("{pad}int[] {name} = new int[{size}];\n");
-                }
-                _ => java_type_str(var_type),
-            };
-            if let Some(init_expr) = init {
-                let mut hoisted_vec = Vec::new();
-                let mut cnt = ctx.inline_counter.get();
-                let new_init = hoist_block_helpers(
-                    init_expr, helpers, &mut hoisted_vec, &mut cnt, JAVA_CANDLE_FNS,
-                );
-                ctx.inline_counter.set(cnt);
-                let mut out = render_hoisted_blocks(
-                    &hoisted_vec, indent, ctx, enums, registry, helpers,
-                );
-                let init_str = render_expr(&new_init, ctx, registry, helpers);
-                out.push_str(&format!("{pad}{type_str} {name} = {init_str};\n"));
-                out
-            } else {
-                format!("{pad}{type_str} {name};\n")
-            }
-        }
-        Statement::Assign {
-            target,
-            value,
-            compound,
-        } => {
-            // Handle output scalar assignments via .value
-            if let Expr::Var(name) = target {
-                if name == "outBegIdx" || name == "outNBElement" {
-                    return format!(
-                        "{}{}.value = {};\n",
-                        pad,
-                        name,
-                        render_expr(value, ctx, registry, helpers)
-                    );
-                }
-            }
-
-            // Hoist multi-statement helpers from the value expression
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_value = hoist_block_helpers(
-                value, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
-            );
-            ctx.inline_counter.set(cnt);
-            let mut out = render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            );
-
-            // Only fold compound assignments if the original source used +=/-=/etc.
-            if *compound {
-                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
-                    if let Expr::Var(lname) = left.as_ref() {
-                        if lname == tname {
-                            let op_str = match op {
-                                BinOp::Add => "+=",
-                                BinOp::Sub => "-=",
-                                BinOp::Mul => "*=",
-                                BinOp::Div => "/=",
-                                BinOp::Mod
-                                | BinOp::LessEq
-                                | BinOp::Less
-                                | BinOp::Greater
-                                | BinOp::GreaterEq
-                                | BinOp::Eq
-                                | BinOp::NotEq
-                                | BinOp::And
-                                | BinOp::Or
-                                | BinOp::BitwiseOr
-                                | BinOp::Shr
-                                | BinOp::Shl => "",
-                            };
-                            if !op_str.is_empty() {
-                                let target_str = render_assign_target(target, ctx, registry, helpers);
-                                out.push_str(&format!(
-                                    "{}{} {} {};\n",
-                                    pad,
-                                    target_str,
-                                    op_str,
-                                    render_expr(right, ctx, registry, helpers)
-                                ));
-                                return out;
-                            }
-                        }
-                    }
-                }
-            }
-
-            let target_str = render_assign_target(target, ctx, registry, helpers);
-            let value_str = render_expr(&new_value, ctx, registry, helpers);
-            out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
-            out
-        }
-        Statement::Expr(e) => {
-            // Statement-level expression: render a bare call/macro for its side effects.
-            // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
-            if matches!(e, Expr::Var(_)) {
-                return String::new();
-            }
-            if let Expr::FuncCall(fname, args) = e {
-                // Check if helper inlines to a bare variable (identity helper)
-                if let Some(helper) = helpers.get(fname) {
-                    if let Some(inlined) = try_inline_expr(helper, args) {
-                        if matches!(inlined, Expr::Var(_)) {
-                            return String::new();
-                        }
-                    }
-                }
-                let rendered = render_func_call(fname, args, ctx, registry, helpers);
-                // Skip empty renders (e.g. free() returns "")
-                if rendered.is_empty() {
-                    return String::new();
-                }
-                return format!("{pad}{rendered};\n");
-            }
-            String::new()
-        }
-        Statement::While { condition, body } => {
-            // Hoist multi-statement helpers from the condition expression
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
-            );
-            ctx.inline_counter.set(cnt);
-            let mut out = render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            );
-            let cond_str = render_expr(&new_condition, ctx, registry, helpers);
-            let cond_java = if is_boolean_expr(&new_condition) {
-                cond_str
-            } else {
-                format!("({cond_str}) != 0")
-            };
-            out.push_str(&format!("{pad}while( {cond_java} ) {{\n"));
-            for s in body {
-                out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::DoWhile { condition, body } => {
-            // Hoist multi-statement helpers from the condition expression.
-            // For do-while, hoisted blocks go INSIDE the loop body (before the
-            // closing `} while(cond)`) so they execute each iteration.
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
-            );
-            ctx.inline_counter.set(cnt);
-            let mut out = format!("{pad}do {{\n");
-            for s in body {
-                out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-            }
-            out.push_str(&render_hoisted_blocks(
-                &hoisted, indent + 3, ctx, enums, registry, helpers,
-            ));
-            let cond_str = render_expr(&new_condition, ctx, registry, helpers);
-            let cond_java = if is_boolean_expr(&new_condition) {
-                cond_str
-            } else {
-                format!("({cond_str}) != 0")
-            };
-            out.push_str(&format!("{pad}}} while( {cond_java} );\n"));
-            out
-        }
-        Statement::If {
-            condition,
-            then_body,
-            else_body,
-        } => {
-            // Skip post-allocation null-check blocks (dead code in Java — `new` never returns null)
-            if contains_alloc_err_return(then_body) {
-                return String::new();
-            }
-            // Split `if(A && B)` into nested `if(A) { if(B)` when both sides
-            // contain a candle helper call (ta_candlerange/ta_candleaverage).
-            // This preserves short-circuit evaluation so the expensive ternary
-            // on the right side is only computed when the left side is true.
-            if let Expr::BinOp(left, BinOp::And, right) = condition {
-                if expr_directly_contains_candle_call(left)
-                    && expr_directly_contains_candle_call(right)
-                {
-                    let inner_if = Statement::If {
-                        condition: *right.clone(),
-                        then_body: then_body.clone(),
-                        else_body: else_body.clone(),
-                    };
-                    let outer_if = Statement::If {
-                        condition: *left.clone(),
-                        then_body: vec![inner_if],
-                        else_body: else_body.clone(),
-                    };
-                    return render_statement_ctx(&outer_if, indent, ctx, enums, registry, helpers);
-                }
-            }
-            // Hoist multi-statement helpers from the condition expression
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
-            );
-            ctx.inline_counter.set(cnt);
-            let mut out = render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            );
-            let cond_str = render_expr(&new_condition, ctx, registry, helpers);
-            let cond_java = if is_boolean_expr(&new_condition) {
-                cond_str
-            } else {
-                format!("({cond_str}) != 0")
-            };
-            out.push_str(&format!("{pad}if( {cond_java} ) {{\n"));
-            for s in then_body {
-                out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-            }
-            if else_body.is_empty() {
-                out.push_str(&format!("{pad}}}\n"));
-            } else {
-                out.push_str(&format!("{pad}}} else "));
-                if else_body.len() == 1 {
-                    if let Statement::If { .. } = &else_body[0] {
-                        let if_str = render_statement_ctx(&else_body[0], indent, ctx, enums, registry, helpers);
-                        out.push_str(if_str.trim_start());
-                        return out;
-                    }
-                }
-                out.push_str("{\n");
-                for s in else_body {
-                    out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-                }
-                out.push_str(&format!("{pad}}}\n"));
-            }
-            out
-        }
-        Statement::Return { value } => match value {
-            Some(expr) => {
-                let rendered = render_return_expr(expr, ctx, registry, helpers);
-                format!("{pad}return {rendered} ;\n")
-            }
-            None => format!("{pad}return ;\n"),
-        },
-        Statement::For { var, count, body } => {
-            let mut out = format!(
-                "{}for( {} = {}; {} > 0; {}-- ) {{\n",
-                pad,
-                var,
-                render_expr(count, ctx, registry, helpers),
-                var,
-                var,
-            );
-            for s in body {
-                out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::ForC {
-            init,
-            condition,
-            update,
-            body,
-        } => {
-            let init_str = render_forc_part(init, ctx, enums, registry, helpers);
-            let update_str = render_forc_part(update, ctx, enums, registry, helpers);
-            // Hoist multi-statement helpers from the condition expression
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
-            );
-            ctx.inline_counter.set(cnt);
-            let mut out = render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            );
-            out.push_str(&format!(
-                "{}for( {}; {}; {} ) {{\n",
-                pad,
-                init_str.trim(),
-                render_expr(&new_condition, ctx, registry, helpers),
-                update_str.trim()
-            ));
-            for s in body {
-                out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::Block { body } => {
-            let mut out = String::new();
-            // Emit VarDecl declarations first (render_statement skips VarDecl)
-            for s in body {
-                if let Statement::VarDecl { var_type: vt, name, init } = s {
-                    let type_part = match vt {
-                        VarType::RealArray(size) => {
-                            out.push_str(&format!("{pad}double[] {name} = new double[{size}];\n"));
-                            continue;
-                        }
-                        VarType::IntArray(size) => {
-                            out.push_str(&format!("{pad}int[] {name} = new int[{size}];\n"));
-                            continue;
-                        }
-                        _ => java_type_str(vt).to_string(),
-                    };
-                    if let Some(init_expr) = init {
-                        let init_str = render_expr(init_expr, ctx, registry, helpers);
-                        out.push_str(&format!("{pad}{type_part} {name} = {init_str};\n"));
-                    } else {
-                        out.push_str(&format!("{pad}{type_part} {name};\n"));
-                    }
-                }
-            }
-            for s in body {
-                // Skip VarDecls — already emitted in the declaration loop above
-                if matches!(s, Statement::VarDecl { .. }) {
-                    continue;
-                }
-                out.push_str(&render_statement_ctx(s, indent, ctx, enums, registry, helpers));
-            }
-            out
-        }
-        Statement::Break => format!("{pad}break;\n"),
-        Statement::Continue => format!("{pad}continue;\n"),
-        Statement::Switch {
-            expr,
-            cases,
-            default,
-        } => {
-            // Hoist multi-statement helpers from the switch expression
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_expr = hoist_block_helpers(
-                expr, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
-            );
-            ctx.inline_counter.set(cnt);
-            let mut out = render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            );
-            out.push_str(&format!(
-                "{}switch( {} )\n{}{{\n",
-                pad,
-                render_expr(&new_expr, ctx, registry, helpers),
-                pad
-            ));
-            for (label, case_body) in cases {
-                let java_label = render_java_switch_label(label, enums);
-                out.push_str(&format!("{pad}case {java_label}:\n"));
-                for s in case_body {
-                    out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-                }
-                out.push_str(&format!("{pad}   break;\n"));
-            }
-            if !default.is_empty() {
-                out.push_str(&format!("{pad}default:\n"));
-                for s in default {
-                    out.push_str(&render_statement_ctx(s, indent + 3, ctx, enums, registry, helpers));
-                }
-                out.push_str(&format!("{pad}   break;\n"));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-    }
+    JavaStmt { ctx, enums, registry, helpers }.walk_stmt(stmt, indent)
 }
 
 fn render_java_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String {
