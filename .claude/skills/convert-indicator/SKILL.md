@@ -161,11 +161,3 @@ Each backend has the same structure:
 | Recursive | EMA | PER_TO_K, DEFAULT/METASTOCK compat, operator precedence |
 | Dispatcher | MA | switch/case, RetCodeType, function call dispatch, BAD_PARAM/SUCCESS |
 | Multi-output | BBANDS | multiple output arrays, temp buffers |
-
-## Changelog
-
-After committing, update `RUST_CHANGELOG.md`:
-- One entry per day, every commit gets a bullet
-- `git diff first^..last` for inclusive local diffs
-- `compare/<parent-of-first>...last` for GitHub URLs
-- Summary bullet with total validation count at end

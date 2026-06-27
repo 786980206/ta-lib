@@ -154,33 +154,6 @@ The `/convert-indicator` skill automates picking up and resuming this work.
 `scripts/build.py` checks the prerequisites per target and configures CMake
 automatically on first run.
 
-## Changelog Format (RUST_CHANGELOG.md)
-
-One entry per day. If multiple commits happen on the same day, consolidate into a single entry. Each bullet links to the specific commit that introduced it:
-
-```markdown
-## 2026-03-01 -- Short title summarizing the day's work
-
-`git diff abc1234^..fed9876` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/def5678...fed9876)
-
-* [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Description of change from this commit
-* [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Another change from the same commit
-* [fed9876](https://github.com/TA-Lib/ta-lib/commit/fed9876) Change from a different commit
-* All tests passing (summary bullet)
-```
-
-**Range inclusivity — critical:**
-- **Local diff**: `git diff first^..last` — the `^` after `first` makes it inclusive (without `^`, `first`'s changes are excluded)
-- **GitHub URL**: `compare/<PARENT-of-first>...last` — GitHub `compare/A...B` excludes A, so use `git rev-parse first^` to get the parent hash and use that in the URL
-- **Verify**: run `git log first^..last --oneline | wc -l` and confirm the count matches the number of bulleted commits (excluding the summary bullet)
-
-Rules:
-- **One entry per day** — amend the existing entry if pushing more commits on the same day
-- **Every commit = at least one bullet** — no exceptions, even for tracking updates, formatting fixes, or regeneration commits. If it's in the range, it gets a bullet.
-- **Per-bullet commit links** — every bullet gets `[short-hash](commit-url)`, even if multiple bullets share the same commit
-- **Summary bullet at the end** — total test count to show nothing regressed
-- **Amend the changelog commit** when updating the same day's entry
-
 ## Performance Testing
 
 ```bash
