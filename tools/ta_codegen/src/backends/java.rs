@@ -7,7 +7,7 @@ use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statemen
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
-use super::builtins::MathFn;
+use super::builtins::{MathFn, SpecialBuiltin, StdlibFn};
 use super::expr_walk::ExprEmitter;
 use super::stmt_walk::StatementEmitter;
 
@@ -1492,69 +1492,75 @@ fn render_func_call(
         return ternary;
     }
 
-    if fname == "UNSTABLE_PERIOD" {
-        // UNSTABLE_PERIOD(RSI) -> this.unstablePeriod[FuncUnstId.Rsi.ordinal()]
-        // UNSTABLE_PERIOD(FUNC_UNST_ATR) -> strip FUNC_UNST_ prefix first
-        if let Some(Expr::Var(func_name)) = args.first() {
-            let base = func_name
-                .strip_prefix("FUNC_UNST_")
-                .unwrap_or(func_name);
-            let pascal = match base {
-                "HT_DCPERIOD" => "HtDcPeriod".to_string(),
-                "HT_DCPHASE" => "HtDcPhase".to_string(),
-                "HT_PHASOR" => "HtPhasor".to_string(),
-                "HT_SINE" => "HtSine".to_string(),
-                "HT_TRENDLINE" => "HtTrendline".to_string(),
-                "HT_TRENDMODE" => "HtTrendMode".to_string(),
-                "MINUS_DI" => "MinusDI".to_string(),
-                "MINUS_DM" => "MinusDM".to_string(),
-                "PLUS_DI" => "PlusDI".to_string(),
-                "PLUS_DM" => "PlusDM".to_string(),
-                "STOCH_RSI" => "StochRsi".to_string(),
-                _ => to_pascal_case(base),
-            };
-            return format!("this.unstablePeriod[FuncUnstId.{pascal}.ordinal()]");
+    if let Some(b) = SpecialBuiltin::from_name(fname) {
+        match b {
+            SpecialBuiltin::UnstablePeriod => {
+                // UNSTABLE_PERIOD(RSI) -> this.unstablePeriod[FuncUnstId.Rsi.ordinal()]
+                // UNSTABLE_PERIOD(FUNC_UNST_ATR) -> strip FUNC_UNST_ prefix first
+                if let Some(Expr::Var(func_name)) = args.first() {
+                    let base = func_name
+                        .strip_prefix("FUNC_UNST_")
+                        .unwrap_or(func_name);
+                    let pascal = match base {
+                        "HT_DCPERIOD" => "HtDcPeriod".to_string(),
+                        "HT_DCPHASE" => "HtDcPhase".to_string(),
+                        "HT_PHASOR" => "HtPhasor".to_string(),
+                        "HT_SINE" => "HtSine".to_string(),
+                        "HT_TRENDLINE" => "HtTrendline".to_string(),
+                        "HT_TRENDMODE" => "HtTrendMode".to_string(),
+                        "MINUS_DI" => "MinusDI".to_string(),
+                        "MINUS_DM" => "MinusDM".to_string(),
+                        "PLUS_DI" => "PlusDI".to_string(),
+                        "PLUS_DM" => "PlusDM".to_string(),
+                        "STOCH_RSI" => "StochRsi".to_string(),
+                        _ => to_pascal_case(base),
+                    };
+                    return format!("this.unstablePeriod[FuncUnstId.{pascal}.ordinal()]");
+                }
+                "this.unstablePeriod[0]".to_string()
+            }
+            SpecialBuiltin::Compatibility => {
+                // COMPATIBILITY() -> this.compatibility
+                "this.compatibility".to_string()
+            }
+            SpecialBuiltin::IsZero => {
+                // IS_ZERO(x) -> inline epsilon check
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, registry, helpers);
+                    return format!("((-0.00000000000001 < {x}) && ({x} < 0.00000000000001))");
+                }
+                "false".to_string()
+            }
+            SpecialBuiltin::IsZeroOrNeg => {
+                // IS_ZERO_OR_NEG(x) -> (x < epsilon)
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, registry, helpers);
+                    return format!("({x} < 0.00000000000001)");
+                }
+                "false".to_string()
+            }
+            SpecialBuiltin::ArrayCopy => {
+                // ARRAY_COPY(dst, dstOff, src, srcOff, count)
+                // -> System.arraycopy(src, srcOff, dst, dstOff, count) (note arg reordering)
+                if args.len() == 5 {
+                    let dst = render_expr(&args[0], ctx, registry, helpers);
+                    let dst_off = render_expr(&args[1], ctx, registry, helpers);
+                    let src = render_expr(&args[2], ctx, registry, helpers);
+                    let src_off = render_expr(&args[3], ctx, registry, helpers);
+                    let count = render_expr(&args[4], ctx, registry, helpers);
+                    return format!("System.arraycopy({src},{src_off},{dst},{dst_off},{count})");
+                }
+                "/* ARRAY_COPY: bad args */".to_string()
+            }
+            SpecialBuiltin::PerToK => {
+                // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, registry, helpers);
+                    return format!("(2.0 / ((double)({x}) + 1.0))");
+                }
+                "0.0".to_string()
+            }
         }
-        "this.unstablePeriod[0]".to_string()
-    } else if fname == "COMPATIBILITY" {
-        // COMPATIBILITY() -> this.compatibility
-        "this.compatibility".to_string()
-    } else if fname == "IS_ZERO" {
-        // IS_ZERO(x) -> inline epsilon check
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry, helpers);
-            return format!("((-0.00000000000001 < {x}) && ({x} < 0.00000000000001))");
-        }
-        "false".to_string()
-    } else if fname == "IS_ZERO_OR_NEG" {
-        // IS_ZERO_OR_NEG(x) -> (x < epsilon)
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry, helpers);
-            return format!("({x} < 0.00000000000001)");
-        }
-        "false".to_string()
-    } else if fname == "ARRAY_COPY" {
-        // ARRAY_COPY(dst, dstOff, src, srcOff, count)
-        // -> System.arraycopy(src, srcOff, dst, dstOff, count) (note arg reordering)
-        if args.len() == 5 {
-            let dst = render_expr(&args[0], ctx, registry, helpers);
-            let dst_off =
-                render_expr(&args[1], ctx, registry, helpers);
-            let src = render_expr(&args[2], ctx, registry, helpers);
-            let src_off =
-                render_expr(&args[3], ctx, registry, helpers);
-            let count =
-                render_expr(&args[4], ctx, registry, helpers);
-            return format!("System.arraycopy({src},{src_off},{dst},{dst_off},{count})");
-        }
-        "/* ARRAY_COPY: bad args */".to_string()
-    } else if fname == "PER_TO_K" {
-        // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry, helpers);
-            return format!("(2.0 / ((double)({x}) + 1.0))");
-        }
-        "0.0".to_string()
     } else if let Some(mf) = MathFn::from_name(fname) {
         // Java uses Math.func() for standard math functions. The canonical math
         // name already matches java.lang.Math: fabs/ABS → abs, max/fmax → max,
@@ -1564,65 +1570,65 @@ fn render_func_call(
             .map(|a| render_expr(a, ctx, registry, helpers))
             .collect();
         format!("Math.{}({})", mf.canonical(), rendered.join(", "))
-    } else if fname == "sizeof" {
-        // sizeof(TYPE) → 1: normalizes byte counts to element counts for Java array operations
-        "1".to_string()
-    } else if fname == "malloc" {
-        // malloc(N * sizeof(TYPE)) → new TYPE_JAVA[(int)(N)]
-        // sizeof renders as 1, so the arg is already the element count
-        if let Some(arg) = args.first() {
-            let java_type = match find_sizeof_type(arg).as_deref() {
-                Some("int") => "int",
-                Some("float") => "float",
-                _ => "double",
-            };
-            let size = render_expr(arg, ctx, registry, helpers);
-            format!("new {java_type}[(int)({size})]")
-        } else {
-            "new double[0]".to_string()
-        }
-    } else if fname == "free" {
-        // No-op in Java (garbage collector handles deallocation)
-        String::new()
-    } else if fname == "memcpy" || fname == "memmove" {
-        // memcpy/memmove(dst, src, count) → System.arraycopy(src, srcOff, dst, dstOff, count)
-        if args.len() >= 3 {
-            let (dst_arr, dst_off) =
-                decompose_java_array_ref(
-                    &args[0], ctx, registry, helpers,
-                );
-            let (src_arr, src_off) =
-                decompose_java_array_ref(
-                    &args[1], ctx, registry, helpers,
-                );
-            let count =
-                render_expr(&args[2], ctx, registry, helpers);
-            format!("System.arraycopy({src_arr}, {src_off}, {dst_arr}, {dst_off}, {count})")
-        } else {
-            format!("/* {fname}: bad args */")
-        }
-    } else if fname == "memset" {
-        // memset(buf, 0, count) → java.util.Arrays.fill(buf, off, off+count, fillVal)
-        if args.len() >= 3 {
-            let (arr, off) =
-                decompose_java_array_ref(
-                    &args[0], ctx, registry, helpers,
-                );
-            let count =
-                render_expr(&args[2], ctx, registry, helpers);
-            let fill_val = match find_sizeof_type(&args[2]).as_deref() {
-                Some("int") => "0",
-                _ => "0.0",
-            };
-            if off == "0" {
-                format!("java.util.Arrays.fill({arr}, 0, (int)({count}), {fill_val})")
-            } else {
-                format!(
-                    "java.util.Arrays.fill({arr}, {off}, ({off}) + (int)({count}), {fill_val})"
-                )
+    } else if let Some(s) = StdlibFn::from_name(fname) {
+        match s {
+            StdlibFn::Sizeof => {
+                // sizeof(TYPE) → 1: normalizes byte counts to element counts for Java array operations
+                "1".to_string()
             }
-        } else {
-            "/* memset: bad args */".to_string()
+            StdlibFn::Malloc => {
+                // malloc(N * sizeof(TYPE)) → new TYPE_JAVA[(int)(N)]
+                // sizeof renders as 1, so the arg is already the element count
+                if let Some(arg) = args.first() {
+                    let java_type = match find_sizeof_type(arg).as_deref() {
+                        Some("int") => "int",
+                        Some("float") => "float",
+                        _ => "double",
+                    };
+                    let size = render_expr(arg, ctx, registry, helpers);
+                    format!("new {java_type}[(int)({size})]")
+                } else {
+                    "new double[0]".to_string()
+                }
+            }
+            StdlibFn::Free => {
+                // No-op in Java (garbage collector handles deallocation)
+                String::new()
+            }
+            StdlibFn::Memcpy | StdlibFn::Memmove => {
+                // memcpy/memmove(dst, src, count) → System.arraycopy(src, srcOff, dst, dstOff, count)
+                if args.len() >= 3 {
+                    let (dst_arr, dst_off) =
+                        decompose_java_array_ref(&args[0], ctx, registry, helpers);
+                    let (src_arr, src_off) =
+                        decompose_java_array_ref(&args[1], ctx, registry, helpers);
+                    let count = render_expr(&args[2], ctx, registry, helpers);
+                    format!("System.arraycopy({src_arr}, {src_off}, {dst_arr}, {dst_off}, {count})")
+                } else {
+                    format!("/* {fname}: bad args */")
+                }
+            }
+            StdlibFn::Memset => {
+                // memset(buf, 0, count) → java.util.Arrays.fill(buf, off, off+count, fillVal)
+                if args.len() >= 3 {
+                    let (arr, off) =
+                        decompose_java_array_ref(&args[0], ctx, registry, helpers);
+                    let count = render_expr(&args[2], ctx, registry, helpers);
+                    let fill_val = match find_sizeof_type(&args[2]).as_deref() {
+                        Some("int") => "0",
+                        _ => "0.0",
+                    };
+                    if off == "0" {
+                        format!("java.util.Arrays.fill({arr}, 0, (int)({count}), {fill_val})")
+                    } else {
+                        format!(
+                            "java.util.Arrays.fill({arr}, {off}, ({off}) + (int)({count}), {fill_val})"
+                        )
+                    }
+                } else {
+                    "/* memset: bad args */".to_string()
+                }
+            }
         }
     } else {
         // Use registry for cross-call resolution

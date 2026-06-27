@@ -9,7 +9,7 @@ use crate::ir::{
 use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
-use super::builtins::MathFn;
+use super::builtins::{MathFn, SpecialBuiltin, StdlibFn};
 use super::expr_walk::ExprEmitter;
 use super::stmt_walk::StatementEmitter;
 
@@ -3316,47 +3316,54 @@ fn render_func_call(
         }
         // Multi-statement helpers are hoisted earlier by hoist_block_helpers.
     }
-    if fname == "UNSTABLE_PERIOD" {
-        if let Some(Expr::Var(func_name)) = args.first() {
-            let base = func_name
-                .strip_prefix("FUNC_UNST_")
-                .unwrap_or(func_name);
-            let pascal = to_pascal_case(base);
-            return format!("self.unstable_period[FuncUnstId::{pascal} as usize]");
+    if let Some(b) = SpecialBuiltin::from_name(fname) {
+        match b {
+            SpecialBuiltin::UnstablePeriod => {
+                if let Some(Expr::Var(func_name)) = args.first() {
+                    let base = func_name
+                        .strip_prefix("FUNC_UNST_")
+                        .unwrap_or(func_name);
+                    let pascal = to_pascal_case(base);
+                    return format!("self.unstable_period[FuncUnstId::{pascal} as usize]");
+                }
+                "self.unstable_period[0]".to_string()
+            }
+            SpecialBuiltin::Compatibility => "self.compatibility".to_string(),
+            SpecialBuiltin::IsZero => {
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
+                    return format!("({x}).abs() < 1e-14");
+                }
+                "false".to_string()
+            }
+            SpecialBuiltin::IsZeroOrNeg => {
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
+                    return format!("({x}) < 1e-14");
+                }
+                "false".to_string()
+            }
+            SpecialBuiltin::ArrayCopy => {
+                if args.len() == 5 {
+                    let dst = render_expr(&args[0], ctx, opt_real_params, registry, helpers);
+                    let dst_off = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
+                    let src = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
+                    let src_off = render_expr(&args[3], ctx, opt_real_params, registry, helpers);
+                    let count = render_expr(&args[4], ctx, opt_real_params, registry, helpers);
+                    return format!(
+                        "{{\n            let _n = ({count}) as usize;\n            let _di = ({dst_off}) as usize;\n            let _si = ({src_off}) as usize;\n            {dst}[_di.._di + _n].copy_from_slice(&{src}[_si.._si + _n]);\n        }}"
+                    );
+                }
+                "/* ARRAY_COPY: bad args */".to_string()
+            }
+            SpecialBuiltin::PerToK => {
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
+                    return format!("2.0_f64 / (({x}) as f64 + 1.0_f64)");
+                }
+                "0.0_f64".to_string()
+            }
         }
-        "self.unstable_period[0]".to_string()
-    } else if fname == "COMPATIBILITY" {
-        "self.compatibility".to_string()
-    } else if fname == "IS_ZERO" {
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
-            return format!("({x}).abs() < 1e-14");
-        }
-        "false".to_string()
-    } else if fname == "IS_ZERO_OR_NEG" {
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
-            return format!("({x}) < 1e-14");
-        }
-        "false".to_string()
-    } else if fname == "ARRAY_COPY" {
-        if args.len() == 5 {
-            let dst = render_expr(&args[0], ctx, opt_real_params, registry, helpers);
-            let dst_off = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
-            let src = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
-            let src_off = render_expr(&args[3], ctx, opt_real_params, registry, helpers);
-            let count = render_expr(&args[4], ctx, opt_real_params, registry, helpers);
-            return format!(
-                "{{\n            let _n = ({count}) as usize;\n            let _di = ({dst_off}) as usize;\n            let _si = ({src_off}) as usize;\n            {dst}[_di.._di + _n].copy_from_slice(&{src}[_si.._si + _n]);\n        }}"
-            );
-        }
-        "/* ARRAY_COPY: bad args */".to_string()
-    } else if fname == "PER_TO_K" {
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
-            return format!("2.0_f64 / (({x}) as f64 + 1.0_f64)");
-        }
-        "0.0_f64".to_string()
     } else if fname.ends_with("_Lookback") {
         let rust_name = fname.to_lowercase();
         let rendered_args: Vec<String> = args
@@ -3455,60 +3462,68 @@ fn render_func_call(
             return format!("({x_wrapped}).{method}()");
         }
         format!("{fname}()")
-    } else if fname == "sizeof" {
-        // sizeof(TYPE) → 1: normalizes byte counts to element counts for Rust array operations
-        "1".to_string()
-    } else if fname == "malloc" {
-        // malloc(N * sizeof(TYPE)) → vec![default; N as usize]
-        // sizeof renders as 1, so the arg is already the element count
-        if let Some(arg) = args.first() {
-            let size = render_expr(arg, ctx, opt_real_params, registry, helpers);
-            match find_sizeof_type(arg).as_deref() {
-                Some("int") => format!("vec![0_i32; ({size}) as usize]"),
-                _ => format!("vec![0.0_f64; ({size}) as usize]"),
+    } else if let Some(s) = StdlibFn::from_name(fname) {
+        match s {
+            StdlibFn::Sizeof => {
+                // sizeof(TYPE) → 1: normalizes byte counts to element counts for Rust array operations
+                "1".to_string()
             }
-        } else {
-            "vec![]".to_string()
-        }
-    } else if fname == "free" {
-        // No-op in Rust (Vec/Box drops automatically)
-        String::new()
-    } else if fname == "memcpy" || fname == "memmove" {
-        // memcpy/memmove(dst, src, count) → slice copy
-        if args.len() >= 3 {
-            let (dst_arr, dst_off) =
-                decompose_rust_array_ref(&args[0], ctx, opt_real_params, registry, helpers);
-            let (src_arr, src_off) =
-                decompose_rust_array_ref(&args[1], ctx, opt_real_params, registry, helpers);
-            let count = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
-            format!(
-                "{{\n            let _n = ({count}) as usize;\
-                 \n            let _di = ({dst_off}) as usize;\
-                 \n            let _si = ({src_off}) as usize;\
-                 \n            {dst_arr}[_di.._di + _n].copy_from_slice(&{src_arr}[_si.._si + _n]);\
-                 \n        }}"
-            )
-        } else {
-            format!("/* {fname}: bad args */")
-        }
-    } else if fname == "memset" {
-        // memset(buf, 0, count) → slice fill
-        if args.len() >= 3 {
-            let (arr, off) =
-                decompose_rust_array_ref(&args[0], ctx, opt_real_params, registry, helpers);
-            let count = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
-            let fill_val = match find_sizeof_type(&args[2]).as_deref() {
-                Some("int") => "0_i32".to_string(),
-                _ => "0.0_f64".to_string(),
-            };
-            format!(
-                "{{\n            let _n = ({count}) as usize;\
-                 \n            let _si = ({off}) as usize;\
-                 \n            {arr}[_si.._si + _n].fill({fill_val});\
-                 \n        }}"
-            )
-        } else {
-            "/* memset: bad args */".to_string()
+            StdlibFn::Malloc => {
+                // malloc(N * sizeof(TYPE)) → vec![default; N as usize]
+                // sizeof renders as 1, so the arg is already the element count
+                if let Some(arg) = args.first() {
+                    let size = render_expr(arg, ctx, opt_real_params, registry, helpers);
+                    match find_sizeof_type(arg).as_deref() {
+                        Some("int") => format!("vec![0_i32; ({size}) as usize]"),
+                        _ => format!("vec![0.0_f64; ({size}) as usize]"),
+                    }
+                } else {
+                    "vec![]".to_string()
+                }
+            }
+            StdlibFn::Free => {
+                // No-op in Rust (Vec/Box drops automatically)
+                String::new()
+            }
+            StdlibFn::Memcpy | StdlibFn::Memmove => {
+                // memcpy/memmove(dst, src, count) → slice copy
+                if args.len() >= 3 {
+                    let (dst_arr, dst_off) =
+                        decompose_rust_array_ref(&args[0], ctx, opt_real_params, registry, helpers);
+                    let (src_arr, src_off) =
+                        decompose_rust_array_ref(&args[1], ctx, opt_real_params, registry, helpers);
+                    let count = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
+                    format!(
+                        "{{\n            let _n = ({count}) as usize;\
+                         \n            let _di = ({dst_off}) as usize;\
+                         \n            let _si = ({src_off}) as usize;\
+                         \n            {dst_arr}[_di.._di + _n].copy_from_slice(&{src_arr}[_si.._si + _n]);\
+                         \n        }}"
+                    )
+                } else {
+                    format!("/* {fname}: bad args */")
+                }
+            }
+            StdlibFn::Memset => {
+                // memset(buf, 0, count) → slice fill
+                if args.len() >= 3 {
+                    let (arr, off) =
+                        decompose_rust_array_ref(&args[0], ctx, opt_real_params, registry, helpers);
+                    let count = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
+                    let fill_val = match find_sizeof_type(&args[2]).as_deref() {
+                        Some("int") => "0_i32".to_string(),
+                        _ => "0.0_f64".to_string(),
+                    };
+                    format!(
+                        "{{\n            let _n = ({count}) as usize;\
+                         \n            let _si = ({off}) as usize;\
+                         \n            {arr}[_si.._si + _n].fill({fill_val});\
+                         \n        }}"
+                    )
+                } else {
+                    "/* memset: bad args */".to_string()
+                }
+            }
         }
     } else if fname == "ta_candlerange" && args.len() == 5 {
         // Inline the full method body — all branches present, no constant propagation.

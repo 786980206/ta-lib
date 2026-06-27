@@ -91,3 +91,66 @@ impl MathFn {
         }
     }
 }
+
+/// A TA-Lib "special" builtin: a magic call that every backend rewrites to its own
+/// runtime construct rather than emitting verbatim. The names and the set are
+/// identical across the C/Rust/Java backends and are checked before any other
+/// dispatch; only the per-backend *rendering* differs (e.g. `UNSTABLE_PERIOD` →
+/// `TA_GLOBALS_UNSTABLE_PERIOD(...)` in C, `this.unstablePeriod[...]` in Java,
+/// `self.unstable_period[...]` in Rust). This enum is purely the shared classifier;
+/// each backend matches it and supplies its own output.
+#[derive(Clone, Copy)]
+pub enum SpecialBuiltin {
+    UnstablePeriod,
+    Compatibility,
+    IsZero,
+    IsZeroOrNeg,
+    ArrayCopy,
+    PerToK,
+}
+
+impl SpecialBuiltin {
+    /// Classify a `FuncCall` name as a special builtin, or `None`.
+    pub fn from_name(name: &str) -> Option<Self> {
+        Some(match name {
+            "UNSTABLE_PERIOD" => Self::UnstablePeriod,
+            "COMPATIBILITY" => Self::Compatibility,
+            "IS_ZERO" => Self::IsZero,
+            "IS_ZERO_OR_NEG" => Self::IsZeroOrNeg,
+            "ARRAY_COPY" => Self::ArrayCopy,
+            "PER_TO_K" => Self::PerToK,
+            _ => return None,
+        })
+    }
+}
+
+/// A C standard-library function called from indicator source. The C backend emits
+/// these verbatim (they are valid C); Java and Rust each rewrite them to a native
+/// construct (`malloc` → `new T[]` / `vec![]`, `memcpy` → `System.arraycopy` /
+/// slice copy, …). The set is shared so a new stdlib dependency is recognised in one
+/// place. (`ARRAY_ALLOC` is a `ta_memory.h` macro, never a `FuncCall`, so it is not
+/// a member.)
+#[derive(Clone, Copy)]
+pub enum StdlibFn {
+    Sizeof,
+    Malloc,
+    Free,
+    Memcpy,
+    Memmove,
+    Memset,
+}
+
+impl StdlibFn {
+    /// Classify a `FuncCall` name as a C stdlib function, or `None`.
+    pub fn from_name(name: &str) -> Option<Self> {
+        Some(match name {
+            "sizeof" => Self::Sizeof,
+            "malloc" => Self::Malloc,
+            "free" => Self::Free,
+            "memcpy" => Self::Memcpy,
+            "memmove" => Self::Memmove,
+            "memset" => Self::Memset,
+            _ => return None,
+        })
+    }
+}

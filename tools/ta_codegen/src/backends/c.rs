@@ -9,7 +9,7 @@ use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{expr_directly_contains_candle_call, pascal_word};
 use super::expr_walk::ExprEmitter;
-use super::builtins::MathFn;
+use super::builtins::{MathFn, SpecialBuiltin, StdlibFn};
 use super::stmt_walk::StatementEmitter;
 
 /// Candle helper functions emitted as C preprocessor macros instead of expanded code.
@@ -1323,6 +1323,7 @@ fn extract_array_index(expr: &Expr) -> Option<Expr> {
 }
 
 /// Render a `FuncCall` expression to C code.
+#[allow(clippy::too_many_lines)]
 fn render_func_call(
     fname: &str,
     args: &[Expr],
@@ -1344,60 +1345,69 @@ fn render_func_call(
         // Multi-statement helpers are hoisted earlier by hoist_block_helpers.
     }
 
-    if fname == "UNSTABLE_PERIOD" {
-        // UNSTABLE_PERIOD(RSI) -> TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi)
-        // UNSTABLE_PERIOD(FUNC_UNST_ATR) -> strip FUNC_UNST_ prefix first
-        if let Some(Expr::Var(func_name)) = args.first() {
-            let base = func_name
-                .strip_prefix("FUNC_UNST_")
-                .unwrap_or(func_name);
-            let upper = base.to_uppercase();
-            let pascal = pascal_word(base);
-            return format!("TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_{upper},{pascal})");
+    if let Some(b) = SpecialBuiltin::from_name(fname) {
+        match b {
+            SpecialBuiltin::UnstablePeriod => {
+                // UNSTABLE_PERIOD(RSI) -> TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi)
+                // UNSTABLE_PERIOD(FUNC_UNST_ATR) -> strip FUNC_UNST_ prefix first
+                if let Some(Expr::Var(func_name)) = args.first() {
+                    let base = func_name
+                        .strip_prefix("FUNC_UNST_")
+                        .unwrap_or(func_name);
+                    let upper = base.to_uppercase();
+                    let pascal = pascal_word(base);
+                    return format!("TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_{upper},{pascal})");
+                }
+                "TA_GLOBALS_UNSTABLE_PERIOD(0,0)".to_string()
+            }
+            SpecialBuiltin::Compatibility => {
+                // COMPATIBILITY() -> TA_GLOBALS_COMPATIBILITY
+                "TA_GLOBALS_COMPATIBILITY".to_string()
+            }
+            SpecialBuiltin::IsZero => {
+                // IS_ZERO(x) -> TA_IS_ZERO(x)
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, registry, helpers);
+                    return format!("TA_IS_ZERO({x})");
+                }
+                "TA_IS_ZERO(0)".to_string()
+            }
+            SpecialBuiltin::IsZeroOrNeg => {
+                // IS_ZERO_OR_NEG(x) -> TA_IS_ZERO_OR_NEG(x)
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, registry, helpers);
+                    return format!("TA_IS_ZERO_OR_NEG({x})");
+                }
+                "TA_IS_ZERO_OR_NEG(0)".to_string()
+            }
+            SpecialBuiltin::ArrayCopy => {
+                // ARRAY_COPY(dst, dstOff, src, srcOff, count)
+                if args.len() == 5 {
+                    let rendered: Vec<String> = args
+                        .iter()
+                        .map(|a| render_expr(a, ctx, registry, helpers))
+                        .collect();
+                    let macro_name = if ctx.single_precision {
+                        "ARRAY_MEMMOVEMIX"
+                    } else {
+                        "ARRAY_MEMMOVE"
+                    };
+                    return format!(
+                        "{}({},{},{},{},{})",
+                        macro_name, rendered[0], rendered[1], rendered[2], rendered[3], rendered[4]
+                    );
+                }
+                "/* ARRAY_COPY: bad args */".to_string()
+            }
+            SpecialBuiltin::PerToK => {
+                // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
+                if let Some(arg) = args.first() {
+                    let x = render_expr(arg, ctx, registry, helpers);
+                    return format!("(2.0 / ((double)({x}) + 1.0))");
+                }
+                "0.0".to_string()
+            }
         }
-        "TA_GLOBALS_UNSTABLE_PERIOD(0,0)".to_string()
-    } else if fname == "COMPATIBILITY" {
-        // COMPATIBILITY() -> TA_GLOBALS_COMPATIBILITY
-        "TA_GLOBALS_COMPATIBILITY".to_string()
-    } else if fname == "IS_ZERO" {
-        // IS_ZERO(x) -> TA_IS_ZERO(x)
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry, helpers);
-            return format!("TA_IS_ZERO({x})");
-        }
-        "TA_IS_ZERO(0)".to_string()
-    } else if fname == "IS_ZERO_OR_NEG" {
-        // IS_ZERO_OR_NEG(x) -> TA_IS_ZERO_OR_NEG(x)
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry, helpers);
-            return format!("TA_IS_ZERO_OR_NEG({x})");
-        }
-        "TA_IS_ZERO_OR_NEG(0)".to_string()
-    } else if fname == "ARRAY_COPY" {
-        // ARRAY_COPY(dst, dstOff, src, srcOff, count)
-        if args.len() == 5 {
-            let rendered: Vec<String> = args
-                .iter()
-                .map(|a| render_expr(a, ctx, registry, helpers))
-                .collect();
-            let macro_name = if ctx.single_precision {
-                "ARRAY_MEMMOVEMIX"
-            } else {
-                "ARRAY_MEMMOVE"
-            };
-            return format!(
-                "{}({},{},{},{},{})",
-                macro_name, rendered[0], rendered[1], rendered[2], rendered[3], rendered[4]
-            );
-        }
-        "/* ARRAY_COPY: bad args */".to_string()
-    } else if fname == "PER_TO_K" {
-        // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry, helpers);
-            return format!("(2.0 / ((double)({x}) + 1.0))");
-        }
-        "0.0".to_string()
     } else if let Some(mf) = MathFn::from_name(fname) {
         // Plain C math functions — remap names where needed, then emit as C function calls.
         // max → fmax, min → fmin, fabs/ABS → fabs (all from <math.h>)
@@ -1412,7 +1422,7 @@ fn render_func_call(
             .map(|a| render_expr(a, ctx, registry, helpers))
             .collect();
         format!("{}({})", c_name, rendered.join(","))
-    } else if STDLIB_FUNCTIONS.contains(&fname) {
+    } else if StdlibFn::from_name(fname).is_some() {
         // C stdlib functions — pass through as-is without TA_ prefix
         let rendered: Vec<String> = args
             .iter()
@@ -1519,11 +1529,6 @@ fn render_lookback_code(
 
     out
 }
-
-/// C standard library functions and macros that should pass through as-is (no `TA_` prefix).
-const STDLIB_FUNCTIONS: &[&str] = &[
-    "free", "malloc", "memcpy", "memmove", "memset", "sizeof", "ARRAY_ALLOC",
-];
 
 /// Collect variable names whose first VarDecl occurrence has an initializer.
 /// These are eligible for hoisted initialization. Names that first appear without init
