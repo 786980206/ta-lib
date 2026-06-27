@@ -8,6 +8,7 @@ use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statemen
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{expr_directly_contains_candle_call, pascal_word};
+use super::expr_walk::ExprEmitter;
 
 /// Candle helper functions emitted as C preprocessor macros instead of expanded code.
 /// This enables compiler loop-unswitching, matching the reference library's macro pattern.
@@ -1162,26 +1163,18 @@ fn render_return_expr(
 }
 
 #[allow(clippy::too_many_lines)]
-fn render_expr(
-    expr: &Expr,
-    ctx: &CRenderCtx,
-    registry: &Registry,
-    helpers: &HelperRegistry,
-) -> String {
-    match expr {
-        Expr::Literal(f) => {
-            #[allow(clippy::float_cmp)]
-            let is_whole = *f == f.floor() && f.abs() < 1e15;
-            if is_whole {
-                #[allow(clippy::cast_possible_truncation)]
-                let i = *f as i64;
-                format!("{i}.0")
-            } else {
-                format!("{f}")
-            }
-        }
-        Expr::IntLiteral(i) => format!("{i}"),
-        Expr::Var(name) => match name.as_str() {
+/// C-backend leaf formatting for the shared [`ExprEmitter`] tree-walk. Bundles the
+/// render context with the registry/helper services the call-dispatch hooks need;
+/// the recursion itself lives in [`ExprEmitter::walk`].
+struct CExpr<'a> {
+    ctx: &'a CRenderCtx<'a>,
+    registry: &'a Registry,
+    helpers: &'a HelperRegistry,
+}
+
+impl ExprEmitter for CExpr<'_> {
+    fn var(&self, name: &str) -> String {
+        match name {
             "COMPATIBILITY" => "TA_GLOBALS_COMPATIBILITY".to_string(),
             "METASTOCK" => {
                 "ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock)".to_string()
@@ -1191,106 +1184,99 @@ fn render_expr(
             "SUCCESS" => "TA_SUCCESS".to_string(),
             "ALLOC_ERR" => "TA_ALLOC_ERR".to_string(),
             "INTERNAL_ERROR" => "TA_INTERNAL_ERROR".to_string(),
-            _ => name.clone(),
-        },
-        Expr::ArrayAccess(name, idx) => {
-            format!(
-                "{}[{}]",
-                name,
-                render_expr(idx, ctx, registry, helpers)
-            )
-        }
-        Expr::BinOp(left, op, right) => {
-            let op_str = match op {
-                BinOp::Add => "+",
-                BinOp::Sub => "-",
-                BinOp::Mul => "*",
-                BinOp::Div => "/",
-                BinOp::Mod => "%",
-                BinOp::LessEq => "<=",
-                BinOp::Less => "<",
-                BinOp::Greater => ">",
-                BinOp::GreaterEq => ">=",
-                BinOp::Eq => "==",
-                BinOp::NotEq => "!=",
-                BinOp::And => "&&",
-                BinOp::Or => "||",
-                BinOp::BitwiseOr => "|",
-                BinOp::Shr => ">>",
-                BinOp::Shl => "<<",
-            };
-            // In single-precision variants, pointer aliasing checks compare
-            // float* inputs against double* outputs/buffers. Cast both to
-            // void* to avoid -Wcompare-distinct-pointer-types warnings.
-            let needs_void_cast = ctx.single_precision
-                && matches!(op, BinOp::Eq | BinOp::NotEq)
-                && is_pointer_var(left)
-                && is_pointer_var(right);
-            let l = render_expr(left, ctx, registry, helpers);
-            let r = render_expr(right, ctx, registry, helpers);
-            if needs_void_cast {
-                format!("((void *){}{}(void *){})", l, op_str, r)
-            } else {
-                format!("({}{}{})", l, op_str, r)
-            }
-        }
-        Expr::Cast(var_type, inner) => {
-            let c_type = c_type_name(var_type);
-            format!(
-                "(({}){})",
-                c_type,
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::Not(inner) => {
-            format!(
-                "!({})",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::FuncCall(name, args) => {
-            render_func_call(name, args, ctx, registry, helpers)
-        }
-        Expr::PointerDeref(name) => format!("*{name}"),
-        Expr::AddressOf(inner) => {
-            format!(
-                "&{}",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::PostIncrement(inner) => {
-            format!(
-                "{}++",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::PostDecrement(inner) => {
-            format!(
-                "{}--",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::PreIncrement(inner) => {
-            format!(
-                "++{}",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::PreDecrement(inner) => {
-            format!(
-                "--{}",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::Ternary(cond, then_expr, else_expr) => {
-            format!(
-                "(({}) ? ({}) : ({}))",
-                render_expr(cond, ctx, registry, helpers),
-                render_expr(then_expr, ctx, registry, helpers),
-                render_expr(else_expr, ctx, registry, helpers)
-            )
+            _ => name.to_string(),
         }
     }
+
+    fn array_access(&self, name: &str, idx: &Expr) -> String {
+        format!("{}[{}]", name, self.walk(idx))
+    }
+
+    fn binop(&self, left: &Expr, op: &BinOp, right: &Expr) -> String {
+        let op_str = match op {
+            BinOp::Add => "+",
+            BinOp::Sub => "-",
+            BinOp::Mul => "*",
+            BinOp::Div => "/",
+            BinOp::Mod => "%",
+            BinOp::LessEq => "<=",
+            BinOp::Less => "<",
+            BinOp::Greater => ">",
+            BinOp::GreaterEq => ">=",
+            BinOp::Eq => "==",
+            BinOp::NotEq => "!=",
+            BinOp::And => "&&",
+            BinOp::Or => "||",
+            BinOp::BitwiseOr => "|",
+            BinOp::Shr => ">>",
+            BinOp::Shl => "<<",
+        };
+        // In single-precision variants, pointer aliasing checks compare
+        // float* inputs against double* outputs/buffers. Cast both to
+        // void* to avoid -Wcompare-distinct-pointer-types warnings.
+        let needs_void_cast = self.ctx.single_precision
+            && matches!(op, BinOp::Eq | BinOp::NotEq)
+            && is_pointer_var(left)
+            && is_pointer_var(right);
+        let l = self.walk(left);
+        let r = self.walk(right);
+        if needs_void_cast {
+            format!("((void *){}{}(void *){})", l, op_str, r)
+        } else {
+            format!("({}{}{})", l, op_str, r)
+        }
+    }
+
+    fn cast(&self, var_type: &VarType, inner: &Expr) -> String {
+        let c_type = c_type_name(var_type);
+        format!("(({}){})", c_type, self.walk(inner))
+    }
+
+    fn func_call(&self, name: &str, args: &[Expr]) -> String {
+        render_func_call(name, args, self.ctx, self.registry, self.helpers)
+    }
+
+    fn pointer_deref(&self, name: &str) -> String {
+        format!("*{name}")
+    }
+
+    fn address_of(&self, inner: &Expr) -> String {
+        format!("&{}", self.walk(inner))
+    }
+
+    fn post_increment(&self, inner: &Expr) -> String {
+        format!("{}++", self.walk(inner))
+    }
+
+    fn post_decrement(&self, inner: &Expr) -> String {
+        format!("{}--", self.walk(inner))
+    }
+
+    fn pre_increment(&self, inner: &Expr) -> String {
+        format!("++{}", self.walk(inner))
+    }
+
+    fn pre_decrement(&self, inner: &Expr) -> String {
+        format!("--{}", self.walk(inner))
+    }
+
+    fn ternary(&self, cond: &Expr, then_expr: &Expr, else_expr: &Expr) -> String {
+        format!(
+            "(({}) ? ({}) : ({}))",
+            self.walk(cond),
+            self.walk(then_expr),
+            self.walk(else_expr)
+        )
+    }
+}
+
+fn render_expr(
+    expr: &Expr,
+    ctx: &CRenderCtx,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    CExpr { ctx, registry, helpers }.walk(expr)
 }
 
 

@@ -2,6 +2,7 @@ pub mod c;
 pub mod cmake_lists;
 pub mod common;
 pub mod dotnet;
+pub mod expr_walk;
 pub mod func_api_xml;
 pub mod func_list;
 pub mod java;
