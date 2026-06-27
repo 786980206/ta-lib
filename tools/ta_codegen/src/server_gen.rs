@@ -657,7 +657,7 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        if( use_preloaded && g_refN > 0 ) {\n");
         s.push_str(&format!(
             "            preload_to_working({n_inputs}, {});\n",
-            if is_price_input { 1 } else { 0 }
+            i32::from(is_price_input)
         ));
         s.push_str("        } else {\n");
         for (j, name) in input_names.iter().enumerate() {
@@ -711,7 +711,7 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        if( use_preloaded ) {\n");
         s.push_str(&format!(
             "            preload_to_working({n_inputs}, {});\n",
-            if is_price_input { 1 } else { 0 }
+            i32::from(is_price_input)
         ));
         s.push_str("        }\n");
 
@@ -1357,7 +1357,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 /// Emits a complete C# program that uses P/Invoke to call the generated C shared
 /// library (`ta_codegen_funcs`), reads JSON-RPC requests from stdin, dispatches to
 /// the imported TA functions, and writes JSON responses to stdout.
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
@@ -2256,7 +2256,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
 /// the C server's `ta_abstract_serve.c` response shapes exactly (so the same
 /// `test_abstract.c` comparator drives Rust-vs-C), but is backed by the generated
 /// `abstract_api` registry instead of C's `ta_abstract`.
-const RUST_ABSTRACT_METADATA_HANDLERS: &str = r##"        "TA_GetFuncInfo" => {
+const RUST_ABSTRACT_METADATA_HANDLERS: &str = r#"        "TA_GetFuncInfo" => {
             let name = params["funcName"].as_str().unwrap_or("");
             match abstract_api::get_func_handle(name) {
                 Some(id) => {
@@ -2364,7 +2364,7 @@ const RUST_ABSTRACT_METADATA_HANDLERS: &str = r##"        "TA_GetFuncInfo" => {
                 None => "{\"retCode\":2}".to_string(),
             }
         }
-"##;
+"#;
 
 /// Rust server match arms for the abstract dynamic-dispatch RPCs. Mirrors C's
 /// `ta_abstract_serve.c` (`handle_abstract_call`, `handle_abstract_get_lookback`,
@@ -2378,7 +2378,7 @@ const RUST_ABSTRACT_METADATA_HANDLERS: &str = r##"        "TA_GetFuncInfo" => {
 ///  * `abstract_for_each_func` enumerates via the `abstract_api` registry.
 ///  * `TA_FunctionDescriptionXML` returns the byte length + byte-sum checksum of the
 ///    embedded `ta_func_api.xml` (order-independent content check vs the C reference).
-const RUST_ABSTRACT_DYNAMIC_HANDLERS: &str = r##"        "abstract_call" => {
+const RUST_ABSTRACT_DYNAMIC_HANDLERS: &str = r#"        "abstract_call" => {
             let fname = params["funcName"].as_str().unwrap_or("");
             if fname.is_empty() {
                 return "{\"error\":\"Missing funcName\"}".to_string();
@@ -2412,4 +2412,4 @@ const RUST_ABSTRACT_DYNAMIC_HANDLERS: &str = r##"        "abstract_call" => {
             let checksum: u64 = xml.bytes().map(|b| u64::from(b)).sum();
             format!("{{\"length\":{},\"checksum\":{}}}", length, checksum)
         }
-"##;
+"#;

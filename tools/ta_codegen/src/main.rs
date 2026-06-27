@@ -298,6 +298,8 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         let c_lib_src = root.join("ta_func_defs/lib/c");
         let c_dir = root.join("ta_codegen_output/c");
         std::fs::create_dir_all(&c_dir).unwrap();
+        // Single-entry file list, kept as a loop to match the sibling copy loops below.
+        #[allow(clippy::single_element_loop)]
         for filename in &["ta_lib_types.h"] {
             let src = c_lib_src.join(filename);
             if src.exists() {

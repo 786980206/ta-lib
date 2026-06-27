@@ -107,16 +107,13 @@ fn generate_bench_func(s: &mut String, funcs: &[FuncDef]) {
 
         // Optional inputs — use defaults
         for opt in &func.optional_inputs {
-            match opt.param_type {
-                ParamType::Real => {
-                    let default = opt.default.unwrap_or(0.0);
-                    args.push(format!("{default:.15}"));
-                }
-                _ => {
-                    #[allow(clippy::cast_possible_truncation)]
-                    let default = opt.default.unwrap_or(0.0) as i32;
-                    args.push(format!("{default}"));
-                }
+            if opt.param_type == ParamType::Real {
+                let default = opt.default.unwrap_or(0.0);
+                args.push(format!("{default:.15}"));
+            } else {
+                #[allow(clippy::cast_possible_truncation)]
+                let default = opt.default.unwrap_or(0.0) as i32;
+                args.push(format!("{default}"));
             }
         }
 
@@ -127,15 +124,12 @@ fn generate_bench_func(s: &mut String, funcs: &[FuncDef]) {
         let mut out_real_idx = 0;
         let mut out_int_idx = 0;
         for out in &func.outputs {
-            match out.param_type {
-                ParamType::Integer => {
-                    args.push(format!("g_outIntBuf{out_int_idx}"));
-                    out_int_idx += 1;
-                }
-                _ => {
-                    args.push(format!("g_outBuf{out_real_idx}"));
-                    out_real_idx += 1;
-                }
+            if out.param_type == ParamType::Integer {
+                args.push(format!("g_outIntBuf{out_int_idx}"));
+                out_int_idx += 1;
+            } else {
+                args.push(format!("g_outBuf{out_real_idx}"));
+                out_real_idx += 1;
             }
         }
 
@@ -153,15 +147,12 @@ fn generate_bench_func(s: &mut String, funcs: &[FuncDef]) {
             let mut sink_real = 0;
             let mut sink_int = 0;
             for out in &func.outputs {
-                match out.param_type {
-                    ParamType::Integer => {
-                        s.push_str(&format!("            g_sink += g_outIntBuf{sink_int}[0];\n"));
-                        sink_int += 1;
-                    }
-                    _ => {
-                        s.push_str(&format!("            g_sink += (int)g_outBuf{sink_real}[0];\n"));
-                        sink_real += 1;
-                    }
+                if out.param_type == ParamType::Integer {
+                    s.push_str(&format!("            g_sink += g_outIntBuf{sink_int}[0];\n"));
+                    sink_int += 1;
+                } else {
+                    s.push_str(&format!("            g_sink += (int)g_outBuf{sink_real}[0];\n"));
+                    sink_real += 1;
                 }
             }
         }
@@ -183,7 +174,7 @@ pub fn write_c_bench(funcs: &[FuncDef], output_dir: &Path) {
     eprintln!("  C bench -> {}", path.display());
 }
 
-const TIMING_HELPER: &str = r#"
+const TIMING_HELPER: &str = r"
 static long long get_nanotime(void) {
 #ifdef __APPLE__
     static mach_timebase_info_data_t info = {0, 0};
@@ -198,9 +189,9 @@ static long long get_nanotime(void) {
 #endif
 }
 
-"#;
+";
 
-const PRICE_DATA_GEN: &str = r#"
+const PRICE_DATA_GEN: &str = r"
 static double *g_open, *g_high, *g_low, *g_close, *g_volume, *g_oi;
 static int g_nPoints;
 
@@ -227,7 +218,7 @@ static void generate_price_data(int n) {
     }
 }
 
-"#;
+";
 
 const FUNC_MATCHES: &str = r#"
 static int func_matches(const char *filter, const char *name) {

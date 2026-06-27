@@ -30,6 +30,9 @@ pub const CANDLE_FNS: &[&str] = &["ta_candlerange", "ta_candleaverage"];
 /// True if `expr` directly contains a call to a candlestick helper, stopping the
 /// walk at logical `&&`/`||` operators (which begin a separate condition in the
 /// chain).
+// The `And|Or => false` arm is intentionally separate from the catch-all: it must
+// precede the general `BinOp` arm to stop the walk at logical operators.
+#[allow(clippy::match_same_arms)]
 pub fn expr_directly_contains_candle_call(expr: &Expr) -> bool {
     match expr {
         Expr::FuncCall(name, args) => {

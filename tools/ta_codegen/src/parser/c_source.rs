@@ -2968,7 +2968,7 @@ TA_RetCode test_func(int startIdx, int endIdx, int *outBegIdx, int *outNBElement
         let params = extract_func_params(&tokens, 0);
         assert_eq!(params.len(), 2);
         assert_eq!(params[0].0, "outBegIdx");
-        assert!(params[0].1.contains("*"));
+        assert!(params[0].1.contains('*'));
         assert_eq!(params[1].0, "outReal");
     }
 

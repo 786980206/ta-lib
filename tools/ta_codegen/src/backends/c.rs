@@ -220,7 +220,9 @@ fn gen_func(
     gen_func_inner(func, single_precision, logic, None, enums, registry, helpers)
 }
 
-#[allow(clippy::too_many_lines)]
+// Integer/enum optIn defaults and ranges come from f64 metadata but are whole
+// numbers; the `as i32` casts in the validation emitter are intentional.
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity, clippy::cast_possible_truncation)]
 fn gen_func_inner(
     func: &FuncDef,
     single_precision: bool,
@@ -313,10 +315,9 @@ fn gen_func_inner(
     // - Double variants with explicit _private (guarded OR logic): body delegates to TA_*_Private
     // - Logic without _private: private_body (auto-copied from body, same content)
     // - Guarded without _private: body
-    let body = if name_override.is_some() {
-        &func.private_body  // Private variant: actual computation body
-    } else if single_precision && func.has_explicit_private {
-        &func.private_body  // S_ variants: inline private body
+    let body = if name_override.is_some() || (single_precision && func.has_explicit_private) {
+        // Private variant (actual computation body), or S_ variant inlining it
+        &func.private_body
     } else if func.has_explicit_private {
         &func.body          // double guarded/logic: body delegates to _Private
     } else if logic {
@@ -410,7 +411,8 @@ fn gen_func_inner(
                         }
                     }
                 }
-                _ => {}
+                // Price params expand to arrays handled separately; no scalar validation.
+                ParamType::Price(_) => {}
             }
         }
 
@@ -1155,9 +1157,9 @@ impl ExprEmitter for CExpr<'_> {
         let l = self.walk(left);
         let r = self.walk(right);
         if needs_void_cast {
-            format!("((void *){}{}(void *){})", l, op_str, r)
+            format!("((void *){l}{op_str}(void *){r})")
         } else {
-            format!("({}{}{})", l, op_str, r)
+            format!("({l}{op_str}{r})")
         }
     }
 

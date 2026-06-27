@@ -121,10 +121,7 @@ fn collect_address_of_vars_stmt(stmt: &Statement, vars: &mut HashSet<String>) {
             }
             collect_address_of_vars_stmts(default, vars);
         }
-        Statement::VarDecl { init: Some(e), .. } => {
-            scan_expr_for_address_of(e, vars);
-        }
-        Statement::Expr(e) => {
+        Statement::VarDecl { init: Some(e), .. } | Statement::Expr(e) => {
             scan_expr_for_address_of(e, vars);
         }
         Statement::VarDecl { init: None, .. }
@@ -500,9 +497,8 @@ fn gen_func_inner(
     // - Double variants with _private: body (delegates to Private)
     // - Logic without _private: private_body (same content as body)
     // - Guarded without _private: body
-    let body = if name_override.is_some() {
-        &func.private_body
-    } else if single_precision && func.has_explicit_private {
+    let body = if name_override.is_some() || (single_precision && func.has_explicit_private) {
+        // Private variant, or S_ variant inlining the private body
         &func.private_body
     } else if func.has_explicit_private {
         &func.body

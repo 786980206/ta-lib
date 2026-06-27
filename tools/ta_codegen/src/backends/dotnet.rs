@@ -475,8 +475,7 @@ mod tests {
         assert!(
             lines_with_k1.is_empty(),
             "optInK_1 should only appear in Private declarations and macros, \
-             but found in: {:?}",
-            lines_with_k1
+             but found in: {lines_with_k1:?}"
         );
     }
 }

@@ -299,7 +299,7 @@ fn gen_lookback(
 
 /// Generate the guarded public function.
 /// Validates params, delegates to `{snake}_unguarded`.
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn gen_guarded_func(
     func: &FuncDef,
     snake: &str,
@@ -2432,8 +2432,8 @@ fn is_definitely_integer(expr: &Expr, ctx: &RustRenderCtx) -> bool {
                 || ctx.sentinel_vars.contains(name)
                 || ctx.int_output_names.contains(name)
         }
-        Expr::IntLiteral(_) => false, // literals coerce to f64 in float context
         Expr::BinOp(a, _, b) => is_definitely_integer(a, ctx) || is_definitely_integer(b, ctx),
+        // IntLiteral and everything else: not definitely integer (literals coerce to f64).
         _ => false,
     }
 }
@@ -2555,6 +2555,7 @@ impl ExprEmitter for RustExpr<'_> {
 /// Render an `Expr::BinOp` to Rust, including the FMA fusion, pointer-identity
 /// buffer comparisons, and the operand int/usize/f64 cast inference. Delegated to
 /// by [`RustExpr::binop`].
+#[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
 fn render_binop(
     left: &Expr,
     op: &BinOp,
