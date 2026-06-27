@@ -9,6 +9,7 @@ pub mod java;
 pub mod makefile_am;
 pub mod rust_abstract;
 pub mod rust_lang;
+pub mod stmt_walk;
 pub mod ta_abstract_c;
 
 use crate::helper_registry::HelperRegistry;

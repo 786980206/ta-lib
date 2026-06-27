@@ -9,6 +9,7 @@ use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{expr_directly_contains_candle_call, pascal_word};
 use super::expr_walk::ExprEmitter;
+use super::stmt_walk::StatementEmitter;
 
 /// Candle helper functions emitted as C preprocessor macros instead of expanded code.
 /// This enables compiler loop-unswitching, matching the reference library's macro pattern.
@@ -601,7 +602,329 @@ pub fn render_statement(
     render_stmt(stmt, indent, &ctx, enums, registry, helpers)
 }
 
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+/// C-backend leaf formatting for the shared [`StatementEmitter`] tree-walk.
+/// Bundles the render context with the enum/registry/helper services the hooks
+/// need; the recursion and variant dispatch live in [`StatementEmitter::walk_stmt`].
+struct CStmt<'a> {
+    ctx: &'a CRenderCtx<'a>,
+    enums: &'a HashMap<String, EnumDef>,
+    registry: &'a Registry,
+    helpers: &'a HelperRegistry,
+}
+
+impl StatementEmitter for CStmt<'_> {
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn var_decl(&self, var_type: &VarType, name: &str, init: &Option<Expr>, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let decl = c_decl(var_type, name);
+        match init {
+            Some(init_expr) => {
+                // Hoist multi-statement helpers from the init expression
+                let mut hoisted = Vec::new();
+                let mut cnt = self.ctx.inline_counter.get();
+                let new_init = hoist_block_helpers(
+                    init_expr, self.helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
+                );
+                self.ctx.inline_counter.set(cnt);
+                let mut out = render_hoisted_blocks(
+                    &hoisted, indent, self.ctx, self.enums, self.registry,
+                    self.helpers,
+                );
+                out.push_str(&format!(
+                    "{pad}{decl} = {};\n",
+                    render_expr(&new_init, self.ctx, self.registry, self.helpers)
+                ));
+                out
+            }
+            None => format!("{pad}{decl};\n"),
+        }
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn assign(&self, target: &Expr, value: &Expr, compound: bool, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Hoist multi-statement helpers from the value expression
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_value = hoist_block_helpers(
+            value, self.helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
+        );
+        self.ctx.inline_counter.set(cnt);
+        let mut out = render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry,
+            self.helpers,
+        );
+
+        // Only fold compound assignments if the original source used +=/-=/etc.
+        if compound {
+            if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
+                if let Expr::Var(lname) = left.as_ref() {
+                    if lname == tname {
+                        let op_str = match op {
+                            BinOp::Add => "+=",
+                            BinOp::Sub => "-=",
+                            BinOp::Mul => "*=",
+                            BinOp::Div => "/=",
+                            BinOp::Mod
+                            | BinOp::LessEq
+                            | BinOp::Less
+                            | BinOp::Greater
+                            | BinOp::GreaterEq
+                            | BinOp::Eq
+                            | BinOp::NotEq
+                            | BinOp::And
+                            | BinOp::Or
+                            | BinOp::BitwiseOr
+                            | BinOp::Shr
+                            | BinOp::Shl => "",
+                        };
+                        if !op_str.is_empty() {
+                            let target_str =
+                                render_assign_target(target, self.ctx, self.registry, self.helpers);
+                            out.push_str(&format!(
+                                "{}{}{} {};\n",
+                                pad,
+                                target_str,
+                                op_str,
+                                render_expr(right, self.ctx, self.registry, self.helpers)
+                            ));
+                            return out;
+                        }
+                    }
+                }
+            }
+        }
+        let target_str = render_assign_target(target, self.ctx, self.registry, self.helpers);
+        let value_str = render_expr(&new_value, self.ctx, self.registry, self.helpers);
+        out.push_str(&format!("{pad}{target_str}= {value_str};\n"));
+        out
+    }
+
+    fn expr_stmt(&self, e: &Expr, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Statement-level expression: render a bare call/macro for its side effects.
+        // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+        if matches!(e, Expr::Var(_)) {
+            return String::new();
+        }
+        if let Expr::FuncCall(fname, args) = e {
+            // Check if helper inlines to a bare variable (identity helper)
+            if let Some(helper) = self.helpers.get(fname) {
+                if let Some(inlined) = try_inline_expr(helper, args) {
+                    if matches!(inlined, Expr::Var(_)) {
+                        return String::new();
+                    }
+                }
+            }
+            return format!(
+                "{}{};\n",
+                pad,
+                render_func_call(fname, args, self.ctx, self.registry, self.helpers)
+            );
+        }
+        String::new()
+    }
+
+    fn while_loop(&self, condition: &Expr, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_cond = hoist_block_helpers(condition, self.helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
+        self.ctx.inline_counter.set(cnt);
+        let mut out = String::new();
+        out.push_str(&render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        ));
+        out.push_str(&format!(
+            "{}while( {} )\n{}{{\n",
+            pad,
+            render_expr(&new_cond, self.ctx, self.registry, self.helpers),
+            pad
+        ));
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    fn do_while(&self, condition: &Expr, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = format!("{pad}do\n{pad}{{\n");
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_cond = hoist_block_helpers(condition, self.helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
+        self.ctx.inline_counter.set(cnt);
+        out.push_str(&render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        ));
+        out.push_str(&format!(
+            "{}}} while( {} );\n",
+            pad,
+            render_expr(&new_cond, self.ctx, self.registry, self.helpers)
+        ));
+        out
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Split `if(A && B)` into nested `if(A) { if(B)` when either side
+        // contains a candle macro call (ta_candlerange/ta_candleaverage).
+        // This prevents the compiler from speculatively computing both sides
+        // of the &&, which wastes expensive fdiv cycles on the common path
+        // where the first condition fails.
+        if let Expr::BinOp(left, BinOp::And, right) = condition {
+            if expr_directly_contains_candle_call(left)
+                && expr_directly_contains_candle_call(right)
+            {
+                // Render as: if(left) { if(right) { then } else { els } } else { els }
+                let inner_if = Statement::If {
+                    condition: *right.clone(),
+                    then_body: then_body.to_vec(),
+                    else_body: else_body.to_vec(),
+                };
+                let outer_if = Statement::If {
+                    condition: *left.clone(),
+                    then_body: vec![inner_if],
+                    else_body: else_body.to_vec(),
+                };
+                return self.walk_stmt(&outer_if, indent);
+            }
+        }
+
+        let mut hoisted = Vec::new();
+        let mut cnt = self.ctx.inline_counter.get();
+        let new_cond = hoist_block_helpers(condition, self.helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
+        self.ctx.inline_counter.set(cnt);
+        let mut out = String::new();
+        out.push_str(&render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+        ));
+        out.push_str(&format!(
+            "{}if( {} )\n{}{{\n",
+            pad,
+            render_expr(&new_cond, self.ctx, self.registry, self.helpers),
+            pad
+        ));
+        for s in then_body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        if else_body.is_empty() {
+            out.push_str(&format!("{pad}}}\n"));
+        } else {
+            out.push_str(&format!("{pad}}} else "));
+            // Check if the else body is a single if statement (else-if chain)
+            if else_body.len() == 1 {
+                if let Statement::If { .. } = &else_body[0] {
+                    let if_str = self.walk_stmt(&else_body[0], indent);
+                    out.push_str(if_str.trim_start());
+                    return out;
+                }
+            }
+            out.push_str(&format!("\n{pad}{{\n"));
+            for s in else_body {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}}}\n"));
+        }
+        out
+    }
+
+    fn return_stmt(&self, value: &Option<Expr>, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        match value {
+            Some(expr) => {
+                let rendered = render_return_expr(expr, self.ctx, self.registry, self.helpers);
+                format!("{pad}return {rendered};\n")
+            }
+            None => format!("{pad}return;\n"),
+        }
+    }
+
+    fn for_loop(&self, var: &str, count: &Expr, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = format!(
+            "{}for( {} = {}; {} > 0; {}-- )\n{}{{\n",
+            pad,
+            var,
+            render_expr(count, self.ctx, self.registry, self.helpers),
+            var,
+            var,
+            pad
+        );
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    fn for_c(&self, init: &Statement, condition: &Expr, update: &Statement, body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let init_str = render_forc_part(
+            init, self.ctx, self.enums, self.registry, self.helpers,
+        );
+        let update_str = render_forc_part(
+            update, self.ctx, self.enums, self.registry, self.helpers,
+        );
+        let mut out = format!(
+            "{}for( {}; {}; {} )\n{}{{\n",
+            pad,
+            init_str.trim(),
+            render_expr(condition, self.ctx, self.registry, self.helpers),
+            update_str.trim(),
+            pad
+        );
+        for s in body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn switch(&self, expr: &Expr, cases: &[(String, Vec<Statement>)], default: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Detect candle rangeType switches: each case assigns to the same
+        // variable. Emit as a ternary chain instead of a switch — the compiler
+        // loop-unswitches ternary chains much more aggressively, producing
+        // specialized tight loops like the reference library's macro expansion.
+        if let Some(ternary) = try_render_switch_as_ternary(
+            expr, cases, default, &pad, self.ctx, self.registry, self.helpers,
+        ) {
+            return ternary;
+        }
+
+        let mut out = format!(
+            "{}switch( {} )\n{}{{\n",
+            pad,
+            render_expr(expr, self.ctx, self.registry, self.helpers),
+            pad
+        );
+        for (label, case_body) in cases {
+            let c_label = render_c_switch_label(label, self.enums);
+            out.push_str(&format!("{pad}case {c_label}:\n"));
+            for s in case_body {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}   break;\n"));
+        }
+        if !default.is_empty() {
+            out.push_str(&format!("{pad}default:\n"));
+            for s in default {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}   break;\n"));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+}
+
 fn render_stmt(
     stmt: &Statement,
     indent: usize,
@@ -610,397 +933,7 @@ fn render_stmt(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    let pad = " ".repeat(indent);
-    match stmt {
-        Statement::VarDecl {
-            var_type,
-            name,
-            init,
-        } => {
-            let decl = c_decl(var_type, name);
-            match init {
-                Some(init_expr) => {
-                    // Hoist multi-statement helpers from the init expression
-                    let mut hoisted = Vec::new();
-                    let mut cnt = ctx.inline_counter.get();
-                    let new_init = hoist_block_helpers(
-                        init_expr, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
-                    );
-                    ctx.inline_counter.set(cnt);
-                    let mut out = render_hoisted_blocks(
-                        &hoisted, indent, ctx, enums, registry,
-                        helpers,
-                    );
-                    out.push_str(&format!(
-                        "{pad}{decl} = {};\n",
-                        render_expr(&new_init, ctx, registry, helpers)
-                    ));
-                    out
-                }
-                None => format!("{pad}{decl};\n"),
-            }
-        }
-        Statement::Assign {
-            target,
-            value,
-            compound,
-        } => {
-            // Hoist multi-statement helpers from the value expression
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_value = hoist_block_helpers(
-                value, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
-            );
-            ctx.inline_counter.set(cnt);
-            let mut out = render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry,
-                helpers,
-            );
-
-            // Only fold compound assignments if the original source used +=/-=/etc.
-            if *compound {
-                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
-                    if let Expr::Var(lname) = left.as_ref() {
-                        if lname == tname {
-                            let op_str = match op {
-                                BinOp::Add => "+=",
-                                BinOp::Sub => "-=",
-                                BinOp::Mul => "*=",
-                                BinOp::Div => "/=",
-                                BinOp::Mod
-                                | BinOp::LessEq
-                                | BinOp::Less
-                                | BinOp::Greater
-                                | BinOp::GreaterEq
-                                | BinOp::Eq
-                                | BinOp::NotEq
-                                | BinOp::And
-                                | BinOp::Or
-                                | BinOp::BitwiseOr
-                                | BinOp::Shr
-                                | BinOp::Shl => "",
-                            };
-                            if !op_str.is_empty() {
-                                let target_str =
-                                    render_assign_target(target, ctx, registry, helpers);
-                                out.push_str(&format!(
-                                    "{}{}{} {};\n",
-                                    pad,
-                                    target_str,
-                                    op_str,
-                                    render_expr(right, ctx, registry, helpers)
-                                ));
-                                return out;
-                            }
-                        }
-                    }
-                }
-            }
-            let target_str = render_assign_target(target, ctx, registry, helpers);
-            let value_str = render_expr(&new_value, ctx, registry, helpers);
-            out.push_str(&format!("{pad}{target_str}= {value_str};\n"));
-            out
-        }
-        Statement::Expr(e) => {
-            // Statement-level expression: render a bare call/macro for its side effects.
-            // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
-            if matches!(e, Expr::Var(_)) {
-                return String::new();
-            }
-            if let Expr::FuncCall(fname, args) = e {
-                // Check if helper inlines to a bare variable (identity helper)
-                if let Some(helper) = helpers.get(fname) {
-                    if let Some(inlined) = try_inline_expr(helper, args) {
-                        if matches!(inlined, Expr::Var(_)) {
-                            return String::new();
-                        }
-                    }
-                }
-                return format!(
-                    "{}{};\n",
-                    pad,
-                    render_func_call(fname, args, ctx, registry, helpers)
-                );
-            }
-            String::new()
-        }
-        Statement::While { condition, body } => {
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-            ctx.inline_counter.set(cnt);
-            let mut out = String::new();
-            out.push_str(&render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            ));
-            out.push_str(&format!(
-                "{}while( {} )\n{}{{\n",
-                pad,
-                render_expr(&new_cond, ctx, registry, helpers),
-                pad
-            ));
-            for s in body {
-                out.push_str(&render_stmt(
-                    s,
-                    indent + 3,
-                    ctx,
-                    enums,
-                    registry,
-                    helpers,
-                ));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::DoWhile { condition, body } => {
-            let mut out = format!("{pad}do\n{pad}{{\n");
-            for s in body {
-                out.push_str(&render_stmt(
-                    s,
-                    indent + 3,
-                    ctx,
-                    enums,
-                    registry,
-                    helpers,
-                ));
-            }
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-            ctx.inline_counter.set(cnt);
-            out.push_str(&render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            ));
-            out.push_str(&format!(
-                "{}}} while( {} );\n",
-                pad,
-                render_expr(&new_cond, ctx, registry, helpers)
-            ));
-            out
-        }
-        Statement::If {
-            condition,
-            then_body,
-            else_body,
-        } => {
-            // Split `if(A && B)` into nested `if(A) { if(B)` when either side
-            // contains a candle macro call (ta_candlerange/ta_candleaverage).
-            // This prevents the compiler from speculatively computing both sides
-            // of the &&, which wastes expensive fdiv cycles on the common path
-            // where the first condition fails.
-            if let Expr::BinOp(left, BinOp::And, right) = condition {
-                if expr_directly_contains_candle_call(left)
-                    && expr_directly_contains_candle_call(right)
-                {
-                    // Render as: if(left) { if(right) { then } else { els } } else { els }
-                    let inner_if = Statement::If {
-                        condition: *right.clone(),
-                        then_body: then_body.clone(),
-                        else_body: else_body.clone(),
-                    };
-                    let outer_if = Statement::If {
-                        condition: *left.clone(),
-                        then_body: vec![inner_if],
-                        else_body: else_body.clone(),
-                    };
-                    return render_stmt(
-                        &outer_if, indent, ctx, enums, registry,
-                        helpers,
-                    );
-                }
-            }
-
-            let mut hoisted = Vec::new();
-            let mut cnt = ctx.inline_counter.get();
-            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-            ctx.inline_counter.set(cnt);
-            let mut out = String::new();
-            out.push_str(&render_hoisted_blocks(
-                &hoisted, indent, ctx, enums, registry, helpers,
-            ));
-            out.push_str(&format!(
-                "{}if( {} )\n{}{{\n",
-                pad,
-                render_expr(&new_cond, ctx, registry, helpers),
-                pad
-            ));
-            for s in then_body {
-                out.push_str(&render_stmt(
-                    s,
-                    indent + 3,
-                    ctx,
-                    enums,
-                    registry,
-                    helpers,
-                ));
-            }
-            if else_body.is_empty() {
-                out.push_str(&format!("{pad}}}\n"));
-            } else {
-                out.push_str(&format!("{pad}}} else "));
-                // Check if the else body is a single if statement (else-if chain)
-                if else_body.len() == 1 {
-                    if let Statement::If { .. } = &else_body[0] {
-                        let if_str = render_stmt(
-                            &else_body[0],
-                            indent,
-                            ctx,
-                            enums,
-                            registry,
-                            helpers,
-                        );
-                        out.push_str(if_str.trim_start());
-                        return out;
-                    }
-                }
-                out.push_str(&format!("\n{pad}{{\n"));
-                for s in else_body {
-                    out.push_str(&render_stmt(
-                        s,
-                        indent + 3,
-                        ctx,
-                        enums,
-                        registry,
-                        helpers,
-                    ));
-                }
-                out.push_str(&format!("{pad}}}\n"));
-            }
-            out
-        }
-        Statement::Return { value } => match value {
-            Some(expr) => {
-                let rendered = render_return_expr(expr, ctx, registry, helpers);
-                format!("{pad}return {rendered};\n")
-            }
-            None => format!("{pad}return;\n"),
-        },
-        Statement::For { var, count, body } => {
-            let mut out = format!(
-                "{}for( {} = {}; {} > 0; {}-- )\n{}{{\n",
-                pad,
-                var,
-                render_expr(count, ctx, registry, helpers),
-                var,
-                var,
-                pad
-            );
-            for s in body {
-                out.push_str(&render_stmt(
-                    s,
-                    indent + 3,
-                    ctx,
-                    enums,
-                    registry,
-                    helpers,
-                ));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::ForC {
-            init,
-            condition,
-            update,
-            body,
-        } => {
-            let init_str = render_forc_part(
-                init, ctx, enums, registry, helpers,
-            );
-            let update_str = render_forc_part(
-                update, ctx, enums, registry, helpers,
-            );
-            let mut out = format!(
-                "{}for( {}; {}; {} )\n{}{{\n",
-                pad,
-                init_str.trim(),
-                render_expr(condition, ctx, registry, helpers),
-                update_str.trim(),
-                pad
-            );
-            for s in body {
-                out.push_str(&render_stmt(
-                    s,
-                    indent + 3,
-                    ctx,
-                    enums,
-                    registry,
-                    helpers,
-                ));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::Block { body } => {
-            let mut out = String::new();
-            for s in body {
-                out.push_str(&render_stmt(
-                    s,
-                    indent,
-                    ctx,
-                    enums,
-                    registry,
-                    helpers,
-                ));
-            }
-            out
-        }
-        Statement::Break => format!("{pad}break;\n"),
-        Statement::Continue => format!("{pad}continue;\n"),
-        Statement::Switch {
-            expr,
-            cases,
-            default,
-        } => {
-            // Detect candle rangeType switches: each case assigns to the same
-            // variable. Emit as a ternary chain instead of a switch — the compiler
-            // loop-unswitches ternary chains much more aggressively, producing
-            // specialized tight loops like the reference library's macro expansion.
-            if let Some(ternary) = try_render_switch_as_ternary(
-                expr, cases, default, &pad, ctx, registry, helpers,
-            ) {
-                return ternary;
-            }
-
-            let mut out = format!(
-                "{}switch( {} )\n{}{{\n",
-                pad,
-                render_expr(expr, ctx, registry, helpers),
-                pad
-            );
-            for (label, case_body) in cases {
-                let c_label = render_c_switch_label(label, enums);
-                out.push_str(&format!("{pad}case {c_label}:\n"));
-                for s in case_body {
-                    out.push_str(&render_stmt(
-                        s,
-                        indent + 3,
-                        ctx,
-                        enums,
-                        registry,
-                        helpers,
-                    ));
-                }
-                out.push_str(&format!("{pad}   break;\n"));
-            }
-            if !default.is_empty() {
-                out.push_str(&format!("{pad}default:\n"));
-                for s in default {
-                    out.push_str(&render_stmt(
-                        s,
-                        indent + 3,
-                        ctx,
-                        enums,
-                        registry,
-                        helpers,
-                    ));
-                }
-                out.push_str(&format!("{pad}   break;\n"));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-    }
+    CStmt { ctx, enums, registry, helpers }.walk_stmt(stmt, indent)
 }
 
 /// Try to render a switch as a ternary chain.
