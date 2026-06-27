@@ -2,20 +2,20 @@
 
 ## Problem
 
-The ta_codegen pipeline generates JSON-RPC servers for C, Java, and .NET — all 163 indicators pass regression tests. Rust is skipped. The Rust backend generates indicator `.rs` files flat into `ta_codegen_output/rust/`, but there's no Cargo crate structure, no module declarations, and no server harness.
+The ta_codegen pipeline generates JSON-RPC servers for C, Java, and .NET — all 163 indicators pass regression tests. Rust is skipped. The Rust backend generates indicator `.rs` files flat into `ta_codegen/output/rust/`, but there's no Cargo crate structure, no module declarations, and no server harness.
 
-The old `rust/` top-level directory is a legacy Cargo crate from the `gen_code.c` era. It should be replaced by a fully generated crate in `ta_codegen_output/rust/`.
+The old `rust/` top-level directory is a legacy Cargo crate from the `gen_code.c` era. It should be replaced by a fully generated crate in `ta_codegen/output/rust/`.
 
 ## Goal
 
-1. Restructure `generate --backend=rust` to emit a complete, self-contained Cargo crate in `ta_codegen_output/rust/`
+1. Restructure `generate --backend=rust` to emit a complete, self-contained Cargo crate in `ta_codegen/output/rust/`
 2. Generate a Rust JSON-RPC server binary within that crate
 3. Pass all 163 indicators in `ta_regtest --codegen --language=rust`
 
 ## Reference
 
 - C server: `server_gen.rs::generate_c_server` — server pattern reference
-- Generated Rust indicators: `ta_codegen_output/rust/*.rs` — existing output (currently flat)
+- Generated Rust indicators: `ta_codegen/output/rust/*.rs` — existing output (currently flat)
 - Old Rust crate: `rust/src/ta_func/mod.rs` — Core, RetCode, FuncUnstId, Compatibility, TaFloat definitions to migrate
 - Old Rust crate: `rust/src/ta_func/float.rs` — TaFloat sealed trait implementation
 
@@ -25,9 +25,9 @@ The old `rust/` top-level directory is a legacy Cargo crate from the `gen_code.c
 
 ### Current state
 
-`generate --backend=rust` outputs flat `.rs` files to `ta_codegen_output/rust/`:
+`generate --backend=rust` outputs flat `.rs` files to `ta_codegen/output/rust/`:
 ```
-ta_codegen_output/rust/
+ta_codegen/output/rust/
   sma.rs
   rsi.rs
   bbands.rs
@@ -40,7 +40,7 @@ No `Cargo.toml`, no `mod.rs`, no module declarations. These files can't compile.
 
 `generate --backend=rust` outputs a complete Cargo crate:
 ```
-ta_codegen_output/rust/
+ta_codegen/output/rust/
   Cargo.toml
   src/
     lib.rs
@@ -59,7 +59,7 @@ ta_codegen_output/rust/
 
 **Responsibility: `rust_lang.rs` backend + `main.rs` orchestration**
 
-1. **Output path:** Change indicator file output from `ta_codegen_output/rust/<name>.rs` to `ta_codegen_output/rust/src/ta_func/<name>.rs`
+1. **Output path:** Change indicator file output from `ta_codegen/output/rust/<name>.rs` to `ta_codegen/output/rust/src/ta_func/<name>.rs`
 
 2. **Emit `Cargo.toml`:** Generated with:
    - `name = "ta-lib"`, matching the old crate
@@ -96,7 +96,7 @@ The Cargo scaffolding (`Cargo.toml`, `lib.rs`, `mod.rs`, `float.rs`) is needed f
 
 **Responsibility: `server_gen.rs`**
 
-Emits `ta_codegen_output/rust/src/bin/ta_codegen_serve.rs` — a JSON-RPC server binary. The crate structure from Part 1 must already exist.
+Emits `ta_codegen/output/rust/src/bin/ta_codegen_serve.rs` — a JSON-RPC server binary. The crate structure from Part 1 must already exist.
 
 ### Server architecture
 
@@ -142,7 +142,7 @@ OutOfRangeStartIndex → 12, OutOfRangeEndIndex → 13, InternalError → 5000
 
 ### `ta_codegen build --backend=rust`
 
-Run `cargo build --release --bin ta_codegen_serve` from `ta_codegen_output/rust/`. Copy binary to `bin/ta_codegen_serve_rust`.
+Run `cargo build --release --bin ta_codegen_serve` from `ta_codegen/output/rust/`. Copy binary to `bin/ta_codegen_serve_rust`.
 
 ### `main.rs` changes
 
@@ -160,7 +160,7 @@ Run `cargo build --release --bin ta_codegen_serve` from `ta_codegen_output/rust/
 
 After the generated crate is working:
 1. Delete `rust/` top-level directory
-2. Update any references (CLAUDE.md, CI, etc.) to point to `ta_codegen_output/rust/`
+2. Update any references (CLAUDE.md, CI, etc.) to point to `ta_codegen/output/rust/`
 
 This is a separate commit after everything passes.
 

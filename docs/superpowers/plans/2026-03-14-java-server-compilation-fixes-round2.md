@@ -78,7 +78,7 @@ In `server_gen.rs`, after the `unstablePeriod` and `compatibility` fields (~line
 ```bash
 cd tools/ta_codegen && cargo build 2>&1 | tail -5
 cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 5 TaCodegenServe.java 2>&1 | grep "candleSettings" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 5 TaCodegenServe.java 2>&1 | grep "candleSettings" | wc -l
 ```
 
 Expected: 0 errors mentioning `candleSettings`.
@@ -143,7 +143,7 @@ for stmt in body {
 ```bash
 cd tools/ta_codegen && cargo build 2>&1 | tail -5
 cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -3
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -3
 ```
 
 Expected: Error count drops by ~920. Specifically, check that `tmp_0`, `range_0`, `i` (in hoisted blocks), `close`, `open`, `Plus_dm` are no longer in the error list:
@@ -235,7 +235,7 @@ Find the `Statement::Switch` arm. Hoist from the switch expression. Emit hoisted
 ```bash
 cd tools/ta_codegen && cargo build 2>&1 | tail -5
 cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -3
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -3
 ```
 
 Expected: Error count drops by ~756. Check:
@@ -302,7 +302,7 @@ Expr::Var(name) => {
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "TA_MAType" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "TA_MAType" | wc -l
 ```
 
 Expected: 0.
@@ -380,7 +380,7 @@ Verify the lookup matches `server_gen.rs` line 773-777 enum variants exactly: `A
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "FuncUnstId" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "FuncUnstId" | wc -l
 ```
 
 Expected: 0.
@@ -442,7 +442,7 @@ Apply the same pattern to `While` and `DoWhile` condition rendering.
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "cannot be converted to boolean" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "cannot be converted to boolean" | wc -l
 ```
 
 Expected: 0.
@@ -499,7 +499,7 @@ fn is_int_literal(expr: &Expr, value: i64) -> bool {
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "bad operand" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "bad operand" | wc -l
 ```
 
 Expected: 0.
@@ -524,7 +524,7 @@ Float-precision overloads compare `float[]` to `double[]` for aliasing. This is 
 Check the generated output to see the exact aliasing check pattern. Look at a BBANDS float variant:
 
 ```bash
-grep -n "inReal==out\|inReal == out" ta_codegen_output/java/TaCodegenServe.java | head -5
+grep -n "inReal==out\|inReal == out" ta_codegen/output/java/TaCodegenServe.java | head -5
 ```
 
 Determine whether this is best fixed by:
@@ -542,7 +542,7 @@ Alternatively, in `render_expr`'s `BinOp(Eq)` arm, when `single_precision` is tr
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "incomparable types" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "incomparable types" | wc -l
 ```
 
 Expected: 0.
@@ -578,7 +578,7 @@ Or simpler: add a heuristic in the VarDecl rendering — if the variable name co
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "MAType cannot be converted" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "MAType cannot be converted" | wc -l
 ```
 
 Expected: 0.
@@ -623,7 +623,7 @@ Based on research, modify the VarDecl rendering and the `collect_address_of_vars
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "cannot be dereferenced\|no suitable method found for sma" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "cannot be dereferenced\|no suitable method found for sma" | wc -l
 ```
 
 Expected: 0.
@@ -646,7 +646,7 @@ Three lookback functions are called but never defined.
 - [ ] **Step 1: Research the issue**
 
 ```bash
-grep -n "linearregAngleLookback\|linearregInterceptLookback\|linearregSlopeLookback" ../../ta_codegen_output/java/TaCodegenServe.java | head -10
+grep -n "linearregAngleLookback\|linearregInterceptLookback\|linearregSlopeLookback" ../../ta_codegen/output/java/TaCodegenServe.java | head -10
 ```
 
 Determine:
@@ -662,7 +662,7 @@ Based on research — either fix the naming to match generated methods, or add a
 
 ```bash
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "linearreg.*Lookback" | wc -l
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "linearreg.*Lookback" | wc -l
 ```
 
 Expected: 0.
@@ -685,7 +685,7 @@ No code changes — verify everything compiles.
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate-servers --backend=java
-cd ../../ta_codegen_output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -5
+cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -5
 ```
 
 Expected: `0 errors` or a small number of residual errors.

@@ -9,7 +9,7 @@ After Round 1 fixes (parser VarDecl flattening/dedup, null-check elimination, AL
 For every questionable pattern, consult:
 - Legacy `gen_code.c` (`src/ta_abstract/gen_code/gen_code.c`) — the original code generator
 - Existing `Core.java` in the Java SDK (`src/ta_func/java/Core.java` or similar) — known-working output
-- C source in `ta_func_defs/` — the IR source of truth
+- C source in `ta_codegen/input/` — the IR source of truth
 
 ---
 

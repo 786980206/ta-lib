@@ -8,14 +8,14 @@ The current system has too many variant names (`_Logic`, `_unchecked`, `_unguard
 
 ### Source files are always unguarded
 
-A source `.c` file in `ta_func_defs/` contains ONLY the algorithm. No validation, no `TA_INT_` prefixes, no `_unguarded` suffixes. Cross-indicator calls use plain names (`TA_EMA`) which the codegen resolves to the unguarded variant in output.
+A source `.c` file in `ta_codegen/input/` contains ONLY the algorithm. No validation, no `TA_INT_` prefixes, no `_unguarded` suffixes. Cross-indicator calls use plain names (`TA_EMA`) which the codegen resolves to the unguarded variant in output.
 
 ### Two cases
 
 **Case 1 — Simple (most indicators):** Source has ONE function.
 
 ```c
-// ta_func_defs/sma/sma.c
+// ta_codegen/input/sma/sma.c
 TA_RetCode sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal) {
     // pure algorithm
 }
@@ -28,7 +28,7 @@ Codegen generates 2 functions per language:
 **Case 2 — Pre-compute (EMA, MACD):** Source has TWO functions. The first is a pre-compute wrapper, the second is the core algorithm with an extra parameter.
 
 ```c
-// ta_func_defs/ema/ema.c
+// ta_codegen/input/ema/ema.c
 TA_RetCode ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal) {
     double k = 2.0 / (optInTimePeriod + 1.0);
     // calls the core below with k
@@ -48,7 +48,7 @@ Codegen generates 2 functions:
 In source files, `TA_EMA(...)` always means the unguarded variant. The caller provides all params including pre-computed ones:
 
 ```c
-// ta_func_defs/macd/macd.c
+// ta_codegen/input/macd/macd.c
 double slowK = 2.0 / (optInSlowPeriod + 1.0);
 retCode = TA_EMA(startIdx, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx, outNBElement, slowEMABuffer);
 ```
@@ -86,7 +86,7 @@ C gets 2 additional functions: `TA_S_SMA` and `TA_S_SMA_Unguarded` with `float` 
 
 ## Files affected
 
-### Source files (ta_func_defs/)
+### Source files (ta_codegen/input/)
 - Remove `TA_INT_` prefixes from cross-indicator calls
 - Rename explicit `_unguarded` functions to `_core` (or similar)
 - Move pre-compute logic to callers where needed (MACD calling EMA with k)

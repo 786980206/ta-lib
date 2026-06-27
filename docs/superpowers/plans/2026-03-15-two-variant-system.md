@@ -6,7 +6,7 @@
 
 **Architecture:** The C source parser learns to recognize `foo_unguarded()` alongside `foo()` in the same file. The IR stores both bodies and parameter lists. Each backend renders 2 variants instead of 4. Cross-indicator calls resolve extra params via the target's unguarded parameter list.
 
-**Tech Stack:** Rust (ta_codegen), C (ta_func_defs sources), CMake (build system)
+**Tech Stack:** Rust (ta_codegen), C (ta_codegen/input sources), CMake (build system)
 
 **Spec:** `docs/superpowers/specs/2026-03-15-two-variant-system-design.md`
 
@@ -146,7 +146,7 @@ git commit -m "feat(parser): recognize foo_unguarded() with extra params in C so
 ### Task 3: Write EMA with explicit unguarded variant
 
 **Files:**
-- Modify: `ta_func_defs/ema/ema.c`
+- Modify: `ta_codegen/input/ema/ema.c`
 
 - [ ] **Step 1: Rewrite ema.c with guarded + unguarded split**
 
@@ -226,7 +226,7 @@ Expected: EMA generates without errors. Check the output file has both `TA_EMA` 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add ta_func_defs/ema/ema.c
+git add ta_codegen/input/ema/ema.c
 git commit -m "feat(ema): split into guarded + unguarded with explicit k param"
 ```
 
@@ -235,7 +235,7 @@ git commit -m "feat(ema): split into guarded + unguarded with explicit k param"
 ### Task 4: Update MACD to call ema_unguarded with explicit k
 
 **Files:**
-- Modify: `ta_func_defs/macd/macd.c`
+- Modify: `ta_codegen/input/macd/macd.c`
 
 - [ ] **Step 1: Add slowK/fastK variables and compute based on fix case**
 
@@ -288,7 +288,7 @@ Same for the fast EMA call (use `fastK`). The signal EMA call can stay as `ema()
 - [ ] **Step 3: Commit**
 
 ```bash
-git add ta_func_defs/macd/macd.c
+git add ta_codegen/input/macd/macd.c
 git commit -m "feat(macd): call ema_unguarded with explicit k for fix case"
 ```
 
@@ -359,11 +359,11 @@ In `generate_rust_server()` (around line 1979), update the dispatch call from `c
 - [ ] **Step 8: Verify Rust backend compiles and generates**
 
 Run: `cd tools/ta_codegen && cargo check && cargo run -- generate --backend=rust 2>&1 | tail -5`
-Expected: All 163 indicators generate. Check a sample output (e.g., `ta_codegen_output/rust/src/ta_func/sma.rs`) has only 2 variants.
+Expected: All 163 indicators generate. Check a sample output (e.g., `ta_codegen/output/rust/src/ta_func/sma.rs`) has only 2 variants.
 
 - [ ] **Step 9: Build Rust crate**
 
-Run: `cd ta_codegen_output/rust && cargo check 2>&1 | tail -20`
+Run: `cd ta_codegen/output/rust && cargo check 2>&1 | tail -20`
 Expected: Compiles (may have warnings, should have 0 errors)
 
 - [ ] **Step 10: Commit**
@@ -458,17 +458,17 @@ Expected: MACD, MACDEXT, and MACDFIX all show PASS with real timing.
 
 - [ ] **Step 6: Verify EMA unguarded has extra k param in generated output**
 
-Check: `grep 'optInK_1\|k_1' ta_codegen_output/c/ta_EMA.c | head -5`
+Check: `grep 'optInK_1\|k_1' ta_codegen/output/c/ta_EMA.c | head -5`
 Expected: The Logic/INT variant signature includes the k parameter.
 
-Check: `grep 'optInK_1\|k_1' ta_codegen_output/rust/src/ta_func/ema.rs | head -5`
+Check: `grep 'optInK_1\|k_1' ta_codegen/output/rust/src/ta_func/ema.rs | head -5`
 Expected: The `ema_unguarded` function signature includes k as f64.
 
 - [ ] **Step 7: Verify variant count reduced in Rust**
 
 Check a simple indicator (SMA) to confirm only 2 variants:
 ```bash
-grep 'pub fn sma' ta_codegen_output/rust/src/ta_func/sma.rs
+grep 'pub fn sma' ta_codegen/output/rust/src/ta_func/sma.rs
 ```
 Expected: Only `pub fn sma(` and `pub fn sma_unguarded(` — no `_unchecked` variants.
 

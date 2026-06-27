@@ -15,12 +15,12 @@
 ### Task 1: Move globals from header to `.c` file
 
 **Files:**
-- Modify: `ta_func_defs/lib/c/ta_lib_types.h:94-109`
-- Modify: `ta_func_defs/lib/c/ta_lib_globals.c`
+- Modify: `ta_codegen/input/lib/c/ta_lib_types.h:94-109`
+- Modify: `ta_codegen/input/lib/c/ta_lib_globals.c`
 
 - [ ] **Step 1: Replace static definitions with extern declarations in header**
 
-In `ta_func_defs/lib/c/ta_lib_types.h`, replace lines 94-109:
+In `ta_codegen/input/lib/c/ta_lib_types.h`, replace lines 94-109:
 ```c
 static TA_GlobalsType ta_globals_data = {
     .candleSettings = {
@@ -37,7 +37,7 @@ extern TA_GlobalsType *TA_Globals;
 
 - [ ] **Step 2: Add actual definitions to ta_lib_globals.c**
 
-In `ta_func_defs/lib/c/ta_lib_globals.c`, add after the existing `TA_SetUnstablePeriod` function:
+In `ta_codegen/input/lib/c/ta_lib_globals.c`, add after the existing `TA_SetUnstablePeriod` function:
 ```c
 /* Candle settings — one definition, declared extern in ta_lib_types.h */
 TA_GlobalsType ta_globals_data = {
@@ -61,7 +61,7 @@ TA_GlobalsType *TA_Globals = &ta_globals_data;
 - [ ] **Step 3: Verify templates compile standalone**
 
 ```bash
-cd ta_codegen_output/c
+cd ta_codegen/output/c
 # After regenerating (next task), compile one indicator + globals to verify linkage:
 gcc -c -O3 -DNDEBUG ta_lib_globals.c -o /tmp/globals.o
 gcc -c -O3 -DNDEBUG ta_CCI.c -o /tmp/cci.o
@@ -71,7 +71,7 @@ gcc -c -O3 -DNDEBUG ta_CCI.c -o /tmp/cci.o
 - [ ] **Step 4: Commit**
 
 ```bash
-git add ta_func_defs/lib/c/ta_lib_types.h ta_func_defs/lib/c/ta_lib_globals.c
+git add ta_codegen/input/lib/c/ta_lib_types.h ta_codegen/input/lib/c/ta_lib_globals.c
 git commit -m "refactor: move candle settings globals from header to .c file
 
 Extern declarations in ta_lib_types.h, definitions in ta_lib_globals.c.
@@ -127,7 +127,7 @@ cd tools/ta_codegen && cargo run --release -- generate-servers --backend=c
 - [ ] **Step 4: Verify server source has no #include "ta_*.c" lines**
 
 ```bash
-grep '#include "ta_' ta_codegen_output/c/ta_codegen_serve.c
+grep '#include "ta_' ta_codegen/output/c/ta_codegen_serve.c
 # Should show ONLY: #include "ta_func.h"
 ```
 
@@ -255,7 +255,7 @@ optimize each function independently."
 ### Task 4: Regenerate, test, and benchmark
 
 **Files:**
-- Regenerated: `ta_codegen_output/c/*`
+- Regenerated: `ta_codegen/output/c/*`
 
 - [ ] **Step 1: Full regenerate and build**
 
@@ -294,7 +294,7 @@ Verify no regressions — all indicators at parity or better.
 - [ ] **Step 5: Commit regenerated output**
 
 ```bash
-git add ta_codegen_output/c/
+git add ta_codegen/output/c/
 git commit -m "chore: regenerated C output with separate compilation support"
 ```
 

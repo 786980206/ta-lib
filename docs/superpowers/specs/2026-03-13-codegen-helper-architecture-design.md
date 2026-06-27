@@ -13,16 +13,16 @@ This spec covers the architecture for resolving all of these.
 
 **Out of scope (deferred):**
 - Pre-compute pattern for internal function variants (EMA's `optInK_1`, PO's `tempBuffer`/`doPercentageOutput`). Will be designed after helper inlining is working — the inlining machinery built here is the foundation that pattern needs.
-- Hilbert transform macros (`HILBERT_VARIABLES`, `INIT_HILBERT_VARIABLES`, `DO_HILBERT_ODD`, `DO_HILBERT_EVEN`, `DO_PRICE_WMA`) — ~140 calls across 7 files (ht_dcperiod, ht_dcphase, ht_phasor, ht_sine, ht_trendline, ht_trendmode, mama). These are complex stateful macro blocks with heavy internal state. They need their own helper files in `ta_func_defs/helpers/` using the same architecture described here, but the extraction and parameterization is a separate task.
+- Hilbert transform macros (`HILBERT_VARIABLES`, `INIT_HILBERT_VARIABLES`, `DO_HILBERT_ODD`, `DO_HILBERT_EVEN`, `DO_PRICE_WMA`) — ~140 calls across 7 files (ht_dcperiod, ht_dcphase, ht_phasor, ht_sine, ht_trendline, ht_trendmode, mama). These are complex stateful macro blocks with heavy internal state. They need their own helper files in `ta_codegen/input/helpers/` using the same architecture described here, but the extraction and parameterization is a separate task.
 
 ---
 
 ## 1. Helper File Structure
 
-Helper functions live in `ta_func_defs/helpers/`, grouped by domain:
+Helper functions live in `ta_codegen/input/helpers/`, grouped by domain:
 
 ```
-ta_func_defs/helpers/
+ta_codegen/input/helpers/
   candlestick.c      — 11 candle helpers
   range.c             — TRUE_RANGE
   rounding.c          — round_pos, SAR_ROUNDING
@@ -178,7 +178,7 @@ The codegen inlines helper function bodies at call sites during generation, avoi
 ### Load phase
 
 At startup, the codegen:
-1. Scans `ta_func_defs/helpers/*.c`
+1. Scans `ta_codegen/input/helpers/*.c`
 2. Parses each file in **helper mode** — a new parser mode that expects standalone utility functions rather than indicator structure (no lookback/main split, no YAML-defined params). Each function in the file produces a `HelperDef`.
 3. Builds a **helper registry**: `HashMap<String, HelperDef>` where `HelperDef` contains the function name, parameter list (name + type), return type, and IR body (Vec<Statement>)
 

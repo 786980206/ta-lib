@@ -137,7 +137,7 @@ Expected: All existing tests pass. If any test relies on `Statement::Block` wrap
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate-servers --backend=java
-grep -n "int i\|int j\|int outputSize\|int bufferSize\|int lookbackTotal" ../ta_codegen_output/java/Core_ACCBANDS.java | head -20
+grep -n "int i\|int j\|int outputSize\|int bufferSize\|int lookbackTotal" ../ta_codegen/output/java/Core_ACCBANDS.java | head -20
 ```
 
 Expected: Each variable should now have its own `int varname;` declaration line. No more missing variables.
@@ -146,7 +146,7 @@ Expected: Each variable should now have its own `int varname;` declaration line.
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate-servers --backend=c
-cd .. && git diff ta_codegen_output/c/
+cd .. && git diff ta_codegen/output/c/
 ```
 
 Expected: No changes to C output (parser fix should be transparent to C backend).
@@ -251,7 +251,7 @@ cd tools/ta_codegen && cargo test 2>&1 | tail -20
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate-servers --backend=java
-grep -c "double\[\] tempBuffer1" ../ta_codegen_output/java/Core_ACCBANDS.java
+grep -c "double\[\] tempBuffer1" ../ta_codegen/output/java/Core_ACCBANDS.java
 ```
 
 Expected: Count should be `4` (one per function variant: accbands, accbandsLogic, accbands float, accbandsLogic float). Previously was `8` (doubled by the duplicate declaration).
@@ -259,7 +259,7 @@ Expected: Count should be `4` (one per function variant: accbands, accbandsLogic
 - [ ] **Step 4: Verify the re-declaration becomes an assignment**
 
 ```bash
-grep -A2 "tempBuffer1" ../ta_codegen_output/java/Core_ACCBANDS.java | head -20
+grep -A2 "tempBuffer1" ../ta_codegen/output/java/Core_ACCBANDS.java | head -20
 ```
 
 Expected: `double[] tempBuffer1;` (declaration), then later `tempBuffer1 = new double[...]` (assignment, no type prefix).
@@ -315,7 +315,7 @@ Statement::If {
 ```bash
 cd tools/ta_codegen && cargo build
 cargo run -- generate-servers --backend=java
-grep -c "ALLOC_ERR" ../ta_codegen_output/java/Core_ACCBANDS.java
+grep -c "ALLOC_ERR" ../ta_codegen/output/java/Core_ACCBANDS.java
 ```
 
 Expected: `0` — all ALLOC_ERR blocks eliminated.
@@ -323,7 +323,7 @@ Expected: `0` — all ALLOC_ERR blocks eliminated.
 - [ ] **Step 4: Verify null-check `if(!tempBuffer1)` blocks are gone**
 
 ```bash
-grep "!(tempBuffer" ../ta_codegen_output/java/Core_ACCBANDS.java
+grep "!(tempBuffer" ../ta_codegen/output/java/Core_ACCBANDS.java
 ```
 
 Expected: No matches.
@@ -368,7 +368,7 @@ Expr::Var(name) => match name.as_str() {
 ```bash
 cd tools/ta_codegen && cargo build
 cargo run -- generate-servers --backend=java
-grep -rn "ALLOC_ERR\|INTERNAL_ERROR" ../ta_codegen_output/java/ | head -10
+grep -rn "ALLOC_ERR\|INTERNAL_ERROR" ../ta_codegen/output/java/ | head -10
 ```
 
 Expected: No raw `ALLOC_ERR` or `INTERNAL_ERROR` references — they should all be mapped to `RetCode.*`.
@@ -552,7 +552,7 @@ This ensures `AddressOf(Var("x"))` renders as `x` (the MInteger object) rather t
 ```bash
 cd tools/ta_codegen && cargo build 2>&1 | head -50
 cargo run -- generate-servers --backend=java
-grep -n "MInteger\|firstEMABegIdx\|outBegIdxDummy" ../ta_codegen_output/java/Core_DEMA.java | head -20
+grep -n "MInteger\|firstEMABegIdx\|outBegIdxDummy" ../ta_codegen/output/java/Core_DEMA.java | head -20
 ```
 
 Expected:
@@ -597,7 +597,7 @@ The body already contains `return RetCode.Success;` from the IR — the hardcode
 ```bash
 cd tools/ta_codegen && cargo build
 cargo run -- generate-servers --backend=java
-grep -c "return RetCode.Success" ../ta_codegen_output/java/Core_ACCBANDS.java
+grep -c "return RetCode.Success" ../ta_codegen/output/java/Core_ACCBANDS.java
 ```
 
 Expected: Count should be halved compared to before (one per function variant, not two).
@@ -656,7 +656,7 @@ fn render_java_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> St
 ```bash
 cd tools/ta_codegen && cargo build
 cargo run -- generate-servers --backend=java
-grep -n "MAType\|TA_MAType" ../ta_codegen_output/java/Core_MA.java | head -20
+grep -n "MAType\|TA_MAType" ../ta_codegen/output/java/Core_MA.java | head -20
 ```
 
 Expected: Switch cases use `MAType.Sma`, `MAType.Ema`, etc. — not `TA_MAType_SMA`.
@@ -681,8 +681,8 @@ After Task 1 (VarDecl flattening), all variables are declared locally in each me
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate-servers --backend=java
-grep -n "int lookbackTotal\|int i;" ../ta_codegen_output/java/Core_ACCBANDS.java | head -10
-grep -n "int outIdx" ../ta_codegen_output/java/Core_DEMA.java | head -5
+grep -n "int lookbackTotal\|int i;" ../ta_codegen/output/java/Core_ACCBANDS.java | head -10
+grep -n "int outIdx" ../ta_codegen/output/java/Core_DEMA.java | head -5
 ```
 
 Expected: Each variable appears as a local declaration in each method. If any are MISSING, do NOT proceed — fall back to keeping those as class fields.
@@ -773,7 +773,7 @@ Confirm that `server_gen.rs` already defines all required types. Check the gener
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate-servers --backend=java
-grep -n "^enum\|^class MInteger" ../ta_codegen_output/java/TaCodegenServe.java
+grep -n "^enum\|^class MInteger" ../ta_codegen/output/java/TaCodegenServe.java
 ```
 
 Expected: `RetCode`, `MInteger`, `FuncUnstId`, `Compatibility`, `MAType` (added by Task 7) all present. If any are missing, add them to `server_gen.rs` before proceeding.
@@ -793,7 +793,7 @@ cd tools/ta_codegen && cargo run -- build --backend=java 2>&1 | tail -30
 Or manually:
 
 ```bash
-cd ta_codegen_output/java && javac TaCodegenServe.java 2>&1 | head -100
+cd ta_codegen/output/java && javac TaCodegenServe.java 2>&1 | head -100
 ```
 
 Expected: Zero compilation errors.
@@ -803,7 +803,7 @@ Expected: Zero compilation errors.
 Count remaining errors:
 
 ```bash
-cd ta_codegen_output/java && javac TaCodegenServe.java 2>&1 | grep -c "error:"
+cd ta_codegen/output/java && javac TaCodegenServe.java 2>&1 | grep -c "error:"
 ```
 
 Common remaining issues to check:

@@ -4,7 +4,7 @@
 
 **Goal:** Restructure Rust codegen output into a self-contained Cargo crate with a JSON-RPC server binary, then pass all 163 indicators in `ta_regtest --codegen --language=rust`.
 
-**Architecture:** Change `generate --backend=rust` to emit a complete Cargo crate at `ta_codegen_output/rust/` with indicator code, scaffolding, and a serde_json-based server binary. The old `rust/` top-level directory is deleted.
+**Architecture:** Change `generate --backend=rust` to emit a complete Cargo crate at `ta_codegen/output/rust/` with indicator code, scaffolding, and a serde_json-based server binary. The old `rust/` top-level directory is deleted.
 
 **Tech Stack:** Rust, serde_json, ta_codegen (code generator)
 
@@ -21,11 +21,11 @@ Change `generate --backend=rust` to write indicator files into a proper crate st
 **Files:**
 - Modify: `tools/ta_codegen/src/main.rs` (~line 852-858, Rust backend case in generate)
 - Modify: `tools/ta_codegen/src/backends/rust_lang.rs` (add embedded float.rs content)
-- Create: `ta_codegen_output/rust/Cargo.toml` (generated)
-- Create: `ta_codegen_output/rust/src/lib.rs` (generated)
-- Create: `ta_codegen_output/rust/src/ta_func/mod.rs` (generated)
-- Create: `ta_codegen_output/rust/src/ta_func/float.rs` (generated)
-- Move: `ta_codegen_output/rust/*.rs` → `ta_codegen_output/rust/src/ta_func/*.rs`
+- Create: `ta_codegen/output/rust/Cargo.toml` (generated)
+- Create: `ta_codegen/output/rust/src/lib.rs` (generated)
+- Create: `ta_codegen/output/rust/src/ta_func/mod.rs` (generated)
+- Create: `ta_codegen/output/rust/src/ta_func/float.rs` (generated)
+- Move: `ta_codegen/output/rust/*.rs` → `ta_codegen/output/rust/src/ta_func/*.rs`
 
 - [ ] **Step 1: Read the current Rust generate case in main.rs**
 
@@ -62,7 +62,7 @@ In `main.rs`, find where the per-function generate loop runs for Rust. AFTER all
 
 Look for where other post-generation work happens (e.g., the `generate_servers` function is separate). Add a new function or a post-loop block that generates:
 
-**Cargo.toml** at `ta_codegen_output/rust/Cargo.toml`:
+**Cargo.toml** at `ta_codegen/output/rust/Cargo.toml`:
 ```toml
 [package]
 name = "ta-lib"
@@ -81,7 +81,7 @@ path = "src/bin/ta_codegen_serve.rs"
 serde_json = "1"
 ```
 
-**src/lib.rs** at `ta_codegen_output/rust/src/lib.rs`:
+**src/lib.rs** at `ta_codegen/output/rust/src/lib.rs`:
 ```rust
 #![allow(non_snake_case, unused_variables, unused_assignments, unused_mut, unused_parens)]
 pub mod ta_func;
@@ -182,16 +182,16 @@ cd tools/ta_codegen && cargo build 2>&1 | tail -5
 cargo run -- generate --backend=rust 2>&1 | tail -5
 ```
 
-Expected: Files generated in `ta_codegen_output/rust/src/ta_func/`.
+Expected: Files generated in `ta_codegen/output/rust/src/ta_func/`.
 
 ```bash
-ls ta_codegen_output/rust/Cargo.toml ta_codegen_output/rust/src/lib.rs ta_codegen_output/rust/src/ta_func/mod.rs ta_codegen_output/rust/src/ta_func/float.rs
+ls ta_codegen/output/rust/Cargo.toml ta_codegen/output/rust/src/lib.rs ta_codegen/output/rust/src/ta_func/mod.rs ta_codegen/output/rust/src/ta_func/float.rs
 ```
 
 Expected: All 4 files exist.
 
 ```bash
-ls ta_codegen_output/rust/src/ta_func/*.rs | wc -l
+ls ta_codegen/output/rust/src/ta_func/*.rs | wc -l
 ```
 
 Expected: 165 (163 indicators + mod.rs + float.rs).
@@ -199,7 +199,7 @@ Expected: 165 (163 indicators + mod.rs + float.rs).
 - [ ] **Step 7: Try to compile the Rust crate**
 
 ```bash
-cd ../../ta_codegen_output/rust && cargo check --lib 2>&1 | tail -20
+cd ../../ta_codegen/output/rust && cargo check --lib 2>&1 | tail -20
 ```
 
 This will likely show compilation errors in the generated indicator code. That's expected — the Rust backend has known issues. But the scaffolding itself (Cargo.toml, lib.rs, mod.rs, float.rs) should be structurally correct. If the errors are ONLY in the indicator `.rs` files and not in the scaffolding, we're good.
@@ -210,7 +210,7 @@ This will likely show compilation errors in the generated indicator code. That's
 cd ../../tools/ta_codegen && git add src/main.rs src/backends/rust_lang.rs
 git commit -m "feat(rust): restructure codegen output into self-contained Cargo crate
 
-Indicator files now output to ta_codegen_output/rust/src/ta_func/.
+Indicator files now output to ta_codegen/output/rust/src/ta_func/.
 Generates Cargo.toml, lib.rs, mod.rs, float.rs scaffolding.
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
@@ -220,7 +220,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 
 ### Task 2: Update Server Generation Paths
 
-The `generate_rust_server()` (already implemented) writes to `rust/src/bin/`. Change it to write to `ta_codegen_output/rust/src/bin/`.
+The `generate_rust_server()` (already implemented) writes to `rust/src/bin/`. Change it to write to `ta_codegen/output/rust/src/bin/`.
 
 **Files:**
 - Modify: `tools/ta_codegen/src/main.rs` (~line 256-260, Rust server gen path)
@@ -239,7 +239,7 @@ To:
     let rust_bin_dir = out_base.join("rust/src/bin");
 ```
 
-This uses `out_base` (`../../ta_codegen_output`) instead of hardcoding `../../rust`.
+This uses `out_base` (`../../ta_codegen/output`) instead of hardcoding `../../rust`.
 
 - [ ] **Step 2: Fix build path**
 
@@ -258,12 +258,12 @@ let rust_dir = out_base.join("rust");
 cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=rust 2>&1
 ```
 
-Expected: `Rust server -> ../../ta_codegen_output/rust/src/bin/ta_codegen_serve.rs`
+Expected: `Rust server -> ../../ta_codegen/output/rust/src/bin/ta_codegen_serve.rs`
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/main.rs && git commit -m "fix(rust): update server gen and build paths to ta_codegen_output/rust
+git add src/main.rs && git commit -m "fix(rust): update server gen and build paths to ta_codegen/output/rust
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 ```
@@ -301,7 +301,7 @@ cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
 - [ ] **Step 4: Commit**
 
 ```bash
-git add -u && git commit -m "chore: delete legacy rust/ crate — replaced by ta_codegen_output/rust
+git add -u && git commit -m "chore: delete legacy rust/ crate — replaced by ta_codegen/output/rust
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 ```
@@ -316,12 +316,12 @@ The generated Rust indicator code likely has compilation errors. Fix them iterat
 
 **Files:**
 - Modify: `tools/ta_codegen/src/backends/rust_lang.rs` (fix generation patterns)
-- Reference: `ta_codegen_output/rust/src/ta_func/*.rs` (generated output to check)
+- Reference: `ta_codegen/output/rust/src/ta_func/*.rs` (generated output to check)
 
 - [ ] **Step 1: Attempt to compile the crate**
 
 ```bash
-cd ta_codegen_output/rust && cargo check --lib 2>&1 | head -50
+cd ta_codegen/output/rust && cargo check --lib 2>&1 | head -50
 ```
 
 Categorize the errors. Common issues in the Rust backend:
@@ -336,7 +336,7 @@ For each error category, fix the generation pattern in `rust_lang.rs`, then rege
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate --backend=rust
-cd ../../ta_codegen_output/rust && cargo check --lib 2>&1 | head -50
+cd ../../ta_codegen/output/rust && cargo check --lib 2>&1 | head -50
 ```
 
 Iterate until `cargo check --lib` passes.
@@ -345,7 +345,7 @@ Iterate until `cargo check --lib` passes.
 
 ```bash
 cd tools/ta_codegen && cargo run -- generate-servers --backend=rust
-cd ../../ta_codegen_output/rust && cargo check --bin ta_codegen_serve 2>&1 | tail -10
+cd ../../ta_codegen/output/rust && cargo check --bin ta_codegen_serve 2>&1 | tail -10
 ```
 
 If the server doesn't compile, fix `generate_rust_server()` in `server_gen.rs`.

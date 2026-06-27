@@ -4,13 +4,13 @@
 
 `ta_codegen generate` produces per-function source files for all TA-Lib indicators, but only 6 compile (SMA, MULT, RSI, EMA, WMA, MA). The remaining fail across backends (C, Java, SWIG) due to unresolved macros, broken for-loop rendering, missing cross-function linkage, and SWIG naming mismatches.
 
-There are 164 directories in `ta_func_defs/`. The 6 working functions already contain some macros (e.g., `TA_IS_ZERO`, `CAST_TO_INDEX`, `TA_GetUnstablePeriod`) — these work because the parser resolves them to proper IR nodes. The remaining ~158 files contain macros the parser either discards or doesn't recognize.
+There are 164 directories in `ta_codegen/input/`. The 6 working functions already contain some macros (e.g., `TA_IS_ZERO`, `CAST_TO_INDEX`, `TA_GetUnstablePeriod`) — these work because the parser resolves them to proper IR nodes. The remaining ~158 files contain macros the parser either discards or doesn't recognize.
 
 ## Root Causes
 
 ### 1. Unresolved macros in extracted source
 
-The `extract` command pulls logic from `src/ta_func/ta_*.c` into `ta_func_defs/<name>/<name>.c`. These extracted files preserve macro invocations. The parser handles some macros correctly (converting them to useful IR), but others are either parsed with args discarded or not recognized at all.
+The `extract` command pulls logic from `src/ta_func/ta_*.c` into `ta_codegen/input/<name>/<name>.c`. These extracted files preserve macro invocations. The parser handles some macros correctly (converting them to useful IR), but others are either parsed with args discarded or not recognized at all.
 
 **Cross-language macros the parser currently resolves (still need removal):**
 
@@ -44,7 +44,7 @@ These macros exist for code reuse across multiple indicators, not cross-language
 | `SAR_ROUNDING(v)` | sar, sarext | Inline-expand |
 | `CIRCBUF_REF(arr[idx])field` | mfi, cci | Inline-expand to `arr[idx].field` |
 
-For the Hilbert transform family: these 4 macros are used identically across 6 files (`ht_trendmode`, `ht_dcperiod`, `ht_dcphase`, `ht_phasor`, `ht_sine`, `ht_trendline`). Best approach: extract into a `ta_func_defs/_helpers/hilbert.c` shared helper that gets parsed once and included in each HT function's IR.
+For the Hilbert transform family: these 4 macros are used identically across 6 files (`ht_trendmode`, `ht_dcperiod`, `ht_dcphase`, `ht_phasor`, `ht_sine`, `ht_trendline`). Best approach: extract into a `ta_codegen/input/_helpers/hilbert.c` shared helper that gets parsed once and included in each HT function's IR.
 
 **Macros the parser recognizes but discards args (19 files, ~113 occurrences):**
 
@@ -117,9 +117,9 @@ The SWIG backend generates both `TA_SMA(...)` and `TA_SMA_Logic(...)` declaratio
 
 The macros exist for the legacy `gen_code.c` pipeline which needed them to switch behavior per language. The new ta_codegen pipeline parses source into an IR and renders per-language — macros are vestigial.
 
-**Fix the extracted `.c` files in `ta_func_defs/`** by replacing macros with their plain C equivalents. The parser and backends already handle plain C correctly — the 6 base functions prove this.
+**Fix the extracted `.c` files in `ta_codegen/input/`** by replacing macros with their plain C equivalents. The parser and backends already handle plain C correctly — the 6 base functions prove this.
 
-Important: we modify ONLY the `ta_func_defs/<name>/<name>.c` files. The old `src/ta_func/ta_*.c` files stay untouched for the legacy `gen_code` pipeline.
+Important: we modify ONLY the `ta_codegen/input/<name>/<name>.c` files. The old `src/ta_func/ta_*.c` files stay untouched for the legacy `gen_code` pipeline.
 
 #### Which macros need replacement
 
@@ -240,7 +240,7 @@ SWIG backend exports the same function names as the C backend. Ensure the SWIG `
 ## Scope
 
 ### In scope
-- Replace macros with plain C in extracted `.c` files in `ta_func_defs/` (~158 files need changes)
+- Replace macros with plain C in extracted `.c` files in `ta_codegen/input/` (~158 files need changes)
 - Fix `ForC` rendering in C, Java backends (comma-separate init/update)
 - Improve Rust `ForC` to emit range iteration where possible
 - Generate forward declarations in `ta_func.h` stub from Registry
@@ -272,7 +272,7 @@ Per-backend spot checks (from `bin/` after servers are built):
 
 | File | Change |
 |------|--------|
-| `ta_func_defs/*/*.c` | Replace macros with plain C (~158 files) |
+| `ta_codegen/input/*/*.c` | Replace macros with plain C (~158 files) |
 | `tools/ta_codegen/src/backends/c.rs` | Fix ForC rendering, forward decls |
 | `tools/ta_codegen/src/backends/java.rs` | Fix ForC rendering |
 | `tools/ta_codegen/src/backends/rust_lang.rs` | ForC → range iteration |

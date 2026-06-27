@@ -4,7 +4,7 @@
 
 **Goal:** Get all ~158 TA-Lib indicators compiling across C, Java, and Rust backends by implementing helper function inlining, candlestick macro replacement, candle settings unpacking, and remaining macro cleanup.
 
-**Architecture:** Helper C files in `ta_func_defs/helpers/` are parsed into IR at load time, registered in a `HelperRegistry`, and inlined at call sites during backend rendering. A Python script transforms ~1200 candlestick macro calls to explicit helper function calls. Candle settings move from globals to Core instance in Rust/Java.
+**Architecture:** Helper C files in `ta_codegen/input/helpers/` are parsed into IR at load time, registered in a `HelperRegistry`, and inlined at call sites during backend rendering. A Python script transforms ~1200 candlestick macro calls to explicit helper function calls. Candle settings move from globals to Core instance in Rust/Java.
 
 **Tech Stack:** Rust (ta_codegen), Python (replacement scripts), C (helper source files, generated output)
 
@@ -21,9 +21,9 @@
 ### New files to create:
 | File | Responsibility |
 |------|----------------|
-| `ta_func_defs/helpers/candlestick.c` | 11 candle helper functions (realbody, candlerange, etc.) |
-| `ta_func_defs/helpers/range.c` | ta_true_range |
-| `ta_func_defs/helpers/rounding.c` | ta_round_pos, ta_sar_rounding |
+| `ta_codegen/input/helpers/candlestick.c` | 11 candle helper functions (realbody, candlerange, etc.) |
+| `ta_codegen/input/helpers/range.c` | ta_true_range |
+| `ta_codegen/input/helpers/rounding.c` | ta_round_pos, ta_sar_rounding |
 | `tools/ta_codegen/src/helper_registry.rs` | HelperDef struct, HelperRegistry, helper file parsing + loading |
 | `scripts/replace_candle_macros.py` | Candlestick + local-define macro replacement script |
 
@@ -39,7 +39,7 @@
 | `tools/ta_codegen/src/main.rs` | Load helper registry at startup, pass to backends |
 | `tools/ta_codegen/tests/backend_suite.rs` | Add helper parsing + inlining tests |
 | `scripts/replace_macros.py` | Add ARRAY_LOCAL, ENUM_CASE, and other missed macros |
-| `ta_func_defs/**/*.c` (~60 candlestick files) | Transformed by replacement script |
+| `ta_codegen/input/**/*.c` (~60 candlestick files) | Transformed by replacement script |
 
 ---
 
@@ -48,19 +48,19 @@
 ### Task 1: Create helper C source files
 
 **Files:**
-- Create: `ta_func_defs/helpers/candlestick.c`
-- Create: `ta_func_defs/helpers/range.c`
-- Create: `ta_func_defs/helpers/rounding.c`
+- Create: `ta_codegen/input/helpers/candlestick.c`
+- Create: `ta_codegen/input/helpers/range.c`
+- Create: `ta_codegen/input/helpers/rounding.c`
 
-- [ ] **Step 1: Create `ta_func_defs/helpers/` directory**
+- [ ] **Step 1: Create `ta_codegen/input/helpers/` directory**
 
 ```bash
-mkdir -p ta_func_defs/helpers
+mkdir -p ta_codegen/input/helpers
 ```
 
 - [ ] **Step 2: Write `candlestick.c`**
 
-Create `ta_func_defs/helpers/candlestick.c` with all 11 candle helper functions. Each takes explicit params — no globals, no implicit array names. Reference the spec (section 1) for exact signatures. Functions:
+Create `ta_codegen/input/helpers/candlestick.c` with all 11 candle helper functions. Each takes explicit params — no globals, no implicit array names. Reference the spec (section 1) for exact signatures. Functions:
 
 ```c
 double ta_realbody(double close, double open) {
@@ -146,7 +146,7 @@ double ta_sar_rounding(double x) {
 - [ ] **Step 5: Commit**
 
 ```bash
-git add ta_func_defs/helpers/
+git add ta_codegen/input/helpers/
 git commit -m "feat(codegen): add helper C source files for candlestick, range, rounding"
 ```
 
@@ -203,7 +203,7 @@ Expected: FAIL — `HelperDef` and `HelperParam` don't exist.
 Add at the end of `tools/ta_codegen/src/ir.rs`:
 
 ```rust
-/// A helper function definition (parsed from ta_func_defs/helpers/*.c).
+/// A helper function definition (parsed from ta_codegen/input/helpers/*.c).
 /// Helpers are inlined at call sites during code generation.
 #[derive(Debug, Clone)]
 pub struct HelperDef {
@@ -357,7 +357,7 @@ double ta_candlerange(int rangeType, double open, double high, double low, doubl
 fn parse_helper_file_reads_from_disk() {
     use ta_codegen::parser::c_source::parse_helper_file;
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../ta_func_defs/helpers/candlestick.c");
+        .join("../../ta_codegen/input/helpers/candlestick.c");
     let helpers = parse_helper_file(&path);
     assert_eq!(helpers.len(), 11);
     assert_eq!(helpers.iter().find(|h| h.name == "ta_realbody").unwrap().params.len(), 2);
@@ -387,7 +387,7 @@ git commit -m "feat(codegen): add parse_helper_file() for standalone utility fun
 - Create: `tools/ta_codegen/src/helper_registry.rs`
 - Modify: `tools/ta_codegen/src/lib.rs`
 
-**Context:** The HelperRegistry scans `ta_func_defs/helpers/*.c`, parses each, and stores all HelperDefs in a HashMap keyed by function name. Backends will query this registry when they encounter a FuncCall to decide whether to inline or emit a normal call.
+**Context:** The HelperRegistry scans `ta_codegen/input/helpers/*.c`, parses each, and stores all HelperDefs in a HashMap keyed by function name. Backends will query this registry when they encounter a FuncCall to decide whether to inline or emit a normal call.
 
 - [ ] **Step 1: Write failing test**
 
@@ -398,7 +398,7 @@ Add to `tools/ta_codegen/tests/backend_suite.rs`:
 fn helper_registry_loads_from_disk() {
     use ta_codegen::helper_registry::HelperRegistry;
 
-    let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     let registry = HelperRegistry::from_dir(&base);
 
     // Should find all helpers from candlestick.c, range.c, rounding.c
@@ -507,7 +507,7 @@ git commit -m "feat(codegen): add HelperRegistry for loading helper functions"
 
 - [ ] **Step 1: Write the script with all candlestick replacements**
 
-Create `scripts/replace_candle_macros.py`. Follow the same structure as `scripts/replace_macros.py` (argparse, `--dry-run`, `--file` flags, recursive over `ta_func_defs/`).
+Create `scripts/replace_candle_macros.py`. Follow the same structure as `scripts/replace_macros.py` (argparse, `--dry-run`, `--file` flags, recursive over `ta_codegen/input/`).
 
 Implement these replacement functions:
 
@@ -627,14 +627,14 @@ def replace_local_define_helpers(content: str) -> str:
     return content
 ```
 
-Also add the `main()` with argparse matching the structure of `replace_macros.py` — `--dry-run`, `--file` flags, processes all `.c` files under `ta_func_defs/` recursively (excluding `helpers/`).
+Also add the `main()` with argparse matching the structure of `replace_macros.py` — `--dry-run`, `--file` flags, processes all `.c` files under `ta_codegen/input/` recursively (excluding `helpers/`).
 
 **Regex edge case:** The `[^)]+?` captures may fail on nested parentheses like `TA_CANDLEAVERAGE(BodyLong, sum, (i-1))`. Verify actual call sites in the codebase first — if any have nested parens, use a balanced-paren matching approach (e.g., `re` with a manual paren counter) for those specific macros.
 
 - [ ] **Step 2: Dry-run on a single file to verify**
 
 ```bash
-python3 scripts/replace_candle_macros.py --dry-run --file ta_func_defs/cdl2crows/cdl2crows.c
+python3 scripts/replace_candle_macros.py --dry-run --file ta_codegen/input/cdl2crows/cdl2crows.c
 ```
 Expected: Shows diff with `TA_CANDLEAVGPERIOD(BodyLong)` → `BodyLong_avgPeriod`, etc.
 
@@ -650,7 +650,7 @@ git commit -m "feat: add candlestick and local-define macro replacement script"
 ### Task 6: Run candlestick macro replacement on all files
 
 **Files:**
-- Modify: `ta_func_defs/**/*.c` (~60 candlestick files + a few others with TRUE_RANGE/round_pos)
+- Modify: `ta_codegen/input/**/*.c` (~60 candlestick files + a few others with TRUE_RANGE/round_pos)
 
 - [ ] **Step 1: Run the replacement script**
 
@@ -662,20 +662,20 @@ Expected: Reports files modified with change counts.
 - [ ] **Step 2: Verify no candlestick macros remain**
 
 ```bash
-cd ta_func_defs && grep -r "TA_REALBODY\|TA_CANDLECOLOR\|TA_UPPERSHADOW\|TA_LOWERSHADOW\|TA_HIGHLOWRANGE\|TA_REALBODYGAP\|TA_CANDLEGAP\|TA_CANDLERANGE\|TA_CANDLEAVGPERIOD\|TA_CANDLEAVERAGE" --include="*.c" | grep -v helpers/ | head -20
+cd ta_codegen/input && grep -r "TA_REALBODY\|TA_CANDLECOLOR\|TA_UPPERSHADOW\|TA_LOWERSHADOW\|TA_HIGHLOWRANGE\|TA_REALBODYGAP\|TA_CANDLEGAP\|TA_CANDLERANGE\|TA_CANDLEAVGPERIOD\|TA_CANDLEAVERAGE" --include="*.c" | grep -v helpers/ | head -20
 ```
 Expected: No output (all replaced). If any remain, debug the regex.
 
 - [ ] **Step 3: Verify no TRUE_RANGE/round_pos/SAR_ROUNDING macros remain**
 
 ```bash
-cd ta_func_defs && grep -rn "\bTRUE_RANGE(\|SAR_ROUNDING(" --include="*.c" | grep -v helpers/ | head -10
+cd ta_codegen/input && grep -rn "\bTRUE_RANGE(\|SAR_ROUNDING(" --include="*.c" | grep -v helpers/ | head -10
 ```
 Expected: No output.
 
 - [ ] **Step 4: Spot-check a transformed file**
 
-Read `ta_func_defs/cdl2crows/cdl2crows.c` and verify:
+Read `ta_codegen/input/cdl2crows/cdl2crows.c` and verify:
 - `TA_CANDLEAVGPERIOD(BodyLong)` → `BodyLong_avgPeriod`
 - `TA_CANDLERANGE( BodyLong, i )` → `ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])`
 - `TA_REALBODY(i)` → `ta_realbody(inClose[i], inOpen[i])`
@@ -690,7 +690,7 @@ Expected: Existing auto-discovery tests parse all indicators. If any fail, debug
 - [ ] **Step 6: Commit**
 
 ```bash
-git add ta_func_defs/
+git add ta_codegen/input/
 git commit -m "refactor: replace candlestick macros with explicit helper function calls
 
 ~1200 macro calls across ~60 files transformed to explicit function calls.
@@ -704,18 +704,18 @@ local variables (e.g., BodyLong_rangeType) to be unpacked from Core."
 
 **Files:**
 - Modify: `scripts/replace_macros.py`
-- Modify: `ta_func_defs/adosc/adosc.c` (CALCULATE_AD — 3 call sites)
-- Modify: `ta_func_defs/ultosc/ultosc.c` (CALC_TERMS — 6 calls, PRIME_TOTALS — 4 calls)
+- Modify: `ta_codegen/input/adosc/adosc.c` (CALCULATE_AD — 3 call sites)
+- Modify: `ta_codegen/input/ultosc/ultosc.c` (CALC_TERMS — 6 calls, PRIME_TOTALS — 4 calls)
 
 **Context:** These macros mutate multiple locals and can't be helper functions. They must be inline-expanded at each call site. Also add remaining missed macros to `replace_macros.py`.
 
 - [ ] **Step 1: Manually inline-expand CALCULATE_AD in adosc.c**
 
-Read `src/ta_func/ta_ADOSC.c` to find the original `CALCULATE_AD` macro body. Then read `ta_func_defs/adosc/adosc.c` to find the 3 call sites. Replace each `CALCULATE_AD` with the equivalent C statements that reference the existing local variables.
+Read `src/ta_func/ta_ADOSC.c` to find the original `CALCULATE_AD` macro body. Then read `ta_codegen/input/adosc/adosc.c` to find the 3 call sites. Replace each `CALCULATE_AD` with the equivalent C statements that reference the existing local variables.
 
 - [ ] **Step 2: Manually inline-expand CALC_TERMS and PRIME_TOTALS in ultosc.c**
 
-Read `src/ta_func/ta_ULTOSC.c` to find the original macro bodies. Then read `ta_func_defs/ultosc/ultosc.c` and replace:
+Read `src/ta_func/ta_ULTOSC.c` to find the original macro bodies. Then read `ta_codegen/input/ultosc/ultosc.c` and replace:
 - Each `CALC_TERMS(day)` with the 6-line expansion
 - Each `PRIME_TOTALS(a, b, period)` with the loop expansion
 
@@ -773,14 +773,14 @@ python3 scripts/replace_macros.py
 - [ ] **Step 5: Verify no missed macros remain**
 
 ```bash
-cd ta_func_defs && grep -rn "ARRAY_LOCAL\|ENUM_CASE\|TA_INTERNAL_ERROR\|CALCULATE_AD\|CALC_TERMS\|PRIME_TOTALS" --include="*.c" | grep -v helpers/ | head -20
+cd ta_codegen/input && grep -rn "ARRAY_LOCAL\|ENUM_CASE\|TA_INTERNAL_ERROR\|CALCULATE_AD\|CALC_TERMS\|PRIME_TOTALS" --include="*.c" | grep -v helpers/ | head -20
 ```
 Expected: No output.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add scripts/replace_macros.py ta_func_defs/
+git add scripts/replace_macros.py ta_codegen/input/
 git commit -m "refactor: inline-expand statement-block macros and remaining missed macros
 
 CALCULATE_AD expanded in adosc.c (3 sites), CALC_TERMS/PRIME_TOTALS in
@@ -1216,7 +1216,7 @@ git commit -m "feat(codegen): emit candle settings unpacking per backend (C glob
 cd tools/ta_codegen && cargo test
 ```
 
-Check that the auto-discovery tests in `backend_suite.rs` still pass — these parse all `ta_func_defs/` indicators and generate all backends.
+Check that the auto-discovery tests in `backend_suite.rs` still pass — these parse all `ta_codegen/input/` indicators and generate all backends.
 
 - [ ] **Step 2: Check for parser failures**
 
@@ -1237,7 +1237,7 @@ git commit -m "fix(codegen): parser fixes for transformed candlestick indicator 
 
 ### Task 13: Generate all backend code
 
-**Files:** Generated output in `ta_codegen_output/`
+**Files:** Generated output in `ta_codegen/output/`
 
 - [ ] **Step 1: Run generate**
 
@@ -1260,7 +1260,7 @@ Expected: Generates JSON-RPC servers for C, Java.
 - [ ] **Step 4: Commit generated output**
 
 ```bash
-git add ta_codegen_output/
+git add ta_codegen/output/
 git commit -m "chore: regenerate all backend code with helper inlining"
 ```
 
@@ -1289,7 +1289,7 @@ Fix each error, regenerate, rebuild until clean.
 - [ ] **Step 3: Commit fixes**
 
 ```bash
-git add tools/ta_codegen/src/ ta_codegen_output/
+git add tools/ta_codegen/src/ ta_codegen/output/
 git commit -m "fix(codegen): compilation fixes for helper inlining across backends"
 ```
 

@@ -6,7 +6,7 @@ Replace the 4-variant codegen system (guarded/unguarded x checked/unchecked) wit
 
 ## Architecture
 
-The codegen parses C source files from `ta_func_defs/`, builds IR, and renders per-backend. This refactor changes how variants are parsed, represented in IR, and rendered — but doesn't change the overall pipeline.
+The codegen parses C source files from `ta_codegen/input/`, builds IR, and renders per-backend. This refactor changes how variants are parsed, represented in IR, and rendered — but doesn't change the overall pipeline.
 
 **Hand-written per language (not generated):** RetCode, FuncUnstId, MAType, Compatibility, CandleSetting, Core struct scaffolding. These are stable and stay as-is in server templates and module scaffolding.
 
@@ -25,7 +25,7 @@ Each indicator produces exactly 2 variants:
 
 ## C Source Convention
 
-Each `.c` file in `ta_func_defs/<name>/` can define up to 3 functions:
+Each `.c` file in `ta_codegen/input/<name>/` can define up to 3 functions:
 
 ```c
 // Lookback (unchanged)
@@ -66,9 +66,9 @@ These indicators need explicit guarded + unguarded splits because they use extra
 
 | File | Change |
 |------|--------|
-| `ta_func_defs/ema/ema.c` | Split: guarded pre-computes k, unguarded accepts k param |
-| `ta_func_defs/macd/macd.c` | Call `ema_unguarded` with explicit k (0.075/0.15 for fix case) |
-| `ta_func_defs/macdfix/macdfix.c` | Calls `macd` which calls `ema_unguarded` — no direct changes needed |
+| `ta_codegen/input/ema/ema.c` | Split: guarded pre-computes k, unguarded accepts k param |
+| `ta_codegen/input/macd/macd.c` | Call `ema_unguarded` with explicit k (0.075/0.15 for fix case) |
+| `ta_codegen/input/macdfix/macdfix.c` | Calls `macd` which calls `ema_unguarded` — no direct changes needed |
 
 Other indicators that call `ema()` internally (DEMA, TEMA, TRIX, T3, MA, MACDEXT, etc.) can continue calling the guarded `ema()` unless they need to override k. The guarded wrapper handles the pre-computation transparently.
 
@@ -162,4 +162,4 @@ retCode = ema_unguarded(tempInteger, endIdx, inReal,
 - **Auto-generation range-check stripping**: Needs reliable identification of validation vs logic. Current patterns are consistent (`if(startIdx < 0) return OUT_OF_RANGE`, `optIn* == TA_*_DEFAULT` blocks). If edge cases appear, developer writes explicit unguarded. Mitigation: validate auto-generation on a representative sample (SMA, RSI, BBANDS, CDL patterns) before committing to the approach.
 - **Cross-indicator param resolution**: When `macd.c` calls `ema_unguarded(period, k)`, the parser must resolve that to a different function's unguarded variant with a different parameter list. This extends the existing cross-indicator call handling but adds parameter mapping across function boundaries. Mitigation: test with the EMA→MACD chain first.
 - **Backend complexity**: Each backend's `render_func_call` needs to handle extra params on unguarded calls. This is a targeted extension of existing logic, not a rewrite.
-- **Breaking change**: `_unchecked` and `_unguarded_unchecked` public API variants are removed. This is acceptable since the generated code is not yet in a stable release and the Rust crate is internal to `ta_codegen_output/`.
+- **Breaking change**: `_unchecked` and `_unguarded_unchecked` public API variants are removed. This is acceptable since the generated code is not yet in a stable release and the Rust crate is internal to `ta_codegen/output/`.

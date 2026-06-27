@@ -59,7 +59,7 @@ Fix at the lowest appropriate level:
 
 **Risk:** Medium. Need to handle edge cases:
 - Re-declaration with different type (unlikely in these sources, but should warn)
-- Re-declaration in nested scope (C block scoping) vs same scope — for now, treat all declarations as function-level scope (matches how the ta_func_defs sources are structured)
+- Re-declaration in nested scope (C block scoping) vs same scope — for now, treat all declarations as function-level scope (matches how the ta_codegen/input sources are structured)
 
 ### Fix 3: Post-Allocation Null-Check Elimination (Backend — `java.rs`, `rust_lang.rs`)
 

@@ -6,7 +6,7 @@
 ## Alpha Definition
 
 Alpha is complete when:
-- All 164 indicators are extracted to `ta_func_defs/` (YAML metadata + prefix-free C logic)
+- All 164 indicators are extracted to `ta_codegen/input/` (YAML metadata + prefix-free C logic)
 - All 164 indicators generate correct output for all 5 languages (C, Rust, Java, .NET, SWIG/Python)
 - ta_regtest passes 100% for all indicators, all languages (via `--codegen` path)
 - Generated C output matches (or near-matches) original `src/ta_func/ta_*.c`
@@ -23,13 +23,13 @@ Alpha is complete when:
 
 - Delete `rust/src/ta_func/{mult,rsi,sma}.rs` (old gen_code output, superseded by ta_codegen)
 - Delete all `docs/plans/*.md` except this file
-- Delete `ta_codegen_output/` build artifacts from git tracking if present
+- Delete `ta_codegen/output/` build artifacts from git tracking if present
 
 ### Naming Convention
 
-Source files in `ta_func_defs/<name>/<name>.c` are prefix-free. Function names must match the filename.
+Source files in `ta_codegen/input/<name>/<name>.c` are prefix-free. Function names must match the filename.
 
-For `ta_func_defs/ema/ema.c`:
+For `ta_codegen/input/ema/ema.c`:
 - `ema_lookback()` — lookback calculation
 - `ema_logic()` — core computation (the "logic function", single source of truth)
 
@@ -78,7 +78,7 @@ Cross-indicator calls are also prefix-free: `ema_logic()` calls `sma_lookback()`
 
 ### Indicator Registry
 
-Auto-discovered from `ta_func_defs/` directories. Used by all backends to resolve cross-indicator calls: `sma_lookback()` in source → `TA_SMA_Lookback()` in C output, `sma_lookback()` in Rust output, etc.
+Auto-discovered from `ta_codegen/input/` directories. Used by all backends to resolve cross-indicator calls: `sma_lookback()` in source → `TA_SMA_Lookback()` in C output, `sma_lookback()` in Rust output, etc.
 
 ### Refactor Existing 6 Indicators
 
@@ -95,8 +95,8 @@ A Rust tool in `tools/ta_codegen/` that bulk-extracts all 164 indicators from th
 - `src/ta_func/ta_*.c` — function implementations
 
 ### Output Per Indicator
-- `ta_func_defs/<name>/<name>.yaml` — metadata from abstract tables, following the IDL schema defined in `docs/ta_func_defs_idl.md`
-- `ta_func_defs/<name>/<name>.c` — logic extracted from source, stripped of generated boilerplate (signatures, guards, lookback wrapper), prefix-free
+- `ta_codegen/input/<name>/<name>.yaml` — metadata from abstract tables, following the IDL schema defined in `docs/ta_codegen_input_idl.md`
+- `ta_codegen/input/<name>/<name>.c` — logic extracted from source, stripped of generated boilerplate (signatures, guards, lookback wrapper), prefix-free
 
 ### Extraction Rules
 - Strip `TA_` prefix from function names

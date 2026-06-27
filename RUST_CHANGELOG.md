@@ -91,7 +91,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 `git diff f3bf0542^..9f295c53` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/1cb68ba0...9f295c53)
 
-* [f3bf054](https://github.com/TA-Lib/ta-lib/commit/f3bf0542) Scaffolded `tools/ta_codegen/` Rust crate + `ta_func_defs/mult/` with YAML metadata and logic pseudocode
+* [f3bf054](https://github.com/TA-Lib/ta-lib/commit/f3bf0542) Scaffolded `tools/ta_codegen/` Rust crate + `ta_codegen/input/mult/` with YAML metadata and logic pseudocode
 * [87477a3](https://github.com/TA-Lib/ta-lib/commit/87477a31) IR types (`FuncDef`, `Statement`, `Expr`, `BinOp`) + serde-based YAML parser
 * [13b3072](https://github.com/TA-Lib/ta-lib/commit/13b3072d) Recursive descent logic file parser (tokenizer + while/assign/vardecl/compound-assign)
 * [64f5d60](https://github.com/TA-Lib/ta-lib/commit/64f5d601) C backend — generates `TA_MULT` + `TA_S_MULT` + lookback from IR

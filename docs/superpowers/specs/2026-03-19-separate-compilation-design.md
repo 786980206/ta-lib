@@ -11,11 +11,11 @@ The C codegen server compiles all 163 indicator `.c` files into one translation 
 
 ### File Changes
 
-**`ta_func_defs/lib/c/ta_lib_types.h`** (template, copied to output)
+**`ta_codegen/input/lib/c/ta_lib_types.h`** (template, copied to output)
 - Replace `static TA_GlobalsType ta_globals_data = { ... };` and `static TA_GlobalsType *TA_Globals = &ta_globals_data;` with `extern` declarations
 - The initializer moves to `ta_lib_globals.c`
 
-**`ta_func_defs/lib/c/ta_lib_globals.c`** (template, copied to output)
+**`ta_codegen/input/lib/c/ta_lib_globals.c`** (template, copied to output)
 - Add `TA_GlobalsType ta_globals_data = { .candleSettings = { ... } };`
 - Add `TA_GlobalsType *TA_Globals = &ta_globals_data;`
 - Already has `ta_unstable_period[]` and `TA_SetUnstablePeriod()`
@@ -33,11 +33,11 @@ The C codegen server compiles all 163 indicator `.c` files into one translation 
 
 ```
 ta_codegen generate-servers --backend=c
-  -> ta_codegen_output/c/ta_codegen_serve.c  (server dispatch, no indicator includes)
-  -> ta_codegen_output/c/ta_*.c              (one per indicator, already exists)
-  -> ta_codegen_output/c/ta_func.h           (extern declarations, already exists)
-  -> ta_codegen_output/c/ta_lib_types.h      (types + extern globals)
-  -> ta_codegen_output/c/ta_lib_globals.c    (globals definitions)
+  -> ta_codegen/output/c/ta_codegen_serve.c  (server dispatch, no indicator includes)
+  -> ta_codegen/output/c/ta_*.c              (one per indicator, already exists)
+  -> ta_codegen/output/c/ta_func.h           (extern declarations, already exists)
+  -> ta_codegen/output/c/ta_lib_types.h      (types + extern globals)
+  -> ta_codegen/output/c/ta_lib_globals.c    (globals definitions)
 
 ta_codegen build --backend=c
   -> gcc -c -O3 -I. ta_lib_globals.c

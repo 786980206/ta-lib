@@ -4,7 +4,7 @@
 
 **Goal:** Make all ~158 TA-Lib indicators compile and pass regression tests across C, Java, SWIG, and Rust backends.
 
-**Architecture:** Replace all cross-language macros in extracted `ta_func_defs/<name>/<name>.c` files with plain C. Fix backend rendering bugs (ForC loops, SWIG naming). Add forward declarations for cross-function calls. The parser and backends already handle plain C correctly — the 6 working base functions prove this.
+**Architecture:** Replace all cross-language macros in extracted `ta_codegen/input/<name>/<name>.c` files with plain C. Fix backend rendering bugs (ForC loops, SWIG naming). Add forward declarations for cross-function calls. The parser and backends already handle plain C correctly — the 6 working base functions prove this.
 
 **Tech Stack:** Rust (ta_codegen backends + parser), Python (macro replacement script), C (extracted source files), CMake (build system)
 
@@ -24,15 +24,15 @@
 - `tools/ta_codegen/src/backends/swig.rs` — Verify naming alignment (may already be correct)
 - `tools/ta_codegen/src/server_gen.rs` — Add forward declarations to generated `ta_func.h` header
 - `tools/ta_codegen/src/parser/c_source.rs` — Simplify: remove macro-specific parse_macro_decl handlers after source cleanup; add math function recognition
-- `ta_func_defs/*/*.c` — ~158 files: replace macros with plain C
+- `ta_codegen/input/*/*.c` — ~158 files: replace macros with plain C
 
 ### Files to read (reference only)
 - `tools/ta_codegen/tests/backend_suite.rs` — Test infrastructure for adding new tests
 - `tools/ta_codegen/tests/integration_test.rs` — Integration test helpers
-- `ta_func_defs/sma/sma.c` — Clean baseline (what a macro-free file looks like)
-- `ta_func_defs/accbands/accbands.c` — Example with ARRAY_ALLOC/FREE, VALUE_HANDLE
-- `ta_func_defs/ht_trendmode/ht_trendmode.c` — Example with CIRCBUF, HILBERT, local #define
-- `ta_func_defs/bbands/bbands.c` — Example with cross-function call to unregistered helper
+- `ta_codegen/input/sma/sma.c` — Clean baseline (what a macro-free file looks like)
+- `ta_codegen/input/accbands/accbands.c` — Example with ARRAY_ALLOC/FREE, VALUE_HANDLE
+- `ta_codegen/input/ht_trendmode/ht_trendmode.c` — Example with CIRCBUF, HILBERT, local #define
+- `ta_codegen/input/bbands/bbands.c` — Example with cross-function call to unregistered helper
 - `src/ta_func/ta_utility.h:191-224` — `std_*` math function macro definitions
 
 ---
@@ -402,14 +402,14 @@ Create a Python script that handles the straightforward regex-based macro replac
 - [ ] **Step 1: Create the script with simple replacements**
 
 The script should:
-1. Find all `.c` files in `ta_func_defs/*/`
+1. Find all `.c` files in `ta_codegen/input/*/`
 2. Apply regex replacements for each macro family
 3. Report what was changed per file
 4. Support `--dry-run` mode
 
 ```python
 #!/usr/bin/env python3
-"""Replace cross-language macros in ta_func_defs extracted .c files with plain C."""
+"""Replace cross-language macros in ta_codegen/input extracted .c files with plain C."""
 
 import re
 import sys
@@ -732,12 +732,12 @@ def process_file(filepath: Path, dry_run: bool = False) -> list[str]:
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Replace macros in ta_func_defs .c files")
+    parser = argparse.ArgumentParser(description="Replace macros in ta_codegen/input .c files")
     parser.add_argument("--dry-run", action="store_true", help="Show changes without writing")
     parser.add_argument("--file", type=str, help="Process a single file instead of all")
     args = parser.parse_args()
 
-    base = Path(__file__).parent.parent / "ta_func_defs"
+    base = Path(__file__).parent.parent / "ta_codegen/input"
 
     if args.file:
         files = [Path(args.file)]
@@ -765,13 +765,13 @@ if __name__ == "__main__":
 
 - [ ] **Step 6: Test the script in dry-run mode on a known file**
 
-Run: `python3 scripts/replace_macros.py --dry-run --file ta_func_defs/accbands/accbands.c`
+Run: `python3 scripts/replace_macros.py --dry-run --file ta_codegen/input/accbands/accbands.c`
 
 Expected: Shows list of macro replacements that would be made. Verify each replacement looks correct.
 
 - [ ] **Step 7: Test on a working base function (should be no-op or minimal)**
 
-Run: `python3 scripts/replace_macros.py --dry-run --file ta_func_defs/sma/sma.c`
+Run: `python3 scripts/replace_macros.py --dry-run --file ta_codegen/input/sma/sma.c`
 
 Expected: Zero or very few changes (SMA is already mostly clean).
 
@@ -779,7 +779,7 @@ Expected: Zero or very few changes (SMA is already mostly clean).
 
 ```bash
 git add scripts/replace_macros.py
-git commit -m "feat: add macro replacement script for ta_func_defs cleanup"
+git commit -m "feat: add macro replacement script for ta_codegen/input cleanup"
 ```
 
 ---
@@ -788,7 +788,7 @@ git commit -m "feat: add macro replacement script for ta_func_defs cleanup"
 
 The 6 HT_* files (`ht_trendmode`, `ht_dcperiod`, `ht_dcphase`, `ht_phasor`, `ht_sine`, `ht_trendline`) use `HILBERT_VARIABLES`, `INIT_HILBERT_VARIABLES`, `DO_HILBERT_ODD`, `DO_HILBERT_EVEN`, and `DO_PRICE_WMA`. These are reusability macros — they encapsulate ~20 lines of repeated code.
 
-**Strategy:** The parser already resolves these to proper IR nodes (`FuncCall` with args preserved, `HILBERT_VARIABLES` expands to variable declarations). The backends render them correctly. Extracting a shared helper file is deferred — it's a cleanup that doesn't block compilation. The spec's suggestion of `ta_func_defs/_helpers/hilbert.h` can be revisited in a follow-up.
+**Strategy:** The parser already resolves these to proper IR nodes (`FuncCall` with args preserved, `HILBERT_VARIABLES` expands to variable declarations). The backends render them correctly. Extracting a shared helper file is deferred — it's a cleanup that doesn't block compilation. The spec's suggestion of `ta_codegen/input/_helpers/hilbert.h` can be revisited in a follow-up.
 
 **Files:**
 - Test: `tools/ta_codegen/tests/backend_suite.rs`
@@ -828,10 +828,10 @@ Local `#define` macros inside function bodies get stripped by `strip_local_macro
 
 - [ ] **Step 1: Document which local macros exist and where**
 
-Run a grep to inventory all local `#define` macros in ta_func_defs:
+Run a grep to inventory all local `#define` macros in ta_codegen/input:
 
 ```bash
-grep -rn '^[[:space:]]*#define ' ta_func_defs/ --include='*.c' | head -30
+grep -rn '^[[:space:]]*#define ' ta_codegen/input/ --include='*.c' | head -30
 ```
 
 - [ ] **Step 2: Verify parser handles them without crashing**
@@ -845,7 +845,7 @@ Run: `cd tools/ta_codegen && cargo test -- adx --nocapture` (adx uses TRUE_RANGE
 ### Task 8: Run the replacement script on all files
 
 **Files:**
-- Modify: `ta_func_defs/*/*.c` (~158 files)
+- Modify: `ta_codegen/input/*/*.c` (~158 files)
 
 - [ ] **Step 1: Run dry-run on all files**
 
@@ -855,7 +855,7 @@ Review the summary output. Check total change count is reasonable.
 
 - [ ] **Step 2: Spot-check a few files**
 
-Run: `python3 scripts/replace_macros.py --dry-run --file ta_func_defs/macd/macd.c`
+Run: `python3 scripts/replace_macros.py --dry-run --file ta_codegen/input/macd/macd.c`
 
 Verify ARRAY_ALLOC → malloc, ARRAY_FREE → free, VALUE_HANDLE → plain C, etc.
 
@@ -878,8 +878,8 @@ This will likely still fail because accbands uses cross-function calls that need
 - [ ] **Step 6: Commit all changed files**
 
 ```bash
-git add ta_func_defs/
-git commit -m "refactor: replace cross-language macros with plain C in all ta_func_defs"
+git add ta_codegen/input/
+git commit -m "refactor: replace cross-language macros with plain C in all ta_codegen/input"
 ```
 
 ---
@@ -889,7 +889,7 @@ git commit -m "refactor: replace cross-language macros with plain C in all ta_fu
 `CIRCBUF_NEXT` requires knowing the buffer size, which varies per file. The replacement script left these as comments or partial replacements. Fix them manually.
 
 **Files:**
-- Modify: `ta_func_defs/mfi/mfi.c`, `ta_func_defs/cci/cci.c`, `ta_func_defs/ht_trendmode/ht_trendmode.c`, `ta_func_defs/ht_sine/ht_sine.c`, `ta_func_defs/ht_dcphase/ht_dcphase.c`, `ta_func_defs/ht_trendline/ht_trendline.c`
+- Modify: `ta_codegen/input/mfi/mfi.c`, `ta_codegen/input/cci/cci.c`, `ta_codegen/input/ht_trendmode/ht_trendmode.c`, `ta_codegen/input/ht_sine/ht_sine.c`, `ta_codegen/input/ht_dcphase/ht_dcphase.c`, `ta_codegen/input/ht_trendline/ht_trendline.c`
 
 - [ ] **Step 1: Identify all CIRCBUF_NEXT occurrences and their buffer sizes**
 
@@ -907,7 +907,7 @@ Run: `cd tools/ta_codegen && cargo test -- mfi --nocapture && cargo test -- cci 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add ta_func_defs/mfi/mfi.c ta_func_defs/cci/cci.c ta_func_defs/ht_*/ht_*.c
+git add ta_codegen/input/mfi/mfi.c ta_codegen/input/cci/cci.c ta_codegen/input/ht_*/ht_*.c
 git commit -m "fix: manually replace CIRCBUF_NEXT with correct buffer-size modulo"
 ```
 
@@ -1069,26 +1069,26 @@ git commit -m "feat(codegen): generate forward declarations in C server header"
 
 ### Task 13: Handle unregistered internal helper functions
 
-`bbands.c:75` calls `stddev_using_precalc_ma(...)`. This helper is defined in the legacy `src/ta_func/ta_STDDEV.c` (lines ~349-370) but was **never extracted** to `ta_func_defs/stddev/stddev.c`. A forward declaration alone will cause a linker error — the function body is missing from the codegen pipeline.
+`bbands.c:75` calls `stddev_using_precalc_ma(...)`. This helper is defined in the legacy `src/ta_func/ta_STDDEV.c` (lines ~349-370) but was **never extracted** to `ta_codegen/input/stddev/stddev.c`. A forward declaration alone will cause a linker error — the function body is missing from the codegen pipeline.
 
 **Files:**
-- Read: `ta_func_defs/bbands/bbands.c:75` (the call site)
+- Read: `ta_codegen/input/bbands/bbands.c:75` (the call site)
 - Read: `src/ta_func/ta_STDDEV.c:349-370` (the definition)
-- Modify: `ta_func_defs/stddev/stddev.c` (add the helper function body)
+- Modify: `ta_codegen/input/stddev/stddev.c` (add the helper function body)
 - Modify: `tools/ta_codegen/src/server_gen.rs` (add forward declaration)
 
 - [ ] **Step 1: Identify all cross-function calls to unregistered helpers**
 
 ```bash
-grep -rn 'stddev_using_precalc' ta_func_defs/
-grep -rn 'TA_INT_' ta_func_defs/ --include='*.c' | grep -v '#define'
+grep -rn 'stddev_using_precalc' ta_codegen/input/
+grep -rn 'TA_INT_' ta_codegen/input/ --include='*.c' | grep -v '#define'
 ```
 
 Find all internal helpers that are called but have no extracted `.c` files.
 
 - [ ] **Step 2: Extract the helper function body**
 
-Copy `stddev_using_precalc_ma` from `src/ta_func/ta_STDDEV.c` into `ta_func_defs/stddev/stddev.c`, below the existing `stddev` function. Apply the same macro replacements (the function uses plain C already in the legacy source, but verify).
+Copy `stddev_using_precalc_ma` from `src/ta_func/ta_STDDEV.c` into `ta_codegen/input/stddev/stddev.c`, below the existing `stddev` function. Apply the same macro replacements (the function uses plain C already in the legacy source, but verify).
 
 - [ ] **Step 3: Add forward declaration in the generated header**
 
@@ -1108,7 +1108,7 @@ Expected: C server compiles. BBANDS can call stddev_using_precalc_ma.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add ta_func_defs/stddev/stddev.c tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/input/stddev/stddev.c tools/ta_codegen/src/server_gen.rs
 git commit -m "fix(codegen): extract stddev_using_precalc_ma helper and add forward declaration"
 ```
 
@@ -1142,7 +1142,7 @@ cargo run --release -- build --backend=swig 2>&1 | head -30
 - [ ] **Step 3: For each failure, trace and fix**
 
 1. Read the error message (which function, which line)
-2. Look at the generated source in `ta_codegen_output/<lang>/`
+2. Look at the generated source in `ta_codegen/output/<lang>/`
 3. Trace to the IR (add `--verbose` flag or print debug)
 4. Fix either the source `.c` file (macro replacement issue) or the backend (rendering issue)
 5. Re-run `make servers`
@@ -1191,7 +1191,7 @@ git commit -m "fix: resolve remaining compilation and test failures across all b
 - [ ] **Step 1: Commit generated output for diffing**
 
 ```bash
-git add ta_codegen_output/
+git add ta_codegen/output/
 git commit -m "chore: track updated generated output after macro cleanup"
 ```
 

@@ -17,12 +17,12 @@
 ### Task 1: Refactor existing C source files to prefix-free naming
 
 **Files:**
-- Modify: `ta_func_defs/sma/sma.c`
-- Modify: `ta_func_defs/rsi/rsi.c`
-- Modify: `ta_func_defs/ema/ema.c`
-- Modify: `ta_func_defs/wma/wma.c`
-- Modify: `ta_func_defs/ma/ma.c`
-- Modify: `ta_func_defs/mult/mult.c`
+- Modify: `ta_codegen/input/sma/sma.c`
+- Modify: `ta_codegen/input/rsi/rsi.c`
+- Modify: `ta_codegen/input/ema/ema.c`
+- Modify: `ta_codegen/input/wma/wma.c`
+- Modify: `ta_codegen/input/ma/ma.c`
+- Modify: `ta_codegen/input/mult/mult.c`
 
 **Step 1:** For each `.c` file, rename functions:
 - `lookback(...)` → `<name>_lookback(...)` (e.g., `sma_lookback`)
@@ -30,9 +30,9 @@
 - `TA_INT_<NAME>(...)` → `<name>_logic(...)` (e.g., `int_sma` → `sma_logic`)
 - Cross-indicator calls: `SMA_Lookback(...)` → `sma_lookback(...)`, `EMA(...)` → `ema_logic(...)`, etc.
 
-**Step 2:** Verify no `TA_` prefixes remain in any `ta_func_defs/**/*.c` file.
+**Step 2:** Verify no `TA_` prefixes remain in any `ta_codegen/input/**/*.c` file.
 
-**Step 3:** Commit: `refactor: rename ta_func_defs C sources to prefix-free convention`
+**Step 3:** Commit: `refactor: rename ta_codegen/input C sources to prefix-free convention`
 
 ---
 
@@ -87,7 +87,7 @@ TA_RetCode sma_logic(/* params */) {
 ```rust
 #[test]
 fn test_registry_discovers_indicators() {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     let registry = Registry::from_dir(&base);
     assert!(registry.contains("sma"));
     assert!(registry.contains("rsi"));
@@ -108,7 +108,7 @@ fn test_registry_resolves_cross_calls() {
 **Step 2:** Run test, confirm fails.
 
 **Step 3:** Implement `Registry` struct:
-- `from_dir(path)` — scans `ta_func_defs/` for subdirectories containing `.yaml` files
+- `from_dir(path)` — scans `ta_codegen/input/` for subdirectories containing `.yaml` files
 - `contains(name)` — checks if an indicator exists
 - `resolve_call(func_name, lang)` — maps prefix-free call to language-specific name
 - `resolve_type(func_name, lang)` — maps prefix-free type references
@@ -423,17 +423,17 @@ fn test_extract_sma_logic() {
 - Reads shared definitions from `src/ta_abstract/ta_def_ui.c`
 - For each function found in tables:
   - Reads corresponding `src/ta_func/ta_<NAME>.c`
-  - Extracts YAML metadata → writes `ta_func_defs/<name>/<name>.yaml`
-  - Extracts C logic → writes `ta_func_defs/<name>/<name>.c`
+  - Extracts YAML metadata → writes `ta_codegen/input/<name>/<name>.yaml`
+  - Extracts C logic → writes `ta_codegen/input/<name>/<name>.c`
 - Reports: `Extracted 164 indicators (X succeeded, Y failed)`
 - On parser guard failure: prints function name + error, continues to next
 
 **Step 2:** Run on a single indicator first: `cargo run -- extract --function=SMA`
 
-**Step 3:** Diff extracted output against existing hand-converted `ta_func_defs/sma/`:
+**Step 3:** Diff extracted output against existing hand-converted `ta_codegen/input/sma/`:
 ```bash
-diff ta_func_defs/sma/sma.yaml ta_func_defs_extracted/sma/sma.yaml
-diff ta_func_defs/sma/sma.c ta_func_defs_extracted/sma/sma.c
+diff ta_codegen/input/sma/sma.yaml ta_func_defs_extracted/sma/sma.yaml
+diff ta_codegen/input/sma/sma.c ta_func_defs_extracted/sma/sma.c
 ```
 
 **Step 4:** Fix any differences until extraction matches hand-converted files.
@@ -595,7 +595,7 @@ Full report: ./ta_regtest_report_2026-03-08.csv
 - Compares C vs codegen output
 
 **Step 2:** Replace `CODEGEN_TESTS[]` static array with dynamic discovery:
-- Scan `ta_func_defs/` (or query the codegen server for supported functions)
+- Scan `ta_codegen/input/` (or query the codegen server for supported functions)
 - For each supported function, run the generic callback with doRangeTest
 - Auto-detect unstable period function IDs from YAML flags
 
@@ -613,15 +613,15 @@ Full report: ./ta_regtest_report_2026-03-08.csv
 - Modify: `tools/ta_codegen/tests/backend_suite.rs`
 - Modify: `tools/ta_codegen/tests/integration_test.rs`
 
-**Goal:** Replace hard-coded indicator lists in backend_suite.rs and integration_test.rs with dynamic discovery by scanning `ta_func_defs/` at test time.
+**Goal:** Replace hard-coded indicator lists in backend_suite.rs and integration_test.rs with dynamic discovery by scanning `ta_codegen/input/` at test time.
 
-**Step 1:** Add a helper function that scans `ta_func_defs/` for directories containing `<name>.yaml` + `<name>.c` files.
+**Step 1:** Add a helper function that scans `ta_codegen/input/` for directories containing `<name>.yaml` + `<name>.c` files.
 
 **Step 2:** Generate test cases dynamically for each discovered indicator across all backends.
 
 **Step 3:** Remove hard-coded indicator lists from test macros.
 
-**Step 4:** Verify: adding a new indicator to `ta_func_defs/` automatically includes it in the test suite without code changes.
+**Step 4:** Verify: adding a new indicator to `ta_codegen/input/` automatically includes it in the test suite without code changes.
 
 **Step 5:** Commit: `feat(tests): auto-discover indicators in backend and integration tests`
 
@@ -630,7 +630,7 @@ Full report: ./ta_regtest_report_2026-03-08.csv
 ### Task 12b: MA dispatcher cleanup
 
 **Files:**
-- Modify: `ta_func_defs/ma/ma.c`
+- Modify: `ta_codegen/input/ma/ma.c`
 
 **Goal:** The MA dispatcher switch statement currently only handles SMA and EMA. The original `ta_MA.c` dispatches to all 9 MA types (SMA, EMA, WMA, DEMA, TEMA, TRIMA, KAMA, MAMA, T3). As indicators are extracted, the MA switch should grow to include all available MA variants.
 
