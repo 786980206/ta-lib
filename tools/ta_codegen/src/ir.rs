@@ -153,6 +153,10 @@ pub enum Statement {
     Block {
         body: Vec<Statement>,
     },
+    /// A statement that evaluates an expression purely for its side effects,
+    /// e.g. a void function or macro call (`SAR_ROUNDING(x);`, `TRUE_RANGE(...);`).
+    /// The expression's value is discarded.
+    Expr(Expr),
 }
 
 #[derive(Debug, Clone, PartialEq)]

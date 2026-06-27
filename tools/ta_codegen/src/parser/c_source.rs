@@ -918,11 +918,7 @@ impl Parser {
                     }
                 }
                 self.consume_semicolon();
-                Statement::Assign {
-                    target: Expr::Var("_".to_string()),
-                    value: Expr::FuncCall(macro_name, vec![]),
-                    compound: false,
-                }
+                Statement::Expr(Expr::FuncCall(macro_name, vec![]))
             }
             "CONSTANT_DOUBLE" => {
                 // CONSTANT_DOUBLE(name) = value;
@@ -961,11 +957,7 @@ impl Parser {
                 let args = self.parse_call_args();
                 self.expect(&Token::RParen);
                 self.consume_semicolon();
-                Statement::Assign {
-                    target: Expr::Var("_".to_string()),
-                    value: Expr::FuncCall(macro_name, args),
-                    compound: false,
-                }
+                Statement::Expr(Expr::FuncCall(macro_name, args))
             }
             "HILBERT_VARIABLES" => {
                 // HILBERT_VARIABLES(prefix); -> declares multiple variables
@@ -1615,11 +1607,7 @@ impl Parser {
         // Handle ALL_CAPS macro as standalone statement without args: CALCULATE_AD;
         if Self::is_all_caps_macro(&name) && self.peek() == Some(&Token::Semicolon) {
             self.consume_semicolon();
-            return Statement::Assign {
-                target: Expr::Var("_".to_string()),
-                value: Expr::FuncCall(name, vec![]),
-                compound: false,
-            };
+            return Statement::Expr(Expr::FuncCall(name, vec![]));
         }
 
         // Handle ALL_CAPS macro calls as standalone statements
@@ -1637,11 +1625,7 @@ impl Parser {
                 || self.pos >= self.tokens.len()
             {
                 self.consume_semicolon();
-                return Statement::Assign {
-                    target: Expr::Var("_".to_string()),
-                    value: Expr::FuncCall(name, args),
-                    compound: false,
-                };
+                return Statement::Expr(Expr::FuncCall(name, args));
             }
             // Not a standalone call — might be CONSTANT_DOUBLE(x) = expr or similar
             self.pos = save_pos;
@@ -1673,11 +1657,7 @@ impl Parser {
             {
                 self.consume_semicolon();
                 let func_name = transform_func_name(&name);
-                return Statement::Assign {
-                    target: Expr::Var("_".to_string()),
-                    value: Expr::FuncCall(func_name, args),
-                    compound: false,
-                };
+                return Statement::Expr(Expr::FuncCall(func_name, args));
             }
 
             // CIRCBUF_REF(arr[idx])field = expr; or compound assign
@@ -3252,16 +3232,11 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                target: Expr::Var(n),
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
-                assert_eq!(n, "_");
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "ARRAY_ALLOC");
                 assert!(args.is_empty());
             }
-            other => panic!("Expected no-op Assign for ARRAY_ALLOC, got {other:?}"),
+            other => panic!("Expected no-op Expr for ARRAY_ALLOC, got {other:?}"),
         }
     }
 
@@ -3271,10 +3246,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(name, _),
-                ..
-            } => assert_eq!(name, "ARRAY_FREE"),
+            Statement::Expr(Expr::FuncCall(name, _)) => assert_eq!(name, "ARRAY_FREE"),
             other => panic!("Expected no-op for ARRAY_FREE, got {other:?}"),
         }
     }
@@ -3294,10 +3266,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
             let mut parser = Parser::new(tokens);
             let stmt = parser.parse_statement();
             match stmt {
-                Statement::Assign {
-                    value: Expr::FuncCall(name, _),
-                    ..
-                } => assert_eq!(name, *macro_name),
+                Statement::Expr(Expr::FuncCall(name, _)) => assert_eq!(name, *macro_name),
                 other => panic!("Expected no-op for {macro_name}, got {other:?}"),
             }
         }
@@ -3365,10 +3334,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "INIT_HILBERT_VARIABLES");
                 assert_eq!(args.len(), 1);
             }
@@ -3382,10 +3348,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "DO_HILBERT_ODD");
                 assert_eq!(args.len(), 3);
             }
@@ -3399,10 +3362,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "DO_HILBERT_EVEN");
                 assert_eq!(args.len(), 3);
             }
@@ -3416,10 +3376,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "DO_PRICE_WMA");
                 assert_eq!(args.len(), 2);
             }
@@ -3821,12 +3778,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                target: Expr::Var(n),
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
-                assert_eq!(n, "_");
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "CALCULATE_AD");
                 assert!(args.is_empty());
             }
@@ -3843,10 +3795,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "TRUE_RANGE");
                 assert_eq!(args.len(), 4);
             }
@@ -3874,10 +3823,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "SOME_MACRO");
                 assert_eq!(args.len(), 2);
             }
@@ -3894,12 +3840,7 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                target: Expr::Var(n),
-                value: Expr::FuncCall(name, args),
-                ..
-            } => {
-                assert_eq!(n, "_");
+            Statement::Expr(Expr::FuncCall(name, args)) => {
                 assert_eq!(name, "some_func");
                 assert_eq!(args.len(), 2);
             }
@@ -4576,10 +4517,7 @@ TA_RetCode sma_private(int startIdx, int endIdx, int *outBegIdx)
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Assign {
-                value: Expr::FuncCall(_, _),
-                ..
-            } => {}
+            Statement::Expr(Expr::FuncCall(_, _)) => {}
             other => panic!("Expected FuncCall at end of tokens, got {other:?}"),
         }
     }

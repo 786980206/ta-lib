@@ -228,6 +228,7 @@ pub fn substitute_statement(
                 .map(|s| substitute_statement(s, subs, suffix))
                 .collect(),
         },
+        Statement::Expr(e) => Statement::Expr(substitute_expr(e, subs)),
         Statement::Break => Statement::Break,
         Statement::Continue => Statement::Continue,
     }
@@ -261,6 +262,7 @@ fn collect_local_names(body: &[Statement]) -> Vec<String> {
                 names.extend(collect_local_names(default));
             }
             Statement::Assign { .. }
+            | Statement::Expr(_)
             | Statement::Return { .. }
             | Statement::Break
             | Statement::Continue => {}
@@ -363,6 +365,7 @@ fn replace_returns_with_assign(body: &mut [Statement], temp_name: &str) {
             Statement::Return { value: None }
             | Statement::VarDecl { .. }
             | Statement::Assign { .. }
+            | Statement::Expr(_)
             | Statement::Break
             | Statement::Continue => {}
         }

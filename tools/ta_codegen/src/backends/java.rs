@@ -121,6 +121,9 @@ fn collect_address_of_vars_stmt(stmt: &Statement, vars: &mut HashSet<String>) {
         Statement::VarDecl { init: Some(e), .. } => {
             scan_expr_for_address_of(e, vars);
         }
+        Statement::Expr(e) => {
+            scan_expr_for_address_of(e, vars);
+        }
         Statement::VarDecl { init: None, .. }
         | Statement::Return { value: None }
         | Statement::Break
@@ -808,31 +811,6 @@ fn render_statement_ctx(
             value,
             compound,
         } => {
-            // Statement-level expression: when target is Var("_"), render as standalone
-            if let Expr::Var(tname) = target {
-                if tname == "_" {
-                    // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
-                    if matches!(value, Expr::Var(_)) {
-                        return String::new();
-                    }
-                    if let Expr::FuncCall(fname, args) = value {
-                        // Check if helper inlines to a bare variable (identity helper)
-                        if let Some(helper) = helpers.get(fname) {
-                            if let Some(inlined) = try_inline_expr(helper, args) {
-                                if matches!(inlined, Expr::Var(_)) {
-                                    return String::new();
-                                }
-                            }
-                        }
-                        let rendered = render_func_call(fname, args, ctx, registry, helpers);
-                        // Skip empty renders (e.g. free() returns "")
-                        if rendered.is_empty() {
-                            return String::new();
-                        }
-                        return format!("{pad}{rendered};\n");
-                    }
-                }
-            }
             // Handle output scalar assignments via .value
             if let Expr::Var(name) = target {
                 if name == "outBegIdx" || name == "outNBElement" {
@@ -899,6 +877,30 @@ fn render_statement_ctx(
             let value_str = render_expr(&new_value, ctx, registry, helpers);
             out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
             out
+        }
+        Statement::Expr(e) => {
+            // Statement-level expression: render a bare call/macro for its side effects.
+            // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+            if matches!(e, Expr::Var(_)) {
+                return String::new();
+            }
+            if let Expr::FuncCall(fname, args) = e {
+                // Check if helper inlines to a bare variable (identity helper)
+                if let Some(helper) = helpers.get(fname) {
+                    if let Some(inlined) = try_inline_expr(helper, args) {
+                        if matches!(inlined, Expr::Var(_)) {
+                            return String::new();
+                        }
+                    }
+                }
+                let rendered = render_func_call(fname, args, ctx, registry, helpers);
+                // Skip empty renders (e.g. free() returns "")
+                if rendered.is_empty() {
+                    return String::new();
+                }
+                return format!("{pad}{rendered};\n");
+            }
+            String::new()
         }
         Statement::While { condition, body } => {
             // Hoist multi-statement helpers from the condition expression

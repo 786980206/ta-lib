@@ -1223,6 +1223,10 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
                 count += count_increments_in_expr(name, target);
                 count += count_increments_in_expr(name, value);
             }
+            Statement::Expr(e) => {
+                // Count increment/decrement embedded in a statement expression
+                count += count_increments_in_expr(name, e);
+            }
             Statement::While {
                 body: while_body, ..
             }
@@ -1296,6 +1300,7 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
             | Statement::Block { .. }
             | Statement::VarDecl { .. }
             | Statement::Assign { .. }
+            | Statement::Expr(_)
             | Statement::If { .. }
             | Statement::Return { .. }
             | Statement::Break
@@ -1862,33 +1867,6 @@ pub fn render_statement(
             // This is handled by splitting PostIncrement out of the value expression.
             // (The target-side split above is the most impactful for vectorization.)
 
-            if let Expr::Var(tname) = target {
-                if tname == "_" {
-                    // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
-                    if matches!(value, Expr::Var(_)) {
-                        return String::new();
-                    }
-                    if let Expr::FuncCall(fname, args) = value {
-                        // Check if helper inlines to a bare variable (identity helper)
-                        if let Some(helper) = helpers.get(fname) {
-                            if let Some(inlined) = try_inline_expr(helper, args) {
-                                if matches!(inlined, Expr::Var(_)) {
-                                    return String::new();
-                                }
-                            }
-                        }
-                        let rendered = render_func_call(
-                            fname, args, ctx, opt_real_params, registry, helpers,
-                        );
-                        // Skip empty renders (e.g. free() returns "")
-                        if rendered.is_empty() {
-                            return String::new();
-                        }
-                        return format!("{pad}{rendered};\n");
-                    }
-                }
-            }
-
             // Hoist multi-statement helpers from the value expression
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
@@ -2105,6 +2083,32 @@ pub fn render_statement(
                 out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
             }
             out
+        }
+        Statement::Expr(e) => {
+            // Statement-level expression: render a bare call/macro for its side effects.
+            // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+            if matches!(e, Expr::Var(_)) {
+                return String::new();
+            }
+            if let Expr::FuncCall(fname, args) = e {
+                // Check if helper inlines to a bare variable (identity helper)
+                if let Some(helper) = helpers.get(fname) {
+                    if let Some(inlined) = try_inline_expr(helper, args) {
+                        if matches!(inlined, Expr::Var(_)) {
+                            return String::new();
+                        }
+                    }
+                }
+                let rendered = render_func_call(
+                    fname, args, ctx, opt_real_params, registry, helpers,
+                );
+                // Skip empty renders (e.g. free() returns "")
+                if rendered.is_empty() {
+                    return String::new();
+                }
+                return format!("{pad}{rendered};\n");
+            }
+            String::new()
         }
         Statement::While {
             condition,

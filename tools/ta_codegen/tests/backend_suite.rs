@@ -3441,17 +3441,13 @@ fn rust_func_call_malloc_f64_default() {
 
 #[test]
 fn rust_func_call_free_is_noop() {
-    let stmt = ir::Statement::Assign {
-        target: ir::Expr::Var("_".to_string()),
-        value: ir::Expr::FuncCall(
-            "free".to_string(),
-            vec![ir::Expr::Var("buf".to_string())],
-        ),
-        compound: false,
-    };
+    let stmt = ir::Statement::Expr(ir::Expr::FuncCall(
+        "free".to_string(),
+        vec![ir::Expr::Var("buf".to_string())],
+    ));
     let rendered = render_rust_stmt(&stmt);
     // free() is a no-op in Rust (returns empty string from render_func_call)
-    // The Assign to _ with an empty value should be skipped
+    // The statement expression with an empty value should be skipped
     assert!(
         !rendered.contains("free("),
         "free() should not appear in Rust output: {rendered}"
@@ -3460,18 +3456,14 @@ fn rust_func_call_free_is_noop() {
 
 #[test]
 fn rust_func_call_memcpy_renders_copy_from_slice() {
-    let stmt = ir::Statement::Assign {
-        target: ir::Expr::Var("_".to_string()),
-        value: ir::Expr::FuncCall(
-            "memcpy".to_string(),
-            vec![
-                ir::Expr::Var("dst".to_string()),
-                ir::Expr::Var("src".to_string()),
-                ir::Expr::Var("count".to_string()),
-            ],
-        ),
-        compound: false,
-    };
+    let stmt = ir::Statement::Expr(ir::Expr::FuncCall(
+        "memcpy".to_string(),
+        vec![
+            ir::Expr::Var("dst".to_string()),
+            ir::Expr::Var("src".to_string()),
+            ir::Expr::Var("count".to_string()),
+        ],
+    ));
     let rendered = render_rust_stmt(&stmt);
     assert!(
         rendered.contains("copy_from_slice"),
@@ -3481,20 +3473,16 @@ fn rust_func_call_memcpy_renders_copy_from_slice() {
 
 #[test]
 fn rust_func_call_array_copy_renders_copy_from_slice() {
-    let stmt = ir::Statement::Assign {
-        target: ir::Expr::Var("_".to_string()),
-        value: ir::Expr::FuncCall(
-            "ARRAY_COPY".to_string(),
-            vec![
-                ir::Expr::Var("dst".to_string()),
-                ir::Expr::IntLiteral(0),
-                ir::Expr::Var("src".to_string()),
-                ir::Expr::IntLiteral(0),
-                ir::Expr::Var("n".to_string()),
-            ],
-        ),
-        compound: false,
-    };
+    let stmt = ir::Statement::Expr(ir::Expr::FuncCall(
+        "ARRAY_COPY".to_string(),
+        vec![
+            ir::Expr::Var("dst".to_string()),
+            ir::Expr::IntLiteral(0),
+            ir::Expr::Var("src".to_string()),
+            ir::Expr::IntLiteral(0),
+            ir::Expr::Var("n".to_string()),
+        ],
+    ));
     let rendered = render_rust_stmt(&stmt);
     assert!(
         rendered.contains("copy_from_slice"),
@@ -3986,18 +3974,14 @@ fn rust_while_with_for_loop_var_renders_for_in() {
 
 #[test]
 fn rust_func_call_memset_renders_fill() {
-    let stmt = ir::Statement::Assign {
-        target: ir::Expr::Var("_".to_string()),
-        value: ir::Expr::FuncCall(
-            "memset".to_string(),
-            vec![
-                ir::Expr::Var("buf".to_string()),
-                ir::Expr::IntLiteral(0),
-                ir::Expr::Var("count".to_string()),
-            ],
-        ),
-        compound: false,
-    };
+    let stmt = ir::Statement::Expr(ir::Expr::FuncCall(
+        "memset".to_string(),
+        vec![
+            ir::Expr::Var("buf".to_string()),
+            ir::Expr::IntLiteral(0),
+            ir::Expr::Var("count".to_string()),
+        ],
+    ));
     let rendered = render_rust_stmt(&stmt);
     assert!(
         rendered.contains(".fill("),
@@ -4507,35 +4491,27 @@ fn java_ma_switch_variable_rendering() {
 
 #[test]
 fn java_assign_to_underscore_skips_bare_var() {
-    // Assign _ = someVar should produce empty output (no side effects)
-    let stmt = ir::Statement::Assign {
-        target: ir::Expr::Var("_".to_string()),
-        value: ir::Expr::Var("someVar".to_string()),
-        compound: false,
-    };
+    // Expr(someVar) should produce empty output (no side effects)
+    let stmt = ir::Statement::Expr(ir::Expr::Var("someVar".to_string()));
     let rendered = render_java_stmt(&stmt);
     assert!(
         rendered.is_empty(),
-        "Assign to _ with bare Var value should produce empty output: '{rendered}'"
+        "Statement expression with bare Var should produce empty output: '{rendered}'"
     );
 }
 
 #[test]
 fn java_assign_to_underscore_renders_func_call() {
-    // Assign _ = someFunc(x) should render as someFunc(x);
-    let stmt = ir::Statement::Assign {
-        target: ir::Expr::Var("_".to_string()),
-        value: ir::Expr::FuncCall(
-            "someFunc".to_string(),
-            vec![ir::Expr::Var("x".to_string())],
-        ),
-        compound: false,
-    };
+    // Expr(someFunc(x)) should render as someFunc(x);
+    let stmt = ir::Statement::Expr(ir::Expr::FuncCall(
+        "someFunc".to_string(),
+        vec![ir::Expr::Var("x".to_string())],
+    ));
     let rendered = render_java_stmt(&stmt);
     // Should render the function call as a statement
     assert!(
         rendered.contains("someFunc("),
-        "Assign to _ with FuncCall should render the call: {rendered}"
+        "Statement expression with FuncCall should render the call: {rendered}"
     );
 }
 
@@ -5430,15 +5406,14 @@ fn c_stochrsi_full_generate() {
 
 #[test]
 fn java_assign_underscore_free_is_empty() {
-    let stmt = ir::Statement::Assign {
-        target: ir::Expr::Var("_".to_string()),
-        value: ir::Expr::FuncCall("free".to_string(), vec![ir::Expr::Var("buf".to_string())]),
-        compound: false,
-    };
+    let stmt = ir::Statement::Expr(ir::Expr::FuncCall(
+        "free".to_string(),
+        vec![ir::Expr::Var("buf".to_string())],
+    ));
     let rendered = render_java_stmt(&stmt);
     assert!(
         rendered.is_empty(),
-        "Java Assign _ = free(buf) should produce empty output: '{rendered}'"
+        "Java Expr(free(buf)) should produce empty output: '{rendered}'"
     );
 }
 

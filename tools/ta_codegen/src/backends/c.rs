@@ -644,31 +644,6 @@ fn render_stmt(
             value,
             compound,
         } => {
-            // Statement-level expression: when target is Var("_"), render as standalone
-            if let Expr::Var(tname) = target {
-                if tname == "_" {
-                    // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
-                    if matches!(value, Expr::Var(_)) {
-                        return String::new();
-                    }
-                    if let Expr::FuncCall(fname, args) = value {
-                        // Check if helper inlines to a bare variable (identity helper)
-                        if let Some(helper) = helpers.get(fname) {
-                            if let Some(inlined) = try_inline_expr(helper, args) {
-                                if matches!(inlined, Expr::Var(_)) {
-                                    return String::new();
-                                }
-                            }
-                        }
-                        return format!(
-                            "{}{};\n",
-                            pad,
-                            render_func_call(fname, args, ctx, registry, helpers)
-                        );
-                    }
-                }
-            }
-
             // Hoist multi-statement helpers from the value expression
             let mut hoisted = Vec::new();
             let mut cnt = ctx.inline_counter.get();
@@ -724,6 +699,29 @@ fn render_stmt(
             let value_str = render_expr(&new_value, ctx, registry, helpers);
             out.push_str(&format!("{pad}{target_str}= {value_str};\n"));
             out
+        }
+        Statement::Expr(e) => {
+            // Statement-level expression: render a bare call/macro for its side effects.
+            // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+            if matches!(e, Expr::Var(_)) {
+                return String::new();
+            }
+            if let Expr::FuncCall(fname, args) = e {
+                // Check if helper inlines to a bare variable (identity helper)
+                if let Some(helper) = helpers.get(fname) {
+                    if let Some(inlined) = try_inline_expr(helper, args) {
+                        if matches!(inlined, Expr::Var(_)) {
+                            return String::new();
+                        }
+                    }
+                }
+                return format!(
+                    "{}{};\n",
+                    pad,
+                    render_func_call(fname, args, ctx, registry, helpers)
+                );
+            }
+            String::new()
         }
         Statement::While { condition, body } => {
             let mut hoisted = Vec::new();
