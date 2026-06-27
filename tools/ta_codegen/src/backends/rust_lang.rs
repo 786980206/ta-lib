@@ -10,6 +10,7 @@ use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
 use super::expr_walk::ExprEmitter;
+use super::stmt_walk::StatementEmitter;
 
 /// Controls how the Rust renderer emits code.
 pub struct RustRenderCtx {
@@ -1541,7 +1542,652 @@ fn render_hoisted_blocks(
     out
 }
 
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity, clippy::too_many_arguments, clippy::implicit_hasher)]
+/// Rust-backend leaf formatting for the shared [`StatementEmitter`] tree-walk.
+/// Bundles the render context with the for-loop/var-init/output-name/opt-real
+/// state and the enum/registry/helper services the hooks need; the recursion and
+/// variant dispatch live in [`StatementEmitter::walk_stmt`].
+struct RustStmt<'a, 'e> {
+    ctx: &'a RustRenderCtx,
+    for_loop_vars: &'a [String],
+    var_inits: &'a HashMap<String, &'e Expr>,
+    output_names: &'a [String],
+    opt_real_params: &'a [String],
+    enums: &'a HashMap<String, EnumDef>,
+    registry: &'a Registry,
+    helpers: &'a HelperRegistry,
+    inline_counter: &'a Cell<usize>,
+}
+
+impl StatementEmitter for RustStmt<'_, '_> {
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn var_decl(&self, var_type: &VarType, name: &str, init: &Option<Expr>, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // VarDecl at function top-level is handled by the separate declaration pass.
+        // VarDecl inside blocks/loops/ifs needs inline declaration.
+        // We always emit here; the top-level pass skips VarDecls to avoid duplicates.
+        // The top-level code pre-emits declarations for all body-level VarDecls,
+        // so if this VarDecl is at top level, this is a no-op duplicate that will
+        // be filtered by the caller. For nested VarDecls (inside blocks), this is needed.
+        if indent <= 8 {
+            // Top-level VarDecl already handled
+            return String::new();
+        }
+        // Sentinel vars (assigned -1) are i32, not usize
+        let is_sentinel = self.ctx.sentinel_vars.contains(name);
+        let rust_type = match var_type {
+            VarType::Real => {
+                "f64"
+            }
+            VarType::Integer | VarType::Index => {
+                if is_sentinel { "i32" } else { "usize" }
+            }
+            VarType::RetCodeType => "RetCode",
+            VarType::RealPointer => {
+                "Vec<f64>"
+            }
+            VarType::IntPointer => "Vec<i32>",
+            VarType::RealArray(size) => {
+                let elem = "0.0_f64";
+                let ty = "f64";
+                return format!("{pad}let mut {name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n");
+            }
+            VarType::IntArray(size) => {
+                return format!("{pad}let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n");
+            }
+        };
+        // Use init expression if available, otherwise fall back to type default
+        let init_str = if let Some(init_expr) = init {
+            render_expr(init_expr, self.ctx, self.opt_real_params, self.registry, self.helpers)
+        } else {
+            match var_type {
+                VarType::Real => {
+                    "0.0_f64"
+                }
+                VarType::Integer | VarType::Index => {
+                    if is_sentinel { "0_i32" } else { "0_usize" }
+                }
+                VarType::RetCodeType => "RetCode::Success",
+                VarType::RealPointer | VarType::IntPointer => "Vec::new()",
+                VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+            }
+            .to_string()
+        };
+        format!("{pad}let mut {name}: {rust_type} = {init_str};\n")
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn assign(&self, target: &Expr, value: &Expr, compound: bool, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Split arr[idx++] = value into arr[idx] = value; idx += 1;
+        // This enables LLVM auto-vectorization by exposing idx as a clean
+        // linear induction variable (the block expression { let _v = idx; idx += 1; _v }
+        // creates an opaque dependency that prevents vectorization).
+        if let Expr::ArrayAccess(arr_name, idx_expr) = target {
+            if let Expr::PostIncrement(inner) = idx_expr.as_ref() {
+                let stripped_target = Expr::ArrayAccess(
+                    arr_name.clone(),
+                    Box::new(inner.as_ref().clone()),
+                );
+                let stripped_assign = Statement::Assign {
+                    target: stripped_target,
+                    value: value.clone(),
+                    compound,
+                };
+                let mut out = self.walk_stmt(&stripped_assign, indent);
+                let idx_str = render_expr(inner, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                out.push_str(&format!("{pad}{idx_str} += 1;\n"));
+                return out;
+            }
+        }
+        // Also split arr[idx++] patterns in value-side array reads:
+        // prevMA = inReal[today++] becomes prevMA = inReal[today]; today += 1;
+        // This is handled by splitting PostIncrement out of the value expression.
+        // (The target-side split above is the most impactful for vectorization.)
+
+        // Hoist multi-statement helpers from the value expression
+        let mut hoisted = Vec::new();
+        let mut cnt = self.inline_counter.get();
+        let new_value = hoist_block_helpers(
+            value, self.helpers, &mut hoisted, &mut cnt, &[],
+        );
+        self.inline_counter.set(cnt);
+        let mut out = render_hoisted_blocks(
+            &hoisted, indent, self.ctx, self.for_loop_vars, self.var_inits,
+            self.output_names, self.opt_real_params, self.enums, self.registry,
+            self.helpers, self.inline_counter,
+        );
+
+        // Emit dummy variable declaration for duplicate &mut borrows in cross-indicator calls
+        if has_duplicate_address_of(&new_value) {
+            out.push_str(&format!("{pad}let mut _dup_out: usize = 0_usize;\n"));
+        }
+
+        if compound {
+            if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
+                if let Expr::Var(lname) = left.as_ref() {
+                    if lname == tname {
+                        let op_str = match op {
+                            BinOp::Add => "+=",
+                            BinOp::Sub => "-=",
+                            BinOp::Mul => "*=",
+                            BinOp::Div => "/=",
+                            BinOp::Mod
+                            | BinOp::LessEq
+                            | BinOp::Less
+                            | BinOp::Greater
+                            | BinOp::GreaterEq
+                            | BinOp::Eq
+                            | BinOp::NotEq
+                            | BinOp::And
+                            | BinOp::Or
+                            | BinOp::BitwiseOr
+                            | BinOp::Shr
+                            | BinOp::Shl => "",
+                        };
+                        if !op_str.is_empty() {
+                            let target_str =
+                                render_assign_target(target, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                            let rhs_str = render_expr(right, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                            // Check if the target is T-typed (Real variable)
+                            let target_is_real = self.ctx.real_vars.contains(tname)
+                                || (!self.ctx.index_vars.contains(tname)
+                                    && !is_likely_index_var(tname)
+                                    && !is_i32_opt_in_param(tname)
+                                    && !tname.ends_with("_avgPeriod")
+                                    && !tname.ends_with("_rangeType"));
+                            // Cast integer RHS in compound assignments to f64-typed variables
+                            let rhs_wrapped = if target_is_real {
+                                if expr_is_untyped_integer(right) || expr_is_i32_typed(right)
+                                    || (expr_is_known_usize_ctx(right, self.ctx) && !expr_is_float_typed_ctx(right, Some(self.ctx)))
+                                {
+                                    format!("(({rhs_str}) as f64)")
+                                } else {
+                                    rhs_str
+                                }
+                            } else if !target_is_real
+                                && is_likely_index_var(tname)
+                                && expr_is_i32_typed(right)
+                            {
+                                // usize target, i32 RHS: cast to usize
+                                format!("({rhs_str}) as usize")
+                            } else {
+                                rhs_str
+                            };
+                            out.push_str(&format!(
+                                "{pad}{target_str} {op_str} {rhs_wrapped};\n"
+                            ));
+                            return out;
+                        }
+                    }
+                }
+            }
+        }
+        let target_str = render_assign_target(target, self.ctx, self.opt_real_params, self.registry, self.helpers);
+        let value_str = render_expr(&new_value, self.ctx, self.opt_real_params, self.registry, self.helpers);
+        let needs_f64_cast = if let Expr::ArrayAccess(name, _) = target {
+            self.output_names.contains(name)
+                && !self.ctx.int_output_names.contains(name)
+                && expr_has_uncast_array_access(&new_value)
+        } else {
+            false
+        };
+        // Sentinel var assignment: cast usize value to i32 when assigning to sentinel target
+        let needs_sentinel_i32_cast = if let Expr::Var(tname) = target {
+            self.ctx.sentinel_vars.contains(tname)
+                && !expr_is_i32_typed_ctx(&new_value, self.ctx)
+                && !matches!(new_value, Expr::IntLiteral(_))
+                && !is_negative_one(&new_value)
+                && (expr_is_known_usize_ctx(&new_value, self.ctx)
+                    || matches!(new_value, Expr::Var(ref v) if self.ctx.index_vars.contains(v) || is_likely_index_var(v)))
+        } else {
+            false
+        };
+        // Sentinel var used as value: cast i32 sentinel to usize when assigning to usize target
+        let needs_sentinel_usize_cast = if let Expr::Var(tname) = target {
+            !self.ctx.sentinel_vars.contains(tname)
+                && (self.ctx.index_vars.contains(tname) || is_likely_index_var(tname))
+                && expr_is_i32_typed_ctx(&new_value, self.ctx)
+                && !expr_is_i32_typed(&new_value)
+                && !matches!(new_value, Expr::IntLiteral(_))
+        } else {
+            false
+        };
+        // Check if we're assigning an i32-typed expression to a non-i32 target variable
+        // (e.g., usize var = optInTimePeriod which is i32,
+        //  or curPeriod = localPeriodArray[i] where array is Vec<i32>)
+        let value_is_i32 = expr_is_i32_typed(&new_value)
+            || matches!(new_value, Expr::Var(ref v) if is_i32_opt_in_param(v) || v.ends_with("_avgPeriod") || v.ends_with("_rangeType"))
+            || matches!(&new_value, Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, self.ctx));
+        let needs_usize_cast = if let Expr::Var(tname) = target {
+            !self.output_names.iter().any(|n| n == tname)
+                && !is_i32_opt_in_param(tname)
+                && !tname.ends_with("_avgPeriod")
+                && !tname.ends_with("_rangeType")
+                && !self.ctx.real_vars.contains(tname)
+                && !self.ctx.sentinel_vars.contains(tname)
+                && value_is_i32
+        } else {
+            false
+        };
+        // Check if target is an i32 optIn param and value is usize
+        // (e.g., optInFastPeriod = tempInteger where tempInteger is usize)
+        let needs_optin_i32_cast = if let Expr::Var(tname) = target {
+            is_i32_opt_in_param(tname)
+                && !expr_is_i32_typed(&new_value)
+                && !matches!(new_value, Expr::IntLiteral(_))
+                && (expr_is_known_usize_ctx(&new_value, self.ctx)
+                    || matches!(new_value, Expr::Var(ref v) if self.ctx.index_vars.contains(v) || is_likely_index_var(v)))
+        } else {
+            false
+        };
+        // Check if target is an integer output/local array (e.g., outInteger[idx] = usize_val,
+        // sortedPeriods[i] = longestPeriod, localPeriodArray[i] = tempInt)
+        // Values assigned to i32 arrays need `as i32` cast when usize-typed
+        let needs_int_output_cast = if let Expr::ArrayAccess(name, _) = target {
+            (self.ctx.int_output_names.contains(name) || is_int_array_or_vec(name, self.ctx))
+                && !expr_is_i32_typed(&new_value)
+                && !matches!(new_value, Expr::IntLiteral(_))
+                && (expr_is_known_usize_ctx(&new_value, self.ctx)
+                    || matches!(&new_value, Expr::Var(v) if self.ctx.index_vars.contains(v) || is_likely_index_var(v))
+                    || matches!(&new_value, Expr::BinOp(_, _, _)))
+        } else {
+            false
+        };
+        // Cast integer values to f64 when assigned to f64-typed variables
+        let needs_f64_wrap = if let Expr::Var(tname) = target {
+            // Require the target to be positively identified as Real (f64)
+            let target_is_known_real = self.ctx.real_vars.contains(tname)
+                || (expr_is_float_typed_ctx(&Expr::Var(tname.clone()), Some(self.ctx))
+                    && !self.ctx.index_vars.contains(tname)
+                    && !is_likely_index_var(tname)
+                    && !is_i32_opt_in_param(tname)
+                    && !self.ctx.sentinel_vars.contains(tname)
+                    && !tname.ends_with("_avgPeriod")
+                    && !tname.ends_with("_rangeType")
+                    && !self.output_names.iter().any(|n| n == tname));
+            target_is_known_real
+                && (expr_is_untyped_integer(&new_value) || expr_is_i32_typed(&new_value)
+                    || expr_is_known_usize_ctx(&new_value, self.ctx))
+        } else if let Expr::ArrayAccess(name, _) = target {
+            // Array target: Real arrays (output, temp, local) need f64 values
+            // But NOT IntArray/IntPointer targets (periods, usedFlag, localPeriodArray, etc.)
+            // and NOT integer output arrays (outInteger, outMaxIdx, etc.)
+            !name.contains("Int") && !name.contains("integer")
+                && !self.ctx.index_vars.contains(name)
+                && !is_int_array_var(name)
+                && !self.ctx.int_output_names.contains(name)
+                && !self.ctx.int_vec_vars.contains(name)
+                && (expr_is_untyped_integer(&new_value) || expr_is_i32_typed(&new_value)
+                    || expr_is_known_usize_ctx(&new_value, self.ctx))
+        } else {
+            false
+        };
+        // Check if target is a Vec<T> variable and value is a slice/output param
+        // (buffer aliasing pattern in BBANDS, STOCH, etc.)
+        let needs_to_vec = if let Expr::Var(tname) = target {
+            if self.ctx.vec_vars.contains(tname) || is_vec_local_var(tname) {
+                if let Expr::Var(vname) = &new_value {
+                    self.output_names.contains(vname) || vname.starts_with("in")
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+        if needs_to_vec {
+            out.push_str(&format!("{pad}{target_str} = {value_str}.to_vec();\n"));
+        } else if needs_sentinel_i32_cast {
+            out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
+        } else if needs_sentinel_usize_cast {
+            out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
+        } else if needs_int_output_cast {
+            out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
+        } else if needs_f64_cast || needs_f64_wrap {
+            // IntLiteral → emit as float literal instead of cast
+            if let Expr::IntLiteral(n) = &new_value {
+                out.push_str(&format!("{pad}{target_str} = {n}.0;\n"));
+            } else {
+                out.push_str(&format!("{pad}{target_str} = (({value_str}) as f64);\n"));
+            }
+        } else if needs_optin_i32_cast {
+            out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
+        } else if needs_usize_cast {
+            out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
+        } else {
+            out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
+        }
+        out
+    }
+
+    fn expr_stmt(&self, e: &Expr, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Statement-level expression: render a bare call/macro for its side effects.
+        // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+        if matches!(e, Expr::Var(_)) {
+            return String::new();
+        }
+        if let Expr::FuncCall(fname, args) = e {
+            // Check if helper inlines to a bare variable (identity helper)
+            if let Some(helper) = self.helpers.get(fname) {
+                if let Some(inlined) = try_inline_expr(helper, args) {
+                    if matches!(inlined, Expr::Var(_)) {
+                        return String::new();
+                    }
+                }
+            }
+            let rendered = render_func_call(
+                fname, args, self.ctx, self.opt_real_params, self.registry, self.helpers,
+            );
+            // Skip empty renders (e.g. free() returns "")
+            if rendered.is_empty() {
+                return String::new();
+            }
+            return format!("{pad}{rendered};\n");
+        }
+        String::new()
+    }
+
+    fn while_loop(&self, condition: &Expr, while_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        if let Expr::BinOp(left, BinOp::LessEq, right) = condition {
+            if let Expr::Var(iter_name) = left.as_ref() {
+                if self.for_loop_vars.contains(iter_name) {
+                    let start_expr = if let Some(init) = self.var_inits.get(iter_name) {
+                        render_expr(init, self.ctx, self.opt_real_params, self.registry, self.helpers)
+                    } else {
+                        iter_name.clone()
+                    };
+                    let end_expr = render_expr(right, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                    let mut out = format!(
+                        "{pad}for {iter_name} in ({start_expr} as usize)..({end_expr} as usize) + 1 {{\n"
+                    );
+                    for s in &while_body[..while_body.len() - 1] {
+                        out.push_str(&self.walk_stmt(s, indent + 4));
+                    }
+                    out.push_str(&format!("{pad}}}\n"));
+                    return out;
+                }
+            }
+        }
+        let mut out = format!(
+            "{}while {} {{\n",
+            pad,
+            render_expr(condition, self.ctx, self.opt_real_params, self.registry, self.helpers)
+        );
+        for s in while_body {
+            out.push_str(&self.walk_stmt(s, indent + 4));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    fn do_while(&self, condition: &Expr, while_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = format!("{pad}loop {{\n");
+        for s in while_body {
+            out.push_str(&self.walk_stmt(s, indent + 4));
+        }
+        out.push_str(&format!(
+            "{}    if !({}) {{ break; }}\n",
+            pad,
+            render_expr(condition, self.ctx, self.opt_real_params, self.registry, self.helpers)
+        ));
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Skip post-allocation null-check blocks (dead code in Rust — Vec::new() never fails)
+        if contains_alloc_err_return(then_body) {
+            return String::new();
+        }
+        // Split `if(A && B)` into nested `if(A) { if(B)` when both sides
+        // contain a candle function call (ta_candlerange/ta_candleaverage).
+        // This prevents the compiler from speculatively computing both sides
+        // of the &&, which wastes expensive fdiv cycles on the common path
+        // where the first condition fails.
+        if let Expr::BinOp(left, BinOp::And, right) = condition {
+            if expr_directly_contains_candle_call(left)
+                && expr_directly_contains_candle_call(right)
+            {
+                // Render as: if left { if right { then } else { els } } else { els }
+                let inner_if = Statement::If {
+                    condition: *right.clone(),
+                    then_body: then_body.to_vec(),
+                    else_body: else_body.to_vec(),
+                };
+                let outer_if = Statement::If {
+                    condition: *left.clone(),
+                    then_body: vec![inner_if],
+                    else_body: else_body.to_vec(),
+                };
+                return self.walk_stmt(&outer_if, indent);
+            }
+        }
+        let mut out = format!(
+            "{}if {} {{\n",
+            pad,
+            render_condition(condition, self.ctx, self.opt_real_params, self.registry, self.helpers)
+        );
+        for s in then_body {
+            out.push_str(&self.walk_stmt(s, indent + 4));
+        }
+        if else_body.is_empty() {
+            out.push_str(&format!("{pad}}}\n"));
+        } else {
+            out.push_str(&format!("{pad}}} else "));
+            if else_body.len() == 1 {
+                if let Statement::If { .. } = &else_body[0] {
+                    let if_str = self.walk_stmt(&else_body[0], indent);
+                    out.push_str(if_str.trim_start());
+                    return out;
+                }
+            }
+            out.push_str("{\n");
+            for s in else_body {
+                out.push_str(&self.walk_stmt(s, indent + 4));
+            }
+            out.push_str(&format!("{pad}}}\n"));
+        }
+        out
+    }
+
+    fn return_stmt(&self, value: &Option<Expr>, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        match value {
+            Some(expr) => {
+                let rendered = render_return_expr(expr, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                // In lookback functions, return value must be usize. Cast any i32/mixed expression.
+                let is_already_usize = matches!(expr, Expr::Var(ref n) if n == "retValue" || n == "lookbackTotal" || n == "emaLookback")
+                    || expr_is_known_usize_ctx(expr, self.ctx)
+                    || expr_returns_usize(expr);
+                if self.ctx.is_lookback && !is_already_usize
+                    && !matches!(expr, Expr::Var(ref n) if n == "SUCCESS" || n == "BadParam" || n.starts_with("RetCode"))
+                {
+                    format!("{pad}return ({rendered}) as usize;\n")
+                } else {
+                    format!("{pad}return {rendered};\n")
+                }
+            }
+            None => format!("{pad}return;\n"),
+        }
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn for_loop(&self, var: &str, count: &Expr, for_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = format!(
+            "{}for {} in (1..={}).rev() {{\n",
+            pad,
+            var,
+            render_expr(count, self.ctx, self.opt_real_params, self.registry, self.helpers)
+        );
+        for s in for_body {
+            out.push_str(&self.walk_stmt(s, indent + 4));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn for_c(&self, init: &Statement, condition: &Expr, update: &Statement, for_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        // Range-iteration fast path: for(i=start; i<=end; i++) → for i in start..(end+1)
+        // Uses exclusive range (not ..=) because LLVM vectorizes exclusive ranges
+        // but generates suboptimal cinc+double-compare for inclusive ranges.
+        if let Expr::BinOp(cond_left, BinOp::LessEq, cond_right) = condition {
+            if let Expr::Var(iter_name) = cond_left.as_ref() {
+                if let Some(start_expr) = extract_init_value(init, iter_name) {
+                    if is_simple_increment(update, iter_name) {
+                        let start_str = render_expr(start_expr, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                        let end_str = render_expr(cond_right, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                        let mut out = format!(
+                            "{pad}for {iter_name} in ({start_str} as usize)..({end_str} as usize) + 1 {{\n"
+                        );
+                        for s in for_body {
+                            out.push_str(&self.walk_stmt(s, indent + 4));
+                        }
+                        out.push_str(&format!("{pad}}}\n"));
+                        // In C, after for(i=start; i<=end; i++), i == end+1.
+                        // Rust's for-in leaves the variable at the last iteration value.
+                        // Fixup so downstream code sees the same post-loop value.
+                        out.push_str(&format!(
+                            "{pad}{iter_name} = ({end_str} as usize) + 1;\n"
+                        ));
+                        return out;
+                    }
+                }
+            }
+        }
+        // Countdown loop: for(v = start; v >= bound; v--) with usize
+        // The `v -= 1` from `bound` wraps to usize::MAX, causing OOB.
+        // Emit a loop-with-break pattern:
+        //   v = start; loop { body; if v == bound { break; } v -= 1; }
+        if let Some(iter_name) = extract_init_var(init) {
+            if is_simple_decrement(update, &iter_name) {
+                if let Expr::BinOp(cond_left, BinOp::GreaterEq, cond_right) = condition {
+                    if let Expr::Var(cname) = cond_left.as_ref() {
+                        if cname == &iter_name {
+                            if let Some(start_expr) = extract_init_value(init, &iter_name) {
+                                let start_str = render_expr(
+                                    start_expr, self.ctx, self.opt_real_params, self.registry, self.helpers,
+                                );
+                                let bound_str = render_expr(
+                                    cond_right, self.ctx, self.opt_real_params, self.registry, self.helpers,
+                                );
+                                let mut out = format!(
+                                    "{pad}// for( {iter_name} = {start_str}; \
+                                     {iter_name} >= {bound_str}; {iter_name} -= 1 )\n"
+                                );
+                                out.push_str(&format!("{pad}{iter_name} = {start_str};\n"));
+                                out.push_str(&format!("{pad}loop {{\n"));
+                                for s in for_body {
+                                    out.push_str(&self.walk_stmt(s, indent + 4));
+                                }
+                                let inner_pad = " ".repeat(indent + 4);
+                                out.push_str(&format!(
+                                    "{inner_pad}if {iter_name} == {bound_str} {{ break; }}\n"
+                                ));
+                                out.push_str(&format!(
+                                    "{inner_pad}{iter_name} -= 1;\n"
+                                ));
+                                out.push_str(&format!("{pad}}}\n"));
+                                return out;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Generic fallback: init; while cond { body; update; }
+        // Collect init statements (may be a Block with multiple assigns)
+        let init_stmts = match init {
+            Statement::Block { body: block_body } => block_body.clone(),
+            other => vec![other.clone()],
+        };
+        // Collect update statements (may be a Block with multiple assigns)
+        let update_stmts = match update {
+            Statement::Block { body: block_body } => block_body.clone(),
+            other => vec![other.clone()],
+        };
+        let cond_str =
+            render_expr(condition, self.ctx, self.opt_real_params, self.registry, self.helpers);
+        // Build single-line comment summarizing the original C for loop
+        let init_parts: Vec<String> = init_stmts
+            .iter()
+            .map(|s| {
+                self.walk_stmt(s, 0)
+                .trim()
+                .trim_end_matches(';')
+                .to_string()
+            })
+            .collect();
+        let update_parts: Vec<String> = update_stmts
+            .iter()
+            .map(|s| {
+                self.walk_stmt(s, 0)
+                .trim()
+                .trim_end_matches(';')
+                .to_string()
+            })
+            .collect();
+        let mut out = format!(
+            "{pad}// for( {}; {cond_str}; {} )\n",
+            init_parts.join(", "),
+            update_parts.join(", "),
+        );
+        // Emit init statements
+        for s in &init_stmts {
+            out.push_str(&self.walk_stmt(s, indent));
+        }
+        out.push_str(&format!(
+            "{pad}while {cond_str} {{\n"
+        ));
+        for s in for_body {
+            out.push_str(&self.walk_stmt(s, indent + 4));
+        }
+        // Emit update statements inside the while body
+        for s in &update_stmts {
+            out.push_str(&self.walk_stmt(s, indent + 4));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    fn switch(&self, expr: &Expr, cases: &[(String, Vec<Statement>)], default: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = format!(
+            "{}match {} {{\n",
+            pad,
+            render_expr(expr, self.ctx, self.opt_real_params, self.registry, self.helpers)
+        );
+        for (label, case_body) in cases {
+            let rust_label = render_switch_label(label, self.enums);
+            out.push_str(&format!("{pad}    {rust_label} => {{\n"));
+            for s in case_body {
+                out.push_str(&self.walk_stmt(s, indent + 8));
+            }
+            out.push_str(&format!("{pad}    }}\n"));
+        }
+        if !default.is_empty() {
+            out.push_str(&format!("{pad}    _ => {{\n"));
+            for s in default {
+                out.push_str(&self.walk_stmt(s, indent + 8));
+            }
+            out.push_str(&format!("{pad}    }}\n"));
+        }
+        out.push_str(&format!("{pad}}}\n"));
+        out
+    }
+}
+
+#[allow(clippy::too_many_arguments, clippy::implicit_hasher)]
 pub fn render_statement(
     stmt: &Statement,
     indent: usize,
@@ -1555,828 +2201,18 @@ pub fn render_statement(
     helpers: &HelperRegistry,
     inline_counter: &Cell<usize>,
 ) -> String {
-    let pad = " ".repeat(indent);
-    match stmt {
-        Statement::VarDecl { var_type, name, init } => {
-            // VarDecl at function top-level is handled by the separate declaration pass.
-            // VarDecl inside blocks/loops/ifs needs inline declaration.
-            // We always emit here; the top-level pass skips VarDecls to avoid duplicates.
-            // The top-level code pre-emits declarations for all body-level VarDecls,
-            // so if this VarDecl is at top level, this is a no-op duplicate that will
-            // be filtered by the caller. For nested VarDecls (inside blocks), this is needed.
-            if indent <= 8 {
-                // Top-level VarDecl already handled
-                return String::new();
-            }
-            // Sentinel vars (assigned -1) are i32, not usize
-            let is_sentinel = ctx.sentinel_vars.contains(name);
-            let rust_type = match var_type {
-                VarType::Real => {
-                    "f64"
-                }
-                VarType::Integer | VarType::Index => {
-                    if is_sentinel { "i32" } else { "usize" }
-                }
-                VarType::RetCodeType => "RetCode",
-                VarType::RealPointer => {
-                    "Vec<f64>"
-                }
-                VarType::IntPointer => "Vec<i32>",
-                VarType::RealArray(size) => {
-                    let elem = "0.0_f64";
-                    let ty = "f64";
-                    return format!("{pad}let mut {name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n");
-                }
-                VarType::IntArray(size) => {
-                    return format!("{pad}let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n");
-                }
-            };
-            // Use init expression if available, otherwise fall back to type default
-            let init_str = if let Some(init_expr) = init {
-                render_expr(init_expr, ctx, opt_real_params, registry, helpers)
-            } else {
-                match var_type {
-                    VarType::Real => {
-                        "0.0_f64"
-                    }
-                    VarType::Integer | VarType::Index => {
-                        if is_sentinel { "0_i32" } else { "0_usize" }
-                    }
-                    VarType::RetCodeType => "RetCode::Success",
-                    VarType::RealPointer | VarType::IntPointer => "Vec::new()",
-                    VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
-                }
-                .to_string()
-            };
-            format!("{pad}let mut {name}: {rust_type} = {init_str};\n")
-        }
-        Statement::Block { body: block_body } => {
-            let mut out = String::new();
-            for s in block_body {
-                out.push_str(&render_statement(
-                    s,
-                    indent,
-                    ctx,
-                    for_loop_vars,
-                    var_inits,
-                    output_names,
-                    opt_real_params,
-                    enums,
-                    registry,
-                    helpers,
-                inline_counter,
-                ));
-            }
-            out
-        }
-        Statement::For {
-            var,
-            count,
-            body: for_body,
-        } => {
-            let mut out = format!(
-                "{}for {} in (1..={}).rev() {{\n",
-                pad,
-                var,
-                render_expr(count, ctx, opt_real_params, registry, helpers)
-            );
-            for s in for_body {
-                out.push_str(&render_statement(
-                    s,
-                    indent + 4,
-                    ctx,
-                    for_loop_vars,
-                    var_inits,
-                    output_names,
-                    opt_real_params,
-                    enums,
-                    registry,
-                    helpers,
-                inline_counter,
-                ));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::ForC {
-            init,
-            condition,
-            update,
-            body: for_body,
-        } => {
-            // Range-iteration fast path: for(i=start; i<=end; i++) → for i in start..(end+1)
-            // Uses exclusive range (not ..=) because LLVM vectorizes exclusive ranges
-            // but generates suboptimal cinc+double-compare for inclusive ranges.
-            if let Expr::BinOp(cond_left, BinOp::LessEq, cond_right) = condition {
-                if let Expr::Var(iter_name) = cond_left.as_ref() {
-                    if let Some(start_expr) = extract_init_value(init, iter_name) {
-                        if is_simple_increment(update, iter_name) {
-                            let start_str = render_expr(start_expr, ctx, opt_real_params, registry, helpers);
-                            let end_str = render_expr(cond_right, ctx, opt_real_params, registry, helpers);
-                            let mut out = format!(
-                                "{pad}for {iter_name} in ({start_str} as usize)..({end_str} as usize) + 1 {{\n"
-                            );
-                            for s in for_body {
-                                out.push_str(&render_statement(
-                                    s,
-                                    indent + 4,
-                                    ctx,
-                                    for_loop_vars,
-                                    var_inits,
-                                    output_names,
-                                    opt_real_params,
-                                    enums,
-                                    registry,
-                                    helpers,
-                                inline_counter,
-                                ));
-                            }
-                            out.push_str(&format!("{pad}}}\n"));
-                            // In C, after for(i=start; i<=end; i++), i == end+1.
-                            // Rust's for-in leaves the variable at the last iteration value.
-                            // Fixup so downstream code sees the same post-loop value.
-                            out.push_str(&format!(
-                                "{pad}{iter_name} = ({end_str} as usize) + 1;\n"
-                            ));
-                            return out;
-                        }
-                    }
-                }
-            }
-            // Countdown loop: for(v = start; v >= bound; v--) with usize
-            // The `v -= 1` from `bound` wraps to usize::MAX, causing OOB.
-            // Emit a loop-with-break pattern:
-            //   v = start; loop { body; if v == bound { break; } v -= 1; }
-            if let Some(iter_name) = extract_init_var(init) {
-                if is_simple_decrement(update, &iter_name) {
-                    if let Expr::BinOp(cond_left, BinOp::GreaterEq, cond_right) = condition {
-                        if let Expr::Var(cname) = cond_left.as_ref() {
-                            if cname == &iter_name {
-                                if let Some(start_expr) = extract_init_value(init, &iter_name) {
-                                    let start_str = render_expr(
-                                        start_expr, ctx, opt_real_params, registry, helpers,
-                                    );
-                                    let bound_str = render_expr(
-                                        cond_right, ctx, opt_real_params, registry, helpers,
-                                    );
-                                    let mut out = format!(
-                                        "{pad}// for( {iter_name} = {start_str}; \
-                                         {iter_name} >= {bound_str}; {iter_name} -= 1 )\n"
-                                    );
-                                    out.push_str(&format!("{pad}{iter_name} = {start_str};\n"));
-                                    out.push_str(&format!("{pad}loop {{\n"));
-                                    for s in for_body {
-                                        out.push_str(&render_statement(
-                                            s,
-                                            indent + 4,
-                                            ctx,
-                                            for_loop_vars,
-                                            var_inits,
-                                            output_names,
-                                            opt_real_params,
-                                            enums,
-                                            registry,
-                                            helpers,
-                                            inline_counter,
-                                        ));
-                                    }
-                                    let inner_pad = " ".repeat(indent + 4);
-                                    out.push_str(&format!(
-                                        "{inner_pad}if {iter_name} == {bound_str} {{ break; }}\n"
-                                    ));
-                                    out.push_str(&format!(
-                                        "{inner_pad}{iter_name} -= 1;\n"
-                                    ));
-                                    out.push_str(&format!("{pad}}}\n"));
-                                    return out;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            // Generic fallback: init; while cond { body; update; }
-            // Collect init statements (may be a Block with multiple assigns)
-            let init_stmts = match init.as_ref() {
-                Statement::Block { body: block_body } => block_body.clone(),
-                other => vec![other.clone()],
-            };
-            // Collect update statements (may be a Block with multiple assigns)
-            let update_stmts = match update.as_ref() {
-                Statement::Block { body: block_body } => block_body.clone(),
-                other => vec![other.clone()],
-            };
-            let cond_str =
-                render_expr(condition, ctx, opt_real_params, registry, helpers);
-            // Build single-line comment summarizing the original C for loop
-            let init_parts: Vec<String> = init_stmts
-                .iter()
-                .map(|s| {
-                    render_statement(
-                        s, 0, ctx, for_loop_vars, var_inits, output_names,
-                        opt_real_params, enums, registry, helpers, inline_counter,
-                    )
-                    .trim()
-                    .trim_end_matches(';')
-                    .to_string()
-                })
-                .collect();
-            let update_parts: Vec<String> = update_stmts
-                .iter()
-                .map(|s| {
-                    render_statement(
-                        s, 0, ctx, for_loop_vars, var_inits, output_names,
-                        opt_real_params, enums, registry, helpers, inline_counter,
-                    )
-                    .trim()
-                    .trim_end_matches(';')
-                    .to_string()
-                })
-                .collect();
-            let mut out = format!(
-                "{pad}// for( {}; {cond_str}; {} )\n",
-                init_parts.join(", "),
-                update_parts.join(", "),
-            );
-            // Emit init statements
-            for s in &init_stmts {
-                out.push_str(&render_statement(
-                    s, indent, ctx, for_loop_vars, var_inits, output_names,
-                    opt_real_params, enums, registry, helpers, inline_counter,
-                ));
-            }
-            out.push_str(&format!(
-                "{pad}while {cond_str} {{\n"
-            ));
-            for s in for_body {
-                out.push_str(&render_statement(
-                    s,
-                    indent + 4,
-                    ctx,
-                    for_loop_vars,
-                    var_inits,
-                    output_names,
-                    opt_real_params,
-                    enums,
-                    registry,
-                    helpers,
-                inline_counter,
-                ));
-            }
-            // Emit update statements inside the while body
-            for s in &update_stmts {
-                out.push_str(&render_statement(
-                    s, indent + 4, ctx, for_loop_vars, var_inits, output_names,
-                    opt_real_params, enums, registry, helpers, inline_counter,
-                ));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::Assign {
-            target,
-            value,
-            compound,
-        } => {
-            // Split arr[idx++] = value into arr[idx] = value; idx += 1;
-            // This enables LLVM auto-vectorization by exposing idx as a clean
-            // linear induction variable (the block expression { let _v = idx; idx += 1; _v }
-            // creates an opaque dependency that prevents vectorization).
-            if let Expr::ArrayAccess(arr_name, idx_expr) = target {
-                if let Expr::PostIncrement(inner) = idx_expr.as_ref() {
-                    let stripped_target = Expr::ArrayAccess(
-                        arr_name.clone(),
-                        Box::new(inner.as_ref().clone()),
-                    );
-                    let stripped_assign = Statement::Assign {
-                        target: stripped_target,
-                        value: value.clone(),
-                        compound: *compound,
-                    };
-                    let mut out = render_statement(
-                        &stripped_assign, indent, ctx, for_loop_vars, var_inits,
-                        output_names, opt_real_params, enums, registry, helpers,
-                        inline_counter,
-                    );
-                    let idx_str = render_expr(inner, ctx, opt_real_params, registry, helpers);
-                    out.push_str(&format!("{pad}{idx_str} += 1;\n"));
-                    return out;
-                }
-            }
-            // Also split arr[idx++] patterns in value-side array reads:
-            // prevMA = inReal[today++] becomes prevMA = inReal[today]; today += 1;
-            // This is handled by splitting PostIncrement out of the value expression.
-            // (The target-side split above is the most impactful for vectorization.)
-
-            // Hoist multi-statement helpers from the value expression
-            let mut hoisted = Vec::new();
-            let mut cnt = inline_counter.get();
-            let new_value = hoist_block_helpers(
-                value, helpers, &mut hoisted, &mut cnt, &[],
-            );
-            inline_counter.set(cnt);
-            let mut out = render_hoisted_blocks(
-                &hoisted, indent, ctx, for_loop_vars, var_inits,
-                output_names, opt_real_params, enums, registry,
-                helpers, inline_counter,
-            );
-
-            // Emit dummy variable declaration for duplicate &mut borrows in cross-indicator calls
-            if has_duplicate_address_of(&new_value) {
-                out.push_str(&format!("{pad}let mut _dup_out: usize = 0_usize;\n"));
-            }
-
-            if *compound {
-                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
-                    if let Expr::Var(lname) = left.as_ref() {
-                        if lname == tname {
-                            let op_str = match op {
-                                BinOp::Add => "+=",
-                                BinOp::Sub => "-=",
-                                BinOp::Mul => "*=",
-                                BinOp::Div => "/=",
-                                BinOp::Mod
-                                | BinOp::LessEq
-                                | BinOp::Less
-                                | BinOp::Greater
-                                | BinOp::GreaterEq
-                                | BinOp::Eq
-                                | BinOp::NotEq
-                                | BinOp::And
-                                | BinOp::Or
-                                | BinOp::BitwiseOr
-                                | BinOp::Shr
-                                | BinOp::Shl => "",
-                            };
-                            if !op_str.is_empty() {
-                                let target_str =
-                                    render_assign_target(target, ctx, opt_real_params, registry, helpers);
-                                let rhs_str = render_expr(right, ctx, opt_real_params, registry, helpers);
-                                // Check if the target is T-typed (Real variable)
-                                let target_is_real = ctx.real_vars.contains(tname)
-                                    || (!ctx.index_vars.contains(tname)
-                                        && !is_likely_index_var(tname)
-                                        && !is_i32_opt_in_param(tname)
-                                        && !tname.ends_with("_avgPeriod")
-                                        && !tname.ends_with("_rangeType"));
-                                // Cast integer RHS in compound assignments to f64-typed variables
-                                let rhs_wrapped = if target_is_real {
-                                    if expr_is_untyped_integer(right) || expr_is_i32_typed(right)
-                                        || (expr_is_known_usize_ctx(right, ctx) && !expr_is_float_typed_ctx(right, Some(ctx)))
-                                    {
-                                        format!("(({rhs_str}) as f64)")
-                                    } else {
-                                        rhs_str
-                                    }
-                                } else if !target_is_real
-                                    && is_likely_index_var(tname)
-                                    && expr_is_i32_typed(right)
-                                {
-                                    // usize target, i32 RHS: cast to usize
-                                    format!("({rhs_str}) as usize")
-                                } else {
-                                    rhs_str
-                                };
-                                out.push_str(&format!(
-                                    "{pad}{target_str} {op_str} {rhs_wrapped};\n"
-                                ));
-                                return out;
-                            }
-                        }
-                    }
-                }
-            }
-            let target_str = render_assign_target(target, ctx, opt_real_params, registry, helpers);
-            let value_str = render_expr(&new_value, ctx, opt_real_params, registry, helpers);
-            let needs_f64_cast = if let Expr::ArrayAccess(name, _) = target {
-                output_names.contains(name)
-                    && !ctx.int_output_names.contains(name)
-                    && expr_has_uncast_array_access(&new_value)
-            } else {
-                false
-            };
-            // Sentinel var assignment: cast usize value to i32 when assigning to sentinel target
-            let needs_sentinel_i32_cast = if let Expr::Var(tname) = target {
-                ctx.sentinel_vars.contains(tname)
-                    && !expr_is_i32_typed_ctx(&new_value, ctx)
-                    && !matches!(new_value, Expr::IntLiteral(_))
-                    && !is_negative_one(&new_value)
-                    && (expr_is_known_usize_ctx(&new_value, ctx)
-                        || matches!(new_value, Expr::Var(ref v) if ctx.index_vars.contains(v) || is_likely_index_var(v)))
-            } else {
-                false
-            };
-            // Sentinel var used as value: cast i32 sentinel to usize when assigning to usize target
-            let needs_sentinel_usize_cast = if let Expr::Var(tname) = target {
-                !ctx.sentinel_vars.contains(tname)
-                    && (ctx.index_vars.contains(tname) || is_likely_index_var(tname))
-                    && expr_is_i32_typed_ctx(&new_value, ctx)
-                    && !expr_is_i32_typed(&new_value)
-                    && !matches!(new_value, Expr::IntLiteral(_))
-            } else {
-                false
-            };
-            // Check if we're assigning an i32-typed expression to a non-i32 target variable
-            // (e.g., usize var = optInTimePeriod which is i32,
-            //  or curPeriod = localPeriodArray[i] where array is Vec<i32>)
-            let value_is_i32 = expr_is_i32_typed(&new_value)
-                || matches!(new_value, Expr::Var(ref v) if is_i32_opt_in_param(v) || v.ends_with("_avgPeriod") || v.ends_with("_rangeType"))
-                || matches!(&new_value, Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
-            let needs_usize_cast = if let Expr::Var(tname) = target {
-                !output_names.iter().any(|n| n == tname)
-                    && !is_i32_opt_in_param(tname)
-                    && !tname.ends_with("_avgPeriod")
-                    && !tname.ends_with("_rangeType")
-                    && !ctx.real_vars.contains(tname)
-                    && !ctx.sentinel_vars.contains(tname)
-                    && value_is_i32
-            } else {
-                false
-            };
-            // Check if target is an i32 optIn param and value is usize
-            // (e.g., optInFastPeriod = tempInteger where tempInteger is usize)
-            let needs_optin_i32_cast = if let Expr::Var(tname) = target {
-                is_i32_opt_in_param(tname)
-                    && !expr_is_i32_typed(&new_value)
-                    && !matches!(new_value, Expr::IntLiteral(_))
-                    && (expr_is_known_usize_ctx(&new_value, ctx)
-                        || matches!(new_value, Expr::Var(ref v) if ctx.index_vars.contains(v) || is_likely_index_var(v)))
-            } else {
-                false
-            };
-            // Check if target is an integer output/local array (e.g., outInteger[idx] = usize_val,
-            // sortedPeriods[i] = longestPeriod, localPeriodArray[i] = tempInt)
-            // Values assigned to i32 arrays need `as i32` cast when usize-typed
-            let needs_int_output_cast = if let Expr::ArrayAccess(name, _) = target {
-                (ctx.int_output_names.contains(name) || is_int_array_or_vec(name, ctx))
-                    && !expr_is_i32_typed(&new_value)
-                    && !matches!(new_value, Expr::IntLiteral(_))
-                    && (expr_is_known_usize_ctx(&new_value, ctx)
-                        || matches!(&new_value, Expr::Var(v) if ctx.index_vars.contains(v) || is_likely_index_var(v))
-                        || matches!(&new_value, Expr::BinOp(_, _, _)))
-            } else {
-                false
-            };
-            // Cast integer values to f64 when assigned to f64-typed variables
-            let needs_f64_wrap = if let Expr::Var(tname) = target {
-                // Require the target to be positively identified as Real (f64)
-                let target_is_known_real = ctx.real_vars.contains(tname)
-                    || (expr_is_float_typed_ctx(&Expr::Var(tname.clone()), Some(ctx))
-                        && !ctx.index_vars.contains(tname)
-                        && !is_likely_index_var(tname)
-                        && !is_i32_opt_in_param(tname)
-                        && !ctx.sentinel_vars.contains(tname)
-                        && !tname.ends_with("_avgPeriod")
-                        && !tname.ends_with("_rangeType")
-                        && !output_names.iter().any(|n| n == tname));
-                target_is_known_real
-                    && (expr_is_untyped_integer(&new_value) || expr_is_i32_typed(&new_value)
-                        || expr_is_known_usize_ctx(&new_value, ctx))
-            } else if let Expr::ArrayAccess(name, _) = target {
-                // Array target: Real arrays (output, temp, local) need f64 values
-                // But NOT IntArray/IntPointer targets (periods, usedFlag, localPeriodArray, etc.)
-                // and NOT integer output arrays (outInteger, outMaxIdx, etc.)
-                !name.contains("Int") && !name.contains("integer")
-                    && !ctx.index_vars.contains(name)
-                    && !is_int_array_var(name)
-                    && !ctx.int_output_names.contains(name)
-                    && !ctx.int_vec_vars.contains(name)
-                    && (expr_is_untyped_integer(&new_value) || expr_is_i32_typed(&new_value)
-                        || expr_is_known_usize_ctx(&new_value, ctx))
-            } else {
-                false
-            };
-            // Check if target is a Vec<T> variable and value is a slice/output param
-            // (buffer aliasing pattern in BBANDS, STOCH, etc.)
-            let needs_to_vec = if let Expr::Var(tname) = target {
-                if ctx.vec_vars.contains(tname) || is_vec_local_var(tname) {
-                    if let Expr::Var(vname) = &new_value {
-                        output_names.contains(vname) || vname.starts_with("in")
-                    } else {
-                        false
-                    }
-                } else {
-                    false
-                }
-            } else {
-                false
-            };
-            if needs_to_vec {
-                out.push_str(&format!("{pad}{target_str} = {value_str}.to_vec();\n"));
-            } else if needs_sentinel_i32_cast {
-                out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
-            } else if needs_sentinel_usize_cast {
-                out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
-            } else if needs_int_output_cast {
-                out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
-            } else if needs_f64_cast || needs_f64_wrap {
-                // IntLiteral → emit as float literal instead of cast
-                if let Expr::IntLiteral(n) = &new_value {
-                    out.push_str(&format!("{pad}{target_str} = {n}.0;\n"));
-                } else {
-                    out.push_str(&format!("{pad}{target_str} = (({value_str}) as f64);\n"));
-                }
-            } else if needs_optin_i32_cast {
-                out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
-            } else if needs_usize_cast {
-                out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
-            } else {
-                out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
-            }
-            out
-        }
-        Statement::Expr(e) => {
-            // Statement-level expression: render a bare call/macro for its side effects.
-            // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
-            if matches!(e, Expr::Var(_)) {
-                return String::new();
-            }
-            if let Expr::FuncCall(fname, args) = e {
-                // Check if helper inlines to a bare variable (identity helper)
-                if let Some(helper) = helpers.get(fname) {
-                    if let Some(inlined) = try_inline_expr(helper, args) {
-                        if matches!(inlined, Expr::Var(_)) {
-                            return String::new();
-                        }
-                    }
-                }
-                let rendered = render_func_call(
-                    fname, args, ctx, opt_real_params, registry, helpers,
-                );
-                // Skip empty renders (e.g. free() returns "")
-                if rendered.is_empty() {
-                    return String::new();
-                }
-                return format!("{pad}{rendered};\n");
-            }
-            String::new()
-        }
-        Statement::While {
-            condition,
-            body: while_body,
-        } => {
-            if let Expr::BinOp(left, BinOp::LessEq, right) = condition {
-                if let Expr::Var(iter_name) = left.as_ref() {
-                    if for_loop_vars.contains(iter_name) {
-                        let start_expr = if let Some(init) = var_inits.get(iter_name) {
-                            render_expr(init, ctx, opt_real_params, registry, helpers)
-                        } else {
-                            iter_name.clone()
-                        };
-                        let end_expr = render_expr(right, ctx, opt_real_params, registry, helpers);
-                        let mut out = format!(
-                            "{pad}for {iter_name} in ({start_expr} as usize)..({end_expr} as usize) + 1 {{\n"
-                        );
-                        for s in &while_body[..while_body.len() - 1] {
-                            out.push_str(&render_statement(
-                                s,
-                                indent + 4,
-                                ctx,
-                                for_loop_vars,
-                                var_inits,
-                                output_names,
-                                opt_real_params,
-                                enums,
-                                registry,
-                                helpers,
-                            inline_counter,
-                            ));
-                        }
-                        out.push_str(&format!("{pad}}}\n"));
-                        return out;
-                    }
-                }
-            }
-            let mut out = format!(
-                "{}while {} {{\n",
-                pad,
-                render_expr(condition, ctx, opt_real_params, registry, helpers)
-            );
-            for s in while_body {
-                out.push_str(&render_statement(
-                    s,
-                    indent + 4,
-                    ctx,
-                    for_loop_vars,
-                    var_inits,
-                    output_names,
-                    opt_real_params,
-                    enums,
-                    registry,
-                    helpers,
-                inline_counter,
-                ));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::DoWhile {
-            condition,
-            body: while_body,
-        } => {
-            let mut out = format!("{pad}loop {{\n");
-            for s in while_body {
-                out.push_str(&render_statement(
-                    s,
-                    indent + 4,
-                    ctx,
-                    for_loop_vars,
-                    var_inits,
-                    output_names,
-                    opt_real_params,
-                    enums,
-                    registry,
-                    helpers,
-                inline_counter,
-                ));
-            }
-            out.push_str(&format!(
-                "{}    if !({}) {{ break; }}\n",
-                pad,
-                render_expr(condition, ctx, opt_real_params, registry, helpers)
-            ));
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
-        Statement::If {
-            condition,
-            then_body,
-            else_body,
-        } => {
-            // Skip post-allocation null-check blocks (dead code in Rust — Vec::new() never fails)
-            if contains_alloc_err_return(then_body) {
-                return String::new();
-            }
-            // Split `if(A && B)` into nested `if(A) { if(B)` when both sides
-            // contain a candle function call (ta_candlerange/ta_candleaverage).
-            // This prevents the compiler from speculatively computing both sides
-            // of the &&, which wastes expensive fdiv cycles on the common path
-            // where the first condition fails.
-            if let Expr::BinOp(left, BinOp::And, right) = condition {
-                if expr_directly_contains_candle_call(left)
-                    && expr_directly_contains_candle_call(right)
-                {
-                    // Render as: if left { if right { then } else { els } } else { els }
-                    let inner_if = Statement::If {
-                        condition: *right.clone(),
-                        then_body: then_body.clone(),
-                        else_body: else_body.clone(),
-                    };
-                    let outer_if = Statement::If {
-                        condition: *left.clone(),
-                        then_body: vec![inner_if],
-                        else_body: else_body.clone(),
-                    };
-                    return render_statement(
-                        &outer_if,
-                        indent,
-                        ctx,
-                        for_loop_vars,
-                        var_inits,
-                        output_names,
-                        opt_real_params,
-                        enums,
-                        registry,
-                        helpers,
-                        inline_counter,
-                    );
-                }
-            }
-            let mut out = format!(
-                "{}if {} {{\n",
-                pad,
-                render_condition(condition, ctx, opt_real_params, registry, helpers)
-            );
-            for s in then_body {
-                out.push_str(&render_statement(
-                    s,
-                    indent + 4,
-                    ctx,
-                    for_loop_vars,
-                    var_inits,
-                    output_names,
-                    opt_real_params,
-                    enums,
-                    registry,
-                    helpers,
-                inline_counter,
-                ));
-            }
-            if else_body.is_empty() {
-                out.push_str(&format!("{pad}}}\n"));
-            } else {
-                out.push_str(&format!("{pad}}} else "));
-                if else_body.len() == 1 {
-                    if let Statement::If { .. } = &else_body[0] {
-                        let if_str = render_statement(
-                            &else_body[0],
-                            indent,
-                            ctx,
-                            for_loop_vars,
-                            var_inits,
-                            output_names,
-                            opt_real_params,
-                            enums,
-                            registry,
-                            helpers,
-                        inline_counter,
-                        );
-                        out.push_str(if_str.trim_start());
-                        return out;
-                    }
-                }
-                out.push_str("{\n");
-                for s in else_body {
-                    out.push_str(&render_statement(
-                        s,
-                        indent + 4,
-                        ctx,
-                        for_loop_vars,
-                        var_inits,
-                        output_names,
-                        opt_real_params,
-                        enums,
-                        registry,
-                        helpers,
-                    inline_counter,
-                    ));
-                }
-                out.push_str(&format!("{pad}}}\n"));
-            }
-            out
-        }
-        Statement::Return { value } => match value {
-            Some(expr) => {
-                let rendered = render_return_expr(expr, ctx, opt_real_params, registry, helpers);
-                // In lookback functions, return value must be usize. Cast any i32/mixed expression.
-                let is_already_usize = matches!(expr, Expr::Var(ref n) if n == "retValue" || n == "lookbackTotal" || n == "emaLookback")
-                    || expr_is_known_usize_ctx(expr, ctx)
-                    || expr_returns_usize(expr);
-                if ctx.is_lookback && !is_already_usize
-                    && !matches!(expr, Expr::Var(ref n) if n == "SUCCESS" || n == "BadParam" || n.starts_with("RetCode"))
-                {
-                    format!("{pad}return ({rendered}) as usize;\n")
-                } else {
-                    format!("{pad}return {rendered};\n")
-                }
-            }
-            None => format!("{pad}return;\n"),
-        },
-        Statement::Break => format!("{pad}break;\n"),
-        Statement::Continue => format!("{pad}continue;\n"),
-        Statement::Switch {
-            expr,
-            cases,
-            default,
-        } => {
-            let mut out = format!(
-                "{}match {} {{\n",
-                pad,
-                render_expr(expr, ctx, opt_real_params, registry, helpers)
-            );
-            for (label, case_body) in cases {
-                let rust_label = render_switch_label(label, enums);
-                out.push_str(&format!("{pad}    {rust_label} => {{\n"));
-                for s in case_body {
-                    out.push_str(&render_statement(
-                        s,
-                        indent + 8,
-                        ctx,
-                        for_loop_vars,
-                        var_inits,
-                        output_names,
-                        opt_real_params,
-                        enums,
-                        registry,
-                        helpers,
-                    inline_counter,
-                    ));
-                }
-                out.push_str(&format!("{pad}    }}\n"));
-            }
-            if !default.is_empty() {
-                out.push_str(&format!("{pad}    _ => {{\n"));
-                for s in default {
-                    out.push_str(&render_statement(
-                        s,
-                        indent + 8,
-                        ctx,
-                        for_loop_vars,
-                        var_inits,
-                        output_names,
-                        opt_real_params,
-                        enums,
-                        registry,
-                        helpers,
-                    inline_counter,
-                    ));
-                }
-                out.push_str(&format!("{pad}    }}\n"));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-            out
-        }
+    RustStmt {
+        ctx,
+        for_loop_vars,
+        var_inits,
+        output_names,
+        opt_real_params,
+        enums,
+        registry,
+        helpers,
+        inline_counter,
     }
+    .walk_stmt(stmt, indent)
 }
 
 fn render_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String {
