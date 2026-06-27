@@ -149,11 +149,20 @@ def main():
             lib_a = os.path.join(build_dir, "libta-lib.a")
             include_dir = os.path.join(root, "include")
             ta_common_dir = os.path.join(c_out, "ta_common")
+            # The server #includes the ta_abstract layer; match the include paths
+            # the working C-server build (ta_codegen build) uses, or ta_def_ui.h's
+            # `#include "ta_frame.h"` (frames/) and ta_abstract_serve.c won't resolve.
+            ta_abstract_dir = os.path.join(c_out, "ta_abstract")
+            ta_frames_dir = os.path.join(ta_abstract_dir, "frames")
+            ta_abstract_serve_dir = os.path.join(root, "ta_func_defs", "lib", "c")
             rc_ref = subprocess.run([
                 "cc", "-O3", "-flto", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything",
                 f"-I{c_out}",
                 f"-I{include_dir}",
                 f"-I{ta_common_dir}",
+                f"-I{ta_abstract_dir}",
+                f"-I{ta_frames_dir}",
+                f"-I{ta_abstract_serve_dir}",
                 "-o", os.path.join(bin_dir, "ta_ref_serve"),
                 tmp_ref, lib_a, "-lm"
             ]).returncode
