@@ -1157,7 +1157,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     // set_compatibility method
     s.push_str("        else if (json.contains(\"\\\"set_compatibility\\\"\")) {\n");
     s.push_str("            int mode = jsonInt(json, \"mode\");\n");
-    s.push_str("            core.compatibility = mode;\n");
+    s.push_str("            core.compatibility = (mode == 1) ? Compatibility.Metastock : Compatibility.Default;\n");
     s.push_str("            return \"{\\\"status\\\":\\\"ok\\\"}\";\n");
     s.push_str("        }\n");
 

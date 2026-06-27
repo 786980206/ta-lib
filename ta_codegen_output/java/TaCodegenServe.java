@@ -52882,7 +52882,7 @@ public class TaCodegenServe {
         }
         else if (json.contains("\"set_compatibility\"")) {
             int mode = jsonInt(json, "mode");
-            core.compatibility = mode;
+            core.compatibility = (mode == 1) ? Compatibility.Metastock : Compatibility.Default;
             return "{\"status\":\"ok\"}";
         }
         else {
