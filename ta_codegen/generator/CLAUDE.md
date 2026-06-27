@@ -49,7 +49,9 @@ include/ta_func.h        (generated public header)
 ## Commands
 
 ```bash
-# Run from ta_codegen/generator/
+# Runnable from ANY directory: the built binary locates the repo via its own
+# path (the `ta_codegen/input/` marker). Override with `TA_CODEGEN_ROOT=/path/to/ta-lib`.
+# `cargo run` from ta_codegen/generator/ works as before.
 cargo run -- generate                        # Generate indicator code for all backends
 cargo run -- generate --func=SMA,RSI         # Generate specific functions
 cargo run -- generate --backend=rust         # Generate for specific backend

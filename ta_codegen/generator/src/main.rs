@@ -11,13 +11,41 @@ use ta_codegen_lib::server_gen;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-/// Find the repository root by walking up from the current directory
-/// looking for `ta_codegen/input/`.
+/// Find the repository root — the directory containing the `ta_codegen/input/`
+/// marker — so the binary is callable from any working directory.
+///
+/// Resolved in order, first marker hit wins:
+///   1. `TA_CODEGEN_ROOT` env var (explicit override; errors if it's wrong);
+///   2. walking up from the running binary's own location (`current_exe`), which
+///      is CWD-independent and survives the repo being moved/renamed (the binary
+///      moves with it);
+///   3. walking up from the current working directory (fallback for unusual
+///      setups, e.g. the binary copied out of the repo tree).
 fn repo_root() -> PathBuf {
-    if let Ok(cwd) = std::env::current_dir() {
-        let mut dir = cwd.as_path();
+    const MARKER: &str = "ta_codegen/input";
+
+    // 1. Explicit override wins; if set but wrong, fail loudly rather than guess.
+    if let Ok(root) = std::env::var("TA_CODEGEN_ROOT") {
+        let root = PathBuf::from(root);
+        if root.join(MARKER).is_dir() {
+            return root;
+        }
+        eprintln!(
+            "error: TA_CODEGEN_ROOT={} does not contain {MARKER}/",
+            root.display()
+        );
+        std::process::exit(1);
+    }
+
+    // 2. From the binary's directory, then 3. the current working directory.
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(Path::to_path_buf));
+    let candidates = [exe_dir, std::env::current_dir().ok()];
+    for start in candidates.iter().flatten() {
+        let mut dir: &Path = start;
         loop {
-            if dir.join("ta_codegen/input").is_dir() {
+            if dir.join(MARKER).is_dir() {
                 return dir.to_path_buf();
             }
             match dir.parent() {
@@ -26,8 +54,9 @@ fn repo_root() -> PathBuf {
             }
         }
     }
-    eprintln!("error: cannot find ta_codegen/input/ in any parent directory.");
-    eprintln!("       Run ta_codegen from within the ta-lib repository.");
+
+    eprintln!("error: cannot find {MARKER}/ from the executable location or current directory.");
+    eprintln!("       Run ta_codegen from within the ta-lib repository, or set TA_CODEGEN_ROOT.");
     std::process::exit(1);
 }
 
