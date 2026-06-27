@@ -3,10 +3,11 @@ use std::path::Path;
 
 /// Generate `src/ta_func/Makefile.am` from function definitions.
 ///
-/// Sorts alphabetically by name, writes only if content has changed.
-pub fn generate(funcs: &[FuncDef], out_path: &Path) {
-    let mut names: Vec<&str> = funcs.iter().map(|f| f.name.as_str()).collect();
-    names.sort_unstable();
+/// Uses the shared [`super::sorted_source_stems`] list (every `ta_func_defs/`
+/// function plus the un-ported `src/ta_func/` stubs like NVI/PVI) so the autotools
+/// source set matches the CMake `LIB_SOURCES`. Writes only if content has changed.
+pub fn generate(funcs: &[FuncDef], out_path: &Path, root: &Path) {
+    let (names, _extras) = super::sorted_source_stems(funcs, root);
 
     let mut content = String::new();
 

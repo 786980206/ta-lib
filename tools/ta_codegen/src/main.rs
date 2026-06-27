@@ -292,7 +292,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
     // Generate Makefile.am and copy C library files when C is one of the backends
     if backends_to_run.contains(&"c") {
-        backends::makefile_am::generate(all_funcs, &root.join("src/ta_func/Makefile.am"));
+        backends::makefile_am::generate(all_funcs, &root.join("src/ta_func/Makefile.am"), &root);
         backends::cmake_lists::generate(all_funcs, &root.join("CMakeLists.txt"), &root);
 
         let c_lib_src = root.join("ta_func_defs/lib/c");

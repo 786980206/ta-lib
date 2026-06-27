@@ -1,5 +1,4 @@
 use crate::ir::FuncDef;
-use std::collections::HashSet;
 use std::path::Path;
 
 const BEGIN_MARKER: &str = "# [ta_codegen begin LIB_SOURCES]";
@@ -18,41 +17,16 @@ const END_MARKER: &str = "# [ta_codegen end LIB_SOURCES]";
 /// - `src/ta_abstract/ta_func_api.c`
 /// - `src/ta_abstract/ta_group_idx.c`
 pub fn generate(funcs: &[FuncDef], cmake_path: &Path, root: &Path) {
-    let mut names: Vec<String> = funcs.iter().map(|f| f.name.to_uppercase()).collect();
-
-    // Pick up any ta_*.c files in src/ta_func/ not yet extracted to ta_func_defs/
-    // (e.g. NVI, PVI). This makes the generator self-correcting as functions are ported.
-    let known: HashSet<String> = names.iter().cloned().collect();
-    let src_ta_func = root.join("src/ta_func");
-    if let Ok(dir) = std::fs::read_dir(&src_ta_func) {
-        let extras: Vec<String> = dir
-            .filter_map(Result::ok)
-            .filter_map(|e| {
-                let fname = e.file_name().to_string_lossy().to_string();
-                if let Some(func_lower) = fname
-                    .strip_prefix("ta_")
-                    .and_then(|s| s.strip_suffix(".c"))
-                    .filter(|s| *s != "utility")
-                {
-                    let func = func_lower.to_uppercase();
-                    // Include only files whose function is not already in ta_func_defs/
-                    Some(func).filter(|f| !known.contains(f))
-                } else {
-                    None
-                }
-            })
-            .collect();
-        if !extras.is_empty() {
-            println!(
-                "  CMakeLists.txt: including {} extra src/ta_func file(s) not in ta_func_defs: {}",
-                extras.len(),
-                extras.join(", ")
-            );
-        }
-        names.extend(extras);
+    // Shared with the autotools Makefile.am generator so the two source lists
+    // cannot drift. `extras` are un-ported ta_*.c stubs (e.g. NVI, PVI) folded in.
+    let (names, extras) = super::sorted_source_stems(funcs, root);
+    if !extras.is_empty() {
+        println!(
+            "  CMakeLists.txt: including {} extra src/ta_func file(s) not in ta_func_defs: {}",
+            extras.len(),
+            extras.join(", ")
+        );
     }
-
-    names.sort();
 
     // Build the replacement block
     let mut block = String::new();

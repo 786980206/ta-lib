@@ -17,7 +17,7 @@ use crate::helper_registry::HelperRegistry;
 use crate::ir::{EnumDef, FuncDef};
 use crate::registry::Registry;
 use crate::server_gen;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 /// A per-indicator code-generation backend for one target language.
@@ -243,4 +243,40 @@ pub fn write_if_changed_silent(path: &std::path::Path, content: &str) {
     if existing != content {
         std::fs::write(path, content).unwrap();
     }
+}
+
+/// The sorted `ta_<STEM>.c` source stems for the reference C library, shared by the
+/// CMake (`LIB_SOURCES`) and autotools (`libta_func_la_SOURCES`) source-list
+/// generators so the two lists cannot drift apart.
+///
+/// Includes every function in `ta_func_defs/` plus any un-ported `ta_*.c` still
+/// living only in `src/ta_func/` — currently the `NVI`/`PVI` do-nothing stubs.
+/// Their symbols are referenced by the `ta_abstract` tables (`table_n.c`/`table_p.c`),
+/// so both build systems must compile them until the functions are ported into
+/// `ta_func_defs/`. Names are upper-cased and sorted. Returns `(sorted_stems,
+/// extras)`, where `extras` is the un-ported set in directory order for an
+/// informational log.
+pub fn sorted_source_stems(funcs: &[FuncDef], root: &Path) -> (Vec<String>, Vec<String>) {
+    let mut names: Vec<String> = funcs.iter().map(|f| f.name.to_uppercase()).collect();
+    let known: HashSet<String> = names.iter().cloned().collect();
+
+    let mut extras: Vec<String> = Vec::new();
+    if let Ok(dir) = std::fs::read_dir(root.join("src/ta_func")) {
+        // Any ta_*.c in src/ta_func/ whose function is not yet in ta_func_defs/.
+        extras = dir
+            .filter_map(Result::ok)
+            .filter_map(|e| {
+                let fname = e.file_name().to_string_lossy().to_string();
+                fname
+                    .strip_prefix("ta_")
+                    .and_then(|s| s.strip_suffix(".c"))
+                    .filter(|s| *s != "utility")
+                    .map(str::to_uppercase)
+                    .filter(|f| !known.contains(f))
+            })
+            .collect();
+    }
+    names.extend(extras.iter().cloned());
+    names.sort();
+    (names, extras)
 }
