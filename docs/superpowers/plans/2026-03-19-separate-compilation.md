@@ -83,7 +83,7 @@ Enables separate compilation of each indicator."
 ### Task 2: Update server generation to use extern declarations
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs:333-363`
+- Modify: `ta_codegen/generator/src/server_gen.rs:333-363`
 
 - [ ] **Step 1: Replace includes with ta_func.h**
 
@@ -115,13 +115,13 @@ This removes:
 - [ ] **Step 2: Run codegen tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 3: Regenerate server source**
 
 ```bash
-cd tools/ta_codegen && cargo run --release -- generate-servers --backend=c
+cd ta_codegen/generator && cargo run --release -- generate-servers --backend=c
 ```
 
 - [ ] **Step 4: Verify server source has no #include "ta_*.c" lines**
@@ -134,7 +134,7 @@ grep '#include "ta_' ta_codegen/output/c/ta_codegen_serve.c
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/server_gen.rs
 git commit -m "refactor(server_gen): use extern declarations instead of #include .c files"
 ```
 
@@ -143,7 +143,7 @@ git commit -m "refactor(server_gen): use extern declarations instead of #include
 ### Task 3: Update build step to compile separately
 
 **Files:**
-- Modify: `tools/ta_codegen/src/main.rs:330-349`
+- Modify: `ta_codegen/generator/src/main.rs:330-349`
 
 - [ ] **Step 1: Replace single-file gcc call with separate compilation**
 
@@ -236,14 +236,14 @@ Replace the C build block (lines 330-349 in `main.rs`) with:
 - [ ] **Step 2: Run the build**
 
 ```bash
-cd tools/ta_codegen && cargo run --release -- build --backend=c
+cd ta_codegen/generator && cargo run --release -- build --backend=c
 ```
 Expected: `Building C server... OK (165 files)` (163 indicators + globals + server)
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add tools/ta_codegen/src/main.rs
+git add ta_codegen/generator/src/main.rs
 git commit -m "refactor(build): compile C indicators separately then link
 
 Each indicator gets its own translation unit so the compiler can
@@ -260,7 +260,7 @@ optimize each function independently."
 - [ ] **Step 1: Full regenerate and build**
 
 ```bash
-cd tools/ta_codegen
+cd ta_codegen/generator
 cargo run --release -- generate --backend=c
 cargo run --release -- generate-servers --backend=c
 cargo run --release -- build --backend=c

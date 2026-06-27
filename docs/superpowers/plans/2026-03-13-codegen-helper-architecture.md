@@ -24,20 +24,20 @@
 | `ta_codegen/input/helpers/candlestick.c` | 11 candle helper functions (realbody, candlerange, etc.) |
 | `ta_codegen/input/helpers/range.c` | ta_true_range |
 | `ta_codegen/input/helpers/rounding.c` | ta_round_pos, ta_sar_rounding |
-| `tools/ta_codegen/src/helper_registry.rs` | HelperDef struct, HelperRegistry, helper file parsing + loading |
+| `ta_codegen/generator/src/helper_registry.rs` | HelperDef struct, HelperRegistry, helper file parsing + loading |
 | `scripts/replace_candle_macros.py` | Candlestick + local-define macro replacement script |
 
 ### Existing files to modify:
 | File | Changes |
 |------|---------|
-| `tools/ta_codegen/src/ir.rs` | Add HelperDef, HelperParam structs |
-| `tools/ta_codegen/src/lib.rs` | Export `helper_registry` module |
-| `tools/ta_codegen/src/parser/c_source.rs` | Add `parse_helper_file()` entry point |
-| `tools/ta_codegen/src/backends/c.rs` | Hook inlining into `render_func_call`, add math mappings |
-| `tools/ta_codegen/src/backends/rust_lang.rs` | Hook inlining into render, add math mappings |
-| `tools/ta_codegen/src/backends/java.rs` | Hook inlining into render, add math mappings |
-| `tools/ta_codegen/src/main.rs` | Load helper registry at startup, pass to backends |
-| `tools/ta_codegen/tests/backend_suite.rs` | Add helper parsing + inlining tests |
+| `ta_codegen/generator/src/ir.rs` | Add HelperDef, HelperParam structs |
+| `ta_codegen/generator/src/lib.rs` | Export `helper_registry` module |
+| `ta_codegen/generator/src/parser/c_source.rs` | Add `parse_helper_file()` entry point |
+| `ta_codegen/generator/src/backends/c.rs` | Hook inlining into `render_func_call`, add math mappings |
+| `ta_codegen/generator/src/backends/rust_lang.rs` | Hook inlining into render, add math mappings |
+| `ta_codegen/generator/src/backends/java.rs` | Hook inlining into render, add math mappings |
+| `ta_codegen/generator/src/main.rs` | Load helper registry at startup, pass to backends |
+| `ta_codegen/generator/tests/backend_suite.rs` | Add helper parsing + inlining tests |
 | `scripts/replace_macros.py` | Add ARRAY_LOCAL, ENUM_CASE, and other missed macros |
 | `ta_codegen/input/**/*.c` (~60 candlestick files) | Transformed by replacement script |
 
@@ -155,11 +155,11 @@ git commit -m "feat(codegen): add helper C source files for candlestick, range, 
 ### Task 2: Add HelperDef and HelperParam to IR
 
 **Files:**
-- Modify: `tools/ta_codegen/src/ir.rs`
+- Modify: `ta_codegen/generator/src/ir.rs`
 
 - [ ] **Step 1: Write failing test**
 
-Add to `tools/ta_codegen/tests/backend_suite.rs`:
+Add to `ta_codegen/generator/tests/backend_suite.rs`:
 
 ```rust
 #[test]
@@ -194,13 +194,13 @@ fn helper_def_stores_params_and_body() {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd tools/ta_codegen && cargo test helper_def_stores_params_and_body
+cd ta_codegen/generator && cargo test helper_def_stores_params_and_body
 ```
 Expected: FAIL — `HelperDef` and `HelperParam` don't exist.
 
 - [ ] **Step 3: Add HelperDef and HelperParam structs to ir.rs**
 
-Add at the end of `tools/ta_codegen/src/ir.rs`:
+Add at the end of `ta_codegen/generator/src/ir.rs`:
 
 ```rust
 /// A helper function definition (parsed from ta_codegen/input/helpers/*.c).
@@ -224,14 +224,14 @@ pub struct HelperParam {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-cd tools/ta_codegen && cargo test helper_def_stores_params_and_body
+cd ta_codegen/generator && cargo test helper_def_stores_params_and_body
 ```
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/ta_codegen/src/ir.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/ir.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "feat(codegen): add HelperDef and HelperParam to IR"
 ```
 
@@ -240,13 +240,13 @@ git commit -m "feat(codegen): add HelperDef and HelperParam to IR"
 ### Task 3: Add parse_helper_file() to the parser
 
 **Files:**
-- Modify: `tools/ta_codegen/src/parser/c_source.rs`
+- Modify: `ta_codegen/generator/src/parser/c_source.rs`
 
 **Context:** The existing `parse_c_source()` expects TA-Lib indicator files (lookback + main function). Helper files are simpler — just standalone C functions. We need a new `parse_helper_file()` entry point that reuses the existing tokenizer and expression/statement parsing but has a different top-level structure.
 
 - [ ] **Step 1: Write failing test**
 
-Add to `tools/ta_codegen/tests/backend_suite.rs`:
+Add to `ta_codegen/generator/tests/backend_suite.rs`:
 
 ```rust
 #[test]
@@ -276,13 +276,13 @@ int ta_candlecolor(double close, double open) {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd tools/ta_codegen && cargo test parse_helper_file_extracts_functions
+cd ta_codegen/generator && cargo test parse_helper_file_extracts_functions
 ```
 Expected: FAIL — `parse_helper_file_str` doesn't exist.
 
 - [ ] **Step 3: Implement parse_helper_file()**
 
-Add to `tools/ta_codegen/src/parser/c_source.rs`:
+Add to `ta_codegen/generator/src/parser/c_source.rs`:
 
 ```rust
 use crate::ir::{HelperDef, HelperParam};
@@ -320,7 +320,7 @@ The key reuse: `parse_statements()` (or whatever the internal statement parser i
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-cd tools/ta_codegen && cargo test parse_helper_file_extracts_functions
+cd ta_codegen/generator && cargo test parse_helper_file_extracts_functions
 ```
 Expected: PASS
 
@@ -368,14 +368,14 @@ fn parse_helper_file_reads_from_disk() {
 - [ ] **Step 6: Run all tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 Expected: All pass, including new helper parser tests.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add tools/ta_codegen/src/parser/c_source.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/parser/c_source.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "feat(codegen): add parse_helper_file() for standalone utility functions"
 ```
 
@@ -384,14 +384,14 @@ git commit -m "feat(codegen): add parse_helper_file() for standalone utility fun
 ### Task 4: Create HelperRegistry module
 
 **Files:**
-- Create: `tools/ta_codegen/src/helper_registry.rs`
-- Modify: `tools/ta_codegen/src/lib.rs`
+- Create: `ta_codegen/generator/src/helper_registry.rs`
+- Modify: `ta_codegen/generator/src/lib.rs`
 
 **Context:** The HelperRegistry scans `ta_codegen/input/helpers/*.c`, parses each, and stores all HelperDefs in a HashMap keyed by function name. Backends will query this registry when they encounter a FuncCall to decide whether to inline or emit a normal call.
 
 - [ ] **Step 1: Write failing test**
 
-Add to `tools/ta_codegen/tests/backend_suite.rs`:
+Add to `ta_codegen/generator/tests/backend_suite.rs`:
 
 ```rust
 #[test]
@@ -417,13 +417,13 @@ fn helper_registry_loads_from_disk() {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd tools/ta_codegen && cargo test helper_registry_loads_from_disk
+cd ta_codegen/generator && cargo test helper_registry_loads_from_disk
 ```
 Expected: FAIL — module doesn't exist.
 
 - [ ] **Step 3: Implement HelperRegistry**
 
-Create `tools/ta_codegen/src/helper_registry.rs`:
+Create `ta_codegen/generator/src/helper_registry.rs`:
 
 ```rust
 use std::collections::HashMap;
@@ -467,7 +467,7 @@ impl HelperRegistry {
 
 - [ ] **Step 4: Add module export to lib.rs**
 
-In `tools/ta_codegen/src/lib.rs`, add:
+In `ta_codegen/generator/src/lib.rs`, add:
 
 ```rust
 pub mod helper_registry;
@@ -476,21 +476,21 @@ pub mod helper_registry;
 - [ ] **Step 5: Run test to verify it passes**
 
 ```bash
-cd tools/ta_codegen && cargo test helper_registry_loads_from_disk
+cd ta_codegen/generator && cargo test helper_registry_loads_from_disk
 ```
 Expected: PASS
 
 - [ ] **Step 6: Run all tests to check for regressions**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 Expected: All pass.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add tools/ta_codegen/src/helper_registry.rs tools/ta_codegen/src/lib.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/helper_registry.rs ta_codegen/generator/src/lib.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "feat(codegen): add HelperRegistry for loading helper functions"
 ```
 
@@ -683,7 +683,7 @@ Read `ta_codegen/input/cdl2crows/cdl2crows.c` and verify:
 - [ ] **Step 5: Quick parse check — run existing tests to catch parse failures early**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 Expected: Existing auto-discovery tests parse all indicators. If any fail, debug the replacement regex before committing.
 
@@ -795,13 +795,13 @@ replace_macros.py and run on all files."
 ### Task 8: Add math function mappings (max, min, fmax, fmin, ABS)
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs`
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
-- Modify: `tools/ta_codegen/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/backends/c.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/java.rs`
 
 - [ ] **Step 1: Write failing test**
 
-Add to `tools/ta_codegen/tests/backend_suite.rs`:
+Add to `ta_codegen/generator/tests/backend_suite.rs`:
 
 ```rust
 #[test]
@@ -832,13 +832,13 @@ In `java.rs`: Map `max`/`fmax` → `Math.max(a, b)`, `min`/`fmin` → `Math.min(
 - [ ] **Step 3: Run tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/ tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/backends/ ta_codegen/generator/tests/backend_suite.rs
 git commit -m "feat(codegen): add max/min/fmax/fmin/ABS math function mappings to all backends"
 ```
 
@@ -847,10 +847,10 @@ git commit -m "feat(codegen): add max/min/fmax/fmin/ABS math function mappings t
 ### Task 9: Implement expression inlining for single-expression helpers
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs`
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
-- Modify: `tools/ta_codegen/src/backends/java.rs`
-- Modify: `tools/ta_codegen/src/main.rs` (pass helper_registry to backends)
+- Modify: `ta_codegen/generator/src/backends/c.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/main.rs` (pass helper_registry to backends)
 
 **Context:** When a backend encounters `FuncCall("ta_realbody", [inClose[i], inOpen[i]])` and `ta_realbody` is in the HelperRegistry, it should substitute the args into the helper's IR body and render the resulting expression inline. For single-expression helpers (body is one `Return { value: Some(expr) }`), this produces a simple expression substitution.
 
@@ -964,7 +964,7 @@ This is the same pattern in all three backends (c.rs, rust_lang.rs, java.rs). Th
 
 - [ ] **Step 4: Update main.rs to load and pass HelperRegistry**
 
-In `tools/ta_codegen/src/main.rs`, in the `generate` command handler:
+In `ta_codegen/generator/src/main.rs`, in the `generate` command handler:
 
 ```rust
 let helper_registry = HelperRegistry::from_dir(&base_dir);
@@ -991,13 +991,13 @@ This works naturally because the backend's `render_expr` calls `render_func_call
 - [ ] **Step 6: Run tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add tools/ta_codegen/src/
+git add ta_codegen/generator/src/
 git commit -m "feat(codegen): implement expression inlining for single-expression helpers"
 ```
 
@@ -1006,10 +1006,10 @@ git commit -m "feat(codegen): implement expression inlining for single-expressio
 ### Task 10: Implement block inlining for multi-statement helpers
 
 **Files:**
-- Modify: `tools/ta_codegen/src/helper_registry.rs` (or `inliner.rs`)
-- Modify: `tools/ta_codegen/src/backends/c.rs`
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
-- Modify: `tools/ta_codegen/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/helper_registry.rs` (or `inliner.rs`)
+- Modify: `ta_codegen/generator/src/backends/c.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/java.rs`
 
 **Context:** Multi-statement helpers (ta_candlerange with switch, ta_true_range with conditionals) can't be inlined as a simple expression. They need to emit a block with a temporary variable. The inliner maintains a monotonic counter to avoid name collisions when the same helper is inlined multiple times.
 
@@ -1093,13 +1093,13 @@ Each backend handles the block scope and temp var in its own syntax.
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/ta_codegen/src/
+git add ta_codegen/generator/src/
 git commit -m "feat(codegen): implement block inlining for multi-statement helpers with collision avoidance"
 ```
 
@@ -1110,9 +1110,9 @@ git commit -m "feat(codegen): implement block inlining for multi-statement helpe
 ### Task 11: Add candle settings unpacking to codegen
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs`
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
-- Modify: `tools/ta_codegen/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/backends/c.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/java.rs`
 
 **Context:** After call site transformation, candlestick indicators reference variables like `BodyLong_rangeType`, `BodyLong_avgPeriod`, `BodyLong_factor`. The codegen must emit unpacking lines at the top of each function that uses them. Detection is based on scanning the function body IR for these variable names.
 
@@ -1194,13 +1194,13 @@ Lookback functions also reference `BodyLong_avgPeriod`. Apply the same detection
 - [ ] **Step 5: Run tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/
+git add ta_codegen/generator/src/backends/
 git commit -m "feat(codegen): emit candle settings unpacking per backend (C globals, Rust/Java Core)"
 ```
 
@@ -1213,7 +1213,7 @@ git commit -m "feat(codegen): emit candle settings unpacking per backend (C glob
 - [ ] **Step 1: Run the parser on all indicators**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 Check that the auto-discovery tests in `backend_suite.rs` still pass — these parse all `ta_codegen/input/` indicators and generate all backends.
@@ -1227,7 +1227,7 @@ If any indicators fail to parse after the call site transformation, debug and fi
 - [ ] **Step 3: Commit any parser fixes**
 
 ```bash
-git add tools/ta_codegen/src/parser/
+git add ta_codegen/generator/src/parser/
 git commit -m "fix(codegen): parser fixes for transformed candlestick indicator code"
 ```
 
@@ -1242,7 +1242,7 @@ git commit -m "fix(codegen): parser fixes for transformed candlestick indicator 
 - [ ] **Step 1: Run generate**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate
+cd ta_codegen/generator && cargo run -- generate
 ```
 Expected: Generates C, Rust, Java files for all ~158 indicators.
 
@@ -1253,7 +1253,7 @@ Look for panics, missing helpers, unresolved function calls. Fix any issues.
 - [ ] **Step 3: Run generate-servers**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers
+cd ta_codegen/generator && cargo run -- generate-servers
 ```
 Expected: Generates JSON-RPC servers for C, Java.
 
@@ -1273,7 +1273,7 @@ git commit -m "chore: regenerate all backend code with helper inlining"
 - [ ] **Step 1: Build**
 
 ```bash
-cd tools/ta_codegen && cargo run -- build
+cd ta_codegen/generator && cargo run -- build
 ```
 Expected: Compiles C and Java servers.
 
@@ -1289,7 +1289,7 @@ Fix each error, regenerate, rebuild until clean.
 - [ ] **Step 3: Commit fixes**
 
 ```bash
-git add tools/ta_codegen/src/ ta_codegen/output/
+git add ta_codegen/generator/src/ ta_codegen/output/
 git commit -m "fix(codegen): compilation fixes for helper inlining across backends"
 ```
 

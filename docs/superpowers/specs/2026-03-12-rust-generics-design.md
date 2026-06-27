@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-12
 **Status:** Approved (design phase)
-**Scope:** Rust backend of `tools/ta_codegen` — how indicator functions are generated
+**Scope:** Rust backend of `ta_codegen/generator` — how indicator functions are generated
 
 ## Problem
 

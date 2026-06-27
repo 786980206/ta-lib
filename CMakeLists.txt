@@ -618,7 +618,7 @@ endif()
 
 # --- ta_codegen build target ---
 # Build the Rust ta_codegen binary and copy to bin/
-set(TA_CODEGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/ta_codegen")
+set(TA_CODEGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ta_codegen/generator")
 set(TA_CODEGEN_BIN "${TA_CODEGEN_DIR}/target/release/ta_codegen")
 
 add_custom_command(

@@ -94,7 +94,7 @@ def main():
     root = find_repo_root()
     build_dir = os.path.join(root, "cmake-build")
     bin_dir = os.path.join(root, "bin")
-    codegen_dir = os.path.join(root, "tools", "ta_codegen")
+    codegen_dir = os.path.join(root, "ta_codegen", "generator")
     jobs = str(os.cpu_count() or 4)
 
     # 1. cmake

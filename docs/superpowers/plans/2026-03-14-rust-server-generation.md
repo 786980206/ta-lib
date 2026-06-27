@@ -68,13 +68,13 @@ git commit -m "chore: add serde_json dep and ta_codegen_serve binary target to r
 This is the main task — generate the full Rust server source code from the FuncDef list.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` (add `generate_rust_server` function)
-- Modify: `tools/ta_codegen/src/main.rs` (lines 200, 256-258, 274 — wire up Rust backend)
+- Modify: `ta_codegen/generator/src/server_gen.rs` (add `generate_rust_server` function)
+- Modify: `ta_codegen/generator/src/main.rs` (lines 200, 256-258, 274 — wire up Rust backend)
 - Overwrite: `rust/src/bin/ta_codegen_serve.rs` (generated output)
 
 - [ ] **Step 1: Study the C dispatch pattern**
 
-Read `tools/ta_codegen/src/server_gen.rs` — specifically `generate_c_server()` (line 407) and `generate_c_dispatch()` (line 555). Understand:
+Read `ta_codegen/generator/src/server_gen.rs` — specifically `generate_c_server()` (line 407) and `generate_c_dispatch()` (line 555). Understand:
 1. How `expand_input_names()` maps inputs to JSON field names
 2. How `output_json_key()` maps outputs to JSON field names
 3. How `func_unst_id()` maps function names to unstable period IDs
@@ -268,7 +268,7 @@ None => vec!["c", "java", "dotnet", "swig", "rust"],
 - [ ] **Step 4: Build and verify generation**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | tail -5
+cd ta_codegen/generator && cargo build 2>&1 | tail -5
 cargo run -- generate-servers --backend=rust 2>&1
 ```
 
@@ -285,7 +285,7 @@ Expected: compiles. If there are errors, fix `generate_rust_server()`.
 - [ ] **Step 6: Build the binary**
 
 ```bash
-cd ../tools/ta_codegen && cargo run -- build --backend=rust 2>&1
+cd ../ta_codegen/generator && cargo run -- build --backend=rust 2>&1
 ```
 
 Expected: `Building Rust server... OK`
@@ -302,7 +302,7 @@ Expected: function list, then SMA result with `retCode: 0`.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/server_gen.rs src/main.rs
+cd ta_codegen/generator && git add src/server_gen.rs src/main.rs
 git commit -m "feat(rust): generate JSON-RPC server for Rust backend — 163 indicator dispatch"
 ```
 
@@ -346,7 +346,7 @@ git commit -m "fix(regtest): update Rust server argv to standalone binary name"
 ### Task 4: Run Regression Tests and Fix Failures
 
 **Files:**
-- May modify: `tools/ta_codegen/src/server_gen.rs` (if generation bugs found)
+- May modify: `ta_codegen/generator/src/server_gen.rs` (if generation bugs found)
 - May modify: `rust/src/ta_func/mod.rs` (if Core API gaps found)
 
 - [ ] **Step 1: Run Rust regtest**
@@ -383,7 +383,7 @@ Expected: All 3 languages pass all 163 indicators.
 - [ ] **Step 5: Commit fixes**
 
 ```bash
-cd tools/ta_codegen && git add src/server_gen.rs
+cd ta_codegen/generator && git add src/server_gen.rs
 git commit -m "fix(rust): address regtest failures in Rust server dispatch"
 ```
 
@@ -405,7 +405,7 @@ Expected: All 4 languages pass all 163 indicators.
 - [ ] **Step 2: Run codegen tests**
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 cargo clippy 2>&1 | tail -5
 ```
 

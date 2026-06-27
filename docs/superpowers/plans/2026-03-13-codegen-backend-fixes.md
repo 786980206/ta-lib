@@ -18,17 +18,17 @@
 - `scripts/replace_macros.py` — One-shot Python script that replaces all macros across ~158 extracted `.c` files
 
 ### Files to modify
-- `tools/ta_codegen/src/backends/c.rs` — Fix ForC init/update Block rendering (comma-separate)
-- `tools/ta_codegen/src/backends/java.rs` — Fix ForC init/update Block rendering (comma-separate)
-- `tools/ta_codegen/src/backends/rust_lang.rs` — ForC → range iteration for single-counter `<=` patterns
-- `tools/ta_codegen/src/backends/swig.rs` — Verify naming alignment (may already be correct)
-- `tools/ta_codegen/src/server_gen.rs` — Add forward declarations to generated `ta_func.h` header
-- `tools/ta_codegen/src/parser/c_source.rs` — Simplify: remove macro-specific parse_macro_decl handlers after source cleanup; add math function recognition
+- `ta_codegen/generator/src/backends/c.rs` — Fix ForC init/update Block rendering (comma-separate)
+- `ta_codegen/generator/src/backends/java.rs` — Fix ForC init/update Block rendering (comma-separate)
+- `ta_codegen/generator/src/backends/rust_lang.rs` — ForC → range iteration for single-counter `<=` patterns
+- `ta_codegen/generator/src/backends/swig.rs` — Verify naming alignment (may already be correct)
+- `ta_codegen/generator/src/server_gen.rs` — Add forward declarations to generated `ta_func.h` header
+- `ta_codegen/generator/src/parser/c_source.rs` — Simplify: remove macro-specific parse_macro_decl handlers after source cleanup; add math function recognition
 - `ta_codegen/input/*/*.c` — ~158 files: replace macros with plain C
 
 ### Files to read (reference only)
-- `tools/ta_codegen/tests/backend_suite.rs` — Test infrastructure for adding new tests
-- `tools/ta_codegen/tests/integration_test.rs` — Integration test helpers
+- `ta_codegen/generator/tests/backend_suite.rs` — Test infrastructure for adding new tests
+- `ta_codegen/generator/tests/integration_test.rs` — Integration test helpers
 - `ta_codegen/input/sma/sma.c` — Clean baseline (what a macro-free file looks like)
 - `ta_codegen/input/accbands/accbands.c` — Example with ARRAY_ALLOC/FREE, VALUE_HANDLE
 - `ta_codegen/input/ht_trendmode/ht_trendmode.c` — Example with CIRCBUF, HILBERT, local #define
@@ -44,14 +44,14 @@
 The C backend at `c.rs:457-489` calls `render_statement(init, 0, ...)` which, for a `Block([j=0, i=start])`, renders as `j = 0;\ni = start;\n`. After trimming the trailing semicolon, the intermediate `;\n` remains, breaking the `for()` syntax.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs:457-489`
-- Test: `tools/ta_codegen/tests/backend_suite.rs` (new test)
+- Modify: `ta_codegen/generator/src/backends/c.rs:457-489`
+- Test: `ta_codegen/generator/tests/backend_suite.rs` (new test)
 
 - [ ] **Step 1: Write failing test using synthetic IR (not file-based)**
 
 Because indicators with multi-init ForC loops (like accbands) can't parse until macros are replaced (Chunk 3), use a synthetic IR to test the rendering fix:
 
-Add to `tools/ta_codegen/tests/backend_suite.rs`:
+Add to `ta_codegen/generator/tests/backend_suite.rs`:
 
 ```rust
 #[test]
@@ -129,13 +129,13 @@ Note: You may need to make `render_statement` pub in `c.rs` for direct testing, 
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd tools/ta_codegen && cargo test c_for_loop_multi_init_comma_separated -- --nocapture`
+Run: `cd ta_codegen/generator && cargo test c_for_loop_multi_init_comma_separated -- --nocapture`
 
 Expected: FAIL — the current ForC rendering produces semicolons in Block init/update.
 
 - [ ] **Step 3: Implement the fix — add `render_forc_part` helper**
 
-In `tools/ta_codegen/src/backends/c.rs`, add a helper function that renders a ForC init or update part. When the statement is a `Block`, join sub-statements with `, ` instead of rendering them as separate lines:
+In `ta_codegen/generator/src/backends/c.rs`, add a helper function that renders a ForC init or update part. When the statement is a `Block`, join sub-statements with `, ` instead of rendering them as separate lines:
 
 ```rust
 /// Render a ForC init or update clause. If it's a Block with multiple
@@ -190,14 +190,14 @@ Statement::ForC {
 
 - [ ] **Step 4: Run all existing tests**
 
-Run: `cd tools/ta_codegen && cargo test`
+Run: `cd ta_codegen/generator && cargo test`
 
 Expected: All tests pass. The change only affects how Block-type init/update renders — single-statement ForC is unchanged.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/c.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/backends/c.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "fix(codegen): comma-separate ForC init/update blocks in C backend"
 ```
 
@@ -208,8 +208,8 @@ git commit -m "fix(codegen): comma-separate ForC init/update blocks in C backend
 Same bug as Task 1 but in the Java backend at `java.rs:385-417`.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs:385-417`
-- Test: `tools/ta_codegen/tests/backend_suite.rs` (new test)
+- Modify: `ta_codegen/generator/src/backends/java.rs:385-417`
+- Test: `ta_codegen/generator/tests/backend_suite.rs` (new test)
 
 - [ ] **Step 1: Write failing test using synthetic IR (same pattern as Task 1)**
 
@@ -231,7 +231,7 @@ fn java_for_loop_multi_init_comma_separated() {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd tools/ta_codegen && cargo test java_for_loop_multi_init_comma_separated -- --nocapture`
+Run: `cd ta_codegen/generator && cargo test java_for_loop_multi_init_comma_separated -- --nocapture`
 
 - [ ] **Step 3: Implement the same `render_forc_part` fix for Java**
 
@@ -239,12 +239,12 @@ Add an equivalent `render_forc_part` helper in `java.rs` and update the ForC arm
 
 - [ ] **Step 4: Run all tests**
 
-Run: `cd tools/ta_codegen && cargo test`
+Run: `cd ta_codegen/generator && cargo test`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/java.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/backends/java.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "fix(codegen): comma-separate ForC init/update blocks in Java backend"
 ```
 
@@ -255,8 +255,8 @@ git commit -m "fix(codegen): comma-separate ForC init/update blocks in Java back
 The Rust backend at `rust_lang.rs:770-829` lowers all ForC to `init; while cond { body; update; }`. The While handler at `rust_lang.rs:901-930` already detects `i <= end` patterns and emits `for i in start..=end`. Extend this to ForC directly.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs:770-829`
-- Test: `tools/ta_codegen/tests/backend_suite.rs` (new test)
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs:770-829`
+- Test: `ta_codegen/generator/tests/backend_suite.rs` (new test)
 
 - [ ] **Step 1: Write test using synthetic ForC IR**
 
@@ -327,12 +327,12 @@ You'll need two small helpers:
 
 - [ ] **Step 3: Run all tests**
 
-Run: `cd tools/ta_codegen && cargo test`
+Run: `cd ta_codegen/generator && cargo test`
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/rust_lang.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/backends/rust_lang.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "feat(codegen): Rust ForC emits range iteration for simple counter patterns"
 ```
 
@@ -343,9 +343,9 @@ git commit -m "feat(codegen): Rust ForC emits range iteration for simple counter
 Check that SWIG declarations align with C unity build exports. The SWIG backend at `swig.rs:80-87` generates `TA_{NAME}_Logic` variants. The C backend at `c.rs` generates `#define TA_INT_{NAME} TA_{NAME}_Logic`. These should match.
 
 **Files:**
-- Read: `tools/ta_codegen/src/backends/swig.rs`
-- Read: `tools/ta_codegen/src/backends/c.rs` (search for `TA_INT_`)
-- Test: `tools/ta_codegen/tests/backend_suite.rs` (the existing `check_c_variants` and SWIG checks)
+- Read: `ta_codegen/generator/src/backends/swig.rs`
+- Read: `ta_codegen/generator/src/backends/c.rs` (search for `TA_INT_`)
+- Test: `ta_codegen/generator/tests/backend_suite.rs` (the existing `check_c_variants` and SWIG checks)
 
 - [ ] **Step 1: Write explicit naming alignment test**
 
@@ -375,7 +375,7 @@ fn swig_names_match_c_exports() {
 
 - [ ] **Step 2: Run the test**
 
-Run: `cd tools/ta_codegen && cargo test swig_names_match_c_exports -- --nocapture`
+Run: `cd ta_codegen/generator && cargo test swig_names_match_c_exports -- --nocapture`
 
 Expected: Should pass. If any names mismatch, fix in the SWIG backend.
 
@@ -384,7 +384,7 @@ Expected: Should pass. If any names mismatch, fix in the SWIG backend.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/swig.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/backends/swig.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "test(codegen): verify SWIG naming aligns with C exports"
 ```
 
@@ -791,11 +791,11 @@ The 6 HT_* files (`ht_trendmode`, `ht_dcperiod`, `ht_dcphase`, `ht_phasor`, `ht_
 **Strategy:** The parser already resolves these to proper IR nodes (`FuncCall` with args preserved, `HILBERT_VARIABLES` expands to variable declarations). The backends render them correctly. Extracting a shared helper file is deferred — it's a cleanup that doesn't block compilation. The spec's suggestion of `ta_codegen/input/_helpers/hilbert.h` can be revisited in a follow-up.
 
 **Files:**
-- Test: `tools/ta_codegen/tests/backend_suite.rs`
+- Test: `ta_codegen/generator/tests/backend_suite.rs`
 
 - [ ] **Step 1: Verify parser handles HILBERT_VARIABLES correctly**
 
-Run: `cd tools/ta_codegen && cargo test -- ht_trendmode --nocapture`
+Run: `cd ta_codegen/generator && cargo test -- ht_trendmode --nocapture`
 
 If no tests exist yet for HT functions, create one:
 
@@ -811,7 +811,7 @@ fn ht_trendmode_parses_and_generates() {
 - [ ] **Step 2: Commit test if added**
 
 ```bash
-git add tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/tests/backend_suite.rs
 git commit -m "test(codegen): verify HT_TRENDMODE parses and generates"
 ```
 
@@ -836,7 +836,7 @@ grep -rn '^[[:space:]]*#define ' ta_codegen/input/ --include='*.c' | head -30
 
 - [ ] **Step 2: Verify parser handles them without crashing**
 
-Run: `cd tools/ta_codegen && cargo test -- adx --nocapture` (adx uses TRUE_RANGE)
+Run: `cd ta_codegen/generator && cargo test -- adx --nocapture` (adx uses TRUE_RANGE)
 
 ---
 
@@ -865,13 +865,13 @@ Run: `python3 scripts/replace_macros.py`
 
 - [ ] **Step 4: Verify the 6 base functions still parse correctly**
 
-Run: `cd tools/ta_codegen && cargo test -- sma --nocapture && cargo test -- mult --nocapture && cargo test -- rsi --nocapture`
+Run: `cd ta_codegen/generator && cargo test -- sma --nocapture && cargo test -- mult --nocapture && cargo test -- rsi --nocapture`
 
 Expected: All pass. The replacements for these should be minimal/no-op.
 
 - [ ] **Step 5: Verify a previously-broken function now parses**
 
-Run: `cd tools/ta_codegen && cargo test -- accbands --nocapture`
+Run: `cd ta_codegen/generator && cargo test -- accbands --nocapture`
 
 This will likely still fail because accbands uses cross-function calls that need forward declarations. But it should at least parse without macro-related panics.
 
@@ -902,7 +902,7 @@ For each file, find the CIRCBUF_PROLOG that declares the buffer and determine th
 
 - [ ] **Step 3: Verify parser handles the replacements**
 
-Run: `cd tools/ta_codegen && cargo test -- mfi --nocapture && cargo test -- cci --nocapture`
+Run: `cd ta_codegen/generator && cargo test -- mfi --nocapture && cargo test -- cci --nocapture`
 
 - [ ] **Step 4: Commit**
 
@@ -925,12 +925,12 @@ After macro replacement, the parser may encounter patterns it hasn't seen before
 - `(double)(expr)` → cast expression
 
 **Files:**
-- Modify: `tools/ta_codegen/src/parser/c_source.rs`
-- Test: `tools/ta_codegen/tests/backend_suite.rs`
+- Modify: `ta_codegen/generator/src/parser/c_source.rs`
+- Test: `ta_codegen/generator/tests/backend_suite.rs`
 
 - [ ] **Step 1: Run the full test suite to find parser failures**
 
-Run: `cd tools/ta_codegen && cargo test 2>&1 | grep -E 'FAILED|panicked' | head -20`
+Run: `cd ta_codegen/generator && cargo test 2>&1 | grep -E 'FAILED|panicked' | head -20`
 
 This will reveal which indicators fail to parse after macro replacement.
 
@@ -944,12 +944,12 @@ Common fixes likely needed:
 
 - [ ] **Step 3: Run tests after each fix**
 
-Run: `cd tools/ta_codegen && cargo test`
+Run: `cd ta_codegen/generator && cargo test`
 
 - [ ] **Step 4: Commit parser fixes**
 
 ```bash
-git add tools/ta_codegen/src/parser/c_source.rs
+git add ta_codegen/generator/src/parser/c_source.rs
 git commit -m "fix(parser): handle malloc/free/memcpy/cast patterns from macro replacement"
 ```
 
@@ -960,10 +960,10 @@ git commit -m "fix(parser): handle malloc/free/memcpy/cast patterns from macro r
 After replacing `std_atan` → `atan` in source files, backends need to render `atan(x)` idiomatically per language.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs` (C: `atan` stays as-is)
-- Modify: `tools/ta_codegen/src/backends/java.rs` (Java: `Math.atan`)
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs` (Rust: `x.atan()` or `T::atan(x)`)
-- Test: `tools/ta_codegen/tests/backend_suite.rs`
+- Modify: `ta_codegen/generator/src/backends/c.rs` (C: `atan` stays as-is)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (Java: `Math.atan`)
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs` (Rust: `x.atan()` or `T::atan(x)`)
+- Test: `ta_codegen/generator/tests/backend_suite.rs`
 
 - [ ] **Step 1: Write test for math function rendering**
 
@@ -1002,12 +1002,12 @@ In each backend, add a match arm for math function names:
 
 - [ ] **Step 3: Run tests**
 
-Run: `cd tools/ta_codegen && cargo test`
+Run: `cd ta_codegen/generator && cargo test`
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/c.rs tools/ta_codegen/src/backends/java.rs tools/ta_codegen/src/backends/rust_lang.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/backends/c.rs ta_codegen/generator/src/backends/java.rs ta_codegen/generator/src/backends/rust_lang.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "feat(codegen): render math functions idiomatically per language"
 ```
 
@@ -1022,7 +1022,7 @@ The C server unity build `#include`s all generated `.c` files alphabetically. Wh
 **Important:** The `Registry` only stores indicator names (strings), not `FuncDef` objects. It has no `all_function_names()` or `get()` method. Instead, use the `&[FuncDef]` slice already available in `server_gen.rs` — `generate_c_server(funcs: &[FuncDef])` receives the full list.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs:147-229` (`generate_c_header_stub`)
+- Modify: `ta_codegen/generator/src/server_gen.rs:147-229` (`generate_c_header_stub`)
 - Test: Run `make servers` and verify compilation
 
 - [ ] **Step 1: Understand current header generation**
@@ -1061,7 +1061,7 @@ Expected: C server compiles without "undeclared function" errors for cross-funct
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(codegen): generate forward declarations in C server header"
 ```
 
@@ -1075,7 +1075,7 @@ git commit -m "feat(codegen): generate forward declarations in C server header"
 - Read: `ta_codegen/input/bbands/bbands.c:75` (the call site)
 - Read: `src/ta_func/ta_STDDEV.c:349-370` (the definition)
 - Modify: `ta_codegen/input/stddev/stddev.c` (add the helper function body)
-- Modify: `tools/ta_codegen/src/server_gen.rs` (add forward declaration)
+- Modify: `ta_codegen/generator/src/server_gen.rs` (add forward declaration)
 
 - [ ] **Step 1: Identify all cross-function calls to unregistered helpers**
 
@@ -1108,7 +1108,7 @@ Expected: C server compiles. BBANDS can call stddev_using_precalc_ma.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add ta_codegen/input/stddev/stddev.c tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/input/stddev/stddev.c ta_codegen/generator/src/server_gen.rs
 git commit -m "fix(codegen): extract stddev_using_precalc_ma helper and add forward declaration"
 ```
 
@@ -1133,7 +1133,7 @@ Expected: All servers compile without errors.
 
 Run individual cargo commands to isolate:
 ```bash
-cd tools/ta_codegen
+cd ta_codegen/generator
 cargo run --release -- build --backend=c 2>&1 | head -30
 cargo run --release -- build --backend=java 2>&1 | head -30
 cargo run --release -- build --backend=swig 2>&1 | head -30

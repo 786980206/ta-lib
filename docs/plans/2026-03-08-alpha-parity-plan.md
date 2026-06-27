@@ -39,7 +39,7 @@
 ### Task 2: Update C parser to handle prefix-free function names
 
 **Files:**
-- Modify: `tools/ta_codegen/src/parser/c_source.rs`
+- Modify: `ta_codegen/generator/src/parser/c_source.rs`
 
 **Step 1: Write failing test**
 
@@ -78,9 +78,9 @@ TA_RetCode sma_logic(/* params */) {
 ### Task 3: Build the indicator registry
 
 **Files:**
-- Create: `tools/ta_codegen/src/registry.rs`
-- Modify: `tools/ta_codegen/src/lib.rs` (add `pub mod registry`)
-- Modify: `tools/ta_codegen/src/main.rs` (load registry)
+- Create: `ta_codegen/generator/src/registry.rs`
+- Modify: `ta_codegen/generator/src/lib.rs` (add `pub mod registry`)
+- Modify: `ta_codegen/generator/src/main.rs` (load registry)
 
 **Step 1: Write failing test**
 
@@ -122,7 +122,7 @@ fn test_registry_resolves_cross_calls() {
 ### Task 4: Update C backend to generate all function variants
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs`
+- Modify: `ta_codegen/generator/src/backends/c.rs`
 
 **Step 1: Write failing test**
 
@@ -165,7 +165,7 @@ Use `registry` to resolve cross-indicator calls in the body: `sma_lookback(...)`
 ### Task 5: Update Rust backend to generate all function variants
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
 
 **Step 1: Write failing test**
 
@@ -200,9 +200,9 @@ fn test_rust_generates_all_variants() {
 ### Task 6: Update Java, .NET, SWIG backends for logic variant
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs`
-- Modify: `tools/ta_codegen/src/backends/dotnet.rs`
-- Modify: `tools/ta_codegen/src/backends/swig.rs`
+- Modify: `ta_codegen/generator/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/backends/dotnet.rs`
+- Modify: `ta_codegen/generator/src/backends/swig.rs`
 
 **Step 1: Write failing tests** for each backend checking for `Logic` variant.
 
@@ -222,11 +222,11 @@ fn test_rust_generates_all_variants() {
 ### Task 7: Add backend parser guards
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs`
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
-- Modify: `tools/ta_codegen/src/backends/java.rs`
-- Modify: `tools/ta_codegen/src/backends/dotnet.rs`
-- Modify: `tools/ta_codegen/src/backends/swig.rs`
+- Modify: `ta_codegen/generator/src/backends/c.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/backends/dotnet.rs`
+- Modify: `ta_codegen/generator/src/backends/swig.rs`
 
 **Step 1: Write failing test**
 
@@ -253,14 +253,14 @@ fn test_c_backend_rejects_unsupported_node() {
 ### Task 8: Update server_gen and validate.sh for new naming
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs`
-- Modify: `tools/ta_codegen/tests/validate.sh`
+- Modify: `ta_codegen/generator/src/server_gen.rs`
+- Modify: `ta_codegen/generator/tests/validate.sh`
 
 **Step 1:** Update server_gen to dispatch to the guarded `TA_<NAME>()` function (which is what JSON-RPC clients should call).
 
 **Step 2:** Update validate.sh to test both `TA_SMA` (guarded) and `TA_SMA_Logic` (unguarded) endpoints.
 
-**Step 3:** Run `cargo run --release -- generate` from `tools/ta_codegen/`.
+**Step 3:** Run `cargo run --release -- generate` from `ta_codegen/generator/`.
 
 **Step 4:** Run `bash tests/validate.sh` — all tests must pass.
 
@@ -270,7 +270,7 @@ fn test_c_backend_rejects_unsupported_node() {
 
 ### Task 9: Run ta_regtest with refactored indicators
 
-**Step 1:** Build ta_codegen: `cd tools/ta_codegen && cargo build --release`
+**Step 1:** Build ta_codegen: `cd ta_codegen/generator && cargo build --release`
 
 **Step 2:** Generate code: `cargo run --release -- generate`
 
@@ -287,9 +287,9 @@ fn test_c_backend_rejects_unsupported_node() {
 ### Task 10: Abstract table parser — extract YAML metadata
 
 **Files:**
-- Create: `tools/ta_codegen/src/extractor/mod.rs`
-- Create: `tools/ta_codegen/src/extractor/table_parser.rs`
-- Modify: `tools/ta_codegen/src/lib.rs` (add `pub mod extractor`)
+- Create: `ta_codegen/generator/src/extractor/mod.rs`
+- Create: `ta_codegen/generator/src/extractor/table_parser.rs`
+- Modify: `ta_codegen/generator/src/lib.rs` (add `pub mod extractor`)
 
 **Step 1: Write failing test**
 
@@ -333,7 +333,7 @@ fn test_parse_sma_from_table() {
 ### Task 11: Abstract table parser — resolve shared definitions
 
 **Files:**
-- Modify: `tools/ta_codegen/src/extractor/table_parser.rs`
+- Modify: `ta_codegen/generator/src/extractor/table_parser.rs`
 
 **Step 1: Write failing test**
 
@@ -372,7 +372,7 @@ fn test_resolve_shared_defs() {
 ### Task 12: Function source extractor — strip boilerplate from ta_func
 
 **Files:**
-- Create: `tools/ta_codegen/src/extractor/func_extractor.rs`
+- Create: `ta_codegen/generator/src/extractor/func_extractor.rs`
 
 **Step 1: Write failing test**
 
@@ -416,7 +416,7 @@ fn test_extract_sma_logic() {
 ### Task 13: Extraction CLI command — `ta_codegen extract`
 
 **Files:**
-- Modify: `tools/ta_codegen/src/main.rs`
+- Modify: `ta_codegen/generator/src/main.rs`
 
 **Step 1:** Add `extract` subcommand that:
 - Reads all `src/ta_abstract/tables/table_*.c` files
@@ -445,7 +445,7 @@ diff ta_codegen/input/sma/sma.c ta_func_defs_extracted/sma/sma.c
 ### Task 14: Extraction verification — round-trip diff
 
 **Files:**
-- Create: `tools/ta_codegen/tests/test_extraction.rs` or extend validate.sh
+- Create: `ta_codegen/generator/tests/test_extraction.rs` or extend validate.sh
 
 **Step 1:** For each extracted indicator:
 - Run ta_codegen `generate` on the extracted YAML+C
@@ -516,7 +516,7 @@ For each batch:
 ### Task 18: Add server-side timing to JSON-RPC servers
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs`
+- Modify: `ta_codegen/generator/src/server_gen.rs`
 
 **Step 1:** For each language's server template, wrap the indicator call with high-resolution timing:
 - C: `clock_gettime(CLOCK_MONOTONIC, ...)` before/after
@@ -610,8 +610,8 @@ Full report: ./ta_regtest_report_2026-03-08.csv
 ### Task 9b: Auto-discover indicators in Rust test suites
 
 **Files:**
-- Modify: `tools/ta_codegen/tests/backend_suite.rs`
-- Modify: `tools/ta_codegen/tests/integration_test.rs`
+- Modify: `ta_codegen/generator/tests/backend_suite.rs`
+- Modify: `ta_codegen/generator/tests/integration_test.rs`
 
 **Goal:** Replace hard-coded indicator lists in backend_suite.rs and integration_test.rs with dynamic discovery by scanning `ta_codegen/input/` at test time.
 

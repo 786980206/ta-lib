@@ -17,13 +17,13 @@
 ### Task 1: Extend FuncDef IR to hold two variants
 
 **Files:**
-- Modify: `tools/ta_codegen/src/ir.rs:1-15`
+- Modify: `ta_codegen/generator/src/ir.rs:1-15`
 
 The current `FuncDef` has a single `body: Vec<Statement>`. We need it to hold both guarded and unguarded bodies, plus the unguarded parameter list.
 
 - [ ] **Step 1: Add new fields to FuncDef**
 
-In `tools/ta_codegen/src/ir.rs`, add these fields to the `FuncDef` struct:
+In `ta_codegen/generator/src/ir.rs`, add these fields to the `FuncDef` struct:
 
 ```rust
 pub struct FuncDef {
@@ -58,13 +58,13 @@ has_explicit_unguarded: false,
 
 - [ ] **Step 3: Verify it compiles**
 
-Run: `cd tools/ta_codegen && cargo check`
+Run: `cd ta_codegen/generator && cargo check`
 Expected: Compiles with warnings about unused fields (that's fine)
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tools/ta_codegen/src/ir.rs tools/ta_codegen/src/main.rs
+git add ta_codegen/generator/src/ir.rs ta_codegen/generator/src/main.rs
 git commit -m "feat(ir): add unguarded body and extra params to FuncDef"
 ```
 
@@ -73,7 +73,7 @@ git commit -m "feat(ir): add unguarded body and extra params to FuncDef"
 ### Task 2: Parser recognizes foo_unguarded() in C source
 
 **Files:**
-- Modify: `tools/ta_codegen/src/parser/c_source.rs`
+- Modify: `ta_codegen/generator/src/parser/c_source.rs`
 
 The parser currently expects one main function per file (plus lookback). It needs to detect `_unguarded` suffix and store it separately.
 
@@ -131,13 +131,13 @@ For the initial implementation, identify these by pattern-matching on the IR `St
 
 - [ ] **Step 5: Verify parsing works with existing indicators**
 
-Run: `cd tools/ta_codegen && cargo run -- generate --backend=c 2>&1 | head -20`
+Run: `cd ta_codegen/generator && cargo run -- generate --backend=c 2>&1 | head -20`
 Expected: All indicators generate successfully (none have `_unguarded` yet, so all use auto-generation)
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add tools/ta_codegen/src/parser/c_source.rs tools/ta_codegen/src/main.rs
+git add ta_codegen/generator/src/parser/c_source.rs ta_codegen/generator/src/main.rs
 git commit -m "feat(parser): recognize foo_unguarded() with extra params in C source"
 ```
 
@@ -220,7 +220,7 @@ TA_RetCode ema_unguarded(int startIdx, int endIdx, const double *inReal,
 
 - [ ] **Step 2: Verify parser picks up both variants**
 
-Run: `cd tools/ta_codegen && cargo run -- generate --backend=c 2>&1 | grep EMA`
+Run: `cd ta_codegen/generator && cargo run -- generate --backend=c 2>&1 | grep EMA`
 Expected: EMA generates without errors. Check the output file has both `TA_EMA` and `TA_INT_EMA` (or equivalent unguarded name).
 
 - [ ] **Step 3: Commit**
@@ -299,7 +299,7 @@ git commit -m "feat(macd): call ema_unguarded with explicit k for fix case"
 ### Task 5: Simplify Rust backend to 2 variants
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
 
 This is the largest change. The Rust backend currently generates 4 variants via 4 separate functions. We collapse to 2.
 
@@ -358,7 +358,7 @@ In `generate_rust_server()` (around line 1979), update the dispatch call from `c
 
 - [ ] **Step 8: Verify Rust backend compiles and generates**
 
-Run: `cd tools/ta_codegen && cargo check && cargo run -- generate --backend=rust 2>&1 | tail -5`
+Run: `cd ta_codegen/generator && cargo check && cargo run -- generate --backend=rust 2>&1 | tail -5`
 Expected: All 163 indicators generate. Check a sample output (e.g., `ta_codegen/output/rust/src/ta_func/sma.rs`) has only 2 variants.
 
 - [ ] **Step 9: Build Rust crate**
@@ -369,7 +369,7 @@ Expected: Compiles (may have warnings, should have 0 errors)
 - [ ] **Step 10: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/rust_lang.rs tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/backends/rust_lang.rs ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(rust): collapse 4 variants to 2 (guarded + unguarded with get_unchecked)"
 ```
 
@@ -378,8 +378,8 @@ git commit -m "feat(rust): collapse 4 variants to 2 (guarded + unguarded with ge
 ### Task 6: Update C and Java backends for extra params
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/c.rs`
-- Modify: `tools/ta_codegen/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/backends/c.rs`
+- Modify: `ta_codegen/generator/src/backends/java.rs`
 
 C and Java already have guarded + Logic/INT variants. The change is adding extra param support to the unguarded/Logic variant signature and cross-indicator call resolution.
 
@@ -407,7 +407,7 @@ In `generate_c_server()` and `generate_java_server()`, ensure dispatch calls to 
 
 Run:
 ```bash
-cd tools/ta_codegen
+cd ta_codegen/generator
 cargo run -- generate --backend=c 2>&1 | tail -5
 cargo run -- generate --backend=java 2>&1 | tail -5
 ```
@@ -416,7 +416,7 @@ Expected: All 163 indicators generate for both backends.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/c.rs tools/ta_codegen/src/backends/java.rs tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/backends/c.rs ta_codegen/generator/src/backends/java.rs ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(c,java): support extra params on unguarded/Logic variants"
 ```
 
@@ -427,23 +427,23 @@ git commit -m "feat(c,java): support extra params on unguarded/Logic variants"
 ### Task 7: Build all servers and run regtest
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` (if needed for dispatch fixes)
-- Modify: `tools/ta_codegen/src/backends/dotnet.rs` (if needed)
-- Modify: `tools/ta_codegen/src/backends/swig.rs` (if needed)
+- Modify: `ta_codegen/generator/src/server_gen.rs` (if needed for dispatch fixes)
+- Modify: `ta_codegen/generator/src/backends/dotnet.rs` (if needed)
+- Modify: `ta_codegen/generator/src/backends/swig.rs` (if needed)
 
 - [ ] **Step 1: Generate all backends**
 
-Run: `cd tools/ta_codegen && cargo run -- generate`
+Run: `cd ta_codegen/generator && cargo run -- generate`
 Expected: All 5 backends generate without errors.
 
 - [ ] **Step 2: Generate servers**
 
-Run: `cd tools/ta_codegen && cargo run -- generate-servers`
+Run: `cd ta_codegen/generator && cargo run -- generate-servers`
 Expected: All server files generated.
 
 - [ ] **Step 3: Build servers**
 
-Run: `cd tools/ta_codegen && cargo run -- build`
+Run: `cd ta_codegen/generator && cargo run -- build`
 Expected: C server, Java server, .NET server, Rust server all compile.
 
 - [ ] **Step 4: Run make regtest**

@@ -19,8 +19,8 @@
 The `Core` class is missing a `candleSettings` field. The `candle_settings.rs` module already generates unpacking code like `this.candleSettings.bodyLong.rangeType`, but the field, its type, and the settings enum are never declared.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` (~line 788-791, inside `generate_java_server()`)
-- Reference: `tools/ta_codegen/src/candle_settings.rs` (lines 12-27 for setting names and properties)
+- Modify: `ta_codegen/generator/src/server_gen.rs` (~line 788-791, inside `generate_java_server()`)
+- Reference: `ta_codegen/generator/src/candle_settings.rs` (lines 12-27 for setting names and properties)
 - Reference: `include/ta_defs.h` (search for `TA_CandleSettingType` for default values)
 - Reference: `src/tools/gen_code/gen_code.c` (search for `candleSettings` for legacy Java initialization)
 
@@ -76,7 +76,7 @@ In `server_gen.rs`, after the `unstablePeriod` and `compatibility` fields (~line
 - [ ] **Step 4: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | tail -5
+cd ta_codegen/generator && cargo build 2>&1 | tail -5
 cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 5 TaCodegenServe.java 2>&1 | grep "candleSettings" | wc -l
 ```
@@ -92,7 +92,7 @@ Expected: Error count drops from ~3739 to ~1939.
 - [ ] **Step 5: Run cargo tests**
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 ```
 
 Expected: All 63 tests pass.
@@ -100,7 +100,7 @@ Expected: All 63 tests pass.
 - [ ] **Step 6: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/server_gen.rs
+cd ta_codegen/generator && git add src/server_gen.rs
 git commit -m "fix(java): add CandleSetting class, enum, and field to server template"
 ```
 
@@ -111,7 +111,7 @@ git commit -m "fix(java): add CandleSetting class, enum, and field to server tem
 `render_hoisted_blocks()` declares the output temp variable but not the helper's internal locals (which are `VarDecl` statements in the hoisted body). `render_statement` skips all `VarDecl`, so these locals vanish.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (~lines 404-441, `render_hoisted_blocks()`)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (~lines 404-441, `render_hoisted_blocks()`)
 
 - [ ] **Step 1: Add VarDecl scanning to `render_hoisted_blocks`**
 
@@ -141,7 +141,7 @@ for stmt in body {
 - [ ] **Step 2: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | tail -5
+cd ta_codegen/generator && cargo build 2>&1 | tail -5
 cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -3
 ```
@@ -157,13 +157,13 @@ Expected: 0.
 - [ ] **Step 3: Run cargo tests**
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 ```
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/java.rs
+cd ta_codegen/generator && git add src/backends/java.rs
 git commit -m "fix(java): declare hoisted block local variables in render_hoisted_blocks"
 ```
 
@@ -174,8 +174,8 @@ git commit -m "fix(java): declare hoisted block local variables in render_hoiste
 `hoist_block_helpers()` is only called for VarDecl inits and Assign values. Multi-statement helpers like `ta_candleaverage` in `If` conditions pass through as raw function calls. Need to hoist from all expression contexts.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (render_statement — If, While, DoWhile, ForC, Switch arms)
-- Reference: `tools/ta_codegen/src/backends/java.rs` (~lines 503-513, existing Assign hoist pattern)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (render_statement — If, While, DoWhile, ForC, Switch arms)
+- Reference: `ta_codegen/generator/src/backends/java.rs` (~lines 503-513, existing Assign hoist pattern)
 
 - [ ] **Step 1: Study the existing hoist pattern in Statement::Assign**
 
@@ -233,7 +233,7 @@ Find the `Statement::Switch` arm. Hoist from the switch expression. Emit hoisted
 - [ ] **Step 7: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | tail -5
+cd ta_codegen/generator && cargo build 2>&1 | tail -5
 cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -3
 ```
@@ -249,14 +249,14 @@ Expected: 0.
 - [ ] **Step 8: Run cargo tests**
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 cargo clippy 2>&1 | grep "java.rs" | wc -l
 ```
 
 - [ ] **Step 9: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/java.rs
+cd ta_codegen/generator && git add src/backends/java.rs
 git commit -m "fix(java): extend hoist_block_helpers to If/While/DoWhile/ForC/Switch conditions"
 ```
 
@@ -269,7 +269,7 @@ git commit -m "fix(java): extend hoist_block_helpers to If/While/DoWhile/ForC/Sw
 `TA_MAType_SMA` etc. appear in expression context (not just switch labels). Need mapping in `render_expr`.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (~lines 904-913, `Expr::Var` arm in `render_expr`)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (~lines 904-913, `Expr::Var` arm in `render_expr`)
 
 - [ ] **Step 1: Add TA_MAType_* mappings**
 
@@ -301,14 +301,14 @@ Expr::Var(name) => {
 - [ ] **Step 2: Build, verify, commit**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "TA_MAType" | wc -l
 ```
 
 Expected: 0.
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs && git commit -m "fix(java): map TA_MAType_* constants to MAType enum in expressions"
 ```
 
@@ -319,7 +319,7 @@ git add src/backends/java.rs && git commit -m "fix(java): map TA_MAType_* consta
 `to_pascal_case("HT_DCPERIOD")` produces `"Ht_dcperiod"` instead of `"HtDcPeriod"`. The function only capitalizes the first letter — it doesn't handle underscores.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (~line 1024, `to_pascal_case()`)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (~line 1024, `to_pascal_case()`)
 
 - [ ] **Step 1: Fix `to_pascal_case` to handle underscores and compound words**
 
@@ -379,7 +379,7 @@ Verify the lookup matches `server_gen.rs` line 773-777 enum variants exactly: `A
 - [ ] **Step 2: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "FuncUnstId" | wc -l
 ```
 
@@ -388,7 +388,7 @@ Expected: 0.
 - [ ] **Step 3: Run tests and commit**
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs && git commit -m "fix(java): fix FuncUnstId PascalCase conversion for underscored names"
 ```
 
@@ -399,7 +399,7 @@ git add src/backends/java.rs && git commit -m "fix(java): fix FuncUnstId PascalC
 C allows `if(intVar)`, Java requires `if(intVar != 0)`.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (Statement::If, Statement::While, Statement::DoWhile arms)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (Statement::If, Statement::While, Statement::DoWhile arms)
 - Reference: `src/tools/gen_code/gen_code.c` (search for int-to-boolean pattern)
 - Reference: existing `Core.java` for comparison
 
@@ -441,14 +441,14 @@ Apply the same pattern to `While` and `DoWhile` condition rendering.
 - [ ] **Step 3: Build, verify, commit**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "cannot be converted to boolean" | wc -l
 ```
 
 Expected: 0.
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs && git commit -m "fix(java): wrap int conditions with != 0 for Java boolean requirement"
 ```
 
@@ -459,7 +459,7 @@ git add src/backends/java.rs && git commit -m "fix(java): wrap int conditions wi
 Candlestick macros produce `(comparison) ? (1) : (0)` → int, which then fails in `&&` chains.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (Expr::Ternary arm in `render_expr`)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (Expr::Ternary arm in `render_expr`)
 - Reference: `src/tools/gen_code/gen_code.c` (search for `TA_CANDLEGAPUP` Java handling)
 
 - [ ] **Step 1: Detect and simplify boolean ternaries**
@@ -498,14 +498,14 @@ fn is_int_literal(expr: &Expr, value: i64) -> bool {
 - [ ] **Step 2: Build, verify, commit**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "bad operand" | wc -l
 ```
 
 Expected: 0.
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs && git commit -m "fix(java): simplify boolean ternaries — strip (cond)?1:0 wrappers from candlestick patterns"
 ```
 
@@ -516,7 +516,7 @@ git add src/backends/java.rs && git commit -m "fix(java): simplify boolean terna
 Float-precision overloads compare `float[]` to `double[]` for aliasing. This is always false in Java.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (BinOp Eq/NotEq in `render_expr`, or at the `gen_func` level)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (BinOp Eq/NotEq in `render_expr`, or at the `gen_func` level)
 - Reference: existing `Core.java` float overloads
 
 - [ ] **Step 1: Investigate the pattern**
@@ -541,14 +541,14 @@ Alternatively, in `render_expr`'s `BinOp(Eq)` arm, when `single_precision` is tr
 - [ ] **Step 3: Build, verify, commit**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "incomparable types" | wc -l
 ```
 
 Expected: 0.
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs && git commit -m "fix(java): replace float/double array aliasing checks with false in float variants"
 ```
 
@@ -561,7 +561,7 @@ git add src/backends/java.rs && git commit -m "fix(java): replace float/double a
 `tempMAType` is declared as `int` but assigned from `MAType` params.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (gen_func VarDecl loop, or add a pre-scan)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (gen_func VarDecl loop, or add a pre-scan)
 - Reference: `src/tools/gen_code/gen_code.c` and existing `Core.java` for `macdext`
 
 - [ ] **Step 1: Research the pattern**
@@ -577,14 +577,14 @@ Or simpler: add a heuristic in the VarDecl rendering — if the variable name co
 - [ ] **Step 3: Build, verify, commit**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "MAType cannot be converted" | wc -l
 ```
 
 Expected: 0.
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs && git commit -m "fix(java): declare MAType-assigned variables with enum type instead of int"
 ```
 
@@ -595,7 +595,7 @@ git add src/backends/java.rs && git commit -m "fix(java): declare MAType-assigne
 Functions like ATR pass `double prevATR` via `&prevATR` to `smaLogic` which expects `double[]`. Also causes "double cannot be dereferenced" from `.value` wrapping.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs` (multiple areas)
+- Modify: `ta_codegen/generator/src/backends/java.rs` (multiple areas)
 - Reference: `src/tools/gen_code/gen_code.c` (search for `prevATR` in Java context)
 - Reference: existing `Core.java` ATR implementation
 
@@ -622,14 +622,14 @@ Based on research, modify the VarDecl rendering and the `collect_address_of_vars
 - [ ] **Step 3: Build, verify, commit**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "cannot be dereferenced\|no suitable method found for sma" | wc -l
 ```
 
 Expected: 0.
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs && git commit -m "fix(java): handle scalar-double-as-array pointer pattern for cross-indicator calls"
 ```
 
@@ -640,7 +640,7 @@ git add src/backends/java.rs && git commit -m "fix(java): handle scalar-double-a
 Three lookback functions are called but never defined.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` or `tools/ta_codegen/src/backends/java.rs`
+- Modify: `ta_codegen/generator/src/server_gen.rs` or `ta_codegen/generator/src/backends/java.rs`
 - Reference: `src/tools/gen_code/gen_code.c` (search for `linearreg` lookback)
 
 - [ ] **Step 1: Research the issue**
@@ -661,14 +661,14 @@ Based on research — either fix the naming to match generated methods, or add a
 - [ ] **Step 3: Build, verify, commit**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | grep "linearreg.*Lookback" | wc -l
 ```
 
 Expected: 0.
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 git add src/backends/java.rs src/server_gen.rs && git commit -m "fix(java): resolve linearreg*Lookback method name mismatches"
 ```
 
@@ -684,7 +684,7 @@ No code changes — verify everything compiles.
 - [ ] **Step 1: Regenerate and compile**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo run -- generate-servers --backend=java
 cd ../../ta_codegen/output/java && javac -Xmaxerrs 10000 TaCodegenServe.java 2>&1 | tail -5
 ```
 
@@ -701,7 +701,7 @@ If any errors remain, they are downstream issues from Fixes 5b or other edge cas
 - [ ] **Step 3: Run all tests**
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 cargo clippy 2>&1 | grep "java.rs" | wc -l
 ```
 

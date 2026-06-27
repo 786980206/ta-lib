@@ -13,15 +13,15 @@
 ### Task 1: Generate ta_bench_cg.c source
 
 **Files:**
-- Create: `tools/ta_codegen/src/bench_gen.rs`
-- Modify: `tools/ta_codegen/src/lib.rs` (add `pub mod bench_gen;`)
-- Modify: `tools/ta_codegen/src/main.rs` (add `generate-bench` command + build step)
+- Create: `ta_codegen/generator/src/bench_gen.rs`
+- Modify: `ta_codegen/generator/src/lib.rs` (add `pub mod bench_gen;`)
+- Modify: `ta_codegen/generator/src/main.rs` (add `generate-bench` command + build step)
 
 The generated `ta_bench_cg.c` is a stripped-down version of the server: same single-TU `#include` pattern, same static globals, but instead of JSON-RPC it accepts CLI args and calls functions directly.
 
 - [ ] **Step 1: Add bench_gen module**
 
-Create `tools/ta_codegen/src/bench_gen.rs`:
+Create `ta_codegen/generator/src/bench_gen.rs`:
 
 ```rust
 //! Generates a standalone direct-call benchmark binary for the C backend.
@@ -297,12 +297,12 @@ Note: The Price input argument mapping above is a sketch. The exact argument lis
 
 - [ ] **Step 2: Wire into lib.rs and main.rs**
 
-In `tools/ta_codegen/src/lib.rs`, add:
+In `ta_codegen/generator/src/lib.rs`, add:
 ```rust
 pub mod bench_gen;
 ```
 
-In `tools/ta_codegen/src/main.rs`, add a `"generate-bench"` command that calls `bench_gen::write_c_bench()`, and extend the `"build"` command to also compile `ta_bench_cg.c`:
+In `ta_codegen/generator/src/main.rs`, add a `"generate-bench"` command that calls `bench_gen::write_c_bench()`, and extend the `"build"` command to also compile `ta_bench_cg.c`:
 
 ```rust
 "generate-bench" => {
@@ -334,7 +334,7 @@ In `server_gen.rs`, change `fn expand_input_names` from private to `pub(crate)` 
 - [ ] **Step 4: Build and verify ta_bench_cg generates and compiles**
 
 ```bash
-cd tools/ta_codegen
+cd ta_codegen/generator
 cargo run --release -- generate-bench --backend=c
 cargo run --release -- build --backend=c
 # Verify bin/ta_bench_cg exists and runs:
@@ -345,7 +345,7 @@ cd ../../bin && ./ta_bench_cg --function=SMA --iters=100 --points=10000
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/ta_codegen/src/bench_gen.rs tools/ta_codegen/src/lib.rs tools/ta_codegen/src/main.rs tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/bench_gen.rs ta_codegen/generator/src/lib.rs ta_codegen/generator/src/main.rs ta_codegen/generator/src/server_gen.rs
 git commit -m "feat: generate ta_bench_cg direct-call benchmark binary"
 ```
 

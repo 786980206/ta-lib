@@ -55,7 +55,7 @@ For more control, run `ta_regtest` directly from `bin/`:
 In addition to gen_code (see below), a Rust tool `ta_codegen` generates the Rust indicator implementations and the JSON-RPC test servers:
 
 ```
-cd tools/ta_codegen
+cd ta_codegen/generator
 cargo run -- generate                            # Generate indicator code for all backends
 cargo run -- generate --func=SMA --backend=rust  # Specific function + backend
 cargo run -- generate-servers                    # Generate JSON-RPC servers

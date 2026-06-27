@@ -19,8 +19,8 @@
 Change `generate --backend=rust` to write indicator files into a proper crate structure and emit all scaffolding files.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/main.rs` (~line 852-858, Rust backend case in generate)
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs` (add embedded float.rs content)
+- Modify: `ta_codegen/generator/src/main.rs` (~line 852-858, Rust backend case in generate)
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs` (add embedded float.rs content)
 - Create: `ta_codegen/output/rust/Cargo.toml` (generated)
 - Create: `ta_codegen/output/rust/src/lib.rs` (generated)
 - Create: `ta_codegen/output/rust/src/ta_func/mod.rs` (generated)
@@ -29,7 +29,7 @@ Change `generate --backend=rust` to write indicator files into a proper crate st
 
 - [ ] **Step 1: Read the current Rust generate case in main.rs**
 
-Read `tools/ta_codegen/src/main.rs` lines 852-858. Currently:
+Read `ta_codegen/generator/src/main.rs` lines 852-858. Currently:
 ```rust
 "rust" => {
     let output = backends::rust_lang::generate(func_def, enums, registry, helpers);
@@ -178,7 +178,7 @@ if backends_to_run.contains(&"rust") {
 - [ ] **Step 6: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | tail -5
+cd ta_codegen/generator && cargo build 2>&1 | tail -5
 cargo run -- generate --backend=rust 2>&1 | tail -5
 ```
 
@@ -207,7 +207,7 @@ This will likely show compilation errors in the generated indicator code. That's
 - [ ] **Step 8: Commit**
 
 ```bash
-cd ../../tools/ta_codegen && git add src/main.rs src/backends/rust_lang.rs
+cd ../../ta_codegen/generator && git add src/main.rs src/backends/rust_lang.rs
 git commit -m "feat(rust): restructure codegen output into self-contained Cargo crate
 
 Indicator files now output to ta_codegen/output/rust/src/ta_func/.
@@ -223,8 +223,8 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 The `generate_rust_server()` (already implemented) writes to `rust/src/bin/`. Change it to write to `ta_codegen/output/rust/src/bin/`.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/main.rs` (~line 256-260, Rust server gen path)
-- Modify: `tools/ta_codegen/src/main.rs` (~line 508-520, Rust build path)
+- Modify: `ta_codegen/generator/src/main.rs` (~line 256-260, Rust server gen path)
+- Modify: `ta_codegen/generator/src/main.rs` (~line 508-520, Rust build path)
 
 - [ ] **Step 1: Fix server generation output path**
 
@@ -255,7 +255,7 @@ let rust_dir = out_base.join("rust");
 - [ ] **Step 3: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build && cargo run -- generate-servers --backend=rust 2>&1
+cd ta_codegen/generator && cargo build && cargo run -- generate-servers --backend=rust 2>&1
 ```
 
 Expected: `Rust server -> ../../ta_codegen/output/rust/src/bin/ta_codegen_serve.rs`
@@ -274,7 +274,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 
 **Files:**
 - Delete: `rust/` (entire directory)
-- Modify: `tools/ta_codegen/src/main.rs` (remove old Cargo.toml/bin setup from Task RS-1)
+- Modify: `ta_codegen/generator/src/main.rs` (remove old Cargo.toml/bin setup from Task RS-1)
 
 - [ ] **Step 1: Remove old rust/ directory**
 
@@ -287,7 +287,7 @@ cd /Users/chadfurman/projects/ta-lib && rm -rf rust/
 Check `main.rs` for any remaining references to `../../rust`:
 
 ```bash
-grep -n "../../rust" tools/ta_codegen/src/main.rs
+grep -n "../../rust" ta_codegen/generator/src/main.rs
 ```
 
 If any remain from earlier tasks (RS-1 added Cargo.toml changes to `rust/`), they should already be fixed by Task 2. If not, fix them.
@@ -295,7 +295,7 @@ If any remain from earlier tasks (RS-1 added Cargo.toml changes to `rust/`), the
 - [ ] **Step 3: Verify ta_codegen still works**
 
 ```bash
-cd tools/ta_codegen && cargo test --lib --test backend_suite 2>&1 | tail -5
+cd ta_codegen/generator && cargo test --lib --test backend_suite 2>&1 | tail -5
 ```
 
 - [ ] **Step 4: Commit**
@@ -315,7 +315,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 The generated Rust indicator code likely has compilation errors. Fix them iteratively.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs` (fix generation patterns)
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs` (fix generation patterns)
 - Reference: `ta_codegen/output/rust/src/ta_func/*.rs` (generated output to check)
 
 - [ ] **Step 1: Attempt to compile the crate**
@@ -335,7 +335,7 @@ Categorize the errors. Common issues in the Rust backend:
 For each error category, fix the generation pattern in `rust_lang.rs`, then regenerate:
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate --backend=rust
+cd ta_codegen/generator && cargo run -- generate --backend=rust
 cd ../../ta_codegen/output/rust && cargo check --lib 2>&1 | head -50
 ```
 
@@ -344,7 +344,7 @@ Iterate until `cargo check --lib` passes.
 - [ ] **Step 3: Build the server binary**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=rust
+cd ta_codegen/generator && cargo run -- generate-servers --backend=rust
 cd ../../ta_codegen/output/rust && cargo check --bin ta_codegen_serve 2>&1 | tail -10
 ```
 
@@ -353,7 +353,7 @@ If the server doesn't compile, fix `generate_rust_server()` in `server_gen.rs`.
 - [ ] **Step 4: Build release binary**
 
 ```bash
-cd tools/ta_codegen && cargo run -- build --backend=rust 2>&1
+cd ta_codegen/generator && cargo run -- build --backend=rust 2>&1
 ```
 
 Expected: `Building Rust server... OK`
@@ -368,7 +368,7 @@ echo '{"method":"TA_SMA","params":{"startIdx":0,"endIdx":4,"inReal":[1.0,2.0,3.0
 - [ ] **Step 6: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/rust_lang.rs src/server_gen.rs
+cd ta_codegen/generator && git add src/backends/rust_lang.rs src/server_gen.rs
 git commit -m "fix(rust): fix indicator compilation errors in Rust backend
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
@@ -379,7 +379,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 ### Task 5: Run Regression Tests
 
 **Files:**
-- May modify: `tools/ta_codegen/src/backends/rust_lang.rs` or `server_gen.rs`
+- May modify: `ta_codegen/generator/src/backends/rust_lang.rs` or `server_gen.rs`
 
 - [ ] **Step 1: Rebuild ta_regtest**
 

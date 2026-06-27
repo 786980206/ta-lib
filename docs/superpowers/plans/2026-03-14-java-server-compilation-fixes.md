@@ -16,10 +16,10 @@
 
 | File | Changes | Purpose |
 |------|---------|---------|
-| `tools/ta_codegen/src/parser/c_source.rs` | Modify | Fix 1-2: VarDecl flattening + dedup |
-| `tools/ta_codegen/src/backends/java.rs` | Modify | Fix 3-6: null-check elimination, ALLOC_ERR, MInteger, duplicate return |
-| `tools/ta_codegen/src/backends/rust_lang.rs` | Modify | Fix 3, 4, 6 parity (same VarDecl loop bug too) |
-| `tools/ta_codegen/src/server_gen.rs` | Modify | Fix 7-8: MAType enum, class field cleanup |
+| `ta_codegen/generator/src/parser/c_source.rs` | Modify | Fix 1-2: VarDecl flattening + dedup |
+| `ta_codegen/generator/src/backends/java.rs` | Modify | Fix 3-6: null-check elimination, ALLOC_ERR, MInteger, duplicate return |
+| `ta_codegen/generator/src/backends/rust_lang.rs` | Modify | Fix 3, 4, 6 parity (same VarDecl loop bug too) |
+| `ta_codegen/generator/src/server_gen.rs` | Modify | Fix 7-8: MAType enum, class field cleanup |
 
 ---
 
@@ -30,8 +30,8 @@
 The parser currently wraps multi-variable declarations like `int i, j, k;` into `Statement::Block { body: [VarDecl, VarDecl, ...] }`. The java.rs and rust_lang.rs backends only iterate direct `VarDecl` entries from `func.body`, so nested ones are missed. Fix the parser to emit individual `VarDecl` entries directly.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/parser/c_source.rs:619-654` (parse_statements, parse_statement)
-- Modify: `tools/ta_codegen/src/parser/c_source.rs:919-953` (parse_var_decl)
+- Modify: `ta_codegen/generator/src/parser/c_source.rs:619-654` (parse_statements, parse_statement)
+- Modify: `ta_codegen/generator/src/parser/c_source.rs:919-953` (parse_var_decl)
 
 - [ ] **Step 1: Change `parse_var_decl()` to return `Vec<Statement>`**
 
@@ -127,8 +127,8 @@ In `parse_statement()` (~line 632), remove these two match arms since they're no
 - [ ] **Step 4: Build and test**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | head -50
-cd tools/ta_codegen && cargo test 2>&1 | tail -20
+cd ta_codegen/generator && cargo build 2>&1 | head -50
+cd ta_codegen/generator && cargo test 2>&1 | tail -20
 ```
 
 Expected: All existing tests pass. If any test relies on `Statement::Block` wrapping multi-var decls, update it.
@@ -136,7 +136,7 @@ Expected: All existing tests pass. If any test relies on `Statement::Block` wrap
 - [ ] **Step 5: Verify flattening works — regenerate and check ACCBANDS**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo run -- generate-servers --backend=java
 grep -n "int i\|int j\|int outputSize\|int bufferSize\|int lookbackTotal" ../ta_codegen/output/java/Core_ACCBANDS.java | head -20
 ```
 
@@ -145,7 +145,7 @@ Expected: Each variable should now have its own `int varname;` declaration line.
 - [ ] **Step 6: Verify C output unchanged**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=c
+cd ta_codegen/generator && cargo run -- generate-servers --backend=c
 cd .. && git diff ta_codegen/output/c/
 ```
 
@@ -154,7 +154,7 @@ Expected: No changes to C output (parser fix should be transparent to C backend)
 - [ ] **Step 7: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/parser/c_source.rs
+cd ta_codegen/generator && git add src/parser/c_source.rs
 git commit -m "fix(parser): flatten multi-var VarDecl — emit individual declarations instead of Block wrapper"
 ```
 
@@ -165,7 +165,7 @@ git commit -m "fix(parser): flatten multi-var VarDecl — emit individual declar
 The C source has patterns like `double *tempBuffer1;` (declaration) then `double *tempBuffer1 = malloc(...)` (re-declaration with init). The parser captures both as VarDecl, producing illegal duplicate declarations in Java. Fix: track declared names per-function, convert re-declarations to assignments.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/parser/c_source.rs` (parse_statements, add declared_vars tracking)
+- Modify: `ta_codegen/generator/src/parser/c_source.rs` (parse_statements, add declared_vars tracking)
 
 - [ ] **Step 1: Add `HashSet<String>` tracking to `parse_statements()`**
 
@@ -243,14 +243,14 @@ fn parse_statements(&mut self) -> Vec<Statement> {
 - [ ] **Step 2: Build and test**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | head -50
-cd tools/ta_codegen && cargo test 2>&1 | tail -20
+cd ta_codegen/generator && cargo build 2>&1 | head -50
+cd ta_codegen/generator && cargo test 2>&1 | tail -20
 ```
 
 - [ ] **Step 3: Verify dedup — check ACCBANDS for duplicate tempBuffer declarations**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo run -- generate-servers --backend=java
 grep -c "double\[\] tempBuffer1" ../ta_codegen/output/java/Core_ACCBANDS.java
 ```
 
@@ -267,7 +267,7 @@ Expected: `double[] tempBuffer1;` (declaration), then later `tempBuffer1 = new d
 - [ ] **Step 5: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/parser/c_source.rs
+cd ta_codegen/generator && git add src/parser/c_source.rs
 git commit -m "fix(parser): deduplicate VarDecl — convert re-declarations to assignments"
 ```
 
@@ -280,7 +280,7 @@ git commit -m "fix(parser): deduplicate VarDecl — convert re-declarations to a
 After stdlib mapping, `malloc` → `new double[...]` in Java. The subsequent `if(!ptr) { return ALLOC_ERR; }` blocks are dead code and invalid Java syntax (`!` on array). Skip entire if-blocks whose body returns ALLOC_ERR.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs:457-511` (Statement::If rendering)
+- Modify: `ta_codegen/generator/src/backends/java.rs:457-511` (Statement::If rendering)
 
 - [ ] **Step 1: Add `contains_alloc_err_return` helper function**
 
@@ -313,7 +313,7 @@ Statement::If {
 - [ ] **Step 3: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build
+cd ta_codegen/generator && cargo build
 cargo run -- generate-servers --backend=java
 grep -c "ALLOC_ERR" ../ta_codegen/output/java/Core_ACCBANDS.java
 ```
@@ -331,7 +331,7 @@ Expected: No matches.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/java.rs
+cd ta_codegen/generator && git add src/backends/java.rs
 git commit -m "fix(java): eliminate post-allocation null-check blocks — dead code after stdlib mapping"
 ```
 
@@ -342,7 +342,7 @@ git commit -m "fix(java): eliminate post-allocation null-check blocks — dead c
 Safety net: map the `ALLOC_ERR` IR constant to `RetCode.AllocErr` in java.rs for any references that survive null-check elimination (e.g., in else branches or other contexts).
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs:714-720` (Expr::Var constant mapping)
+- Modify: `ta_codegen/generator/src/backends/java.rs:714-720` (Expr::Var constant mapping)
 
 - [ ] **Step 1: Add ALLOC_ERR and INTERNAL_ERROR to the Var mapping**
 
@@ -366,7 +366,7 @@ Expr::Var(name) => match name.as_str() {
 - [ ] **Step 2: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build
+cd ta_codegen/generator && cargo build
 cargo run -- generate-servers --backend=java
 grep -rn "ALLOC_ERR\|INTERNAL_ERROR" ../ta_codegen/output/java/ | head -10
 ```
@@ -376,7 +376,7 @@ Expected: No raw `ALLOC_ERR` or `INTERNAL_ERROR` references — they should all 
 - [ ] **Step 3: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/java.rs
+cd ta_codegen/generator && git add src/backends/java.rs
 git commit -m "fix(java): map ALLOC_ERR and other missing constants to RetCode enum"
 ```
 
@@ -387,10 +387,10 @@ git commit -m "fix(java): map ALLOC_ERR and other missing constants to RetCode e
 When DEMA calls `ema(...)`, it passes `&firstEMABegIdx` as an output param. The IR has `AddressOf(Var("firstEMABegIdx"))`. Java needs `MInteger` wrappers for these variables.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs:11-16` (add imports)
-- Modify: `tools/ta_codegen/src/backends/java.rs:145-159` (VarDecl declaration loop)
-- Modify: `tools/ta_codegen/src/backends/java.rs:714-720` (Expr::Var rendering)
-- Modify: `tools/ta_codegen/src/backends/java.rs:773-776` (Expr::AddressOf rendering)
+- Modify: `ta_codegen/generator/src/backends/java.rs:11-16` (add imports)
+- Modify: `ta_codegen/generator/src/backends/java.rs:145-159` (VarDecl declaration loop)
+- Modify: `ta_codegen/generator/src/backends/java.rs:714-720` (Expr::Var rendering)
+- Modify: `ta_codegen/generator/src/backends/java.rs:773-776` (Expr::AddressOf rendering)
 
 - [ ] **Step 1: Add `collect_address_of_vars` helper function**
 
@@ -550,7 +550,7 @@ This ensures `AddressOf(Var("x"))` renders as `x` (the MInteger object) rather t
 - [ ] **Step 4: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build 2>&1 | head -50
+cd ta_codegen/generator && cargo build 2>&1 | head -50
 cargo run -- generate-servers --backend=java
 grep -n "MInteger\|firstEMABegIdx\|outBegIdxDummy" ../ta_codegen/output/java/Core_DEMA.java | head -20
 ```
@@ -563,7 +563,7 @@ Expected:
 - [ ] **Step 5: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/java.rs
+cd ta_codegen/generator && git add src/backends/java.rs
 git commit -m "fix(java): wrap cross-indicator output params in MInteger — pre-scan AddressOf patterns"
 ```
 
@@ -574,7 +574,7 @@ git commit -m "fix(java): wrap cross-indicator output params in MInteger — pre
 The duplicate return comes from TWO sources: the C source body ends with `return SUCCESS;` (rendered from IR), AND `gen_func()` has a hardcoded `return RetCode.Success;` at line 228. Remove the hardcoded return — the body's own return is sufficient.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/java.rs:227-229` (gen_func trailing return)
+- Modify: `ta_codegen/generator/src/backends/java.rs:227-229` (gen_func trailing return)
 
 - [ ] **Step 1: Remove the hardcoded trailing return**
 
@@ -595,7 +595,7 @@ The body already contains `return RetCode.Success;` from the IR — the hardcode
 - [ ] **Step 2: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build
+cd ta_codegen/generator && cargo build
 cargo run -- generate-servers --backend=java
 grep -c "return RetCode.Success" ../ta_codegen/output/java/Core_ACCBANDS.java
 ```
@@ -605,7 +605,7 @@ Expected: Count should be halved compared to before (one per function variant, n
 - [ ] **Step 3: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/java.rs
+cd ta_codegen/generator && git add src/backends/java.rs
 git commit -m "fix(java): remove hardcoded duplicate return — body IR already has return statement"
 ```
 
@@ -618,8 +618,8 @@ git commit -m "fix(java): remove hardcoded duplicate return — body IR already 
 Core_MA.java references `TA_MAType_SMA` etc. in switch statements. The MAType enum needs to be defined in the server template, and the switch labels need to resolve via `lookup_variant()`.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs:782-783` (after Compatibility enum)
-- Modify: `tools/ta_codegen/src/backends/java.rs:641-646` (switch label rendering — verify `lookup_variant` handles MAType)
+- Modify: `ta_codegen/generator/src/server_gen.rs:782-783` (after Compatibility enum)
+- Modify: `ta_codegen/generator/src/backends/java.rs:641-646` (switch label rendering — verify `lookup_variant` handles MAType)
 
 - [ ] **Step 1: Add MAType enum to server template**
 
@@ -654,7 +654,7 @@ fn render_java_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> St
 - [ ] **Step 3: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build
+cd ta_codegen/generator && cargo build
 cargo run -- generate-servers --backend=java
 grep -n "MAType\|TA_MAType" ../ta_codegen/output/java/Core_MA.java | head -20
 ```
@@ -664,7 +664,7 @@ Expected: Switch cases use `MAType.Sma`, `MAType.Ema`, etc. — not `TA_MAType_S
 - [ ] **Step 4: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/server_gen.rs src/backends/java.rs
+cd ta_codegen/generator && git add src/server_gen.rs src/backends/java.rs
 git commit -m "fix(java): add MAType enum to server template and resolve switch labels"
 ```
 
@@ -675,12 +675,12 @@ git commit -m "fix(java): add MAType enum to server template and resolve switch 
 After Task 1 (VarDecl flattening), all variables are declared locally in each method. Remove the class-level field declarations that are now redundant.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs:786-789` (Core class fields)
+- Modify: `ta_codegen/generator/src/server_gen.rs:786-789` (Core class fields)
 
 - [ ] **Step 1: Verify local declarations exist before removing class fields**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo run -- generate-servers --backend=java
 grep -n "int lookbackTotal\|int i;" ../ta_codegen/output/java/Core_ACCBANDS.java | head -10
 grep -n "int outIdx" ../ta_codegen/output/java/Core_DEMA.java | head -5
 ```
@@ -708,7 +708,7 @@ Remove `lookbackTotal, i, outIdx, trailingIdx` and `nbElement` — these are all
 - [ ] **Step 3: Build and verify**
 
 ```bash
-cd tools/ta_codegen && cargo build
+cd ta_codegen/generator && cargo build
 cargo run -- generate-servers --backend=java
 ```
 
@@ -717,7 +717,7 @@ Check that no variable shadowing warnings appear and the generated file looks cl
 - [ ] **Step 4: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/server_gen.rs
+cd ta_codegen/generator && git add src/server_gen.rs
 git commit -m "fix(java): remove redundant class-level field declarations — variables are now method-local"
 ```
 
@@ -730,7 +730,7 @@ git commit -m "fix(java): remove redundant class-level field declarations — va
 The Rust backend has the same VarDecl loop bug (only iterates direct entries, misses Block-wrapped ones). The parser fix (Task 1) resolves this. But null-check elimination, ALLOC_ERR mapping, and duplicate return fixes should also be applied.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
 
 - [ ] **Step 1: Add null-check block elimination (same as Task 3)**
 
@@ -747,14 +747,14 @@ Same pattern as Task 6 — skip consecutive identical return statements during b
 - [ ] **Step 4: Build and test**
 
 ```bash
-cd tools/ta_codegen && cargo build
-cd tools/ta_codegen && cargo test 2>&1 | tail -20
+cd ta_codegen/generator && cargo build
+cd ta_codegen/generator && cargo test 2>&1 | tail -20
 ```
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd tools/ta_codegen && git add src/backends/rust_lang.rs
+cd ta_codegen/generator && git add src/backends/rust_lang.rs
 git commit -m "fix(rust): apply null-check elimination, ALLOC_ERR mapping, and duplicate return fixes"
 ```
 
@@ -772,7 +772,7 @@ Regenerate the Java server, compile it, and verify zero compilation errors.
 Confirm that `server_gen.rs` already defines all required types. Check the generated `TaCodegenServe.java` for:
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo run -- generate-servers --backend=java
 grep -n "^enum\|^class MInteger" ../ta_codegen/output/java/TaCodegenServe.java
 ```
 
@@ -781,13 +781,13 @@ Expected: `RetCode`, `MInteger`, `FuncUnstId`, `Compatibility`, `MAType` (added 
 - [ ] **Step 2: Regenerate Java server**
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate-servers --backend=java
+cd ta_codegen/generator && cargo run -- generate-servers --backend=java
 ```
 
 - [ ] **Step 3: Build the Java server**
 
 ```bash
-cd tools/ta_codegen && cargo run -- build --backend=java 2>&1 | tail -30
+cd ta_codegen/generator && cargo run -- build --backend=java 2>&1 | tail -30
 ```
 
 Or manually:

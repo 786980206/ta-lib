@@ -273,9 +273,9 @@ Per-backend spot checks (from `bin/` after servers are built):
 | File | Change |
 |------|--------|
 | `ta_codegen/input/*/*.c` | Replace macros with plain C (~158 files) |
-| `tools/ta_codegen/src/backends/c.rs` | Fix ForC rendering, forward decls |
-| `tools/ta_codegen/src/backends/java.rs` | Fix ForC rendering |
-| `tools/ta_codegen/src/backends/rust_lang.rs` | ForC → range iteration |
-| `tools/ta_codegen/src/backends/swig.rs` | Fix naming alignment |
-| `tools/ta_codegen/src/server_gen.rs` | Forward declarations in `ta_func.h` stub |
-| `tools/ta_codegen/src/parser/c_source.rs` | May need updates if new plain C patterns aren't parsed correctly |
+| `ta_codegen/generator/src/backends/c.rs` | Fix ForC rendering, forward decls |
+| `ta_codegen/generator/src/backends/java.rs` | Fix ForC rendering |
+| `ta_codegen/generator/src/backends/rust_lang.rs` | ForC → range iteration |
+| `ta_codegen/generator/src/backends/swig.rs` | Fix naming alignment |
+| `ta_codegen/generator/src/server_gen.rs` | Forward declarations in `ta_func.h` stub |
+| `ta_codegen/generator/src/parser/c_source.rs` | May need updates if new plain C patterns aren't parsed correctly |

@@ -16,7 +16,7 @@
 
 | File | Responsibility |
 |------|---------------|
-| `tools/ta_codegen/src/server_gen.rs` | Generate JSON-RPC servers for all languages. Add multi-output, price inputs, real params, timing, list_functions, all 24 unstable IDs. |
+| `ta_codegen/generator/src/server_gen.rs` | Generate JSON-RPC servers for all languages. Add multi-output, price inputs, real params, timing, list_functions, all 24 unstable IDs. |
 | `src/tools/ta_regtest/test_codegen.c` | Generic ta_abstract-driven callback, JSON request builder, response parser, timing collection, reporting. |
 | `src/tools/ta_regtest/test_codegen.h` | Public API (unchanged signature, possibly add flags). |
 | `src/tools/ta_regtest/ta_regtest.c` | `--codegen` / `--codegen-only` CLI flags, wire up `test_codegen()`. |
@@ -29,7 +29,7 @@
 ### Task 1: Expand `func_unst_id` to all 24 unstable-period functions
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` — `func_unst_id()` function (~line 12-18)
+- Modify: `ta_codegen/generator/src/server_gen.rs` — `func_unst_id()` function (~line 12-18)
 
 - [ ] **Step 1: Read `server_gen.rs` and locate `func_unst_id`**
 
@@ -74,7 +74,7 @@ fn func_unst_id(name: &str) -> Option<i32> {
 - [ ] **Step 3: Run ta_codegen tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 Expected: All tests pass (func_unst_id is not directly tested but shouldn't break anything).
@@ -82,7 +82,7 @@ Expected: All tests pass (func_unst_id is not directly tested but shouldn't brea
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(server_gen): expand func_unst_id to all 24 unstable-period functions"
 ```
 
@@ -91,7 +91,7 @@ git commit -m "feat(server_gen): expand func_unst_id to all 24 unstable-period f
 ### Task 2: Add `json_find_double` helper to C server generation
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` — `generate_c_json_helpers()` function
+- Modify: `ta_codegen/generator/src/server_gen.rs` — `generate_c_json_helpers()` function
 
 - [ ] **Step 1: Read `generate_c_json_helpers()` in `server_gen.rs`**
 
@@ -133,13 +133,13 @@ Check `generate_java_server`, `generate_dotnet_server`, `generate_swig_server` f
 - [ ] **Step 5: Run ta_codegen tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(server_gen): add json_find_double for real-valued optional params"
 ```
 
@@ -148,7 +148,7 @@ git commit -m "feat(server_gen): add json_find_double for real-valued optional p
 ### Task 3: Add price input support to server dispatch
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` — dispatch generation functions for all languages
+- Modify: `ta_codegen/generator/src/server_gen.rs` — dispatch generation functions for all languages
 
 - [ ] **Step 1: Read how `generate_c_dispatch` currently handles inputs**
 
@@ -191,13 +191,13 @@ Each language server needs the same pattern: parse named OHLCV arrays from the J
 - [ ] **Step 5: Run ta_codegen tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(server_gen): add price input (OHLCV) support to all server dispatchers"
 ```
 
@@ -206,7 +206,7 @@ git commit -m "feat(server_gen): add price input (OHLCV) support to all server d
 ### Task 4: Add multi-output and integer output support to servers
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs` — dispatch and response generation
+- Modify: `ta_codegen/generator/src/server_gen.rs` — dispatch and response generation
 
 - [ ] **Step 1: Read how outputs are currently handled in C dispatch**
 
@@ -273,13 +273,13 @@ static int json_write_int_array(char *buf, int buf_size, const int *data, int co
 - [ ] **Step 7: Run ta_codegen tests**
 
 ```bash
-cd tools/ta_codegen && cargo test
+cd ta_codegen/generator && cargo test
 ```
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(server_gen): add multi-output and integer output support to all servers"
 ```
 
@@ -288,7 +288,7 @@ git commit -m "feat(server_gen): add multi-output and integer output support to 
 ### Task 5: Add timing and `list_functions` to servers
 
 **Files:**
-- Modify: `tools/ta_codegen/src/server_gen.rs`
+- Modify: `ta_codegen/generator/src/server_gen.rs`
 
 - [ ] **Step 1: Add timing measurement to C server dispatch**
 
@@ -345,9 +345,9 @@ Server sets the global unstable period for the given function ID. In C: calls ge
 - [ ] **Step 6: Run ta_codegen tests, then generate and build servers**
 
 ```bash
-cd tools/ta_codegen && cargo test
-cd tools/ta_codegen && cargo run -- generate-servers
-cd tools/ta_codegen && cargo run -- build
+cd ta_codegen/generator && cargo test
+cd ta_codegen/generator && cargo run -- generate-servers
+cd ta_codegen/generator && cargo run -- build
 ```
 
 Verify at least the C server compiles and starts.
@@ -355,7 +355,7 @@ Verify at least the C server compiles and starts.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add tools/ta_codegen/src/server_gen.rs
+git add ta_codegen/generator/src/server_gen.rs
 git commit -m "feat(server_gen): add timing_ns, list_functions, set_unstable_period to all servers"
 ```
 
@@ -979,7 +979,7 @@ static int parse_list_functions(CodegenPipe *cp, char *reqBuf, char *resBuf,
 
 ```bash
 cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release && make ta_regtest -j4
-cd tools/ta_codegen && cargo run -- generate-servers --backend=c && cargo run -- build --backend=c
+cd ta_codegen/generator && cargo run -- generate-servers --backend=c && cargo run -- build --backend=c
 cd ../../bin && ./ta_regtest --codegen --language=c --function=SMA,MULT,RSI
 ```
 
@@ -1317,7 +1317,7 @@ Kept: rust/tests/float_test.rs (TaFloat trait tests)"
 
 **Files:**
 - Modify: `CLAUDE.md` (root)
-- Modify: `tools/ta_codegen/CLAUDE.md`
+- Modify: `ta_codegen/generator/CLAUDE.md`
 - Modify: `src/tools/ta_regtest/CLAUDE.md`
 
 - [ ] **Step 1: Update root CLAUDE.md**
@@ -1339,6 +1339,6 @@ Kept: rust/tests/float_test.rs (TaFloat trait tests)"
 - [ ] **Step 4: Commit**
 
 ```bash
-git add CLAUDE.md tools/ta_codegen/CLAUDE.md src/tools/ta_regtest/CLAUDE.md
+git add CLAUDE.md ta_codegen/generator/CLAUDE.md src/tools/ta_regtest/CLAUDE.md
 git commit -m "docs: update CLAUDE.md files for universal regtest architecture"
 ```

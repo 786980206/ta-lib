@@ -20,13 +20,13 @@ The C codegen server compiles all 163 indicator `.c` files into one translation 
 - Add `TA_GlobalsType *TA_Globals = &ta_globals_data;`
 - Already has `ta_unstable_period[]` and `TA_SetUnstablePeriod()`
 
-**`tools/ta_codegen/src/server_gen.rs`**
+**`ta_codegen/generator/src/server_gen.rs`**
 - Remove `#include "ta_lib_globals.c"` line (globals now compiled separately)
 - Remove all `#include "ta_*.c"` indicator lines
 - Add `#include "ta_func.h"` (already has all extern function declarations)
 - Update build comment in generated header
 
-**`tools/ta_codegen/src/main.rs`**
+**`ta_codegen/generator/src/main.rs`**
 - C build step: compile each `.c` file separately with `gcc -c -O3`, then link all `.o` files
 
 ### Build Flow (after)

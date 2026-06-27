@@ -38,7 +38,7 @@ One line per function, space-separated. ta_bench_direct reads all lines after sp
 
 ## Files to create/modify
 - `src/tools/ta_bench/ta_bench_direct.c` — orchestrator
-- `tools/ta_codegen/src/bench_gen.rs` — generates ta_bench_cg.c
-- `tools/ta_codegen/src/main.rs` — `generate-bench` command + build step
+- `ta_codegen/generator/src/bench_gen.rs` — generates ta_bench_cg.c
+- `ta_codegen/generator/src/main.rs` — `generate-bench` command + build step
 - `CMakeLists.txt` — build ta_bench_direct
 - `scripts/regtest.py` — `--direct-bench-only` flag

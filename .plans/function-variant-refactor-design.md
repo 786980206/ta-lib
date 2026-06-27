@@ -91,11 +91,11 @@ C gets 2 additional functions: `TA_S_SMA` and `TA_S_SMA_Unguarded` with `float` 
 - Rename explicit `_unguarded` functions to `_core` (or similar)
 - Move pre-compute logic to callers where needed (MACD calling EMA with k)
 
-### Parser (tools/ta_codegen/src/parser/)
+### Parser (ta_codegen/generator/src/parser/)
 - Detect case 1 vs case 2 (single function vs wrapper + core)
 - Parse extra params from the core function signature
 
-### IR (tools/ta_codegen/src/ir.rs)
+### IR (ta_codegen/generator/src/ir.rs)
 - `FuncDef.unguarded_extra_params` already exists — verify it captures case 2
 - `FuncDef.has_explicit_unguarded` — rename/clarify
 

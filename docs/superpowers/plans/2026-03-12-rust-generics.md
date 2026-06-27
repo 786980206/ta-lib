@@ -6,7 +6,7 @@
 
 **Architecture:** Hand-write a sealed `TaFloat` trait in `rust/src/ta_func/float.rs`. Refactor `rust_lang.rs` to emit generic functions instead of duplicating code for f64/f32. Add `_unguarded` and `_unchecked` variants. Update all backend tests and downstream consumers (existing Rust tests, FFI wrappers).
 
-**Tech Stack:** Rust, ta_codegen (Rust crate at `tools/ta_codegen/`)
+**Tech Stack:** Rust, ta_codegen (Rust crate at `ta_codegen/generator/`)
 
 **Spec:** `docs/superpowers/specs/2026-03-12-rust-generics-design.md`
 
@@ -21,8 +21,8 @@
 | `rust/src/ta_func/float.rs` | Create | TaFloat trait + f32/f64 impls (hand-written) |
 | `rust/src/ta_func/mod.rs` | Modify | Wire in float module, re-export TaFloat |
 | `rust/tests/float_test.rs` | Create | TaFloat trait unit tests |
-| `tools/ta_codegen/src/backends/rust_lang.rs` | Modify | Core refactoring: generic rendering |
-| `tools/ta_codegen/tests/backend_suite.rs` | Modify | Update variant checks for generic API |
+| `ta_codegen/generator/src/backends/rust_lang.rs` | Modify | Core refactoring: generic rendering |
+| `ta_codegen/generator/tests/backend_suite.rs` | Modify | Update variant checks for generic API |
 | `rust/Cargo.toml` | Modify | Remove obsolete `single-precision` feature |
 | `rust/tests/mult_test.rs` | Modify | Update `_s` calls to generic API |
 | `rust/tests/sma_test.rs` | Modify | Update `_s` calls to generic API |
@@ -345,7 +345,7 @@ git commit -m "feat(rust): add sealed TaFloat trait for generic indicator functi
 This is a **pure signature refactoring** — all callers pass `RustRenderCtx { generic: false, unchecked: false }`, so the output is identical. The new generic/unchecked code paths exist as dead code until Task 3 activates them.
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs`
 
 Functions to refactor (all take `single_precision: bool`, change to `ctx: &RustRenderCtx`):
 
@@ -436,21 +436,21 @@ No behavioral change — all callers use `concrete()` which matches the old `sin
 
 - [ ] **Step 7: Verify existing tests still pass**
 
-Run: `cd /Users/chadfurman/projects/ta-lib/tools/ta_codegen && cargo test`
+Run: `cd /Users/chadfurman/projects/ta-lib/ta_codegen/generator && cargo test`
 Expected: All existing tests pass — output is byte-for-byte identical to before.
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/rust_lang.rs
+git add ta_codegen/generator/src/backends/rust_lang.rs
 git commit -m "refactor(codegen): replace single_precision bool with RustRenderCtx"
 ```
 
 ### Task 3: Rewrite generator functions to emit generic variants
 
 **Files:**
-- Modify: `tools/ta_codegen/src/backends/rust_lang.rs` (gen_impl_block, gen_public_func → gen_guarded_func, gen_internal_func/gen_func → gen_unguarded_func, gen_unsafe_func → gen_unchecked_func)
-- Modify: `tools/ta_codegen/tests/backend_suite.rs`
+- Modify: `ta_codegen/generator/src/backends/rust_lang.rs` (gen_impl_block, gen_public_func → gen_guarded_func, gen_internal_func/gen_func → gen_unguarded_func, gen_unsafe_func → gen_unchecked_func)
+- Modify: `ta_codegen/generator/tests/backend_suite.rs`
 
 - [ ] **Step 1: Write failing test for generic function structure**
 
@@ -493,7 +493,7 @@ Delete the old `check_rust_variants` function. Update the call site in `test_all
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /Users/chadfurman/projects/ta-lib/tools/ta_codegen && cargo test test_all_indicators_all_backends -- --nocapture 2>&1 | tail -20`
+Run: `cd /Users/chadfurman/projects/ta-lib/ta_codegen/generator && cargo test test_all_indicators_all_backends -- --nocapture 2>&1 | tail -20`
 Expected: Failures — generated Rust doesn't have `<T: TaFloat>` yet.
 
 - [ ] **Step 3: Rewrite `gen_impl_block`**
@@ -596,18 +596,18 @@ assert!(r.contains("self.ema_unguarded("), ...);
 
 - [ ] **Step 8: Run all codegen tests**
 
-Run: `cd /Users/chadfurman/projects/ta-lib/tools/ta_codegen && cargo test -- --nocapture 2>&1 | tail -30`
+Run: `cd /Users/chadfurman/projects/ta-lib/ta_codegen/generator && cargo test -- --nocapture 2>&1 | tail -30`
 Expected: All tests pass including new generic variant checks for all 163 indicators.
 
 - [ ] **Step 9: Verify C/Java/.NET/SWIG output is unchanged**
 
-Run: `cd /Users/chadfurman/projects/ta-lib/tools/ta_codegen && cargo test test_all_indicators_all_backends -- --nocapture 2>&1 | grep -E "tested|failed"`
+Run: `cd /Users/chadfurman/projects/ta-lib/ta_codegen/generator && cargo test test_all_indicators_all_backends -- --nocapture 2>&1 | grep -E "tested|failed"`
 Expected: Same number tested, 0 failed. C/Java/.NET/SWIG variant checks are unchanged and must still pass.
 
 - [ ] **Step 10: Commit**
 
 ```bash
-git add tools/ta_codegen/src/backends/rust_lang.rs tools/ta_codegen/tests/backend_suite.rs
+git add ta_codegen/generator/src/backends/rust_lang.rs ta_codegen/generator/tests/backend_suite.rs
 git commit -m "feat(codegen): Rust backend emits generic <T: TaFloat> function variants"
 ```
 
@@ -685,7 +685,7 @@ git commit -m "fix(ffi): update FFI wrappers for generic TaFloat API"
 
 **Files:**
 - Modify: `rust/Cargo.toml`
-- Modify: `tools/ta_codegen/tests/backend_suite.rs`
+- Modify: `ta_codegen/generator/tests/backend_suite.rs`
 
 - [ ] **Step 1: Remove the `single-precision` feature flag**
 
@@ -738,13 +738,13 @@ fn test_rust_generic_output_smoke() {
 
 - [ ] **Step 3: Run tests**
 
-Run: `cd /Users/chadfurman/projects/ta-lib/tools/ta_codegen && cargo test test_rust_generic_output_smoke -- --nocapture`
+Run: `cd /Users/chadfurman/projects/ta-lib/ta_codegen/generator && cargo test test_rust_generic_output_smoke -- --nocapture`
 Expected: Pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add rust/Cargo.toml tools/ta_codegen/tests/backend_suite.rs
+git add rust/Cargo.toml ta_codegen/generator/tests/backend_suite.rs
 git commit -m "chore: remove single-precision feature flag, add generic output smoke test"
 ```
 

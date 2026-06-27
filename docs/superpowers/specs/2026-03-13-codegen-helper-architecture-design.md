@@ -121,7 +121,7 @@ double ta_sar_rounding(double x) {
 }
 ```
 
-Each helper file gets corresponding tests in the Rust codegen test suite (`tools/ta_codegen/tests/`). Tests verify:
+Each helper file gets corresponding tests in the Rust codegen test suite (`ta_codegen/generator/tests/`). Tests verify:
 - The parser correctly extracts helper function signatures and bodies from the C source
 - Each backend renders the inlined helper correctly (C, Rust, Java)
 - Known input/output pairs produce expected results

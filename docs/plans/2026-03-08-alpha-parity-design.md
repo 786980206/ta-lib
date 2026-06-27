@@ -88,7 +88,7 @@ Update the existing converted indicators (MULT, SMA, RSI, EMA, WMA, MA) to use t
 
 ## Phase 1: Extraction Tool
 
-A Rust tool in `tools/ta_codegen/` that bulk-extracts all 164 indicators from the existing codebase.
+A Rust tool in `ta_codegen/generator/` that bulk-extracts all 164 indicators from the existing codebase.
 
 ### Input
 - `src/ta_abstract/tables/table_*.c` — function metadata (group, flags, input/output definitions, ranges, defaults)

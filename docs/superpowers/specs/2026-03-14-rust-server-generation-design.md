@@ -169,9 +169,9 @@ This is a separate commit after everything passes.
 ## Verification
 
 ```bash
-cd tools/ta_codegen && cargo run -- generate --backend=rust
-cd tools/ta_codegen && cargo run -- generate-servers --backend=rust
-cd tools/ta_codegen && cargo run -- build --backend=rust
+cd ta_codegen/generator && cargo run -- generate --backend=rust
+cd ta_codegen/generator && cargo run -- generate-servers --backend=rust
+cd ta_codegen/generator && cargo run -- build --backend=rust
 cd bin && ../cmake-build/bin/ta_regtest --codegen-only --language=rust
 ```
 

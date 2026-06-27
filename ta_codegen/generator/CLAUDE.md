@@ -49,7 +49,7 @@ include/ta_func.h        (generated public header)
 ## Commands
 
 ```bash
-# Run from tools/ta_codegen/
+# Run from ta_codegen/generator/
 cargo run -- generate                        # Generate indicator code for all backends
 cargo run -- generate --func=SMA,RSI         # Generate specific functions
 cargo run -- generate --backend=rust         # Generate for specific backend
@@ -67,8 +67,8 @@ cargo run -- extract --function=EMA          # Extract specific indicator
 ## Testing
 
 ```bash
-cd tools/ta_codegen && cargo test            # Run all 445+ tests
-cd tools/ta_codegen && cargo clippy          # Strict pedantic lints enabled
+cd ta_codegen/generator && cargo test            # Run all 445+ tests
+cd ta_codegen/generator && cargo clippy          # Strict pedantic lints enabled
 ```
 
 Tests are in `tests/backend_suite.rs` and `tests/integration_test.rs` — they verify IR-to-backend rendering, expression types, generic signatures, and function variants across all backends.

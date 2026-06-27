@@ -239,7 +239,7 @@ This transition happens naturally — new indicators added only through YAML get
 | `src/tools/ta_regtest/test_codegen.c` | Replace hand-coded callbacks with generic ta_abstract-driven callback. Add timing collection. Add CLI summary + cross-language table + JSONL report. |
 | `src/tools/ta_regtest/test_codegen.h` | Update API if needed |
 | `src/tools/ta_regtest/codegen_pipe.c/h` | Possibly add timing field parsing (minor) |
-| `tools/ta_codegen/src/server_gen.rs` | Add `timing_ns`, `list_functions`, multi-output, integer output, price inputs, real optional params, all 24 unstable-period IDs. |
+| `ta_codegen/generator/src/server_gen.rs` | Add `timing_ns`, `list_functions`, multi-output, integer output, price inputs, real optional params, all 24 unstable-period IDs. |
 | `src/tools/ta_regtest/ta_regtest.c` | Wire up `--codegen` flag (see CLI section below) |
 
 ## CLI Integration

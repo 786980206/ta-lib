@@ -6,13 +6,13 @@ All indicator code is **generated**. Two generators exist:
 
 | Tool | Language | Role |
 |------|----------|------|
-| `ta_codegen` (`tools/ta_codegen/`, Rust) | The current generator. Parses `ta_codegen/input/` → IR → renders per-backend (C, Java, .NET, Rust) into `ta_codegen/output/`. Also generates the JSON-RPC test servers, the bench binary, `include/ta_func_unguarded.h`, and owns build-system source lists (CMake `LIB_SOURCES`, `Makefile.am`, `ta_func_list.txt`). |
+| `ta_codegen` (`ta_codegen/generator/`, Rust) | The current generator. Parses `ta_codegen/input/` → IR → renders per-backend (C, Java, .NET, Rust) into `ta_codegen/output/`. Also generates the JSON-RPC test servers, the bench binary, `include/ta_func_unguarded.h`, and owns build-system source lists (CMake `LIB_SOURCES`, `Makefile.am`, `ta_func_list.txt`). |
 | `gen_code` (`src/tools/gen_code/`, C) | The legacy generator, restored to its v0.6.4 role: regenerates the reference C library's GENCODE sections, Java bindings, and .NET wrappers (`ENABLE_JAVA`, `ENABLE_DOTNET`). It does **no** Rust generation. |
 
 The reference C library (`src/ta_func/`) is the correctness baseline that all
 `ta_codegen` backends are verified against by `ta_regtest`.
 
-See `tools/ta_codegen/CLAUDE.md` for ta_codegen internals and
+See `ta_codegen/generator/CLAUDE.md` for ta_codegen internals and
 `src/tools/ta_regtest/CLAUDE.md` for the test-runner spec.
 
 ### Source of Truth: ta_codegen/input/
@@ -50,7 +50,7 @@ scripts/build.py regtest-only   # Codegen verification only (skip C reference te
 # Run gen_code (must run from bin directory)
 cd bin && ../cmake-build/bin/gen_code
 
-# ta_codegen (run from tools/ta_codegen/)
+# ta_codegen (run from ta_codegen/generator/)
 cargo run -- generate                            # Generate indicator code for all backends
 cargo run -- generate --func=SMA --backend=rust  # Specific function + backend
 cargo run -- generate-servers                    # Generate JSON-RPC servers
@@ -133,7 +133,7 @@ Generated Rust lives in `ta_codegen/output/rust/` (a standalone crate).
 ## Adding or Modifying an Indicator
 
 1. Edit the definition in `ta_codegen/input/<name>/` (C logic) and/or its YAML metadata
-2. `cd tools/ta_codegen && cargo run -- generate` (optionally `--func=<NAME>`)
+2. `cd ta_codegen/generator && cargo run -- generate` (optionally `--func=<NAME>`)
 3. `scripts/build.py servers` to rebuild the language servers
 4. `cd bin && ./ta_regtest --codegen --function=<NAME>` to verify all backends
    against the C reference
@@ -211,7 +211,7 @@ ta-lib/
 │   └── types/                # Enums, RetCode, CandleSettings, etc. (YAML)
 ├── ta_codegen/output/        # Generated code per language (c, java, dotnet, rust)
 │   └── rust/                 # Standalone Rust crate
-├── tools/ta_codegen/         # The Rust code generator (see its CLAUDE.md)
+├── ta_codegen/generator/         # The Rust code generator (see its CLAUDE.md)
 ├── src/
 │   ├── ta_func/              # Reference C library (GENCODE sections via gen_code)
 │   └── tools/
