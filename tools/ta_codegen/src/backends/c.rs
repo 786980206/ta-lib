@@ -13,6 +13,14 @@ use super::common::{expr_directly_contains_candle_call, pascal_word};
 /// This enables compiler loop-unswitching, matching the reference library's macro pattern.
 const C_CANDLE_MACRO_FNS: &[&str] = &["ta_candlerange", "ta_candleaverage"];
 
+/// Per-render state for the C backend, mirroring `RustRenderCtx` in `rust_lang.rs`.
+/// Bundles the loose state (precision flag + inline-helper counter) threaded through
+/// the recursive renderer. Services (enums/registry/helpers) stay as separate params.
+struct CRenderCtx<'a> {
+    single_precision: bool,
+    inline_counter: &'a std::cell::Cell<usize>,
+}
+
 #[allow(clippy::implicit_hasher)]
 pub fn generate(
     func: &FuncDef,
@@ -320,6 +328,9 @@ fn gen_func_inner(
         emit_c_var_decls(stmt, &mut out, &mut declared_vars);
     }
 
+    let inline_counter = Cell::new(0);
+    let ctx = &CRenderCtx { single_precision, inline_counter: &inline_counter };
+
     // For S_ variants with explicit _private: emit private_param_init as local VarDecls.
     // These provide the extra params (e.g., k factor) that the inlined private body needs.
     // Both guarded and logic S_ variants need this (both use private_body).
@@ -330,7 +341,7 @@ fn gen_func_inner(
                 .iter()
                 .find(|(n, _)| n == param_name)
                 .map_or("double", |(_, t)| t.as_str());
-            let init_c = render_expr(init_expr, single_precision, registry, helpers);
+            let init_c = render_expr(init_expr, ctx, registry, helpers);
             out.push_str(&format!("   {c_type} {param_name} = {init_c};\n"));
             declared_vars.push(param_name.clone());
         }
@@ -408,8 +419,6 @@ fn gen_func_inner(
         out.push('\n');
     }
 
-    let inline_counter = Cell::new(0);
-
     // Determine which VarDecl names are first-occurrence (eligible for hoisted init).
     // A VarDecl with init is only hoisted if it's the first occurrence of that name.
     // Duplicate VarDecls (same name, second or later occurrence) are rendered inline.
@@ -428,22 +437,21 @@ fn gen_func_inner(
                 // This is the first occurrence with init — hoist it
                 first_seen_names.retain(|n| n != name); // remove so duplicates aren't hoisted
                 let mut hoisted = Vec::new();
-                let mut cnt = inline_counter.get();
+                let mut cnt = ctx.inline_counter.get();
                 let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-                inline_counter.set(cnt);
+                ctx.inline_counter.set(cnt);
                 out.push_str(&render_hoisted_blocks(
                     &hoisted,
                     3,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    &inline_counter,
                 ));
                 out.push_str(&format!(
                     "   {} = {};\n",
                     name,
-                    render_expr(&new_init, single_precision, registry, helpers)
+                    render_expr(&new_init, ctx, registry, helpers)
                 ));
             }
         }
@@ -460,23 +468,22 @@ fn gen_func_inner(
                     // Duplicate VarDecl: render as assignment if it has an init
                     if let Some(init_expr) = init {
                         let mut hoisted = Vec::new();
-                        let mut cnt = inline_counter.get();
+                        let mut cnt = ctx.inline_counter.get();
                         let new_init =
                             hoist_block_helpers(init_expr, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-                        inline_counter.set(cnt);
+                        ctx.inline_counter.set(cnt);
                         out.push_str(&render_hoisted_blocks(
                             &hoisted,
                             3,
-                            single_precision,
+                            ctx,
                             enums,
                             registry,
                             helpers,
-                            &inline_counter,
                         ));
                         out.push_str(&format!(
                             "   {} = {};\n",
                             name,
-                            render_expr(&new_init, single_precision, registry, helpers)
+                            render_expr(&new_init, ctx, registry, helpers)
                         ));
                     }
                 } else {
@@ -494,27 +501,25 @@ fn gen_func_inner(
                             body_seen.push(name.clone());
                         }
                     } else {
-                        out.push_str(&render_statement(
+                        out.push_str(&render_stmt(
                             s,
                             3,
-                            single_precision,
+                            ctx,
                             enums,
                             registry,
                             helpers,
-                            &inline_counter,
                         ));
                     }
                 }
             }
             _ => {
-                out.push_str(&render_statement(
+                out.push_str(&render_stmt(
                     stmt,
                     3,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    &inline_counter,
                 ));
             }
         }
@@ -530,24 +535,23 @@ fn gen_func_inner(
 /// statements, comma-separate them instead of using semicolons.
 fn render_forc_part(
     stmt: &Statement,
-    single_precision: bool,
+    ctx: &CRenderCtx,
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
-    inline_counter: &Cell<usize>,
 ) -> String {
     match stmt {
         Statement::Block { body } => body
             .iter()
             .map(|s| {
-                render_statement(s, 0, single_precision, enums, registry, helpers, inline_counter)
+                render_stmt(s, 0, ctx, enums, registry, helpers)
                     .trim()
                     .trim_end_matches(';')
                     .to_string()
             })
             .collect::<Vec<_>>()
             .join(", "),
-        _ => render_statement(stmt, 0, single_precision, enums, registry, helpers, inline_counter)
+        _ => render_stmt(stmt, 0, ctx, enums, registry, helpers)
             .trim()
             .trim_end_matches(';')
             .to_string(),
@@ -558,11 +562,10 @@ fn render_forc_part(
 fn render_hoisted_blocks(
     hoisted: &[(String, VarType, Vec<Statement>)],
     indent: usize,
-    single_precision: bool,
+    ctx: &CRenderCtx,
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
-    inline_counter: &Cell<usize>,
 ) -> String {
     let pad = " ".repeat(indent);
     let mut out = String::new();
@@ -570,21 +573,20 @@ fn render_hoisted_blocks(
         let decl = c_decl(var_type, temp_name);
         out.push_str(&format!("{pad}{decl};\n"));
         for stmt in body {
-            out.push_str(&render_statement(
+            out.push_str(&render_stmt(
                 stmt,
                 indent,
-                single_precision,
+                ctx,
                 enums,
                 registry,
                 helpers,
-                inline_counter,
             ));
         }
     }
     out
 }
 
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity, clippy::implicit_hasher)]
+#[allow(clippy::implicit_hasher)]
 pub fn render_statement(
     stmt: &Statement,
     indent: usize,
@@ -593,6 +595,19 @@ pub fn render_statement(
     registry: &Registry,
     helpers: &HelperRegistry,
     inline_counter: &Cell<usize>,
+) -> String {
+    let ctx = CRenderCtx { single_precision, inline_counter };
+    render_stmt(stmt, indent, &ctx, enums, registry, helpers)
+}
+
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+fn render_stmt(
+    stmt: &Statement,
+    indent: usize,
+    ctx: &CRenderCtx,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
@@ -606,18 +621,18 @@ pub fn render_statement(
                 Some(init_expr) => {
                     // Hoist multi-statement helpers from the init expression
                     let mut hoisted = Vec::new();
-                    let mut cnt = inline_counter.get();
+                    let mut cnt = ctx.inline_counter.get();
                     let new_init = hoist_block_helpers(
                         init_expr, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
                     );
-                    inline_counter.set(cnt);
+                    ctx.inline_counter.set(cnt);
                     let mut out = render_hoisted_blocks(
-                        &hoisted, indent, single_precision, enums, registry,
-                        helpers, inline_counter,
+                        &hoisted, indent, ctx, enums, registry,
+                        helpers,
                     );
                     out.push_str(&format!(
                         "{pad}{decl} = {};\n",
-                        render_expr(&new_init, single_precision, registry, helpers)
+                        render_expr(&new_init, ctx, registry, helpers)
                     ));
                     out
                 }
@@ -648,7 +663,7 @@ pub fn render_statement(
                         return format!(
                             "{}{};\n",
                             pad,
-                            render_func_call(fname, args, single_precision, registry, helpers)
+                            render_func_call(fname, args, ctx, registry, helpers)
                         );
                     }
                 }
@@ -656,14 +671,14 @@ pub fn render_statement(
 
             // Hoist multi-statement helpers from the value expression
             let mut hoisted = Vec::new();
-            let mut cnt = inline_counter.get();
+            let mut cnt = ctx.inline_counter.get();
             let new_value = hoist_block_helpers(
                 value, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
             );
-            inline_counter.set(cnt);
+            ctx.inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
-                &hoisted, indent, single_precision, enums, registry,
-                helpers, inline_counter,
+                &hoisted, indent, ctx, enums, registry,
+                helpers,
             );
 
             // Only fold compound assignments if the original source used +=/-=/etc.
@@ -691,13 +706,13 @@ pub fn render_statement(
                             };
                             if !op_str.is_empty() {
                                 let target_str =
-                                    render_assign_target(target, single_precision, registry, helpers);
+                                    render_assign_target(target, ctx, registry, helpers);
                                 out.push_str(&format!(
                                     "{}{}{} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
-                                    render_expr(right, single_precision, registry, helpers)
+                                    render_expr(right, ctx, registry, helpers)
                                 ));
                                 return out;
                             }
@@ -705,35 +720,34 @@ pub fn render_statement(
                     }
                 }
             }
-            let target_str = render_assign_target(target, single_precision, registry, helpers);
-            let value_str = render_expr(&new_value, single_precision, registry, helpers);
+            let target_str = render_assign_target(target, ctx, registry, helpers);
+            let value_str = render_expr(&new_value, ctx, registry, helpers);
             out.push_str(&format!("{pad}{target_str}= {value_str};\n"));
             out
         }
         Statement::While { condition, body } => {
             let mut hoisted = Vec::new();
-            let mut cnt = inline_counter.get();
+            let mut cnt = ctx.inline_counter.get();
             let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-            inline_counter.set(cnt);
+            ctx.inline_counter.set(cnt);
             let mut out = String::new();
             out.push_str(&render_hoisted_blocks(
-                &hoisted, indent, single_precision, enums, registry, helpers, inline_counter,
+                &hoisted, indent, ctx, enums, registry, helpers,
             ));
             out.push_str(&format!(
                 "{}while( {} )\n{}{{\n",
                 pad,
-                render_expr(&new_cond, single_precision, registry, helpers),
+                render_expr(&new_cond, ctx, registry, helpers),
                 pad
             ));
             for s in body {
-                out.push_str(&render_statement(
+                out.push_str(&render_stmt(
                     s,
                     indent + 3,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -742,27 +756,26 @@ pub fn render_statement(
         Statement::DoWhile { condition, body } => {
             let mut out = format!("{pad}do\n{pad}{{\n");
             for s in body {
-                out.push_str(&render_statement(
+                out.push_str(&render_stmt(
                     s,
                     indent + 3,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    inline_counter,
                 ));
             }
             let mut hoisted = Vec::new();
-            let mut cnt = inline_counter.get();
+            let mut cnt = ctx.inline_counter.get();
             let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-            inline_counter.set(cnt);
+            ctx.inline_counter.set(cnt);
             out.push_str(&render_hoisted_blocks(
-                &hoisted, indent, single_precision, enums, registry, helpers, inline_counter,
+                &hoisted, indent, ctx, enums, registry, helpers,
             ));
             out.push_str(&format!(
                 "{}}} while( {} );\n",
                 pad,
-                render_expr(&new_cond, single_precision, registry, helpers)
+                render_expr(&new_cond, ctx, registry, helpers)
             ));
             out
         }
@@ -791,36 +804,35 @@ pub fn render_statement(
                         then_body: vec![inner_if],
                         else_body: else_body.clone(),
                     };
-                    return render_statement(
-                        &outer_if, indent, single_precision, enums, registry,
-                        helpers, inline_counter,
+                    return render_stmt(
+                        &outer_if, indent, ctx, enums, registry,
+                        helpers,
                     );
                 }
             }
 
             let mut hoisted = Vec::new();
-            let mut cnt = inline_counter.get();
+            let mut cnt = ctx.inline_counter.get();
             let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
-            inline_counter.set(cnt);
+            ctx.inline_counter.set(cnt);
             let mut out = String::new();
             out.push_str(&render_hoisted_blocks(
-                &hoisted, indent, single_precision, enums, registry, helpers, inline_counter,
+                &hoisted, indent, ctx, enums, registry, helpers,
             ));
             out.push_str(&format!(
                 "{}if( {} )\n{}{{\n",
                 pad,
-                render_expr(&new_cond, single_precision, registry, helpers),
+                render_expr(&new_cond, ctx, registry, helpers),
                 pad
             ));
             for s in then_body {
-                out.push_str(&render_statement(
+                out.push_str(&render_stmt(
                     s,
                     indent + 3,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    inline_counter,
                 ));
             }
             if else_body.is_empty() {
@@ -830,14 +842,13 @@ pub fn render_statement(
                 // Check if the else body is a single if statement (else-if chain)
                 if else_body.len() == 1 {
                     if let Statement::If { .. } = &else_body[0] {
-                        let if_str = render_statement(
+                        let if_str = render_stmt(
                             &else_body[0],
                             indent,
-                            single_precision,
+                            ctx,
                             enums,
                             registry,
                             helpers,
-                            inline_counter,
                         );
                         out.push_str(if_str.trim_start());
                         return out;
@@ -845,14 +856,13 @@ pub fn render_statement(
                 }
                 out.push_str(&format!("\n{pad}{{\n"));
                 for s in else_body {
-                    out.push_str(&render_statement(
+                    out.push_str(&render_stmt(
                         s,
                         indent + 3,
-                        single_precision,
+                        ctx,
                         enums,
                         registry,
                         helpers,
-                        inline_counter,
                     ));
                 }
                 out.push_str(&format!("{pad}}}\n"));
@@ -861,7 +871,7 @@ pub fn render_statement(
         }
         Statement::Return { value } => match value {
             Some(expr) => {
-                let rendered = render_return_expr(expr, single_precision, registry, helpers);
+                let rendered = render_return_expr(expr, ctx, registry, helpers);
                 format!("{pad}return {rendered};\n")
             }
             None => format!("{pad}return;\n"),
@@ -871,20 +881,19 @@ pub fn render_statement(
                 "{}for( {} = {}; {} > 0; {}-- )\n{}{{\n",
                 pad,
                 var,
-                render_expr(count, single_precision, registry, helpers),
+                render_expr(count, ctx, registry, helpers),
                 var,
                 var,
                 pad
             );
             for s in body {
-                out.push_str(&render_statement(
+                out.push_str(&render_stmt(
                     s,
                     indent + 3,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -897,28 +906,27 @@ pub fn render_statement(
             body,
         } => {
             let init_str = render_forc_part(
-                init, single_precision, enums, registry, helpers, inline_counter,
+                init, ctx, enums, registry, helpers,
             );
             let update_str = render_forc_part(
-                update, single_precision, enums, registry, helpers, inline_counter,
+                update, ctx, enums, registry, helpers,
             );
             let mut out = format!(
                 "{}for( {}; {}; {} )\n{}{{\n",
                 pad,
                 init_str.trim(),
-                render_expr(condition, single_precision, registry, helpers),
+                render_expr(condition, ctx, registry, helpers),
                 update_str.trim(),
                 pad
             );
             for s in body {
-                out.push_str(&render_statement(
+                out.push_str(&render_stmt(
                     s,
                     indent + 3,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -927,14 +935,13 @@ pub fn render_statement(
         Statement::Block { body } => {
             let mut out = String::new();
             for s in body {
-                out.push_str(&render_statement(
+                out.push_str(&render_stmt(
                     s,
                     indent,
-                    single_precision,
+                    ctx,
                     enums,
                     registry,
                     helpers,
-                    inline_counter,
                 ));
             }
             out
@@ -951,7 +958,7 @@ pub fn render_statement(
             // loop-unswitches ternary chains much more aggressively, producing
             // specialized tight loops like the reference library's macro expansion.
             if let Some(ternary) = try_render_switch_as_ternary(
-                expr, cases, default, &pad, single_precision, registry, helpers,
+                expr, cases, default, &pad, ctx, registry, helpers,
             ) {
                 return ternary;
             }
@@ -959,21 +966,20 @@ pub fn render_statement(
             let mut out = format!(
                 "{}switch( {} )\n{}{{\n",
                 pad,
-                render_expr(expr, single_precision, registry, helpers),
+                render_expr(expr, ctx, registry, helpers),
                 pad
             );
             for (label, case_body) in cases {
                 let c_label = render_c_switch_label(label, enums);
                 out.push_str(&format!("{pad}case {c_label}:\n"));
                 for s in case_body {
-                    out.push_str(&render_statement(
+                    out.push_str(&render_stmt(
                         s,
                         indent + 3,
-                        single_precision,
+                        ctx,
                         enums,
                         registry,
                         helpers,
-                        inline_counter,
                     ));
                 }
                 out.push_str(&format!("{pad}   break;\n"));
@@ -981,14 +987,13 @@ pub fn render_statement(
             if !default.is_empty() {
                 out.push_str(&format!("{pad}default:\n"));
                 for s in default {
-                    out.push_str(&render_statement(
+                    out.push_str(&render_stmt(
                         s,
                         indent + 3,
-                        single_precision,
+                        ctx,
                         enums,
                         registry,
                         helpers,
-                        inline_counter,
                     ));
                 }
                 out.push_str(&format!("{pad}   break;\n"));
@@ -1013,7 +1018,7 @@ fn try_render_switch_as_ternary(
     cases: &[(String, Vec<Statement>)],
     default: &[Statement],
     pad: &str,
-    single_precision: bool,
+    ctx: &CRenderCtx,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> Option<String> {
@@ -1039,7 +1044,7 @@ fn try_render_switch_as_ternary(
             compound: false,
         } = &body[0]
         {
-            let tgt = render_expr(target, single_precision, registry, helpers);
+            let tgt = render_expr(target, ctx, registry, helpers);
             if let Some(ref prev) = target_name {
                 if *prev != tgt {
                     return None; // Different targets — not a simple switch
@@ -1047,7 +1052,7 @@ fn try_render_switch_as_ternary(
             } else {
                 target_name = Some(tgt.clone());
             }
-            let val = render_expr(value, single_precision, registry, helpers);
+            let val = render_expr(value, ctx, registry, helpers);
             case_exprs.push((label.as_str(), val));
         } else {
             return None; // Not a simple assignment
@@ -1062,11 +1067,11 @@ fn try_render_switch_as_ternary(
             compound: false,
         } = &default[0]
         {
-            let tgt = render_expr(target, single_precision, registry, helpers);
+            let tgt = render_expr(target, ctx, registry, helpers);
             if target_name.as_ref().is_some_and(|t| *t != tgt) {
                 return None;
             }
-            render_expr(value, single_precision, registry, helpers)
+            render_expr(value, ctx, registry, helpers)
         } else {
             return None;
         }
@@ -1077,7 +1082,7 @@ fn try_render_switch_as_ternary(
     };
 
     let target = target_name?;
-    let switch_expr = render_expr(expr, single_precision, registry, helpers);
+    let switch_expr = render_expr(expr, ctx, registry, helpers);
 
     // Build nested ternary: (expr==0 ? val0 : (expr==1 ? val1 : (expr==2 ? val2 : default)))
     let mut ternary = default_expr;
@@ -1104,7 +1109,7 @@ fn render_c_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> Strin
 
 fn render_assign_target(
     expr: &Expr,
-    single_precision: bool,
+    ctx: &CRenderCtx,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
@@ -1117,7 +1122,7 @@ fn render_assign_target(
             format!(
                 "{}[{}] ",
                 name,
-                render_expr(idx, single_precision, registry, helpers)
+                render_expr(idx, ctx, registry, helpers)
             )
         }
         Expr::Literal(_)
@@ -1132,14 +1137,14 @@ fn render_assign_target(
         | Expr::PostDecrement(_)
         | Expr::PreIncrement(_)
         | Expr::PreDecrement(_)
-        | Expr::Ternary(_, _, _) => render_expr(expr, single_precision, registry, helpers),
+        | Expr::Ternary(_, _, _) => render_expr(expr, ctx, registry, helpers),
     }
 }
 
 /// Render a return expression, mapping known enum values to C constants.
 fn render_return_expr(
     expr: &Expr,
-    single_precision: bool,
+    ctx: &CRenderCtx,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
@@ -1152,16 +1157,16 @@ fn render_return_expr(
             "OutOfRangeStartIndex" => "TA_OUT_OF_RANGE_START_INDEX".to_string(),
             "ALLOC_ERR" => "TA_ALLOC_ERR".to_string(),
             "INTERNAL_ERROR" => "TA_INTERNAL_ERROR".to_string(),
-            _ => render_expr(expr, single_precision, registry, helpers),
+            _ => render_expr(expr, ctx, registry, helpers),
         };
     }
-    render_expr(expr, single_precision, registry, helpers)
+    render_expr(expr, ctx, registry, helpers)
 }
 
 #[allow(clippy::too_many_lines)]
 fn render_expr(
     expr: &Expr,
-    single_precision: bool,
+    ctx: &CRenderCtx,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
@@ -1194,7 +1199,7 @@ fn render_expr(
             format!(
                 "{}[{}]",
                 name,
-                render_expr(idx, single_precision, registry, helpers)
+                render_expr(idx, ctx, registry, helpers)
             )
         }
         Expr::BinOp(left, op, right) => {
@@ -1219,12 +1224,12 @@ fn render_expr(
             // In single-precision variants, pointer aliasing checks compare
             // float* inputs against double* outputs/buffers. Cast both to
             // void* to avoid -Wcompare-distinct-pointer-types warnings.
-            let needs_void_cast = single_precision
+            let needs_void_cast = ctx.single_precision
                 && matches!(op, BinOp::Eq | BinOp::NotEq)
                 && is_pointer_var(left)
                 && is_pointer_var(right);
-            let l = render_expr(left, single_precision, registry, helpers);
-            let r = render_expr(right, single_precision, registry, helpers);
+            let l = render_expr(left, ctx, registry, helpers);
+            let r = render_expr(right, ctx, registry, helpers);
             if needs_void_cast {
                 format!("((void *){}{}(void *){})", l, op_str, r)
             } else {
@@ -1236,55 +1241,55 @@ fn render_expr(
             format!(
                 "(({}){})",
                 c_type,
-                render_expr(inner, single_precision, registry, helpers)
+                render_expr(inner, ctx, registry, helpers)
             )
         }
         Expr::Not(inner) => {
             format!(
                 "!({})",
-                render_expr(inner, single_precision, registry, helpers)
+                render_expr(inner, ctx, registry, helpers)
             )
         }
         Expr::FuncCall(name, args) => {
-            render_func_call(name, args, single_precision, registry, helpers)
+            render_func_call(name, args, ctx, registry, helpers)
         }
         Expr::PointerDeref(name) => format!("*{name}"),
         Expr::AddressOf(inner) => {
             format!(
                 "&{}",
-                render_expr(inner, single_precision, registry, helpers)
+                render_expr(inner, ctx, registry, helpers)
             )
         }
         Expr::PostIncrement(inner) => {
             format!(
                 "{}++",
-                render_expr(inner, single_precision, registry, helpers)
+                render_expr(inner, ctx, registry, helpers)
             )
         }
         Expr::PostDecrement(inner) => {
             format!(
                 "{}--",
-                render_expr(inner, single_precision, registry, helpers)
+                render_expr(inner, ctx, registry, helpers)
             )
         }
         Expr::PreIncrement(inner) => {
             format!(
                 "++{}",
-                render_expr(inner, single_precision, registry, helpers)
+                render_expr(inner, ctx, registry, helpers)
             )
         }
         Expr::PreDecrement(inner) => {
             format!(
                 "--{}",
-                render_expr(inner, single_precision, registry, helpers)
+                render_expr(inner, ctx, registry, helpers)
             )
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
             format!(
                 "(({}) ? ({}) : ({}))",
-                render_expr(cond, single_precision, registry, helpers),
-                render_expr(then_expr, single_precision, registry, helpers),
-                render_expr(else_expr, single_precision, registry, helpers)
+                render_expr(cond, ctx, registry, helpers),
+                render_expr(then_expr, ctx, registry, helpers),
+                render_expr(else_expr, ctx, registry, helpers)
             )
         }
     }
@@ -1354,7 +1359,7 @@ fn args_have_input_param(args: &[Expr]) -> bool {
 fn try_render_candle_macro(
     fname: &str,
     args: &[Expr],
-    single_precision: bool,
+    ctx: &CRenderCtx,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> Option<String> {
@@ -1363,16 +1368,16 @@ fn try_render_candle_macro(
             // ta_candlerange(SET_rangeType, inOpen[idx], inHigh[idx], inLow[idx], inClose[idx])
             let setting = extract_candle_setting_name(&args[0])?;
             let idx = extract_array_index(&args[4])?;
-            let idx_str = render_expr(&idx, single_precision, registry, helpers);
+            let idx_str = render_expr(&idx, ctx, registry, helpers);
             Some(format!("TA_CANDLERANGE({setting},{idx_str})"))
         }
         "ta_candleaverage" if args.len() == 8 => {
             // ta_candleaverage(SET_rangeType, SET_avgPeriod, SET_factor, sum,
             //                  inOpen[idx], inHigh[idx], inLow[idx], inClose[idx])
             let setting = extract_candle_setting_name(&args[0])?;
-            let sum_str = render_expr(&args[3], single_precision, registry, helpers);
+            let sum_str = render_expr(&args[3], ctx, registry, helpers);
             let idx = extract_array_index(&args[7])?;
-            let idx_str = render_expr(&idx, single_precision, registry, helpers);
+            let idx_str = render_expr(&idx, ctx, registry, helpers);
             Some(format!("TA_CANDLEAVERAGE({setting},{sum_str},{idx_str})"))
         }
         _ => None,
@@ -1403,20 +1408,20 @@ fn extract_array_index(expr: &Expr) -> Option<Expr> {
 fn render_func_call(
     fname: &str,
     args: &[Expr],
-    single_precision: bool,
+    ctx: &CRenderCtx,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
     // C candle macros: emit preprocessor macro calls instead of expanded code.
     // This enables compiler loop-unswitching, matching the reference library.
-    if let Some(macro_call) = try_render_candle_macro(fname, args, single_precision, registry, helpers) {
+    if let Some(macro_call) = try_render_candle_macro(fname, args, ctx, registry, helpers) {
         return macro_call;
     }
 
     // Check if this is a call to a helper function that can be inlined
     if let Some(helper) = helpers.get(fname) {
         if let Some(inlined_expr) = try_inline_expr(helper, args) {
-            return render_expr(&inlined_expr, single_precision, registry, helpers);
+            return render_expr(&inlined_expr, ctx, registry, helpers);
         }
         // Multi-statement helpers are hoisted earlier by hoist_block_helpers.
     }
@@ -1439,14 +1444,14 @@ fn render_func_call(
     } else if fname == "IS_ZERO" {
         // IS_ZERO(x) -> TA_IS_ZERO(x)
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision, registry, helpers);
+            let x = render_expr(arg, ctx, registry, helpers);
             return format!("TA_IS_ZERO({x})");
         }
         "TA_IS_ZERO(0)".to_string()
     } else if fname == "IS_ZERO_OR_NEG" {
         // IS_ZERO_OR_NEG(x) -> TA_IS_ZERO_OR_NEG(x)
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision, registry, helpers);
+            let x = render_expr(arg, ctx, registry, helpers);
             return format!("TA_IS_ZERO_OR_NEG({x})");
         }
         "TA_IS_ZERO_OR_NEG(0)".to_string()
@@ -1455,9 +1460,9 @@ fn render_func_call(
         if args.len() == 5 {
             let rendered: Vec<String> = args
                 .iter()
-                .map(|a| render_expr(a, single_precision, registry, helpers))
+                .map(|a| render_expr(a, ctx, registry, helpers))
                 .collect();
-            let macro_name = if single_precision {
+            let macro_name = if ctx.single_precision {
                 "ARRAY_MEMMOVEMIX"
             } else {
                 "ARRAY_MEMMOVE"
@@ -1471,7 +1476,7 @@ fn render_func_call(
     } else if fname == "PER_TO_K" {
         // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision, registry, helpers);
+            let x = render_expr(arg, ctx, registry, helpers);
             return format!("(2.0 / ((double)({x}) + 1.0))");
         }
         "0.0".to_string()
@@ -1486,14 +1491,14 @@ fn render_func_call(
         };
         let rendered: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, single_precision, registry, helpers))
+            .map(|a| render_expr(a, ctx, registry, helpers))
             .collect();
         format!("{}({})", c_name, rendered.join(","))
     } else if STDLIB_FUNCTIONS.contains(&fname) {
         // C stdlib functions — pass through as-is without TA_ prefix
         let rendered: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, single_precision, registry, helpers))
+            .map(|a| render_expr(a, ctx, registry, helpers))
             .collect();
         format!("{}({})", fname, rendered.join(","))
     } else {
@@ -1501,7 +1506,7 @@ fn render_func_call(
         let resolved = registry.resolve_call(fname, Lang::C);
         let rendered: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, single_precision, registry, helpers))
+            .map(|a| render_expr(a, ctx, registry, helpers))
             .collect();
         if resolved != fname {
             // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, sma -> TA_SMA)
@@ -1509,7 +1514,7 @@ fn render_func_call(
             // arrays (float* in SP context). Intermediate buffers are always double*,
             // so calls with those must use the double-precision TA_ variant.
             // Matches the reference code's FUNCTION_CALL vs FUNCTION_CALL_DOUBLE distinction.
-            let use_sp = single_precision
+            let use_sp = ctx.single_precision
                 && resolved.starts_with("TA_")
                 && !resolved.starts_with("TA_S_")
                 && !resolved.contains("_Lookback")
@@ -1526,7 +1531,7 @@ fn render_func_call(
         } else {
             // General TA function call: SMA(...) -> TA_SMA(...) or TA_S_SMA(...) for single precision
             // Same rule: only use TA_S_ when passing user input arrays.
-            let use_sp = single_precision && args_have_input_param(args);
+            let use_sp = ctx.single_precision && args_have_input_param(args);
             let prefix = if use_sp { "TA_S_" } else { "TA_" };
             format!("{}{}({})", prefix, fname, rendered.join(","))
         }
@@ -1542,6 +1547,7 @@ fn render_lookback_code(
 ) -> String {
     let mut out = String::new();
     let inline_counter = Cell::new(0);
+    let ctx = &CRenderCtx { single_precision: false, inline_counter: &inline_counter };
 
     // Declare local variables (deduplicated)
     let mut declared_vars: Vec<String> = Vec::new();
@@ -1572,7 +1578,7 @@ fn render_lookback_code(
                 out.push_str(&format!(
                     "   {} = {};\n",
                     name,
-                    render_expr(init, false, registry, helpers)
+                    render_expr(init, ctx, registry, helpers)
                 ));
             }
         }
@@ -1588,8 +1594,8 @@ fn render_lookback_code(
                 continue;
             }
         }
-        out.push_str(&render_statement(
-            stmt, 3, false, enums, registry, helpers, &inline_counter,
+        out.push_str(&render_stmt(
+            stmt, 3, ctx, enums, registry, helpers,
         ));
     }
 
