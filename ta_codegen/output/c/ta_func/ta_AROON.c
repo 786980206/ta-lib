@@ -150,8 +150,6 @@ TA_LIB_API TA_RetCode TA_AROON( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_AROON_Unguarded( int    startIdx,
@@ -243,8 +241,6 @@ TA_LIB_API TA_RetCode TA_AROON_Unguarded( int    startIdx,
    }
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -356,8 +352,6 @@ TA_RetCode TA_S_AROON( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_AROON_Unguarded( int    startIdx,
@@ -449,8 +443,6 @@ TA_RetCode TA_S_AROON_Unguarded( int    startIdx,
    }
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

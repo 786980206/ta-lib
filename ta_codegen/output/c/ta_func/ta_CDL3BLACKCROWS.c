@@ -125,8 +125,6 @@ TA_LIB_API TA_RetCode TA_CDL3BLACKCROWS( int    startIdx,
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_CDL3BLACKCROWS_Unguarded( int    startIdx,
@@ -192,8 +190,6 @@ TA_LIB_API TA_RetCode TA_CDL3BLACKCROWS_Unguarded( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -277,8 +273,6 @@ TA_RetCode TA_S_CDL3BLACKCROWS( int    startIdx,
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_CDL3BLACKCROWS_Unguarded( int    startIdx,
@@ -344,8 +338,6 @@ TA_RetCode TA_S_CDL3BLACKCROWS_Unguarded( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

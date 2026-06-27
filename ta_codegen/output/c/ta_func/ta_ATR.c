@@ -131,8 +131,6 @@ TA_LIB_API TA_RetCode TA_ATR( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_ATR_Unguarded( int    startIdx,
@@ -206,8 +204,6 @@ TA_LIB_API TA_RetCode TA_ATR_Unguarded( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_ATR( int    startIdx,
@@ -299,8 +295,6 @@ TA_RetCode TA_S_ATR( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_ATR_Unguarded( int    startIdx,
@@ -374,7 +368,5 @@ TA_RetCode TA_S_ATR_Unguarded( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 

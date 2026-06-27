@@ -409,8 +409,6 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_HT_DCPHASE_Unguarded( int    startIdx,
@@ -769,8 +767,6 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE_Unguarded( int    startIdx,
       today += 1;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -1141,8 +1137,6 @@ TA_RetCode TA_S_HT_DCPHASE( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_HT_DCPHASE_Unguarded( int    startIdx,
@@ -1501,8 +1495,6 @@ TA_RetCode TA_S_HT_DCPHASE_Unguarded( int    startIdx,
       today += 1;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

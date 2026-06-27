@@ -116,8 +116,6 @@ TA_LIB_API TA_RetCode TA_CDLDOJI( int    startIdx,
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_CDLDOJI_Unguarded( int    startIdx,
@@ -174,8 +172,6 @@ TA_LIB_API TA_RetCode TA_CDLDOJI_Unguarded( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -250,8 +246,6 @@ TA_RetCode TA_S_CDLDOJI( int    startIdx,
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_CDLDOJI_Unguarded( int    startIdx,
@@ -308,8 +302,6 @@ TA_RetCode TA_S_CDLDOJI_Unguarded( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

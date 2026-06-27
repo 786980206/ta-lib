@@ -202,8 +202,6 @@ TA_LIB_API TA_RetCode TA_MACDEXT( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outNbElement2;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_MACDEXT_Unguarded( int    startIdx,
@@ -325,8 +323,6 @@ TA_LIB_API TA_RetCode TA_MACDEXT_Unguarded( int    startIdx,
    }
    *outBegIdx= startIdx;
    *outNBElement= outNbElement2;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -482,8 +478,6 @@ TA_RetCode TA_S_MACDEXT( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outNbElement2;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_MACDEXT_Unguarded( int    startIdx,
@@ -605,8 +599,6 @@ TA_RetCode TA_S_MACDEXT_Unguarded( int    startIdx,
    }
    *outBegIdx= startIdx;
    *outNBElement= outNbElement2;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

@@ -156,8 +156,6 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outputSize;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_MAVP_Unguarded( int    startIdx,
@@ -251,8 +249,6 @@ TA_LIB_API TA_RetCode TA_MAVP_Unguarded( int    startIdx,
    free(localPeriodArray);
    *outBegIdx= startIdx;
    *outNBElement= outputSize;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -370,8 +366,6 @@ TA_RetCode TA_S_MAVP( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outputSize;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_MAVP_Unguarded( int    startIdx,
@@ -465,8 +459,6 @@ TA_RetCode TA_S_MAVP_Unguarded( int    startIdx,
    free(localPeriodArray);
    *outBegIdx= startIdx;
    *outNBElement= outputSize;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

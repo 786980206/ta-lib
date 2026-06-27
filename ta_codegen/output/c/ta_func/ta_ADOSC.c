@@ -170,8 +170,6 @@ TA_LIB_API TA_RetCode TA_ADOSC( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_ADOSC_Unguarded( int    startIdx,
@@ -269,8 +267,6 @@ TA_LIB_API TA_RetCode TA_ADOSC_Unguarded( int    startIdx,
       outReal[outIdx++] = (fastEMA-slowEMA);
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -394,8 +390,6 @@ TA_RetCode TA_S_ADOSC( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_ADOSC_Unguarded( int    startIdx,
@@ -493,8 +487,6 @@ TA_RetCode TA_S_ADOSC_Unguarded( int    startIdx,
       outReal[outIdx++] = (fastEMA-slowEMA);
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

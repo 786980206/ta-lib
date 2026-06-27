@@ -144,8 +144,6 @@ TA_LIB_API TA_RetCode TA_DEMA( int    startIdx,
    *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_DEMA_Unguarded( int    startIdx,
@@ -235,8 +233,6 @@ TA_LIB_API TA_RetCode TA_DEMA_Unguarded( int    startIdx,
    free(secondEMA);
    *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -342,8 +338,6 @@ TA_RetCode TA_S_DEMA( int    startIdx,
    *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_DEMA_Unguarded( int    startIdx,
@@ -433,8 +427,6 @@ TA_RetCode TA_S_DEMA_Unguarded( int    startIdx,
    free(secondEMA);
    *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

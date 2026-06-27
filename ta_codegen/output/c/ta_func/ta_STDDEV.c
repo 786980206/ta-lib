@@ -104,8 +104,6 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
       }
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_STDDEV_Unguarded( int    startIdx,
@@ -153,8 +151,6 @@ TA_LIB_API TA_RetCode TA_STDDEV_Unguarded( int    startIdx,
          }
       }
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -220,8 +216,6 @@ TA_RetCode TA_S_STDDEV( int    startIdx,
       }
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_STDDEV_Unguarded( int    startIdx,
@@ -269,8 +263,6 @@ TA_RetCode TA_S_STDDEV_Unguarded( int    startIdx,
          }
       }
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

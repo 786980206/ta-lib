@@ -118,8 +118,6 @@ TA_LIB_API TA_RetCode TA_ADXR( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_ADXR_Unguarded( int    startIdx,
@@ -173,8 +171,6 @@ TA_LIB_API TA_RetCode TA_ADXR_Unguarded( int    startIdx,
    free(adx);
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -248,8 +244,6 @@ TA_RetCode TA_S_ADXR( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_ADXR_Unguarded( int    startIdx,
@@ -303,8 +297,6 @@ TA_RetCode TA_S_ADXR_Unguarded( int    startIdx,
    free(adx);
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

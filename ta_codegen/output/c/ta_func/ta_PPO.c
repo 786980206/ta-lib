@@ -118,8 +118,6 @@ TA_LIB_API TA_RetCode TA_PPO( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_PPO_Unguarded( int    startIdx,
@@ -178,8 +176,6 @@ TA_LIB_API TA_RetCode TA_PPO_Unguarded( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_PPO( int    startIdx,
@@ -258,8 +254,6 @@ TA_RetCode TA_S_PPO( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_PPO_Unguarded( int    startIdx,
@@ -318,7 +312,5 @@ TA_RetCode TA_S_PPO_Unguarded( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 

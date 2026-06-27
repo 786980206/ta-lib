@@ -181,8 +181,6 @@ TA_LIB_API TA_RetCode TA_T3( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_T3_Unguarded( int    startIdx,
@@ -305,8 +303,6 @@ TA_LIB_API TA_RetCode TA_T3_Unguarded( int    startIdx,
       outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -449,8 +445,6 @@ TA_RetCode TA_S_T3( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_T3_Unguarded( int    startIdx,
@@ -573,8 +567,6 @@ TA_RetCode TA_S_T3_Unguarded( int    startIdx,
       outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

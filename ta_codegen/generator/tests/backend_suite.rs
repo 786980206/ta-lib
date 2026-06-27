@@ -998,11 +998,16 @@ fn test_all_indicators_contain_success_returns() {
         };
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            assert!(
-                out.c.contains("TA_SUCCESS"),
-                "C {}: missing TA_SUCCESS return",
-                name
-            );
+            // Delegation functions (e.g. EMA -> TA_EMA_Private, MACDFIX ->
+            // TA_MACD_Unguarded) return a RetCode from a callee without ever
+            // mentioning TA_SUCCESS literally.
+            // Accept: literal TA_SUCCESS OR a `return TA_<func>( ... )` delegation.
+            let c_has_success = out.c.contains("TA_SUCCESS")
+                || out.c.lines().any(|l| {
+                    let t = l.trim_start();
+                    t.starts_with("return TA_") && t.contains('(')
+                });
+            assert!(c_has_success, "C {}: missing TA_SUCCESS return", name);
             // Delegation functions (e.g. MACDFIX) return a RetCode from a
             // callee without ever mentioning RetCode.Success literally.
             // Accept: literal RetCode::Success OR a return of a RetCode from a cross-indicator call.

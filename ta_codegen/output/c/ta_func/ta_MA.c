@@ -162,8 +162,6 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
       break;
    }
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
@@ -232,8 +230,6 @@ TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
       break;
    }
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_MA( int    startIdx,
@@ -318,8 +314,6 @@ TA_RetCode TA_S_MA( int    startIdx,
       break;
    }
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_MA_Unguarded( int    startIdx,
@@ -388,7 +382,5 @@ TA_RetCode TA_S_MA_Unguarded( int    startIdx,
       break;
    }
    return retCode;
-
-   return TA_SUCCESS;
 }
 

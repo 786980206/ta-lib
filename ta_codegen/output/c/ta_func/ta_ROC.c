@@ -97,8 +97,6 @@ TA_LIB_API TA_RetCode TA_ROC( int    startIdx,
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_ROC_Unguarded( int    startIdx,
@@ -141,8 +139,6 @@ TA_LIB_API TA_RetCode TA_ROC_Unguarded( int    startIdx,
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -201,8 +197,6 @@ TA_RetCode TA_S_ROC( int    startIdx,
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_ROC_Unguarded( int    startIdx,
@@ -245,8 +239,6 @@ TA_RetCode TA_S_ROC_Unguarded( int    startIdx,
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

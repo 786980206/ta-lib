@@ -125,8 +125,6 @@ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
       return retCode;
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_STOCHRSI_Unguarded( int    startIdx,
@@ -183,8 +181,6 @@ TA_LIB_API TA_RetCode TA_STOCHRSI_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -269,8 +265,6 @@ TA_RetCode TA_S_STOCHRSI( int    startIdx,
       return retCode;
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_STOCHRSI_Unguarded( int    startIdx,
@@ -327,8 +321,6 @@ TA_RetCode TA_S_STOCHRSI_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

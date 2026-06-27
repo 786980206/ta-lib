@@ -111,8 +111,6 @@ TA_LIB_API TA_RetCode TA_LINEARREG( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_LINEARREG_Unguarded( int    startIdx,
@@ -169,8 +167,6 @@ TA_LIB_API TA_RetCode TA_LINEARREG_Unguarded( int    startIdx,
    }
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -243,8 +239,6 @@ TA_RetCode TA_S_LINEARREG( int    startIdx,
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_LINEARREG_Unguarded( int    startIdx,
@@ -301,8 +295,6 @@ TA_RetCode TA_S_LINEARREG_Unguarded( int    startIdx,
    }
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

@@ -147,8 +147,6 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_NATR_Unguarded( int    startIdx,
@@ -238,8 +236,6 @@ TA_LIB_API TA_RetCode TA_NATR_Unguarded( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_NATR( int    startIdx,
@@ -347,8 +343,6 @@ TA_RetCode TA_S_NATR( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_NATR_Unguarded( int    startIdx,
@@ -438,7 +432,5 @@ TA_RetCode TA_S_NATR_Unguarded( int    startIdx,
    *outNBElement= outIdx;
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 

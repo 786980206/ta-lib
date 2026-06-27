@@ -162,8 +162,6 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_KAMA_Unguarded( int    startIdx,
@@ -271,8 +269,6 @@ TA_LIB_API TA_RetCode TA_KAMA_Unguarded( int    startIdx,
       outReal[outIdx++] = prevKAMA;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -396,8 +392,6 @@ TA_RetCode TA_S_KAMA( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_KAMA_Unguarded( int    startIdx,
@@ -505,8 +499,6 @@ TA_RetCode TA_S_KAMA_Unguarded( int    startIdx,
       outReal[outIdx++] = prevKAMA;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

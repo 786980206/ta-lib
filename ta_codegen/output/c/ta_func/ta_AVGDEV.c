@@ -103,8 +103,6 @@ TA_LIB_API TA_RetCode TA_AVGDEV( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_AVGDEV_Unguarded( int    startIdx,
@@ -153,8 +151,6 @@ TA_LIB_API TA_RetCode TA_AVGDEV_Unguarded( int    startIdx,
       today += 1;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -219,8 +215,6 @@ TA_RetCode TA_S_AVGDEV( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_AVGDEV_Unguarded( int    startIdx,
@@ -269,8 +263,6 @@ TA_RetCode TA_S_AVGDEV_Unguarded( int    startIdx,
       today += 1;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

@@ -110,8 +110,6 @@ TA_LIB_API TA_RetCode TA_APO( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_APO_Unguarded( int    startIdx,
@@ -162,8 +160,6 @@ TA_LIB_API TA_RetCode TA_APO_Unguarded( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_APO( int    startIdx,
@@ -234,8 +230,6 @@ TA_RetCode TA_S_APO( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_APO_Unguarded( int    startIdx,
@@ -286,7 +280,5 @@ TA_RetCode TA_S_APO_Unguarded( int    startIdx,
    }
    free(tempBuffer);
    return retCode;
-
-   return TA_SUCCESS;
 }
 

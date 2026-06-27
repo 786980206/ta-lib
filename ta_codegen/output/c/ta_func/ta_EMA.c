@@ -98,8 +98,6 @@ TA_LIB_API TA_RetCode TA_EMA_Private( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_EMA_Private( int    startIdx,
@@ -158,8 +156,6 @@ TA_RetCode TA_S_EMA_Private( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_EMA_Unguarded( int    startIdx,
@@ -174,8 +170,6 @@ TA_LIB_API TA_RetCode TA_EMA_Unguarded( int    startIdx,
 
    optInK_1 = (2.0/((double)(optInTimePeriod+1)));
    return TA_EMA_Private(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
@@ -204,8 +198,6 @@ TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
 
    optInK_1 = (2.0/((double)(optInTimePeriod+1)));
    return TA_EMA_Private(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_EMA_Unguarded( int    startIdx,
@@ -263,8 +255,6 @@ TA_RetCode TA_S_EMA_Unguarded( int    startIdx,
       outReal[outIdx++] = prevMA;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -337,8 +327,6 @@ TA_RetCode TA_S_EMA( int    startIdx,
       outReal[outIdx++] = prevMA;
    }
    *outNBElement= outIdx;
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

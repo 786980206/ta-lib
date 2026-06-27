@@ -213,8 +213,6 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
       }
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_BBANDS_Unguarded( int    startIdx,
@@ -363,8 +361,6 @@ TA_LIB_API TA_RetCode TA_BBANDS_Unguarded( int    startIdx,
          outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
       }
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -539,8 +535,6 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
       }
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_BBANDS_Unguarded( int    startIdx,
@@ -689,8 +683,6 @@ TA_RetCode TA_S_BBANDS_Unguarded( int    startIdx,
          outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
       }
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

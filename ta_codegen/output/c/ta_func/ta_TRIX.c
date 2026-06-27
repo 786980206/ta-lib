@@ -134,8 +134,6 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
       return retCode;
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
@@ -213,8 +211,6 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
       *outBegIdx= 0;
       return retCode;
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 
@@ -308,8 +304,6 @@ TA_RetCode TA_S_TRIX( int    startIdx,
       return retCode;
    }
    return TA_SUCCESS;
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
@@ -387,8 +381,6 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
       *outBegIdx= 0;
       return retCode;
    }
-   return TA_SUCCESS;
-
    return TA_SUCCESS;
 }
 

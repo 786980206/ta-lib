@@ -530,7 +530,6 @@ fn gen_func_inner(
         }
     }
 
-    out.push_str("\n   return TA_SUCCESS;\n");
     out.push_str("}\n\n");
 
     out

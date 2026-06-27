@@ -72,8 +72,6 @@ TA_LIB_API TA_RetCode TA_MACDFIX( int    startIdx,
       return TA_BAD_PARAM;
 
    return TA_MACD_Unguarded(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
-
-   return TA_SUCCESS;
 }
 
 TA_LIB_API TA_RetCode TA_MACDFIX_Unguarded( int    startIdx,
@@ -88,8 +86,6 @@ TA_LIB_API TA_RetCode TA_MACDFIX_Unguarded( int    startIdx,
 {
 
    return TA_MACD_Unguarded(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_MACDFIX( int    startIdx,
@@ -122,8 +118,6 @@ TA_RetCode TA_S_MACDFIX( int    startIdx,
       return TA_BAD_PARAM;
 
    return TA_S_MACD_Unguarded(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
-
-   return TA_SUCCESS;
 }
 
 TA_RetCode TA_S_MACDFIX_Unguarded( int    startIdx,
@@ -138,7 +132,5 @@ TA_RetCode TA_S_MACDFIX_Unguarded( int    startIdx,
 {
 
    return TA_S_MACD_Unguarded(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
-
-   return TA_SUCCESS;
 }
 
