@@ -7,6 +7,7 @@ use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statemen
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
+use super::expr_walk::ExprEmitter;
 
 /// Candle helper function names that should be rendered inline (as ternary
 /// expressions) rather than hoisted into switch-block temporaries.  Keeping
@@ -1220,195 +1221,171 @@ fn render_return_expr(
 }
 
 #[allow(clippy::too_many_lines)]
+/// Java-backend leaf formatting for the shared [`ExprEmitter`] tree-walk. Bundles
+/// the render context with the registry/helper services the call-dispatch hooks
+/// need; the recursion itself lives in [`ExprEmitter::walk`].
+struct JavaExpr<'a> {
+    ctx: &'a JavaRenderCtx<'a>,
+    registry: &'a Registry,
+    helpers: &'a HelperRegistry,
+}
+
+impl ExprEmitter for JavaExpr<'_> {
+    fn var(&self, name: &str) -> String {
+        let mapped = match name {
+            "COMPATIBILITY" => "this.compatibility".to_string(),
+            "METASTOCK" => "Compatibility.Metastock".to_string(),
+            "DEFAULT" => "Compatibility.Default".to_string(),
+            "BAD_PARAM" => "RetCode.BadParam".to_string(),
+            "SUCCESS" => "RetCode.Success".to_string(),
+            "ALLOC_ERR" => "RetCode.AllocErr".to_string(),
+            "INTERNAL_ERROR" => "RetCode.InternalError".to_string(),
+            "TA_MAType_SMA" => "MAType.Sma".to_string(),
+            "TA_MAType_EMA" => "MAType.Ema".to_string(),
+            "TA_MAType_WMA" => "MAType.Wma".to_string(),
+            "TA_MAType_DEMA" => "MAType.Dema".to_string(),
+            "TA_MAType_TEMA" => "MAType.Tema".to_string(),
+            "TA_MAType_TRIMA" => "MAType.Trima".to_string(),
+            "TA_MAType_KAMA" => "MAType.Kama".to_string(),
+            "TA_MAType_MAMA" => "MAType.Mama".to_string(),
+            "TA_MAType_T3" => "MAType.T3".to_string(),
+            _ => name.to_string(),
+        };
+        if self.ctx.address_of_vars.contains(name) {
+            format!("{mapped}.value")
+        } else if self.ctx.double_address_of_vars.contains(name) {
+            format!("{mapped}[0]")
+        } else {
+            mapped
+        }
+    }
+
+    fn array_access(&self, name: &str, idx: &Expr) -> String {
+        format!("{}[{}]", name, self.walk(idx))
+    }
+
+    fn binop(&self, left: &Expr, op: &BinOp, right: &Expr) -> String {
+        // In single-precision variants, input params are float[] and output params are
+        // double[]. Java forbids == / != comparisons between incompatible array types.
+        // When exactly one operand is a known float input param, the comparison can
+        // never be true (they are different types and can never alias), so emit false/true.
+        if self.ctx.single_precision && matches!(op, BinOp::Eq | BinOp::NotEq) {
+            if let (Expr::Var(lname), Expr::Var(rname)) = (left, right) {
+                let left_is_input = self.ctx.float_input_params.contains(lname.as_str());
+                let right_is_input = self.ctx.float_input_params.contains(rname.as_str());
+                if left_is_input != right_is_input {
+                    return if matches!(op, BinOp::Eq) {
+                        "false".to_string()
+                    } else {
+                        "true".to_string()
+                    };
+                }
+            }
+        }
+        let op_str = match op {
+            BinOp::Add => "+",
+            BinOp::Sub => "-",
+            BinOp::Mul => "*",
+            BinOp::Div => "/",
+            BinOp::Mod => "%",
+            BinOp::LessEq => "<=",
+            BinOp::Less => "<",
+            BinOp::Greater => ">",
+            BinOp::GreaterEq => ">=",
+            BinOp::Eq => "==",
+            BinOp::NotEq => "!=",
+            BinOp::And => "&&",
+            BinOp::Or => "||",
+            BinOp::BitwiseOr => "|",
+            BinOp::Shr => ">>",
+            BinOp::Shl => "<<",
+        };
+        format!("({}{}{})", self.walk(left), op_str, self.walk(right))
+    }
+
+    fn cast(&self, var_type: &VarType, inner: &Expr) -> String {
+        let java_type = match var_type {
+            VarType::Real => "double",
+            VarType::Integer | VarType::Index => "int",
+            VarType::RetCodeType => "RetCode",
+            VarType::RealPointer => "double[]",
+            VarType::IntPointer => "int[]",
+            VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
+        };
+        format!("(({}){})", java_type, self.walk(inner))
+    }
+
+    fn func_call(&self, name: &str, args: &[Expr]) -> String {
+        render_func_call(name, args, self.ctx, self.registry, self.helpers)
+    }
+
+    fn pointer_deref(&self, name: &str) -> String {
+        // Java has no pointer dereference; output params are MInteger .value
+        // For double address-of vars, use [0] instead
+        if self.ctx.double_address_of_vars.contains(name) {
+            format!("{name}[0]")
+        } else {
+            format!("{name}.value")
+        }
+    }
+
+    fn address_of(&self, inner: &Expr) -> String {
+        // Java has no address-of; render the inner expression directly.
+        // Pass empty sets so MInteger vars render as object refs (no .value)
+        // and double[] vars render as array refs (no [0]).
+        let empty = HashSet::new();
+        let inner_ctx = JavaRenderCtx {
+            single_precision: self.ctx.single_precision,
+            address_of_vars: &empty,
+            double_address_of_vars: &empty,
+            float_input_params: self.ctx.float_input_params,
+            inline_counter: self.ctx.inline_counter,
+        };
+        render_expr(inner, &inner_ctx, self.registry, self.helpers)
+    }
+
+    fn post_increment(&self, inner: &Expr) -> String {
+        format!("{}++", self.walk(inner))
+    }
+
+    fn post_decrement(&self, inner: &Expr) -> String {
+        format!("{}--", self.walk(inner))
+    }
+
+    fn pre_increment(&self, inner: &Expr) -> String {
+        format!("++{}", self.walk(inner))
+    }
+
+    fn pre_decrement(&self, inner: &Expr) -> String {
+        format!("--{}", self.walk(inner))
+    }
+
+    fn ternary(&self, cond: &Expr, then_expr: &Expr, else_expr: &Expr) -> String {
+        // (cond) ? (1) : (0) → just the condition (boolean in Java)
+        if is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0) {
+            return self.walk(cond);
+        }
+        // (cond) ? (0) : (1) → !condition
+        if is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1) {
+            return format!("!({})", self.walk(cond));
+        }
+        // Default: render as Java ternary
+        format!(
+            "(({}) ? ({}) : ({}))",
+            self.walk(cond),
+            self.walk(then_expr),
+            self.walk(else_expr)
+        )
+    }
+}
+
 fn render_expr(
     expr: &Expr,
     ctx: &JavaRenderCtx,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    match expr {
-        Expr::Literal(f) => {
-            #[allow(clippy::float_cmp)]
-            let is_whole = *f == f.floor() && f.abs() < 1e15;
-            if is_whole {
-                #[allow(clippy::cast_possible_truncation)]
-                let i = *f as i64;
-                format!("{i}.0")
-            } else {
-                format!("{f}")
-            }
-        }
-        Expr::IntLiteral(i) => format!("{i}"),
-        Expr::Var(name) => {
-            let mapped = match name.as_str() {
-                "COMPATIBILITY" => "this.compatibility".to_string(),
-                "METASTOCK" => "Compatibility.Metastock".to_string(),
-                "DEFAULT" => "Compatibility.Default".to_string(),
-                "BAD_PARAM" => "RetCode.BadParam".to_string(),
-                "SUCCESS" => "RetCode.Success".to_string(),
-                "ALLOC_ERR" => "RetCode.AllocErr".to_string(),
-                "INTERNAL_ERROR" => "RetCode.InternalError".to_string(),
-                "TA_MAType_SMA" => "MAType.Sma".to_string(),
-                "TA_MAType_EMA" => "MAType.Ema".to_string(),
-                "TA_MAType_WMA" => "MAType.Wma".to_string(),
-                "TA_MAType_DEMA" => "MAType.Dema".to_string(),
-                "TA_MAType_TEMA" => "MAType.Tema".to_string(),
-                "TA_MAType_TRIMA" => "MAType.Trima".to_string(),
-                "TA_MAType_KAMA" => "MAType.Kama".to_string(),
-                "TA_MAType_MAMA" => "MAType.Mama".to_string(),
-                "TA_MAType_T3" => "MAType.T3".to_string(),
-                _ => name.clone(),
-            };
-            if ctx.address_of_vars.contains(name) {
-                format!("{mapped}.value")
-            } else if ctx.double_address_of_vars.contains(name) {
-                format!("{mapped}[0]")
-            } else {
-                mapped
-            }
-        }
-        Expr::ArrayAccess(name, idx) => {
-            format!(
-                "{}[{}]",
-                name,
-                render_expr(idx, ctx, registry, helpers)
-            )
-        }
-        Expr::BinOp(left, op, right) => {
-            // In single-precision variants, input params are float[] and output params are
-            // double[]. Java forbids == / != comparisons between incompatible array types.
-            // When exactly one operand is a known float input param, the comparison can
-            // never be true (they are different types and can never alias), so emit false/true.
-            if ctx.single_precision && matches!(op, BinOp::Eq | BinOp::NotEq) {
-                if let (Expr::Var(lname), Expr::Var(rname)) = (left.as_ref(), right.as_ref()) {
-                    let left_is_input = ctx.float_input_params.contains(lname.as_str());
-                    let right_is_input = ctx.float_input_params.contains(rname.as_str());
-                    if left_is_input != right_is_input {
-                        return if matches!(op, BinOp::Eq) {
-                            "false".to_string()
-                        } else {
-                            "true".to_string()
-                        };
-                    }
-                }
-            }
-            let op_str = match op {
-                BinOp::Add => "+",
-                BinOp::Sub => "-",
-                BinOp::Mul => "*",
-                BinOp::Div => "/",
-                BinOp::Mod => "%",
-                BinOp::LessEq => "<=",
-                BinOp::Less => "<",
-                BinOp::Greater => ">",
-                BinOp::GreaterEq => ">=",
-                BinOp::Eq => "==",
-                BinOp::NotEq => "!=",
-                BinOp::And => "&&",
-                BinOp::Or => "||",
-                BinOp::BitwiseOr => "|",
-                BinOp::Shr => ">>",
-                BinOp::Shl => "<<",
-            };
-            format!(
-                "({}{}{})",
-                render_expr(left, ctx, registry, helpers),
-                op_str,
-                render_expr(right, ctx, registry, helpers)
-            )
-        }
-        Expr::Cast(var_type, inner) => {
-            let java_type = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "RetCode",
-                VarType::RealPointer => "double[]",
-                VarType::IntPointer => "int[]",
-                VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
-            };
-            format!(
-                "(({}){})",
-                java_type,
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::Not(inner) => {
-            format!(
-                "!({})",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::FuncCall(name, args) => {
-            render_func_call(name, args, ctx, registry, helpers)
-        }
-        Expr::PointerDeref(name) => {
-            // Java has no pointer dereference; output params are MInteger .value
-            // For double address-of vars, use [0] instead
-            if ctx.double_address_of_vars.contains(name) {
-                format!("{name}[0]")
-            } else {
-                format!("{name}.value")
-            }
-        }
-        Expr::AddressOf(inner) => {
-            // Java has no address-of; render the inner expression directly.
-            // Pass empty sets so MInteger vars render as object refs (no .value)
-            // and double[] vars render as array refs (no [0]).
-            let empty = HashSet::new();
-            let inner_ctx = JavaRenderCtx {
-                single_precision: ctx.single_precision,
-                address_of_vars: &empty,
-                double_address_of_vars: &empty,
-                float_input_params: ctx.float_input_params,
-                inline_counter: ctx.inline_counter,
-            };
-            render_expr(inner, &inner_ctx, registry, helpers)
-        }
-        Expr::PostIncrement(inner) => {
-            format!(
-                "{}++",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::PostDecrement(inner) => {
-            format!(
-                "{}--",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::PreIncrement(inner) => {
-            format!(
-                "++{}",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::PreDecrement(inner) => {
-            format!(
-                "--{}",
-                render_expr(inner, ctx, registry, helpers)
-            )
-        }
-        Expr::Ternary(cond, then_expr, else_expr) => {
-            // (cond) ? (1) : (0) → just the condition (boolean in Java)
-            if is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0) {
-                return render_expr(cond, ctx, registry, helpers);
-            }
-            // (cond) ? (0) : (1) → !condition
-            if is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1) {
-                return format!(
-                    "!({})",
-                    render_expr(cond, ctx, registry, helpers)
-                );
-            }
-            // Default: render as Java ternary
-            format!(
-                "(({}) ? ({}) : ({}))",
-                render_expr(cond, ctx, registry, helpers),
-                render_expr(then_expr, ctx, registry, helpers),
-                render_expr(else_expr, ctx, registry, helpers)
-            )
-        }
-    }
+    JavaExpr { ctx, registry, helpers }.walk(expr)
 }
 
 /// Convert a function identifier to `PascalCase`.
