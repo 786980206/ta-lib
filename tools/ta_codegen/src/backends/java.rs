@@ -6,6 +6,7 @@ use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistr
 use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement, VarType};
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
+use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
 
 /// Candle helper function names that should be rendered inline (as ternary
 /// expressions) rather than hoisted into switch-block temporaries.  Keeping
@@ -13,45 +14,6 @@ use crate::registry::{Lang, Registry};
 /// short-circuit evaluation — hoisted switch blocks would be evaluated
 /// unconditionally before the `if`.
 const JAVA_CANDLE_FNS: &[&str] = &["ta_candlerange", "ta_candleaverage"];
-
-/// Check if an expression directly contains a candle helper function call,
-/// WITHOUT recursing through `&&`/`||` operators.  This ensures we only split
-/// `if(A && B)` when both A and B themselves contain expensive candle calls,
-/// not when they're part of a longer `&&` chain where only some parts are
-/// expensive.
-#[allow(clippy::match_same_arms)] // And/Or arm intentionally stops recursion
-fn expr_directly_contains_candle_call(expr: &Expr) -> bool {
-    match expr {
-        Expr::FuncCall(name, args) => {
-            JAVA_CANDLE_FNS.contains(&name.as_str())
-                || args.iter().any(expr_directly_contains_candle_call)
-        }
-        // Stop at logical operators — those are separate conditions in the chain
-        Expr::BinOp(_, BinOp::And | BinOp::Or, _) => false,
-        Expr::BinOp(l, _, r) => {
-            expr_directly_contains_candle_call(l) || expr_directly_contains_candle_call(r)
-        }
-        Expr::Ternary(c, t, e) => {
-            expr_directly_contains_candle_call(c)
-                || expr_directly_contains_candle_call(t)
-                || expr_directly_contains_candle_call(e)
-        }
-        Expr::Cast(_, inner)
-        | Expr::Not(inner)
-        | Expr::AddressOf(inner)
-        | Expr::PostIncrement(inner)
-        | Expr::PostDecrement(inner)
-        | Expr::PreIncrement(inner)
-        | Expr::PreDecrement(inner) => expr_directly_contains_candle_call(inner),
-        Expr::ArrayAccess(_, idx) => expr_directly_contains_candle_call(idx),
-        Expr::Var(_) | Expr::Literal(_) | Expr::IntLiteral(_) | Expr::PointerDeref(_) => false,
-    }
-}
-
-/// Check if a statement list contains a return with ALLOC_ERR value.
-fn contains_alloc_err_return(stmts: &[Statement]) -> bool {
-    stmts.iter().any(|s| matches!(s, Statement::Return { value: Some(Expr::Var(name)) } if name == "ALLOC_ERR"))
-}
 
 /// Check if an expression already produces a boolean result in Java.
 /// Used to avoid wrapping comparisons with `!= 0` (which would be a type error).
@@ -303,6 +265,21 @@ pub fn generate(
     out
 }
 
+/// Java type name for a scalar or pointer `VarType`.
+///
+/// Array types map to their array type name here, but call sites that need a
+/// size-dependent initializer (`new double[N]`) match `RealArray`/`IntArray`
+/// explicitly before falling through to this helper.
+fn java_type_str(var_type: &VarType) -> &'static str {
+    match var_type {
+        VarType::Real => "double",
+        VarType::Integer | VarType::Index => "int",
+        VarType::RetCodeType => "RetCode",
+        VarType::RealPointer | VarType::RealArray(_) => "double[]",
+        VarType::IntPointer | VarType::IntArray(_) => "int[]",
+    }
+}
+
 fn gen_lookback(
     func: &FuncDef,
     enums: &HashMap<String, EnumDef>,
@@ -401,7 +378,6 @@ fn gen_private_sp(
     gen_func_inner(func, true, true, Some(&name_override), enums, registry, helpers)
 }
 
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn gen_func(
     func: &FuncDef,
     single_precision: bool,
@@ -565,13 +541,11 @@ fn gen_func_inner(
                 match var_type {
                     VarType::Real => format!("double {name} = 0"),
                     VarType::Integer | VarType::Index => format!("int {name} = 0"),
-                    VarType::RetCodeType => format!("RetCode {name}"),
-                    VarType::RealPointer => format!("double[] {name}"),
-                    VarType::IntPointer => format!("int[] {name}"),
                     VarType::RealArray(size) => {
                         format!("double[] {name} = new double[{size}]")
                     }
                     VarType::IntArray(size) => format!("int[] {name} = new int[{size}]"),
+                    _ => format!("{} {name}", java_type_str(var_type)),
                 }
             };
             out.push_str(&format!("      {java_decl};\n"));
@@ -723,13 +697,9 @@ fn render_hoisted_blocks(
     let mut out = String::new();
     for (temp_name, var_type, body) in hoisted {
         let java_decl = match var_type {
-            VarType::Real => format!("double {temp_name}"),
-            VarType::Integer | VarType::Index => format!("int {temp_name}"),
-            VarType::RetCodeType => format!("RetCode {temp_name}"),
-            VarType::RealPointer => format!("double[] {temp_name}"),
-            VarType::IntPointer => format!("int[] {temp_name}"),
             VarType::RealArray(size) => format!("double[] {temp_name} = new double[{size}]"),
             VarType::IntArray(size) => format!("int[] {temp_name} = new int[{size}]"),
+            _ => format!("{} {temp_name}", java_type_str(var_type)),
         };
         out.push_str(&format!("{pad}{java_decl};\n"));
         // Declare local variables from the hoisted helper body.
@@ -738,11 +708,6 @@ fn render_hoisted_blocks(
         for stmt in body {
             if let Statement::VarDecl { var_type: vt, name, init } = stmt {
                 let type_part = match vt {
-                    VarType::Real => "double".to_string(),
-                    VarType::Integer | VarType::Index => "int".to_string(),
-                    VarType::RetCodeType => "RetCode".to_string(),
-                    VarType::RealPointer => "double[]".to_string(),
-                    VarType::IntPointer => "int[]".to_string(),
                     VarType::RealArray(size) => {
                         // Arrays with size are initialized inline; emit and continue
                         out.push_str(&format!("{pad}double[] {name} = new double[{size}];\n"));
@@ -752,6 +717,7 @@ fn render_hoisted_blocks(
                         out.push_str(&format!("{pad}int[] {name} = new int[{size}];\n"));
                         continue;
                     }
+                    _ => java_type_str(vt).to_string(),
                 };
                 if let Some(init_expr) = init {
                     // Hoist any multi-statement helpers in the init expression
@@ -828,11 +794,6 @@ pub fn render_statement(
             // before calling render_statement. This arm handles block-scoped VarDecls
             // (inside while/for/if bodies) that need local declarations.
             let type_str = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "RetCode",
-                VarType::RealPointer => "double[]",
-                VarType::IntPointer => "int[]",
                 VarType::RealArray(size) => {
                     return format!(
                         "{pad}double[] {name} = new double[{size}];\n"
@@ -841,6 +802,7 @@ pub fn render_statement(
                 VarType::IntArray(size) => {
                     return format!("{pad}int[] {name} = new int[{size}];\n");
                 }
+                _ => java_type_str(var_type),
             };
             if let Some(init_expr) = init {
                 let mut hoisted_vec = Vec::new();
@@ -1250,11 +1212,6 @@ pub fn render_statement(
             for s in body {
                 if let Statement::VarDecl { var_type: vt, name, init } = s {
                     let type_part = match vt {
-                        VarType::Real => "double".to_string(),
-                        VarType::Integer | VarType::Index => "int".to_string(),
-                        VarType::RetCodeType => "RetCode".to_string(),
-                        VarType::RealPointer => "double[]".to_string(),
-                        VarType::IntPointer => "int[]".to_string(),
                         VarType::RealArray(size) => {
                             out.push_str(&format!("{pad}double[] {name} = new double[{size}];\n"));
                             continue;
@@ -1263,6 +1220,7 @@ pub fn render_statement(
                             out.push_str(&format!("{pad}int[] {name} = new int[{size}];\n"));
                             continue;
                         }
+                        _ => java_type_str(vt).to_string(),
                     };
                     if let Some(init_expr) = init {
                         let init_str = render_expr(
@@ -1582,8 +1540,7 @@ fn render_expr(
             // Pass empty sets so MInteger vars render as object refs (no .value)
             // and double[] vars render as array refs (no [0]).
             let empty = HashSet::new();
-            let empty2 = HashSet::new();
-            render_expr(inner, single_precision, registry, helpers, &empty, &empty2, float_input_params)
+            render_expr(inner, single_precision, registry, helpers, &empty, &empty, float_input_params)
         }
         Expr::PostIncrement(inner) => {
             format!(
@@ -1651,7 +1608,7 @@ fn to_pascal_case(s: &str) -> String {
 /// Keeps the first segment lowercase, capitalizes subsequent segments.
 /// e.g., "linearreg_angle" -> "linearregAngle", "ht_dcperiod" -> "htDcperiod"
 /// Names without underscores pass through unchanged: "sma" -> "sma"
-fn to_java_method_name(s: &str) -> String {
+pub(crate) fn to_java_method_name(s: &str) -> String {
     let lower = s.to_lowercase();
     let parts: Vec<&str> = lower.split('_').collect();
     let mut result = String::new();
@@ -1927,24 +1884,6 @@ const MATH_FUNCTIONS: &[&str] = &[
     "cosh", "sinh", "tanh", "log10", "ABS", "max", "min", "fmax", "fmin",
 ];
 
-/// Scan an expression tree for `sizeof(TYPE)` and return the type name.
-/// Used by `malloc` to determine the Java array element type.
-fn find_sizeof_type(expr: &Expr) -> Option<String> {
-    match expr {
-        Expr::FuncCall(name, args) if name == "sizeof" => args
-            .first()
-            .and_then(|a| match a {
-                Expr::Var(type_name) => Some(type_name.clone()),
-                _ => None,
-            }),
-        Expr::BinOp(left, _, right) => {
-            find_sizeof_type(left).or_else(|| find_sizeof_type(right))
-        }
-        Expr::Cast(_, inner) => find_sizeof_type(inner),
-        _ => None,
-    }
-}
-
 /// Decompose an expression into (array_name, offset) for array copy operations.
 /// `Var("arr")` → `("arr", "0")`; `AddressOf(ArrayAccess("arr", idx))` → `("arr", rendered_idx)`
 fn decompose_java_array_ref(
@@ -1999,13 +1938,9 @@ fn render_lookback_code(
     for stmt in stmts {
         if let Statement::VarDecl { var_type, name, .. } = stmt {
             let java_decl = match var_type {
-                VarType::Real => format!("double {name}"),
-                VarType::Integer | VarType::Index => format!("int {name}"),
-                VarType::RetCodeType => format!("RetCode {name}"),
-                VarType::RealPointer => format!("double[] {name}"),
-                VarType::IntPointer => format!("int[] {name}"),
                 VarType::RealArray(size) => format!("double[] {name} = new double[{size}]"),
                 VarType::IntArray(size) => format!("int[] {name} = new int[{size}]"),
+                _ => format!("{} {name}", java_type_str(var_type)),
             };
             out.push_str(&format!("      {java_decl};\n"));
         }

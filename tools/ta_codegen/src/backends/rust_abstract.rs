@@ -13,13 +13,10 @@
 #![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 
 use crate::ir::{EnumDef, FuncDef, Input, OptInput, Output, ParamType};
+use super::common::ta_real_sentinel;
 use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::path::Path;
-
-/// TA-Lib sentinel values (from `include/ta_defs.h` / `ta_abstract.h`).
-const TA_REAL_MIN: f64 = -3e37;
-const TA_REAL_MAX: f64 = 3e37;
 
 /// Generate `ta_codegen_output/rust/src/abstract_.rs` from the function defs.
 ///
@@ -251,18 +248,18 @@ fn emit_opt(o: &mut String, opt: &OptInput, enums: &HashMap<String, EnumDef>) {
 fn emit_real_domain(o: &mut String, opt: &OptInput) {
     let (min, max) = opt.range.unwrap_or((0.0, 0.0));
     let prec = opt.precision.unwrap_or(0);
-    let def = sentinel(opt.default.unwrap_or(0.0));
+    let def = ta_real_sentinel(opt.default.unwrap_or(0.0));
     let (s, e, i) = opt.suggested.unwrap_or((0.0, 0.0, 0.0));
     let _ = write!(
         o,
         "OptDomain::RealRange {{ min: {}, max: {}, precision: {}, default: {}, suggested: ({}, {}, {}) }}",
-        fl(sentinel(min)),
-        fl(sentinel(max)),
+        fl(ta_real_sentinel(min)),
+        fl(ta_real_sentinel(max)),
         prec,
         fl(def),
-        fl(sentinel(s)),
-        fl(sentinel(e)),
-        fl(sentinel(i)),
+        fl(ta_real_sentinel(s)),
+        fl(ta_real_sentinel(e)),
+        fl(ta_real_sentinel(i)),
     );
 }
 
@@ -270,8 +267,9 @@ fn emit_int_domain(o: &mut String, opt: &OptInput) {
     let (min, max) = opt.range.unwrap_or((0.0, 0.0));
     let (min, max) = (min as i32, max as i32);
     let def = opt.default.unwrap_or(0.0) as i32;
-    // Integer suggested values: use explicit YAML hints if present, else max
-    // for all three (matches gen_code / func_api_xml behaviour).
+    // Integer suggested values: prefer the explicit YAML `suggested` hints
+    // (matching ta_def_ui.c). Only when they are absent do we fall back to max
+    // for all three — func_api_xml applies that legacy fallback unconditionally.
     let (s, e, i) = match opt.suggested {
         Some((a, b, c)) => (a as i32, b as i32, c as i32),
         None => (max, max, max),
@@ -447,19 +445,6 @@ fn output_flag_bits(flags: &[String]) -> u32 {
         }
     }
     b
-}
-
-/// Map the YAML parser's `f64::MIN`/`MAX` sentinels back to TA-Lib's
-/// `-3e37`/`3e37` so the Rust registry agrees with C/XML semantics.
-#[allow(clippy::float_cmp)]
-fn sentinel(v: f64) -> f64 {
-    if v == f64::MIN {
-        TA_REAL_MIN
-    } else if v == f64::MAX {
-        TA_REAL_MAX
-    } else {
-        v
-    }
 }
 
 /// Format an f64 as a valid Rust literal (Debug yields e.g. `2.0`, `0.1`, `3e37`).

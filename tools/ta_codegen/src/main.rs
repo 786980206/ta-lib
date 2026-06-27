@@ -36,25 +36,25 @@ fn main() {
     let command = args.get(1).map(|s| s.as_str()).unwrap_or("generate");
     match command {
         "generate" => {
-            let func_filter = find_arg(&args, "--func");
-            let backend_filter = find_arg(&args, "--backend");
+            let func_filter = find_arg(&args, &["--func", "--function"]);
+            let backend_filter = find_arg(&args, &["--backend"]);
             generate(func_filter.as_deref(), backend_filter.as_deref());
         }
         "generate-servers" => {
-            let func_filter = find_arg(&args, "--func");
-            let backend_filter = find_arg(&args, "--backend");
+            let func_filter = find_arg(&args, &["--func", "--function"]);
+            let backend_filter = find_arg(&args, &["--backend"]);
             generate_servers(func_filter.as_deref(), backend_filter.as_deref());
         }
         "generate-bench" => {
-            let backend_filter = find_arg(&args, "--backend");
+            let backend_filter = find_arg(&args, &["--backend"]);
             generate_bench(backend_filter.as_deref());
         }
         "build" => {
-            let backend_filter = find_arg(&args, "--backend");
+            let backend_filter = find_arg(&args, &["--backend"]);
             build_servers(backend_filter.as_deref());
         }
         "extract" => {
-            let func_filter = find_arg(&args, "--function");
+            let func_filter = find_arg(&args, &["--function", "--func"]);
             extract(func_filter.as_deref());
         }
         _ => {
@@ -63,6 +63,7 @@ fn main() {
             eprintln!("Commands:");
             eprintln!("  generate         Generate code for all backends (default)");
             eprintln!("  generate-servers  Generate JSON-RPC server wrappers for each language");
+            eprintln!("  generate-bench   Generate the direct-call C benchmark binary source");
             eprintln!("  build            Compile generated server source into executables");
             eprintln!("  extract          Extract indicators from C source to ta_func_defs/");
             eprintln!();
@@ -156,11 +157,23 @@ fn wire_parsed_source(func_def: &mut ir::FuncDef, parsed: &parser::c_source::Par
     }
 }
 
-fn find_arg(args: &[String], prefix: &str) -> Option<String> {
-    let prefix_eq = format!("{}=", prefix);
-    args.iter()
-        .find(|a| a.starts_with(&prefix_eq))
-        .map(|a| a[prefix_eq.len()..].to_string())
+/// Look up a `--flag=value` argument, accepting any of the given flag spellings
+/// (e.g. both `--func` and `--function`).
+fn find_arg(args: &[String], prefixes: &[&str]) -> Option<String> {
+    for prefix in prefixes {
+        let prefix_eq = format!("{}=", prefix);
+        if let Some(a) = args.iter().find(|a| a.starts_with(&prefix_eq)) {
+            return Some(a[prefix_eq.len()..].to_string());
+        }
+    }
+    None
+}
+
+/// True for non-indicator subdirectories of `ta_func_defs/` (shared `helpers/`,
+/// library scaffolding `lib/`) that never carry a `<name>.yaml` indicator
+/// definition and therefore contribute nothing to generated output.
+fn is_reserved_dir(name: &str) -> bool {
+    matches!(name, "helpers" | "lib")
 }
 
 fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
@@ -194,7 +207,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
     let backends_to_run: Vec<&str> = match backend_filter {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
-        None => vec!["c", "rust", "java", "dotnet"],
+        None => backends::all_names(),
     };
 
     // Clean stale per-function output files before generating.
@@ -221,6 +234,10 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
             if !names.iter().any(|n| n == &func_name_lower.to_uppercase()) {
                 continue;
             }
+        }
+
+        if is_reserved_dir(&func_name_lower) {
+            continue;
         }
 
         let yaml_path = dir.join(format!("{}.yaml", func_name_lower));
@@ -346,7 +363,7 @@ fn load_all_yaml_defs(base: &Path) -> Vec<ir::FuncDef> {
         let dir = entry.path();
         let dir_name = entry.file_name().to_string_lossy().to_string();
 
-        if dir_name == "helpers" || dir_name == "lib" {
+        if is_reserved_dir(&dir_name) {
             continue;
         }
 
@@ -384,6 +401,10 @@ fn load_func_defs(func_filter: Option<&str>, root: &Path) -> Vec<ir::FuncDef> {
             }
         }
 
+        if is_reserved_dir(&func_name_lower) {
+            continue;
+        }
+
         let yaml_path = dir.join(format!("{}.yaml", func_name_lower));
         let c_path = dir.join(format!("{}.c", func_name_lower));
 
@@ -412,53 +433,15 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
     let backends_to_run: Vec<&str> = match backend_filter {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
-        None => vec!["c", "java", "dotnet", "rust"],
+        None => backends::all_names(),
     };
 
     let out_base = root.join("ta_codegen_output");
 
     for backend in &backends_to_run {
-        match *backend {
-            "c" => {
-                let dir = out_base.join("c");
-                std::fs::create_dir_all(&dir).unwrap();
-
-                // ta_func_unguarded.h is generated in generate(), not here
-
-                let output = server_gen::generate_c_server(&funcs);
-                let path = dir.join("ta_codegen_serve.c");
-                std::fs::write(&path, &output).unwrap();
-                println!("  C server -> {}", path.display());
-            }
-            "java" => {
-                let dir = out_base.join("java");
-                std::fs::create_dir_all(&dir).unwrap();
-
-                let template = server_gen::generate_java_server(&funcs);
-                let output = server_gen::inline_java_core_methods(&template, &dir, &funcs);
-                let path = dir.join("TaCodegenServe.java");
-                std::fs::write(&path, &output).unwrap();
-                println!("  Java server -> {}", path.display());
-            }
-            "dotnet" => {
-                let output = server_gen::generate_dotnet_server(&funcs);
-                let dir = out_base.join("dotnet");
-                std::fs::create_dir_all(&dir).unwrap();
-                let path = dir.join("TaCodegenServe.cs");
-                std::fs::write(&path, &output).unwrap();
-                println!("  .NET server -> {}", path.display());
-            }
-            "rust" => {
-                let rust_bin_dir = out_base.join("rust/src/bin");
-                std::fs::create_dir_all(&rust_bin_dir).unwrap();
-                let output = server_gen::generate_rust_server(&funcs);
-                let path = rust_bin_dir.join("ta_codegen_serve.rs");
-                std::fs::write(&path, &output).unwrap();
-                println!("  Rust server -> {}", path.display());
-            }
-            _ => {
-                eprintln!("Unknown backend: {}", backend);
-            }
+        match backends::get(backend) {
+            Some(b) => b.generate_server(&funcs, &out_base),
+            None => eprintln!("Unknown backend: {}", backend),
         }
     }
 
@@ -485,15 +468,21 @@ fn generate_bench(backend_filter: Option<&str>) {
             let dir = out_base.join("c");
             std::fs::create_dir_all(&dir).unwrap();
             ta_codegen_lib::bench_gen::write_c_bench(&funcs, &dir);
+        } else {
+            eprintln!("generate-bench: unsupported backend '{}' (only 'c' is supported)", backend);
         }
     }
 }
+
+/// Optimization/link flags shared by every gcc invocation in the build pipeline.
+/// Centralized so the C server, C bench, and shared-library builds cannot drift.
+const COMMON_GCC_FLAGS: &[&str] = &["-lm", "-O3", "-flto", "-DNDEBUG", "-Wno-parentheses-equality"];
 
 fn build_servers(backend_filter: Option<&str>) {
     let root = repo_root();
     let backends_to_build: Vec<&str> = match backend_filter {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
-        None => vec!["c", "java", "dotnet", "rust"],
+        None => backends::all_names(),
     };
 
     let out_base = root.join("ta_codegen_output");
@@ -525,12 +514,8 @@ fn build_servers(backend_filter: Option<&str>) {
                         &format!("-I{}", ta_abstract_dir.to_str().unwrap()),
                         &format!("-I{}", ta_frames_dir.to_str().unwrap()),
                         &format!("-I{}", ta_abstract_serve_dir.to_str().unwrap()),
-                        "-lm",
-                        "-O3",
-                        "-flto",
-                        "-DNDEBUG",
-                        "-Wno-parentheses-equality",
                     ])
+                    .args(COMMON_GCC_FLAGS)
                     .status()
                 {
                     Ok(s) if s.success() => println!("OK"),
@@ -553,12 +538,8 @@ fn build_servers(backend_filter: Option<&str>) {
                             &format!("-I{}", bench_inc_func.to_str().unwrap()),
                             &format!("-I{}", include_dir.to_str().unwrap()),
                             &format!("-I{}", ta_common_dir.to_str().unwrap()),
-                            "-lm",
-                            "-O3",
-                            "-flto",
-                            "-DNDEBUG",
-                            "-Wno-parentheses-equality",
                         ])
+                        .args(COMMON_GCC_FLAGS)
                         .status()
                     {
                         Ok(s) if s.success() => println!("OK"),
@@ -748,14 +729,13 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         format!("-I{}", c_dir.parent().unwrap().to_str().unwrap()),
         format!("-I{}", include_dir.to_str().unwrap()),
         format!("-I{}", ta_common_dir.to_str().unwrap()),
-        "-lm".to_string(),
-        "-O3".to_string(),
-        "-flto".to_string(),
-        "-DNDEBUG".to_string(),
-        "-Wno-parentheses-equality".to_string(),
     ];
 
-    match std::process::Command::new("gcc").args(&args).status() {
+    match std::process::Command::new("gcc")
+        .args(&args)
+        .args(COMMON_GCC_FLAGS)
+        .status()
+    {
         Ok(s) if s.success() => {
             println!("OK");
             std::fs::write(&marker, "").ok();
@@ -1049,261 +1029,6 @@ pub use types::*;
 "#,
     );
 
-    // Types were moved to ta_func_defs/lib/rust/types.rs (hand-written).
-    // The old ~250 lines of inline type definitions were removed here.
-    //
-    // To skip the dead r# string below (kept to avoid a massive edit),
-    // jump to "Add mod declarations for each generated indicator".
-    if false { let _ = r#"/* TA-LIB Copyright (c) 1999-2025, Mario Fortier
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or
- * without modification, are permitted provided that the following
- * conditions are met:
- *
- * - Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * - Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in
- *   the documentation and/or other materials provided with the
- *   distribution.
- *
- * - Neither name of author nor the names of its contributors
- *   may be used to endorse or promote products derived from this
- *   software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/// Return codes for TA-Lib function calls.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RetCode {
-    /// Function completed successfully.
-    Success,
-    /// One or more parameters are invalid.
-    BadParam,
-    /// The start index is out of range.
-    OutOfRangeStartIndex,
-    /// The end index is out of range or less than start index.
-    OutOfRangeEndIndex,
-    /// Memory allocation failed.
-    AllocErr,
-    /// Internal error occurred.
-    InternalError,
-}
-
-/// Compatibility mode for technical analysis calculations.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Compatibility {
-    /// Default TA-Lib compatibility mode.
-    Default,
-    /// Metastock-compatible calculation mode.
-    Metastock,
-}
-
-/// Identifies functions that have an unstable period.
-///
-/// Some technical analysis functions produce unreliable output during an
-/// initial "unstable" period. This enum identifies each such function so
-/// that a per-function unstable period can be configured.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FuncUnstId {
-    /// Average Directional Movement Index.
-    Adx,
-    /// Average Directional Movement Index Rating.
-    Adxr,
-    /// Average True Range.
-    Atr,
-    /// Chande Momentum Oscillator.
-    Cmo,
-    /// Directional Movement Index.
-    Dx,
-    /// Exponential Moving Average.
-    Ema,
-    /// Hilbert Transform - Dominant Cycle Period.
-    HtDcPeriod,
-    /// Hilbert Transform - Dominant Cycle Phase.
-    HtDcPhase,
-    /// Hilbert Transform - Phasor Components.
-    HtPhasor,
-    /// Hilbert Transform - SineWave.
-    HtSine,
-    /// Hilbert Transform - Instantaneous Trendline.
-    HtTrendline,
-    /// Hilbert Transform - Trend vs Cycle Mode.
-    HtTrendMode,
-    /// Intraday Momentum Index.
-    Imi,
-    /// Kaufman Adaptive Moving Average.
-    Kama,
-    /// MESA Adaptive Moving Average.
-    Mama,
-    /// Money Flow Index.
-    Mfi,
-    /// Minus Directional Indicator.
-    MinusDI,
-    /// Minus Directional Movement.
-    MinusDM,
-    /// Normalized Average True Range.
-    Natr,
-    /// Plus Directional Indicator.
-    PlusDI,
-    /// Plus Directional Movement.
-    PlusDM,
-    /// Relative Strength Index.
-    Rsi,
-    /// Stochastic Relative Strength Index.
-    StochRsi,
-    /// Triple Exponential Moving Average (T3).
-    T3,
-    /// Wildcard: set the unstable period for all functions at once.
-    FuncUnstAll,
-}
-
-/// A single candlestick setting entry.
-#[derive(Debug, Clone, Copy)]
-pub struct CandleSetting {
-    /// Range type: 0 = RealBody, 1 = HighLow, 2 = Shadows.
-    pub range_type: i32,
-    /// Number of periods for averaging.
-    pub avg_period: i32,
-    /// Scaling factor.
-    pub factor: f64,
-}
-
-/// All candlestick settings used by CDL* pattern indicators.
-#[derive(Debug, Clone, Copy)]
-#[allow(non_snake_case)]
-pub struct CandleSettings {
-    pub body_long: CandleSetting,
-    pub body_very_long: CandleSetting,
-    pub body_short: CandleSetting,
-    pub body_doji: CandleSetting,
-    pub shadow_long: CandleSetting,
-    pub shadow_very_long: CandleSetting,
-    pub shadow_short: CandleSetting,
-    pub shadow_very_short: CandleSetting,
-    pub near: CandleSetting,
-    pub far: CandleSetting,
-    pub equal: CandleSetting,
-}
-
-impl CandleSettings {
-    /// Default candle settings matching TA-Lib C defaults.
-    pub fn default_settings() -> Self {
-        Self {
-            body_long:         CandleSetting { range_type: 0, avg_period: 10, factor: 1.0 },
-            body_very_long:    CandleSetting { range_type: 0, avg_period: 10, factor: 3.0 },
-            body_short:        CandleSetting { range_type: 0, avg_period: 10, factor: 1.0 },
-            body_doji:         CandleSetting { range_type: 1, avg_period: 10, factor: 0.1 },
-            shadow_long:       CandleSetting { range_type: 0, avg_period:  0, factor: 1.0 },
-            shadow_very_long:  CandleSetting { range_type: 0, avg_period:  0, factor: 2.0 },
-            shadow_short:      CandleSetting { range_type: 2, avg_period: 10, factor: 1.0 },
-            shadow_very_short: CandleSetting { range_type: 1, avg_period: 10, factor: 0.1 },
-            near:              CandleSetting { range_type: 1, avg_period:  5, factor: 0.2 },
-            far:               CandleSetting { range_type: 1, avg_period:  5, factor: 0.6 },
-            equal:             CandleSetting { range_type: 1, avg_period:  5, factor: 0.05 },
-        }
-    }
-}
-
-/// Core struct providing access to all TA-Lib technical analysis functions.
-///
-/// Create an instance with [`Core::new()`] and call functions as methods.
-/// Unstable period and compatibility mode can be configured per-instance.
-///
-/// # Example
-///
-/// ```
-/// use ta_lib::ta_func::{Core, RetCode};
-///
-/// let core = Core::new();
-/// let lookback = core.sma_lookback(30);
-/// assert_eq!(lookback, 29);
-/// ```
-pub struct Core {
-    /// Unstable period for each function identified by [`FuncUnstId`].
-    pub unstable_period: [i32; FuncUnstId::FuncUnstAll as usize],
-    /// Compatibility mode (default: [`Compatibility::Default`]).
-    pub compatibility: Compatibility,
-    /// Candlestick pattern settings.
-    pub candle_settings: CandleSettings,
-}
-
-impl Core {
-    /// Create a new Core instance with default settings.
-    ///
-    /// All unstable periods are initialized to 0 and compatibility
-    /// mode is set to [`Compatibility::Default`].
-    pub fn new() -> Self {
-        Self {
-            unstable_period: [0; FuncUnstId::FuncUnstAll as usize],
-            compatibility: Compatibility::Default,
-            candle_settings: CandleSettings::default_settings(),
-        }
-    }
-
-    /// Set the unstable period for a specific function.
-    pub fn set_unstable_period(&mut self, id: FuncUnstId, period: i32) {
-        self.unstable_period[id as usize] = period;
-    }
-
-    /// Get the unstable period for a specific function.
-    pub fn get_unstable_period(&self, id: FuncUnstId) -> i32 {
-        self.unstable_period[id as usize]
-    }
-
-    /// Set the compatibility mode.
-    pub fn set_compatibility(&mut self, compat: Compatibility) {
-        self.compatibility = compat;
-    }
-
-    /// Get the current compatibility mode.
-    pub fn get_compatibility(&self) -> Compatibility {
-        self.compatibility
-    }
-
-    /// Compute candlestick range for the given range type and OHLC values.
-    #[inline(always)]
-    #[allow(non_snake_case)]
-    pub fn ta_candlerange(&self, rangeType: i32, open: f64, high: f64, low: f64, close: f64) -> f64 {
-        match rangeType {
-            0 => (close - open).abs(),
-            1 => high - low,
-            2 => high - low - (close - open).abs(),
-            _ => 0.0,
-        }
-    }
-
-    /// Compute candlestick average for the given settings and OHLC values.
-    #[inline(always)]
-    #[allow(non_snake_case)]
-    pub fn ta_candleaverage(&self, rangeType: i32, avgPeriod: i32, factor: f64, sum: f64,
-                             open: f64, high: f64, low: f64, close: f64) -> f64 {
-        let avg = if avgPeriod != 0 {
-            sum / (avgPeriod as f64)
-        } else {
-            self.ta_candlerange(rangeType, open, high, low, close)
-        };
-        let divisor = if rangeType == 2 { 2.0 } else { 1.0 };
-        factor * avg / divisor
-    }
-}
-
-"#; }
-
     // Add mod declarations for each generated indicator
     let mut func_names: Vec<String> = funcs
         .iter()
@@ -1337,21 +1062,16 @@ impl Core {
 /// Remove per-function generated files for a backend so stale artifacts
 /// from a previous run cannot leak into `generate-servers`.
 fn clean_generated_files(out_base: &Path, backend: &str) {
-    let (dir, prefix, suffix) = match backend {
-        "c" => (out_base.join("c/ta_func"), "ta_", ".c"),
-        "java" => (out_base.join("java"), "Core_", ".java"),
-        "dotnet" => (out_base.join("dotnet"), "Core_", ".h"),
-        "rust" => (out_base.join("rust/src/ta_func"), "", ".rs"),
-        _ => return,
+    let Some(backend) = backends::get(backend) else {
+        return;
     };
+    let dir = out_base.join(backend.out_subdir());
     if !dir.exists() {
         return;
     }
-    // Keep hand-written / scaffolding files (types.rs, mod.rs, ta_lib_types.h, etc.)
-    let keep: &[&str] = match backend {
-        "rust" => &["types.rs", "mod.rs"],
-        _ => &[],
-    };
+    let (prefix, suffix) = backend.clean_glob();
+    // Hand-written / scaffolding files (types.rs, mod.rs, ...) are preserved.
+    let keep = backend.clean_keep();
     let mut count = 0;
     if let Ok(entries) = std::fs::read_dir(&dir) {
         for entry in entries.flatten() {
@@ -1364,7 +1084,11 @@ fn clean_generated_files(out_base: &Path, backend: &str) {
         }
     }
     if count > 0 {
-        println!("  Cleaned {count} stale {backend} files from {}", dir.display());
+        println!(
+            "  Cleaned {count} stale {} files from {}",
+            backend.name(),
+            dir.display()
+        );
     }
 }
 
@@ -1376,42 +1100,14 @@ fn generate_backend(
     helpers: &HelperRegistry,
     out_base: &Path,
 ) {
-
-    match backend {
-        "c" => {
-            let output = backends::c::generate(func_def, enums, registry, helpers);
-            let dir = out_base.join("c/ta_func");
-            std::fs::create_dir_all(&dir).unwrap();
-            let path = dir.join(format!("ta_{}.c", func_def.name));
-            std::fs::write(&path, &output).unwrap();
-            println!("  {} -> {}", func_def.name, path.display());
-        }
-        "rust" => {
-            let output = backends::rust_lang::generate(func_def, enums, registry, helpers);
-            let dir = out_base.join("rust/src/ta_func");
-            std::fs::create_dir_all(&dir).unwrap();
-            let path = dir.join(format!("{}.rs", func_def.name.to_lowercase()));
-            std::fs::write(&path, &output).unwrap();
-            println!("  {} -> {}", func_def.name, path.display());
-        }
-        "java" => {
-            let output = backends::java::generate(func_def, enums, registry, helpers);
-            let dir = out_base.join("java");
-            std::fs::create_dir_all(&dir).unwrap();
-            let path = dir.join(format!("Core_{}.java", func_def.name));
-            std::fs::write(&path, &output).unwrap();
-            println!("  {} -> {}", func_def.name, path.display());
-        }
-        "dotnet" => {
-            let output = backends::dotnet::generate(func_def, enums, registry, helpers);
-            let dir = out_base.join("dotnet");
-            std::fs::create_dir_all(&dir).unwrap();
-            let path = dir.join(format!("Core_{}.h", func_def.name));
-            std::fs::write(&path, &output).unwrap();
-            println!("  {} -> {}", func_def.name, path.display());
-        }
-        _ => {
-            eprintln!("Unknown backend: {}", backend);
-        }
-    }
+    let Some(backend) = backends::get(backend) else {
+        eprintln!("Unknown backend: {}", backend);
+        return;
+    };
+    let output = backend.generate(func_def, enums, registry, helpers);
+    let dir = out_base.join(backend.out_subdir());
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join(backend.file_name(func_def));
+    std::fs::write(&path, &output).unwrap();
+    println!("  {} -> {}", func_def.name, path.display());
 }

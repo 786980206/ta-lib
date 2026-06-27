@@ -67,7 +67,7 @@ impl Registry {
                     Lang::Rust => format!("{base}_private"),
                     Lang::C => format!("TA_{}_Private", base.to_uppercase()),
                     Lang::Java => {
-                        let camel = self.to_camel_case(base);
+                        let camel = to_camel_case(base);
                         format!("{camel}Private")
                     }
                     Lang::DotNet => {
@@ -85,7 +85,7 @@ impl Registry {
                 Lang::Rust => format!("{func_name}_unguarded"),
                 Lang::C => format!("TA_{}_Unguarded", func_name.to_uppercase()),
                 Lang::Java => {
-                    let camel = self.to_camel_case(func_name);
+                    let camel = to_camel_case(func_name);
                     format!("{camel}Logic")
                 }
                 Lang::DotNet => {
@@ -101,18 +101,10 @@ impl Registry {
 
         match lang {
             Lang::Rust => func_name.to_string(),
-            Lang::C => self.to_c_name(&indicator, &suffix),
-            Lang::Java => self.to_camel_case(func_name),
-            Lang::DotNet => self.to_pascal_case(func_name),
+            Lang::C => to_c_name(&indicator, &suffix),
+            Lang::Java => to_camel_case(func_name),
+            Lang::DotNet => to_pascal_case(func_name),
         }
-    }
-
-    /// Resolve a prefix-free type reference to a language-specific name.
-    ///
-    /// Same logic as `resolve_call` — provided as a separate method
-    /// so backends can distinguish calls from type references if needed.
-    pub fn resolve_type(&self, func_name: &str, lang: Lang) -> String {
-        self.resolve_call(func_name, lang)
     }
 
     /// Parse a prefix-free function name into (indicator, suffix).
@@ -130,35 +122,33 @@ impl Registry {
         None
     }
 
-    /// Convert to C naming: `sma_lookback` -> `TA_SMA_Lookback`
-    #[allow(clippy::unused_self)]
-    fn to_c_name(&self, indicator: &str, suffix: &str) -> String {
-        let upper = indicator.to_uppercase();
-        // Capitalize first letter of suffix
-        let cap_suffix = capitalize(suffix);
-        format!("TA_{upper}_{cap_suffix}")
-    }
+}
 
-    /// Convert `snake_case` to camelCase: `sma_lookback` -> `smaLookback`
-    #[allow(clippy::unused_self)]
-    fn to_camel_case(&self, name: &str) -> String {
-        let parts: Vec<&str> = name.split('_').collect();
-        let mut result = String::new();
-        for (i, part) in parts.iter().enumerate() {
-            if i == 0 {
-                result.push_str(part);
-            } else {
-                result.push_str(&capitalize(part));
-            }
+/// Convert to C naming: `sma_lookback` -> `TA_SMA_Lookback`
+fn to_c_name(indicator: &str, suffix: &str) -> String {
+    let upper = indicator.to_uppercase();
+    // Capitalize first letter of suffix
+    let cap_suffix = capitalize(suffix);
+    format!("TA_{upper}_{cap_suffix}")
+}
+
+/// Convert `snake_case` to camelCase: `sma_lookback` -> `smaLookback`
+fn to_camel_case(name: &str) -> String {
+    let parts: Vec<&str> = name.split('_').collect();
+    let mut result = String::new();
+    for (i, part) in parts.iter().enumerate() {
+        if i == 0 {
+            result.push_str(part);
+        } else {
+            result.push_str(&capitalize(part));
         }
-        result
     }
+    result
+}
 
-    /// Convert `snake_case` to `PascalCase`: `sma_lookback` -> `SmaLookback`
-    #[allow(clippy::unused_self)]
-    fn to_pascal_case(&self, name: &str) -> String {
-        name.split('_').map(capitalize).collect()
-    }
+/// Convert `snake_case` to `PascalCase`: `sma_lookback` -> `SmaLookback`
+fn to_pascal_case(name: &str) -> String {
+    name.split('_').map(capitalize).collect()
 }
 
 /// Capitalize the first letter of a string.
@@ -234,16 +224,6 @@ mod tests {
         assert_eq!(
             registry.resolve_call("unknown_func", Lang::C),
             "unknown_func"
-        );
-    }
-
-    #[test]
-    fn test_registry_resolve_type_mirrors_resolve_call() {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
-        let registry = Registry::from_dir(&base);
-        assert_eq!(
-            registry.resolve_type("sma_lookback", Lang::C),
-            registry.resolve_call("sma_lookback", Lang::C)
         );
     }
 

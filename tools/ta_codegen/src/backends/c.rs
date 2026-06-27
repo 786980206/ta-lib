@@ -7,6 +7,7 @@ use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistr
 use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement, VarType};
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
+use super::common::{expr_directly_contains_candle_call, pascal_word};
 
 /// Candle helper functions emitted as C preprocessor macros instead of expanded code.
 /// This enables compiler loop-unswitching, matching the reference library's macro pattern.
@@ -20,7 +21,7 @@ pub fn generate(
     helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
-    out.push_str(&gen_header(func));
+    out.push_str(&gen_header());
     out.push_str(&gen_lookback(func, enums, registry, helpers));
 
     // For functions with explicit _private, emit Private and Logic BEFORE guarded
@@ -41,7 +42,47 @@ pub fn generate(
     out
 }
 
-fn gen_header(_func: &FuncDef) -> String {
+/// Render a C variable declaration (`type name`, including pointer and array
+/// forms) for the given [`VarType`]. Single source for the per-statement,
+/// hoisted-block, and lookback-local declaration emitters.
+fn c_decl(var_type: &VarType, name: &str) -> String {
+    match var_type {
+        VarType::Real => format!("double {name}"),
+        VarType::Integer | VarType::Index => format!("int {name}"),
+        VarType::RetCodeType => format!("TA_RetCode {name}"),
+        VarType::RealPointer => format!("double *{name}"),
+        VarType::IntPointer => format!("int *{name}"),
+        VarType::RealArray(size) => format!("double {name}[{size}]"),
+        VarType::IntArray(size) => format!("int {name}[{size}]"),
+    }
+}
+
+/// The scalar C type name for a [`VarType`], used for cast expressions.
+fn c_type_name(var_type: &VarType) -> &'static str {
+    match var_type {
+        VarType::Real => "double",
+        VarType::Integer | VarType::Index => "int",
+        VarType::RetCodeType => "TA_RetCode",
+        VarType::RealPointer => "double *",
+        VarType::IntPointer => "int *",
+        VarType::RealArray(_) | VarType::IntArray(_) => {
+            unreachable!("array-typed cast is not representable in C")
+        }
+    }
+}
+
+/// The C type of an optional input parameter (`double` / `int` / `TA_<Enum>`),
+/// shared by the lookback and function signature builders.
+fn c_opt_param_type(param_type: &ParamType) -> String {
+    match param_type {
+        ParamType::Real => "double".to_string(),
+        ParamType::Integer => "int".to_string(),
+        ParamType::Enum(name) => format!("TA_{name}"),
+        ParamType::Price(_) => unreachable!("Price expanded during parsing"),
+    }
+}
+
+fn gen_header() -> String {
     let mut out = String::new();
     out.push_str(
         "/* TA-LIB Copyright (c) 1999-2025, Mario Fortier\n\
@@ -106,12 +147,7 @@ fn gen_lookback(
             .optional_inputs
             .iter()
             .map(|opt| {
-                let c_type = match &opt.param_type {
-                    ParamType::Real => "double".to_string(),
-                    ParamType::Integer => "int".to_string(),
-                    ParamType::Enum(name) => format!("TA_{name}"),
-                    ParamType::Price(_) => unreachable!("Price expanded during parsing"),
-                };
+                let c_type = c_opt_param_type(&opt.param_type);
                 format!("{} {}", c_type, opt.name)
             })
             .collect();
@@ -223,12 +259,7 @@ fn gen_func_inner(
     }
 
     for opt in &func.optional_inputs {
-        let c_type = match &opt.param_type {
-            ParamType::Real => "double".to_string(),
-            ParamType::Integer => "int".to_string(),
-            ParamType::Enum(name) => format!("TA_{name}"),
-            ParamType::Price(_) => unreachable!("Price expanded during parsing"),
-        };
+        let c_type = c_opt_param_type(&opt.param_type);
         params.push(format!("{} {}", c_type, opt.name));
     }
 
@@ -536,16 +567,8 @@ fn render_hoisted_blocks(
     let pad = " ".repeat(indent);
     let mut out = String::new();
     for (temp_name, var_type, body) in hoisted {
-        let c_decl = match var_type {
-            VarType::Real => format!("double {temp_name}"),
-            VarType::Integer | VarType::Index => format!("int {temp_name}"),
-            VarType::RetCodeType => format!("TA_RetCode {temp_name}"),
-            VarType::RealPointer => format!("double *{temp_name}"),
-            VarType::IntPointer => format!("int *{temp_name}"),
-            VarType::RealArray(size) => format!("double {temp_name}[{size}]"),
-            VarType::IntArray(size) => format!("int {temp_name}[{size}]"),
-        };
-        out.push_str(&format!("{pad}{c_decl};\n"));
+        let decl = c_decl(var_type, temp_name);
+        out.push_str(&format!("{pad}{decl};\n"));
         for stmt in body {
             out.push_str(&render_statement(
                 stmt,
@@ -578,15 +601,7 @@ pub fn render_statement(
             name,
             init,
         } => {
-            let c_decl = match var_type {
-                VarType::Real => format!("double {name}"),
-                VarType::Integer | VarType::Index => format!("int {name}"),
-                VarType::RetCodeType => format!("TA_RetCode {name}"),
-                VarType::RealPointer => format!("double *{name}"),
-                VarType::IntPointer => format!("int *{name}"),
-                VarType::RealArray(size) => format!("double {name}[{size}]"),
-                VarType::IntArray(size) => format!("int {name}[{size}]"),
-            };
+            let decl = c_decl(var_type, name);
             match init {
                 Some(init_expr) => {
                     // Hoist multi-statement helpers from the init expression
@@ -601,12 +616,12 @@ pub fn render_statement(
                         helpers, inline_counter,
                     );
                     out.push_str(&format!(
-                        "{pad}{c_decl} = {};\n",
+                        "{pad}{decl} = {};\n",
                         render_expr(&new_init, single_precision, registry, helpers)
                     ));
                     out
                 }
-                None => format!("{pad}{c_decl};\n"),
+                None => format!("{pad}{decl};\n"),
             }
         }
         Statement::Assign {
@@ -1217,14 +1232,7 @@ fn render_expr(
             }
         }
         Expr::Cast(var_type, inner) => {
-            let c_type = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "TA_RetCode",
-                VarType::RealPointer => "double *",
-                VarType::IntPointer => "int *",
-                VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
-            };
+            let c_type = c_type_name(var_type);
             format!(
                 "(({}){})",
                 c_type,
@@ -1282,27 +1290,21 @@ fn render_expr(
     }
 }
 
-/// Convert a function identifier to `PascalCase`.
-/// e.g., "RSI" -> "Rsi", "SMA" -> "Sma"
-fn to_pascal_case(s: &str) -> String {
-    let lower = s.to_lowercase();
-    let mut chars = lower.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
-    }
-}
 
 /// Check if an expression is a variable that likely holds a pointer (array param
 /// or buffer). Used to detect pointer aliasing comparisons that need void* casts.
 /// Must NOT match integer variables like outBegIdx, outNBElement, tempInteger.
+/// True for a TA-Lib input-array parameter name: `in` followed by an uppercase
+/// letter (e.g. `inReal`, `inHigh`, `inClose`, `inReal0`).
+fn is_input_param_name(name: &str) -> bool {
+    name.starts_with("in") && name.len() > 2 && name.as_bytes()[2].is_ascii_uppercase()
+}
+
 fn is_pointer_var(expr: &Expr) -> bool {
     match expr {
         Expr::Var(name) => {
             // Input array params: inReal, inHigh, inLow, inClose, inVolume, inOpenInterest
-            let is_input = name.starts_with("in")
-                && name.len() > 2
-                && name.as_bytes()[2].is_ascii_uppercase();
+            let is_input = is_input_param_name(name);
             // Output array params: outReal*, outSlowK, outFastK, outMACDSignal, etc.
             // Exclude integer outputs: outBegIdx, outNBElement, outIdx, outNbElement
             let is_output = name.starts_with("out")
@@ -1337,44 +1339,10 @@ fn args_have_input_param(args: &[Expr]) -> bool {
         Expr::Var(name) => {
             // Input parameters follow TA-Lib naming: in + uppercase letter
             // e.g., inReal, inHigh, inLow, inClose, inVolume, inOpenInterest, inReal0
-            name.starts_with("in")
-                && name.len() > 2
-                && name.as_bytes()[2].is_ascii_uppercase()
+            is_input_param_name(name)
         }
         _ => false,
     })
-}
-
-/// Check if an expression directly contains a candle macro function call,
-/// WITHOUT recursing through `&&`/`||` operators. This ensures we only split
-/// `if(A && B)` when both A and B themselves contain expensive candle calls,
-/// not when they're part of a longer `&&` chain where only some parts are expensive.
-fn expr_directly_contains_candle_call(expr: &Expr) -> bool {
-    match expr {
-        Expr::FuncCall(name, args) => {
-            C_CANDLE_MACRO_FNS.contains(&name.as_str())
-                || args.iter().any(expr_directly_contains_candle_call)
-        }
-        // Stop at logical operators — those are separate conditions in the chain
-        Expr::BinOp(_, BinOp::And | BinOp::Or, _) => false,
-        Expr::BinOp(l, _, r) => {
-            expr_directly_contains_candle_call(l) || expr_directly_contains_candle_call(r)
-        }
-        Expr::Ternary(c, t, e) => {
-            expr_directly_contains_candle_call(c)
-                || expr_directly_contains_candle_call(t)
-                || expr_directly_contains_candle_call(e)
-        }
-        Expr::Cast(_, inner)
-        | Expr::Not(inner)
-        | Expr::AddressOf(inner)
-        | Expr::PostIncrement(inner)
-        | Expr::PostDecrement(inner)
-        | Expr::PreIncrement(inner)
-        | Expr::PreDecrement(inner) => expr_directly_contains_candle_call(inner),
-        Expr::ArrayAccess(_, idx) => expr_directly_contains_candle_call(idx),
-        Expr::Var(_) | Expr::Literal(_) | Expr::IntLiteral(_) | Expr::PointerDeref(_) => false,
-    }
 }
 
 /// Try to render a candle helper function call as a C preprocessor macro.
@@ -1450,7 +1418,7 @@ fn render_func_call(
         if let Some(inlined_expr) = try_inline_expr(helper, args) {
             return render_expr(&inlined_expr, single_precision, registry, helpers);
         }
-        // Multi-statement helpers: Task 10 will handle
+        // Multi-statement helpers are hoisted earlier by hoist_block_helpers.
     }
 
     if fname == "UNSTABLE_PERIOD" {
@@ -1461,7 +1429,7 @@ fn render_func_call(
                 .strip_prefix("FUNC_UNST_")
                 .unwrap_or(func_name);
             let upper = base.to_uppercase();
-            let pascal = to_pascal_case(base);
+            let pascal = pascal_word(base);
             return format!("TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_{upper},{pascal})");
         }
         "TA_GLOBALS_UNSTABLE_PERIOD(0,0)".to_string()
@@ -1681,16 +1649,8 @@ fn emit_c_var_decls(stmt: &Statement, out: &mut String, declared: &mut Vec<Strin
                 return;
             }
             declared.push(name.clone());
-            let c_decl = match var_type {
-                VarType::Real => format!("double {name}"),
-                VarType::Integer | VarType::Index => format!("int {name}"),
-                VarType::RetCodeType => format!("TA_RetCode {name}"),
-                VarType::RealPointer => format!("double *{name}"),
-                VarType::IntPointer => format!("int *{name}"),
-                VarType::RealArray(size) => format!("double {name}[{size}]"),
-                VarType::IntArray(size) => format!("int {name}[{size}]"),
-            };
-            out.push_str(&format!("   {c_decl};\n"));
+            let decl = c_decl(var_type, name);
+            out.push_str(&format!("   {decl};\n"));
         }
         Statement::Block { body } => {
             for s in body {

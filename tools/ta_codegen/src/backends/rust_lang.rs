@@ -8,11 +8,7 @@ use crate::ir::{
 };
 use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
-
-/// Check if a statement list contains a return with ALLOC_ERR value.
-fn contains_alloc_err_return(stmts: &[Statement]) -> bool {
-    stmts.iter().any(|s| matches!(s, Statement::Return { value: Some(Expr::Var(name)) } if name == "ALLOC_ERR"))
-}
+use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
 
 /// Controls how the Rust renderer emits code.
 pub struct RustRenderCtx {
@@ -54,7 +50,7 @@ impl RustRenderCtx {
             real_array_vars: std::collections::HashSet::new(),
             int_output_names: std::collections::HashSet::new(),
             int_vec_vars: std::collections::HashSet::new(),
-            is_lookback: false,
+            is_lookback: true,
             sentinel_vars: std::collections::HashSet::new(),
         }
     }
@@ -235,6 +231,23 @@ fn gen_lookback(
 
     let has_opt_inputs = !func.optional_inputs.is_empty();
 
+    // Emit the lookback `return` expression — identical for the with-params and
+    // no-params signatures.
+    let emit_lookback_return = |out: &mut String| match &func.lookback {
+        Some(LookbackExpr::Literal(n)) => {
+            out.push_str(&format!("        return {n};\n"));
+        }
+        Some(LookbackExpr::ParamMinus(param, offset)) => {
+            out.push_str(&format!("        return ({param} - {offset}) as usize;\n"));
+        }
+        Some(LookbackExpr::Code(stmts)) => {
+            out.push_str(&render_lookback_code(stmts, enums, registry, helpers));
+        }
+        None => {
+            out.push_str("        return 0;\n");
+        }
+    };
+
     if has_opt_inputs {
         // Document optional params
         for opt in &func.optional_inputs {
@@ -271,36 +284,10 @@ fn gen_lookback(
         }
 
         // Return lookback expression
-        match &func.lookback {
-            Some(LookbackExpr::Literal(n)) => {
-                out.push_str(&format!("        return {n};\n"));
-            }
-            Some(LookbackExpr::ParamMinus(param, offset)) => {
-                out.push_str(&format!("        return ({param} - {offset}) as usize;\n"));
-            }
-            Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts, enums, registry, helpers));
-            }
-            None => {
-                out.push_str("        return 0;\n");
-            }
-        }
+        emit_lookback_return(&mut out);
     } else {
         out.push_str(&format!("    pub fn {snake}_lookback(&self) -> usize {{\n"));
-        match &func.lookback {
-            Some(LookbackExpr::Literal(n)) => {
-                out.push_str(&format!("        return {n};\n"));
-            }
-            Some(LookbackExpr::ParamMinus(param, offset)) => {
-                out.push_str(&format!("        return ({param} - {offset}) as usize;\n"));
-            }
-            Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts, enums, registry, helpers));
-            }
-            None => {
-                out.push_str("        return 0;\n");
-            }
-        }
+        emit_lookback_return(&mut out);
     }
 
     out.push_str("    }\n");
@@ -890,8 +877,6 @@ fn gen_unguarded_or_private_func(
 
     out
 }
-
-// gen_unchecked_func removed — folded into unguarded variant
 
 /// Generate generic input parameter declarations for a function signature.
 fn gen_generic_params(func: &FuncDef) -> String {
@@ -1983,16 +1968,7 @@ pub fn render_statement(
                 }
             }
             let target_str = render_assign_target(target, ctx, opt_real_params, registry, helpers);
-            // When target is an optIn Real param (f64 in sig), render value WITHOUT
-            // optIn Real wrapping to avoid T::ta_from_f64() on the value side
-            let target_is_opt_real_param = false;
-            let value_str = if target_is_opt_real_param {
-                // Render without opt_real_params wrapping so optIn Real values stay f64
-                let empty_opt: Vec<String> = Vec::new();
-                render_expr(&new_value, ctx, &empty_opt, registry, helpers)
-            } else {
-                render_expr(&new_value, ctx, opt_real_params, registry, helpers)
-            };
+            let value_str = render_expr(&new_value, ctx, opt_real_params, registry, helpers);
             let needs_f64_cast = if let Expr::ArrayAccess(name, _) = target {
                 output_names.contains(name)
                     && !ctx.int_output_names.contains(name)
@@ -2429,41 +2405,6 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
                 || expr_has_uncast_array_access(then_expr)
                 || expr_has_uncast_array_access(else_expr)
         }
-    }
-}
-
-/// Candle function names that trigger the `&&` short-circuit split optimization.
-const CANDLE_FNS: &[&str] = &["ta_candlerange", "ta_candleaverage"];
-
-/// Check if an expression directly contains a candle function call,
-/// WITHOUT recursing through `&&`/`||` operators. This ensures we only split
-/// `if(A && B)` when both A and B themselves contain expensive candle calls,
-/// not when they're part of a longer `&&` chain where only some parts are expensive.
-fn expr_directly_contains_candle_call(expr: &Expr) -> bool {
-    match expr {
-        Expr::FuncCall(name, args) => {
-            CANDLE_FNS.contains(&name.as_str())
-                || args.iter().any(expr_directly_contains_candle_call)
-        }
-        // Stop at logical operators — those are separate conditions in the chain
-        Expr::BinOp(_, BinOp::And | BinOp::Or, _) => false,
-        Expr::BinOp(l, _, r) => {
-            expr_directly_contains_candle_call(l) || expr_directly_contains_candle_call(r)
-        }
-        Expr::Ternary(c, t, e) => {
-            expr_directly_contains_candle_call(c)
-                || expr_directly_contains_candle_call(t)
-                || expr_directly_contains_candle_call(e)
-        }
-        Expr::Cast(_, inner)
-        | Expr::Not(inner)
-        | Expr::AddressOf(inner)
-        | Expr::PostIncrement(inner)
-        | Expr::PostDecrement(inner)
-        | Expr::PreIncrement(inner)
-        | Expr::PreDecrement(inner) => expr_directly_contains_candle_call(inner),
-        Expr::ArrayAccess(_, idx) => expr_directly_contains_candle_call(idx),
-        Expr::Var(_) | Expr::Literal(_) | Expr::IntLiteral(_) | Expr::PointerDeref(_) => false,
     }
 }
 
@@ -3389,8 +3330,7 @@ fn render_lookback_code(
         out.push_str(&emit_rust_unpacking(&candle_used, 8));
     }
 
-    let mut lookback_ctx = RustRenderCtx::for_lookback();
-    lookback_ctx.is_lookback = true;
+    let lookback_ctx = RustRenderCtx::for_lookback();
     let inline_counter = Cell::new(0);
     for stmt in stmts {
         if matches!(stmt, Statement::VarDecl { .. }) {
@@ -3451,24 +3391,6 @@ const MATH_FUNCTIONS: &[&str] = &[
     "abs", "fabs", "cosh", "sinh", "tanh", "ABS", "max", "fmax", "min", "fmin",
 ];
 
-/// Scan an expression tree for `sizeof(TYPE)` and return the type name.
-/// Used by `malloc` to determine the Rust Vec element type.
-fn find_sizeof_type(expr: &Expr) -> Option<String> {
-    match expr {
-        Expr::FuncCall(name, args) if name == "sizeof" => args
-            .first()
-            .and_then(|a| match a {
-                Expr::Var(type_name) => Some(type_name.clone()),
-                _ => None,
-            }),
-        Expr::BinOp(left, _, right) => {
-            find_sizeof_type(left).or_else(|| find_sizeof_type(right))
-        }
-        Expr::Cast(_, inner) => find_sizeof_type(inner),
-        _ => None,
-    }
-}
-
 /// Decompose an expression into (array_name, offset) for array copy operations.
 /// `Var("arr")` → `("arr", "0")`; `AddressOf(ArrayAccess("arr", idx))` → `("arr", rendered_idx)`
 fn decompose_rust_array_ref(
@@ -3521,7 +3443,7 @@ fn render_func_call(
             }
             return rendered;
         }
-        // Multi-statement helpers: Task 10 will handle
+        // Multi-statement helpers are hoisted earlier by hoist_block_helpers.
     }
     if fname == "UNSTABLE_PERIOD" {
         if let Some(Expr::Var(func_name)) = args.first() {
@@ -3660,10 +3582,6 @@ fn render_func_call(
             } else {
                 x
             };
-            let needs_parens = matches!(arg, Expr::BinOp(_, _, _) | Expr::Ternary(_, _, _));
-            if needs_parens {
-                return format!("({x_wrapped}).{method}()");
-            }
             return format!("({x_wrapped}).{method}()");
         }
         format!("{fname}()")
@@ -4072,7 +3990,7 @@ fn is_likely_index_var(name: &str) -> bool {
         || name == "outBegIdx" || name == "outNBElement"
         || name.starts_with("nb")
         || name == "j" || name == "count"
-        || name == "outputSize" || name == "lookbackTotal"
+        || name == "outputSize"
         || name.ends_with("Dummy") || name.ends_with("_idx")
         || name == "highestIdx" || name == "lowestIdx"
         || name == "isLong" || name == "isShort"

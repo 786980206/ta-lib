@@ -14,7 +14,6 @@ pub struct ParsedCSource {
 #[derive(Debug, Clone)]
 pub struct ParsedCFunction {
     pub name: String,
-    pub is_internal: bool,
     pub body: Vec<Statement>,
     /// Parameter names and C types, in order. E.g., [("startIdx", "int"), ("inReal", "const double *")].
     pub params: Vec<(String, String)>,
@@ -517,8 +516,6 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
                 let is_new_func = !name.starts_with("TA_") && !name.ends_with("_lookback");
                 if is_old_func || is_new_func {
                     let func_name = name.clone();
-                    let is_internal = func_name.starts_with("TA_INT_")
-                        || func_name.ends_with("_private");
                     // Parse parameter list
                     let params = extract_func_params(tokens, ret_pos + 2);
                     if let Some(brace_start) = find_open_brace(tokens, ret_pos + 2) {
@@ -526,7 +523,6 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
                             let body_tokens = &tokens[brace_start + 1..brace_end];
                             functions.push(ParsedCFunction {
                                 name: func_name,
-                                is_internal,
                                 body: parse_body(body_tokens),
                                 params,
                             });
@@ -785,7 +781,7 @@ impl Parser {
             Some(Token::Ident(ref s)) if Self::is_macro_decl(s) => self.parse_macro_decl(),
             Some(Token::Star) => self.parse_pointer_deref_assign(),
             // (void)identifier; — suppress-unused-variable cast, treat as no-op
-            Some(Token::LParen) => self.parse_void_cast_or_expr(),
+            Some(Token::LParen) => self.parse_void_cast_stmt(),
             // Anonymous block: { ... } — used for scoped variable declarations
             Some(Token::LBrace) => {
                 self.advance(); // consume {
@@ -801,15 +797,7 @@ impl Parser {
                     other => panic!("Expected identifier after ++, got {other:?}"),
                 };
                 self.consume_semicolon();
-                Statement::Assign {
-                    target: Expr::Var(name.clone()),
-                    value: Expr::BinOp(
-                        Box::new(Expr::Var(name)),
-                        BinOp::Add,
-                        Box::new(Expr::IntLiteral(1)),
-                    ),
-                    compound: true,
-                }
+                inc_dec_assign(name, BinOp::Add)
             }
             // Pre-decrement as statement: --x;
             Some(Token::MinusMinus) => {
@@ -819,15 +807,7 @@ impl Parser {
                     other => panic!("Expected identifier after --, got {other:?}"),
                 };
                 self.consume_semicolon();
-                Statement::Assign {
-                    target: Expr::Var(name.clone()),
-                    value: Expr::BinOp(
-                        Box::new(Expr::Var(name)),
-                        BinOp::Sub,
-                        Box::new(Expr::IntLiteral(1)),
-                    ),
-                    compound: true,
-                }
+                inc_dec_assign(name, BinOp::Sub)
             }
             _ => self.parse_assignment_or_expr_stmt(),
         }
@@ -1356,15 +1336,7 @@ impl Parser {
                 Token::Ident(s) => s,
                 other => panic!("Expected identifier after ++ in for update, got {other:?}"),
             };
-            return Statement::Assign {
-                target: Expr::Var(name.clone()),
-                value: Expr::BinOp(
-                    Box::new(Expr::Var(name)),
-                    BinOp::Add,
-                    Box::new(Expr::IntLiteral(1)),
-                ),
-                compound: true,
-            };
+            return inc_dec_assign(name, BinOp::Add);
         }
         // Handle pre-decrement: --i
         if self.peek() == Some(&Token::MinusMinus) {
@@ -1373,15 +1345,7 @@ impl Parser {
                 Token::Ident(s) => s,
                 other => panic!("Expected identifier after -- in for update, got {other:?}"),
             };
-            return Statement::Assign {
-                target: Expr::Var(name.clone()),
-                value: Expr::BinOp(
-                    Box::new(Expr::Var(name)),
-                    BinOp::Sub,
-                    Box::new(Expr::IntLiteral(1)),
-                ),
-                compound: true,
-            };
+            return inc_dec_assign(name, BinOp::Sub);
         }
         // Usually i++ or i-- or i += 1
         let name = match self.advance() {
@@ -1392,38 +1356,17 @@ impl Parser {
         match self.peek() {
             Some(Token::PlusPlus) => {
                 self.advance();
-                Statement::Assign {
-                    target: Expr::Var(name.clone()),
-                    value: Expr::BinOp(
-                        Box::new(Expr::Var(name)),
-                        BinOp::Add,
-                        Box::new(Expr::IntLiteral(1)),
-                    ),
-                    compound: true,
-                }
+                inc_dec_assign(name, BinOp::Add)
             }
             Some(Token::MinusMinus) => {
                 self.advance();
-                Statement::Assign {
-                    target: Expr::Var(name.clone()),
-                    value: Expr::BinOp(
-                        Box::new(Expr::Var(name)),
-                        BinOp::Sub,
-                        Box::new(Expr::IntLiteral(1)),
-                    ),
-                    compound: true,
-                }
+                inc_dec_assign(name, BinOp::Sub)
             }
-            Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
+            Some(Token::Op(ref op)) if is_compound_assign_op(op) => {
                 let op_str = op.clone();
                 self.advance();
-                let bin_op = compound_op(&op_str);
                 let rhs = self.parse_expr();
-                Statement::Assign {
-                    target: Expr::Var(name.clone()),
-                    value: Expr::BinOp(Box::new(Expr::Var(name)), bin_op, Box::new(rhs)),
-                    compound: true,
-                }
+                compound_assign(Expr::Var(name), &op_str, rhs)
             }
             _ => {
                 // Simple assignment: name = expr
@@ -1611,7 +1554,8 @@ impl Parser {
     fn parse_return_expr(&mut self) -> Expr {
         // Use the normal expression parser, but we need to handle TA_ prefix stripping.
         // We'll do this by peeking at the tokens and transforming TA_ prefixed idents.
-        // The simplest approach: temporarily replace TA_ prefixed idents in-place.
+        // The simplest approach: rewrite TA_ prefixed idents in-place. This rewrite is
+        // permanent — the token stream up to the next semicolon is mutated before parsing.
         let start = self.pos;
 
         // Scan forward to find the semicolon, stripping TA_ prefixes
@@ -1644,7 +1588,7 @@ impl Parser {
     /// Parse a statement starting with `(`, which in TA-Lib source is always
     /// `(void)identifier;` — a C idiom to suppress unused-variable warnings.
     /// Treated as a no-op (discarded block).
-    fn parse_void_cast_or_expr(&mut self) -> Statement {
+    fn parse_void_cast_stmt(&mut self) -> Statement {
         self.advance(); // consume (
         // Expect a type keyword (void, int, double, etc.) or identifier
         let _type_name = match self.advance() {
@@ -1707,30 +1651,14 @@ impl Parser {
         if self.peek() == Some(&Token::PlusPlus) {
             self.advance();
             self.consume_semicolon();
-            return Statement::Assign {
-                target: Expr::Var(name.clone()),
-                value: Expr::BinOp(
-                    Box::new(Expr::Var(name)),
-                    BinOp::Add,
-                    Box::new(Expr::IntLiteral(1)),
-                ),
-                compound: true,
-            };
+            return inc_dec_assign(name, BinOp::Add);
         }
 
         // Post-decrement: i--;
         if self.peek() == Some(&Token::MinusMinus) {
             self.advance();
             self.consume_semicolon();
-            return Statement::Assign {
-                target: Expr::Var(name.clone()),
-                value: Expr::BinOp(
-                    Box::new(Expr::Var(name)),
-                    BinOp::Sub,
-                    Box::new(Expr::IntLiteral(1)),
-                ),
-                compound: true,
-            };
+            return inc_dec_assign(name, BinOp::Sub);
         }
 
         // Function call as statement: FUNC(args...);
@@ -1775,19 +1703,12 @@ impl Parser {
                                 compound: false,
                             };
                         }
-                        Some(Token::Op(ref op))
-                            if op == "+=" || op == "-=" || op == "*=" || op == "/=" =>
-                        {
+                        Some(Token::Op(ref op)) if is_compound_assign_op(op) => {
                             let op_str = op.clone();
                             self.advance();
-                            let bin_op = compound_op(&op_str);
                             let rhs = self.parse_expr();
                             self.consume_semicolon();
-                            return Statement::Assign {
-                                target: target.clone(),
-                                value: Expr::BinOp(Box::new(target), bin_op, Box::new(rhs)),
-                                compound: true,
-                            };
+                            return compound_assign(target, &op_str, rhs);
                         }
                         _ => {} // fall through
                     }
@@ -1814,21 +1735,13 @@ impl Parser {
                 };
                 let flat_name = format!("{name}_{field}");
                 match self.peek().cloned() {
-                    Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
+                    Some(Token::Op(ref op)) if is_compound_assign_op(op) => {
                         let op_str = op.clone();
                         self.advance();
-                        let bin_op = compound_op(&op_str);
                         let rhs = self.parse_expr();
                         self.consume_semicolon();
-                        return Statement::Assign {
-                            target: Expr::ArrayAccess(flat_name.clone(), Box::new(index_expr.clone())),
-                            value: Expr::BinOp(
-                                Box::new(Expr::ArrayAccess(flat_name, Box::new(index_expr))),
-                                bin_op,
-                                Box::new(rhs),
-                            ),
-                            compound: true,
-                        };
+                        let target = Expr::ArrayAccess(flat_name, Box::new(index_expr));
+                        return compound_assign(target, &op_str, rhs);
                     }
                     _ => {
                         self.expect_op("=");
@@ -1845,21 +1758,13 @@ impl Parser {
 
             // Check for compound assignment on array
             match self.peek().cloned() {
-                Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
+                Some(Token::Op(ref op)) if is_compound_assign_op(op) => {
                     let op_str = op.clone();
                     self.advance();
-                    let bin_op = compound_op(&op_str);
                     let rhs = self.parse_expr();
                     self.consume_semicolon();
-                    return Statement::Assign {
-                        target: Expr::ArrayAccess(name.clone(), Box::new(index_expr.clone())),
-                        value: Expr::BinOp(
-                            Box::new(Expr::ArrayAccess(name, Box::new(index_expr))),
-                            bin_op,
-                            Box::new(rhs),
-                        ),
-                        compound: true,
-                    };
+                    let target = Expr::ArrayAccess(name, Box::new(index_expr));
+                    return compound_assign(target, &op_str, rhs);
                 }
                 _ => {
                     self.expect_op("=");
@@ -1891,18 +1796,13 @@ impl Parser {
                     Statement::Block { body: chain_stmts }
                 }
             }
-            Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
+            Some(Token::Op(ref op)) if is_compound_assign_op(op) => {
                 let op_str = op.clone();
                 self.advance();
-                let bin_op = compound_op(&op_str);
                 // Handle embedded assignment: SumY += tempValue1 = inReal[i]
                 let (mut chain_stmts, rhs) = self.parse_chained_rhs();
                 self.consume_semicolon();
-                chain_stmts.push(Statement::Assign {
-                    target: Expr::Var(name.clone()),
-                    value: Expr::BinOp(Box::new(Expr::Var(name)), bin_op, Box::new(rhs)),
-                    compound: true,
-                });
+                chain_stmts.push(compound_assign(Expr::Var(name), &op_str, rhs));
                 if chain_stmts.len() == 1 {
                     chain_stmts.remove(0)
                 } else {
@@ -2274,6 +2174,30 @@ fn compound_op(op: &str) -> BinOp {
     }
 }
 
+/// True for the compound-assignment operator tokens (`+=`, `-=`, `*=`, `/=`).
+fn is_compound_assign_op(op: &str) -> bool {
+    matches!(op, "+=" | "-=" | "*=" | "/=")
+}
+
+/// Desugar `++name` / `name++` (and the `--` forms) into `name = name <op> 1`.
+fn inc_dec_assign(name: String, op: BinOp) -> Statement {
+    Statement::Assign {
+        target: Expr::Var(name.clone()),
+        value: Expr::BinOp(Box::new(Expr::Var(name)), op, Box::new(Expr::IntLiteral(1))),
+        compound: true,
+    }
+}
+
+/// Desugar a compound assignment `target <op>= rhs` into `target = target <op> rhs`.
+fn compound_assign(target: Expr, op_str: &str, rhs: Expr) -> Statement {
+    let bin_op = compound_op(op_str);
+    Statement::Assign {
+        target: target.clone(),
+        value: Expr::BinOp(Box::new(target), bin_op, Box::new(rhs)),
+        compound: true,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2397,7 +2321,6 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
         assert!(!parsed.lookback_body.is_empty());
         assert_eq!(parsed.functions.len(), 1);
         assert_eq!(parsed.functions[0].name, "TA_MULT");
-        assert!(!parsed.functions[0].is_internal);
     }
 
     #[test]
@@ -2416,7 +2339,6 @@ TA_RetCode TA_INT_SMA(int startIdx, int endIdx,
         let parsed = parse_c_source_str(source);
         assert_eq!(parsed.functions.len(), 1);
         assert_eq!(parsed.functions[0].name, "TA_INT_SMA");
-        assert!(parsed.functions[0].is_internal);
     }
 
     #[test]
@@ -2730,7 +2652,6 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
         assert_eq!(parsed.functions.len(), 1);
         let func = &parsed.functions[0];
         assert_eq!(func.name, "TA_MULT");
-        assert!(!func.is_internal);
 
         let body = &func.body;
         // VarDecl outIdx, VarDecl i, outIdx=0, i=(size_t)startIdx, while, *outNBElement, *outBegIdx, return
@@ -2834,7 +2755,6 @@ TA_RetCode sma(int startIdx, int endIdx,
         );
         assert_eq!(parsed.functions.len(), 1);
         assert_eq!(parsed.functions[0].name, "sma");
-        assert!(!parsed.functions[0].is_internal);
     }
 
     #[test]
@@ -4614,7 +4534,7 @@ TA_RetCode sma_private(int startIdx, int endIdx, int *outBegIdx)
 ";
         let parsed = parse_c_source_str(source);
         assert_eq!(parsed.functions.len(), 1);
-        assert!(parsed.functions[0].is_internal);
+        assert_eq!(parsed.functions[0].name, "sma_private");
     }
 
     // ===== Braceless while =====

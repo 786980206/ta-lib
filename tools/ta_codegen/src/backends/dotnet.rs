@@ -1,3 +1,4 @@
+use super::common::pascal_word;
 use crate::helper_registry::HelperRegistry;
 use crate::ir::{EnumDef, FuncDef, LookbackExpr, ParamType};
 use crate::registry::Registry;
@@ -11,7 +12,7 @@ pub fn generate(
     _helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
-    let pascal = to_pascal_case(&func.name);
+    let pascal = pascal_word(&func.name);
     let extra_params: &[(String, String)] = &[];
 
     out.push_str(&gen_lookback(func, &pascal));
@@ -56,24 +57,23 @@ pub fn generate(
     out
 }
 
-fn to_pascal_case(name: &str) -> String {
-    let lower = name.to_lowercase();
-    let mut chars = lower.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(c) => c.to_uppercase().to_string() + chars.as_str(),
-    }
-}
-
-/// Map a `ParamType` to the C++/CLI type string for optional inputs.
-fn opt_input_type(pt: &ParamType) -> &'static str {
+/// Map a `ParamType` to its double-precision C++/CLI type string:
+/// `Real` becomes `double`, everything else becomes `int`. Shared by the
+/// optional-input, output, and (double branch of) input type mappings.
+fn real_double_else_int(pt: &ParamType) -> &'static str {
     match pt {
         ParamType::Real => "double",
         ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
     }
 }
 
-/// Map a `ParamType` to a C++/CLI type string for inputs (non-single-precision).
+/// Map a `ParamType` to the C++/CLI type string for optional inputs.
+fn opt_input_type(pt: &ParamType) -> &'static str {
+    real_double_else_int(pt)
+}
+
+/// Map a `ParamType` to a C++/CLI type string for inputs. With
+/// `single_precision`, `Real` becomes `float`; otherwise `double`.
 fn input_type(pt: &ParamType, single_precision: bool) -> &'static str {
     if single_precision {
         match pt {
@@ -81,19 +81,13 @@ fn input_type(pt: &ParamType, single_precision: bool) -> &'static str {
             ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         }
     } else {
-        match pt {
-            ParamType::Real => "double",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
-        }
+        real_double_else_int(pt)
     }
 }
 
 /// Map a `ParamType` to a C++/CLI type string for outputs.
 fn output_type(pt: &ParamType) -> &'static str {
-    match pt {
-        ParamType::Real => "double",
-        ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
-    }
+    real_double_else_int(pt)
 }
 
 fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
@@ -321,8 +315,9 @@ fn gen_macros(func: &FuncDef, pascal: &str) -> String {
     out
 }
 
-/// Format a declaration-only signature (semicolon terminated).
-fn format_decl(pascal: &str, params: &[String]) -> String {
+/// Format a declaration signature, closing with the given `terminator`
+/// after the parameter list (e.g. `" );\n"` or `" )\n"`).
+fn format_decl_with(pascal: &str, params: &[String], terminator: &str) -> String {
     let prefix = format!("         static enum class RetCode {pascal}( ");
     let indent = " ".repeat(prefix.len());
     let mut out = prefix;
@@ -332,23 +327,18 @@ fn format_decl(pascal: &str, params: &[String]) -> String {
         }
         out.push_str(param);
     }
-    out.push_str(" );\n");
+    out.push_str(terminator);
     out
+}
+
+/// Format a declaration-only signature (semicolon terminated).
+fn format_decl(pascal: &str, params: &[String]) -> String {
+    format_decl_with(pascal, params, " );\n")
 }
 
 /// Format a declaration with inline body (no semicolon, open for body).
 fn format_decl_inline(pascal: &str, params: &[String]) -> String {
-    let prefix = format!("         static enum class RetCode {pascal}( ");
-    let indent = " ".repeat(prefix.len());
-    let mut out = prefix;
-    for (i, param) in params.iter().enumerate() {
-        if i > 0 {
-            out.push_str(&format!(",\n{indent}"));
-        }
-        out.push_str(param);
-    }
-    out.push_str(" )\n");
-    out
+    format_decl_with(pascal, params, " )\n")
 }
 
 #[cfg(test)]

@@ -104,16 +104,5 @@ pub fn generate(funcs: &[FuncDef], cmake_path: &Path, root: &Path) {
         &existing[end_pos..]
     );
 
-    if existing == new_content {
-        println!(
-            "  CMakeLists.txt LIB_SOURCES is up to date ({} functions)",
-            names.len()
-        );
-    } else {
-        std::fs::write(cmake_path, &new_content).unwrap();
-        println!(
-            "  CMakeLists.txt LIB_SOURCES updated ({} functions)",
-            names.len()
-        );
-    }
+    super::write_if_changed(cmake_path, &new_content, "CMakeLists.txt LIB_SOURCES", names.len());
 }

@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::path::Path;
 
+use super::write_if_changed_silent;
 use crate::ir::{EnumDef, FuncDef, Input, OptInput, Output, ParamType};
 
 // ---------------------------------------------------------------------------
@@ -94,14 +95,14 @@ pub fn generate(
         }
     }
 
-    write_if_changed(&base.join("ta_def_ui.h"), &gen_def_ui_h());
-    write_if_changed(&base.join("ta_def_ui.c"), &gen_def_ui_c(enums));
-    write_if_changed(&base.join("ta_frame_priv.h"), &gen_frame_priv_h());
-    write_if_changed(
+    write_if_changed_silent(&base.join("ta_def_ui.h"), &gen_def_ui_h());
+    write_if_changed_silent(&base.join("ta_def_ui.c"), &gen_def_ui_c(enums));
+    write_if_changed_silent(&base.join("ta_frame_priv.h"), &gen_frame_priv_h());
+    write_if_changed_silent(
         &base.join("frames").join("ta_frame.h"),
         &gen_frame_h(&sorted),
     );
-    write_if_changed(
+    write_if_changed_silent(
         &base.join("frames").join("ta_frame.c"),
         &gen_frame_c(&sorted),
     );
@@ -119,24 +120,24 @@ pub fn generate(
             })
             .collect();
         let filename = format!("table_{ch}.c");
-        write_if_changed(
+        write_if_changed_silent(
             &base.join("tables").join(&filename),
             &gen_table_file(ch, &letter_funcs),
         );
     }
 
-    write_if_changed(
+    write_if_changed_silent(
         &base.join("ta_group_idx.c"),
         &gen_group_idx(&sorted, &groups),
     );
-    write_if_changed(&base.join("ta_abstract.c"), &gen_ta_abstract_c());
+    write_if_changed_silent(&base.join("ta_abstract.c"), &gen_ta_abstract_c());
 
     let repo_root = out_base.parent().unwrap();
-    write_if_changed(&base.join("ta_func_api.c"), &gen_ta_func_api_c(repo_root));
+    write_if_changed_silent(&base.join("ta_func_api.c"), &gen_ta_func_api_c(repo_root));
 
     // Generate include/ta_func.h — this replaces gen_code's role.
     // The output MUST be identical to the original (backward compatibility).
-    write_if_changed(
+    write_if_changed_silent(
         &repo_root.join("include").join("ta_func.h"),
         &gen_ta_func_h(&sorted),
     );
@@ -550,22 +551,11 @@ fn gen_def_ui_c(enums: &HashMap<String, EnumDef>) -> String {
     );
 
     // MA Type list
-    let ma_type = enums.get("MAType");
+    let ma = enums.get("MAType").expect("MAType enum required");
     o.push_str("static const TA_IntegerDataPair TA_MA_TypeDataPair[] =\n{\n");
-    if let Some(ma) = ma_type {
-        for (i, v) in ma.variants.iter().enumerate() {
-            let comma = if i + 1 < ma.variants.len() { "," } else { "" };
-            let _ = writeln!(o, "   {{{},\"{}\"}}{comma}", v.value, v.short_name);
-        }
-    } else {
-        // Fallback hardcoded
-        for (val, name) in &[
-            (0, "SMA"), (1, "EMA"), (2, "WMA"), (3, "DEMA"), (4, "TEMA"),
-            (5, "TRIMA"), (6, "KAMA"), (7, "MAMA"), (8, "T3"),
-        ] {
-            let comma = if *val < 8 { "," } else { "" };
-            let _ = writeln!(o, "   {{{val},\"{name}\"}}{comma}");
-        }
+    for (i, v) in ma.variants.iter().enumerate() {
+        let comma = if i + 1 < ma.variants.len() { "," } else { "" };
+        let _ = writeln!(o, "   {{{},\"{}\"}}{comma}", v.value, v.short_name);
     }
     o.push_str("};\n\n");
 
@@ -841,12 +831,11 @@ fn emit_frame_pp(o: &mut String, func: &FuncDef) {
         match ai {
             AbstractInput::Price(components) => {
                 for comp in components {
-                    let field = price_field_name(comp);
                     let _ = writeln!(
                         o,
-                        "/* Generated */                params->in[{abstract_idx}].data.inPrice.{field}, \
+                        "/* Generated */                params->in[{abstract_idx}].data.inPrice.{comp}, \
                          /* in{} */",
-                        capitalize(comp)
+                        capitalize_first(comp)
                     );
                 }
             }
@@ -938,27 +927,6 @@ fn opt_input_accessor(opt: &OptInput, idx: usize) -> String {
     }
 }
 
-/// Map a price component name to the struct field name in `TA_PricePtrs`.
-fn price_field_name(component: &str) -> &str {
-    match component {
-        "open" => "open",
-        "high" => "high",
-        "low" => "low",
-        "close" => "close",
-        "volume" => "volume",
-        "openinterest" | "openInterest" => "openInterest",
-        _ => component,
-    }
-}
-
-fn capitalize(s: &str) -> String {
-    let mut c = s.chars();
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Price input reconstruction
 // ---------------------------------------------------------------------------
@@ -977,7 +945,7 @@ const PRICE_COMPONENT_NAMES: &[&str] = &[
 enum AbstractInput {
     /// A single non-price input (Real, Integer, etc.)
     Single(Input),
-    /// A group of price component names, e.g. ["high", "low", "close"].
+    /// A group of price component names, e.g. `["high", "low", "close"]`.
     Price(Vec<String>),
 }
 
@@ -1169,10 +1137,7 @@ fn emit_table_function(o: &mut String, func: &FuncDef) {
 /// Return the pre-defined C extern reference for an input, e.g. `TA_DEF_UI_Input_Real`.
 fn input_ref_name(inp: &crate::ir::Input) -> String {
     match &inp.param_type {
-        ParamType::Price(components) => {
-            let key = price_components_to_suffix(components);
-            format!("TA_DEF_UI_Input_Price_{key}")
-        }
+        ParamType::Price(_) => unreachable!("price inputs are expanded by the parser"),
         ParamType::Real => {
             // Distinguish inReal, inReal0, inReal1, inPeriods
             match inp.name.as_str() {
@@ -2773,7 +2738,7 @@ fn gen_ta_func_api_c(repo_root: &Path) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// File: include/ta_func.h
+// File 10: include/ta_func.h
 // ---------------------------------------------------------------------------
 
 /// Generate `include/ta_func.h` — the public C header with all function prototypes.
@@ -3254,11 +3219,3 @@ fn capitalize_first(s: &str) -> String {
 // Utilities
 // ---------------------------------------------------------------------------
 
-/// Write a file only if its content changed (preserves mtime).
-fn write_if_changed(path: &Path, content: &str) {
-    let existing = std::fs::read_to_string(path).unwrap_or_default();
-    if existing == content {
-        return;
-    }
-    std::fs::write(path, content).unwrap();
-}

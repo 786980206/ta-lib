@@ -8,8 +8,13 @@ pub fn extract_function_source(source: &str, name: &str) -> String {
 
     let lines: Vec<&str> = source.lines().collect();
 
-    let lookback = extract_lookback(&lines, &upper, &lower);
-    let logic = extract_logic(&lines, &upper, &lower);
+    // START GENCODE SECTION 3 bounds both the lookback body (it ends there) and
+    // the main function (it begins after it); resolve it once and share it.
+    let start_sec3 =
+        find_line(&lines, "START GENCODE SECTION 3").expect("missing START SECTION 3");
+
+    let lookback = extract_lookback(&lines, &upper, &lower, start_sec3);
+    let logic = extract_logic(&lines, &upper, &lower, start_sec3);
 
     let mut result = lookback;
     result.push('\n');
@@ -23,9 +28,8 @@ fn find_line(lines: &[&str], pattern: &str) -> Option<usize> {
 }
 
 /// Extract the lookback function body from between END SECTION 1 and START SECTION 3.
-fn extract_lookback(lines: &[&str], upper: &str, lower: &str) -> String {
+fn extract_lookback(lines: &[&str], upper: &str, lower: &str, start_sec3: usize) -> String {
     let end_sec1 = find_line(lines, "END GENCODE SECTION 1").expect("missing END SECTION 1");
-    let start_sec3 = find_line(lines, "START GENCODE SECTION 3").expect("missing START SECTION 3");
 
     // Parse lookback signature from section 1 to get parameter list.
     // Look for the C variant: `TA_LIB_API int TA_<NAME>_Lookback(...)`
@@ -182,12 +186,11 @@ fn strip_inline_comments(s: &str) -> String {
 }
 
 /// Extract the logic function (main body / `TA_INT` function).
-fn extract_logic(lines: &[&str], upper: &str, lower: &str) -> String {
+fn extract_logic(lines: &[&str], upper: &str, lower: &str, start_sec3: usize) -> String {
     let end_sec3 = find_line(lines, "END GENCODE SECTION 3").expect("missing END SECTION 3");
     let start_sec5 = find_line(lines, "START GENCODE SECTION 5").expect("missing START SECTION 5");
 
     // Parse the main function signature from section 3 to get parameters.
-    let start_sec3 = find_line(lines, "START GENCODE SECTION 3").expect("missing START SECTION 3");
     let main_sig_params = extract_main_func_params(lines, start_sec3, end_sec3, upper);
 
     // Find the opening `{` after END SECTION 3 (start of main function body).
@@ -239,7 +242,7 @@ fn extract_main_func_params(lines: &[&str], start: usize, end: usize, upper: &st
         {
             let combined = collect_until_paren_close(lines, i, end);
             if let Some(params) = extract_parens(&combined) {
-                return clean_params(&params, upper);
+                return clean_params(&params);
             }
         }
     }
@@ -247,7 +250,7 @@ fn extract_main_func_params(lines: &[&str], start: usize, end: usize, upper: &st
 }
 
 /// Clean parameter list: strip comments, normalize whitespace.
-fn clean_params(params: &str, _upper: &str) -> String {
+fn clean_params(params: &str) -> String {
     let params = strip_inline_comments(params);
     // Normalize whitespace
     let re = Regex::new(r"\s+").unwrap();
@@ -364,7 +367,7 @@ fn extract_int_function(
             &format!("TA_INT_{upper}"),
         );
     let params_raw = extract_parens(&combined)?;
-    let params = clean_params(&params_raw, upper);
+    let params = clean_params(&params_raw);
 
     // Find the opening `{` after the signature (and after #endif).
     let mut body_open = sig_line;
@@ -464,6 +467,17 @@ fn strip_preprocessor_conditionals(lines: &[String]) -> Vec<String> {
     result
 }
 
+/// Symbols that are all undefined for the C double-precision target; used by
+/// `eval_condition_for_c` for both the positive (`defined(X)`) and negative
+/// (`!defined(X)`) scans.
+const TARGET_SYMBOLS: [&str; 5] = [
+    "_JAVA",
+    "_MANAGED",
+    "USE_SUBARRAY",
+    "USE_SINGLE_PRECISION_INPUT",
+    "_RUST",
+];
+
 /// Evaluate a `#if` condition for C double-precision target.
 /// All of _JAVA, _MANAGED, `USE_SUBARRAY`, `USE_SINGLE_PRECISION_INPUT`, _RUST are undefined.
 fn eval_condition_for_c(directive: &str) -> bool {
@@ -483,34 +497,17 @@ fn eval_condition_for_c(directive: &str) -> bool {
         return true; // unknown directive, keep content
     };
 
-    // Check for positive defined() terms — if any target symbol is positively tested, condition is false
-    let positive_defines = [
-        "_JAVA",
-        "_MANAGED",
-        "USE_SUBARRAY",
-        "USE_SINGLE_PRECISION_INPUT",
-        "_RUST",
-    ];
-    let negative_defines = [
-        "_JAVA",
-        "_MANAGED",
-        "USE_SUBARRAY",
-        "USE_SINGLE_PRECISION_INPUT",
-        "_RUST",
-    ];
-
     // Simple heuristic: if the condition has `defined(X)` (without `!`) for any target symbol → false
     // If the condition has `!defined(X)` for target symbols → true
     // For compound conditions with &&: all terms must be true
     // For compound conditions with ||: any term must be true
 
     // Check if it's purely negated conditions (all !defined)
-    let has_positive = positive_defines.iter().any(|sym| {
+    let has_positive = TARGET_SYMBOLS.iter().any(|sym| {
         // Match `defined(SYM)` or `defined( SYM )` NOT preceded by `!`
         let patterns = [
             format!("defined({sym})"),
             format!("defined( {sym} )"),
-            format!("defined({sym})"),
         ];
         for pat in &patterns {
             if let Some(pos) = cond.find(pat.as_str()) {
@@ -525,7 +522,7 @@ fn eval_condition_for_c(directive: &str) -> bool {
         false
     });
 
-    let has_negative = negative_defines.iter().any(|sym| {
+    let has_negative = TARGET_SYMBOLS.iter().any(|sym| {
         let patterns = [
             format!("!defined({sym})"),
             format!("!defined( {sym} )"),
@@ -642,7 +639,7 @@ fn expand_macros(line: &str, upper: &str, lower: &str) -> String {
     s = expand_enum_value(&s);
 
     // FUNCTION_CALL / LOOKBACK_CALL macros (cross-indicator)
-    s = expand_function_calls(&s, upper, lower);
+    s = expand_function_calls(&s);
 
     // TA_GLOBALS macros
     s = expand_globals_macros(&s);
@@ -657,20 +654,19 @@ fn expand_macros(line: &str, upper: &str, lower: &str) -> String {
     let prefix_int = format!("TA_PREFIX(INT_{upper})");
     s = s.replace(&prefix_int, lower);
 
-    // Clean up PER_TO_K -> TA_PER_TO_K (keep the macro, it's used in prefix-free too)
-    // Actually looking at ema.c target, it uses TA_PER_TO_K
+    // Upstream macro -> prefix-free C. Each macro is re-prefixed with `TA_`; the
+    // `TA_TA_` collapses guard against double-prefixing already-prefixed input.
+    //   PER_TO_K(            -> TA_PER_TO_K(
+    //   ARRAY_MEMMOVEMIX(    -> TA_ARRAY_MEMMOVEMIX(
+    //   ARRAY_MEMMOVE(       -> TA_ARRAY_COPY(
+    //   ARRAY_MEMMOVEMIX_VAR -> (whole line dropped)
     s = s.replace("PER_TO_K(", "TA_PER_TO_K(");
-    // But avoid double-prefixing
     s = s.replace("TA_TA_PER_TO_K(", "TA_PER_TO_K(");
 
-    // ARRAY_MEMMOVE macros - keep as-is (rename to TA_ARRAY_COPY for the non-mix variant)
-    // Actually looking at the target RSI, it uses TA_ARRAY_COPY
     s = s.replace("ARRAY_MEMMOVEMIX(", "TA_ARRAY_MEMMOVEMIX(");
     s = s.replace("ARRAY_MEMMOVE(", "TA_ARRAY_COPY(");
-    // Avoid double-prefixing
     s = s.replace("TA_TA_ARRAY_MEMMOVEMIX(", "TA_ARRAY_MEMMOVEMIX(");
     s = s.replace("TA_TA_ARRAY_COPY(", "TA_ARRAY_COPY(");
-    // Also clean up ARRAY_MEMMOVEMIX_VAR
     if s.contains("ARRAY_MEMMOVEMIX_VAR") {
         s = String::new(); // Remove this line entirely
     }
@@ -754,7 +750,7 @@ fn expand_enum_value(line: &str) -> String {
 }
 
 /// Expand `FUNCTION_CALL`, `LOOKBACK_CALL`, and direct TA_<NAME> references.
-fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
+fn expand_function_calls(line: &str) -> String {
     let mut s = line.to_string();
 
     // FUNCTION_CALL(INT_<NAME>) -> <name>
@@ -805,7 +801,6 @@ fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
         })
         .to_string();
 
-    let _ = (upper, lower); // suppress unused warnings
     s
 }
 
@@ -827,12 +822,9 @@ fn expand_globals_macros(line: &str) -> String {
 fn expand_loop_macros(line: &str) -> String {
     let mut s = line.to_string();
 
-    // FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx) -> expanded loop header
-    // In the prefix-free C, this becomes a simple while loop.
-    // Looking at mult.c target: the macro is expanded inline.
-    // Keep as-is for now - the target uses explicit while loops.
-    // Actually let's check: the target mult.c doesn't use FOR_EACH_OUTPUT.
-    // It's manually expanded. So we need to expand it.
+    // FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx) -> explicit while-loop header
+    // (prefix-free C expands the macro inline):
+    //   outIdx = 0; i = (size_t)startIdx; while( i <= (size_t)endIdx ) {
     let re_feo = Regex::new(r"FOR_EACH_OUTPUT\((\w+),\s*(\w+),\s*(\w+),\s*(\w+)\)").unwrap();
     if let Some(caps) = re_feo.captures(&s) {
         let start = &caps[1];

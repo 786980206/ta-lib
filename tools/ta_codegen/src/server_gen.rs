@@ -4,28 +4,9 @@
 //! the generated TA function implementations, and writes JSON responses to stdout.
 //! All servers speak the same protocol as the existing Rust server in server.rs.
 
+use crate::backends::java::to_java_method_name;
 use crate::ir::{FuncDef, Input, OptInput, Output, ParamType};
 use std::path::Path;
-
-/// Convert a function name to Java `camelCase` for method names.
-/// e.g., "LINEARREG_ANGLE" -> "linearregAngle", "HT_DCPERIOD" -> "htDcperiod"
-fn to_java_camel_case(name: &str) -> String {
-    let lower = name.to_lowercase();
-    let parts: Vec<&str> = lower.split('_').collect();
-    let mut result = String::new();
-    for (i, part) in parts.iter().enumerate() {
-        if i == 0 {
-            result.push_str(part);
-        } else {
-            let mut chars = part.chars();
-            if let Some(c) = chars.next() {
-                result.extend(c.to_uppercase());
-                result.push_str(chars.as_str());
-            }
-        }
-    }
-    result
-}
 
 /// Generate the JSON response key for an output at position `idx` among all outputs.
 ///
@@ -259,14 +240,10 @@ fn opt_input_to_c_param(opt: &OptInput) -> String {
     }
 }
 
-/// Generate a standalone C JSON-RPC server source file.
+/// Generate the `ta_func_unguarded.h` header for standalone compilation of the C server.
 ///
-/// The generated file #includes the generated ta_*.c files and provides
-/// a `main()` loop that reads JSON-RPC from stdin.
-/// Generate a minimal `ta_func.h` stub for standalone compilation of the C server.
-///
-/// This file provides just the type definitions that the generated ta_*.c files
-/// expect, without pulling in the full TA-Lib headers.
+/// This file provides just the unguarded function forward declarations that the
+/// generated ta_*.c files expect, without pulling in the full TA-Lib headers.
 pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
     s.push_str("/* ta_func_unguarded.h — Unguarded (Logic) function declarations.\n");
@@ -330,85 +307,62 @@ pub fn generate_c_private_header(funcs: &[FuncDef]) -> String {
         }
         let upper = func.name.to_uppercase();
 
-        // Build param list: same as guarded but with extra params before outputs
-        let mut params = Vec::new();
-        params.push("int startIdx".to_string());
-        params.push("int endIdx".to_string());
-        for input in &func.inputs {
-            let c_type = match input.param_type {
-                crate::ir::ParamType::Real => "const double",
-                _ => "const int",
-            };
-            params.push(format!("{c_type} {}[]", input.name));
-        }
-        for opt in &func.optional_inputs {
-            let c_type = match &opt.param_type {
-                crate::ir::ParamType::Real => "double".to_string(),
-                crate::ir::ParamType::Integer => "int".to_string(),
-                crate::ir::ParamType::Enum(name) => format!("TA_{name}"),
-                crate::ir::ParamType::Price(_) => unreachable!(),
-            };
-            params.push(format!("{c_type} {}", opt.name));
-        }
-        // Extra private params (e.g., optInK_1)
-        for (pname, ptype) in &func.private_extra_params {
-            params.push(format!("{ptype} {pname}"));
-        }
-        params.push("int *outBegIdx".to_string());
-        params.push("int *outNBElement".to_string());
-        for output in &func.outputs {
-            let c_type = match output.param_type {
-                crate::ir::ParamType::Real => "double",
-                _ => "int",
-            };
-            params.push(format!("{c_type} {}[]", output.name));
-        }
+        // Build the private param list: same as guarded but with extra params
+        // before outputs. The double and single-precision signatures are identical
+        // except the real INPUT arrays are `const double` vs `const float`
+        // (intermediates/outputs stay double, matching gen_func_inner).
+        let build_params = |real_input_type: &str| -> String {
+            let mut params = vec!["int startIdx".to_string(), "int endIdx".to_string()];
+            for input in &func.inputs {
+                let c_type = match input.param_type {
+                    crate::ir::ParamType::Real => real_input_type,
+                    _ => "const int",
+                };
+                params.push(format!("{c_type} {}[]", input.name));
+            }
+            for opt in &func.optional_inputs {
+                let c_type = match &opt.param_type {
+                    crate::ir::ParamType::Real => "double".to_string(),
+                    crate::ir::ParamType::Integer => "int".to_string(),
+                    crate::ir::ParamType::Enum(name) => format!("TA_{name}"),
+                    crate::ir::ParamType::Price(_) => unreachable!(),
+                };
+                params.push(format!("{c_type} {}", opt.name));
+            }
+            // Extra private params (e.g., optInK_1)
+            for (pname, ptype) in &func.private_extra_params {
+                params.push(format!("{ptype} {pname}"));
+            }
+            params.push("int *outBegIdx".to_string());
+            params.push("int *outNBElement".to_string());
+            for output in &func.outputs {
+                let c_type = match output.param_type {
+                    crate::ir::ParamType::Real => "double",
+                    _ => "int",
+                };
+                params.push(format!("{c_type} {}[]", output.name));
+            }
+            params.join(", ")
+        };
 
-        let params_str = params.join(", ");
-        s.push_str(&format!("extern TA_RetCode TA_{upper}_Private({params_str});\n"));
-
-        // Single-precision private: identical signature except real INPUT arrays are
-        // `const float` (intermediates/outputs stay double, matching gen_func_inner).
-        // Used by single-precision callers applying the indicator to the float input.
-        let mut s_params = Vec::new();
-        s_params.push("int startIdx".to_string());
-        s_params.push("int endIdx".to_string());
-        for input in &func.inputs {
-            let c_type = match input.param_type {
-                crate::ir::ParamType::Real => "const float",
-                _ => "const int",
-            };
-            s_params.push(format!("{c_type} {}[]", input.name));
-        }
-        for opt in &func.optional_inputs {
-            let c_type = match &opt.param_type {
-                crate::ir::ParamType::Real => "double".to_string(),
-                crate::ir::ParamType::Integer => "int".to_string(),
-                crate::ir::ParamType::Enum(name) => format!("TA_{name}"),
-                crate::ir::ParamType::Price(_) => unreachable!(),
-            };
-            s_params.push(format!("{c_type} {}", opt.name));
-        }
-        for (pname, ptype) in &func.private_extra_params {
-            s_params.push(format!("{ptype} {pname}"));
-        }
-        s_params.push("int *outBegIdx".to_string());
-        s_params.push("int *outNBElement".to_string());
-        for output in &func.outputs {
-            let c_type = match output.param_type {
-                crate::ir::ParamType::Real => "double",
-                _ => "int",
-            };
-            s_params.push(format!("{c_type} {}[]", output.name));
-        }
-        let s_params_str = s_params.join(", ");
-        s.push_str(&format!("extern TA_RetCode TA_S_{upper}_Private({s_params_str});\n"));
+        s.push_str(&format!(
+            "extern TA_RetCode TA_{upper}_Private({});\n",
+            build_params("const double")
+        ));
+        s.push_str(&format!(
+            "extern TA_RetCode TA_S_{upper}_Private({});\n",
+            build_params("const float")
+        ));
     }
 
     s.push_str("\n#endif /* TA_FUNC_PRIVATE_H */\n");
     s
 }
 
+/// Generate a standalone C JSON-RPC server source file.
+///
+/// The generated file #includes the generated ta_*.c files and provides
+/// a `main()` loop that reads JSON-RPC from stdin.
 pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
@@ -1214,7 +1168,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
     // Per-function handler methods — each is small enough for C2 JIT compilation.
     for func in funcs {
-        let func_lower = to_java_camel_case(&func.name);
+        let func_lower = to_java_method_name(&func.name);
 
         s.push_str(&format!(
             "    static String handle_{}(String json) {{\n",
@@ -1400,8 +1354,9 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
 /// Generate a .NET (C#) JSON-RPC server source file.
 ///
-/// Note: The .NET backend currently generates C++/CLI headers, not full C# implementations.
-/// This generates a placeholder that will work once the backend is extended.
+/// Emits a complete C# program that uses P/Invoke to call the generated C shared
+/// library (`ta_codegen_funcs`), reads JSON-RPC requests from stdin, dispatches to
+/// the imported TA functions, and writes JSON responses to stdout.
 #[allow(clippy::too_many_lines)]
 pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();

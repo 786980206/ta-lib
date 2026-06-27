@@ -136,38 +136,22 @@ pub fn substitute_statement(
             value,
             compound,
         } => {
-            let new_target = rename_local_var_in_expr(
-                &substitute_expr(target, subs),
-                subs,
-                suffix,
-            );
+            let new_target = substitute_expr(target, subs);
             Statement::Assign {
                 target: new_target,
-                value: rename_local_var_in_expr(
-                    &substitute_expr(value, subs),
-                    subs,
-                    suffix,
-                ),
+                value: substitute_expr(value, subs),
                 compound: *compound,
             }
         }
         Statement::While { condition, body } => Statement::While {
-            condition: rename_local_var_in_expr(
-                &substitute_expr(condition, subs),
-                subs,
-                suffix,
-            ),
+            condition: substitute_expr(condition, subs),
             body: body
                 .iter()
                 .map(|s| substitute_statement(s, subs, suffix))
                 .collect(),
         },
         Statement::DoWhile { condition, body } => Statement::DoWhile {
-            condition: rename_local_var_in_expr(
-                &substitute_expr(condition, subs),
-                subs,
-                suffix,
-            ),
+            condition: substitute_expr(condition, subs),
             body: body
                 .iter()
                 .map(|s| substitute_statement(s, subs, suffix))
@@ -175,11 +159,7 @@ pub fn substitute_statement(
         },
         Statement::For { var, count, body } => Statement::For {
             var: format!("{var}_{suffix}"),
-            count: rename_local_var_in_expr(
-                &substitute_expr(count, subs),
-                subs,
-                suffix,
-            ),
+            count: substitute_expr(count, subs),
             body: body
                 .iter()
                 .map(|s| substitute_statement(s, subs, suffix))
@@ -192,11 +172,7 @@ pub fn substitute_statement(
             body,
         } => Statement::ForC {
             init: Box::new(substitute_statement(init, subs, suffix)),
-            condition: rename_local_var_in_expr(
-                &substitute_expr(condition, subs),
-                subs,
-                suffix,
-            ),
+            condition: substitute_expr(condition, subs),
             update: Box::new(substitute_statement(update, subs, suffix)),
             body: body
                 .iter()
@@ -208,11 +184,7 @@ pub fn substitute_statement(
             then_body,
             else_body,
         } => Statement::If {
-            condition: rename_local_var_in_expr(
-                &substitute_expr(condition, subs),
-                subs,
-                suffix,
-            ),
+            condition: substitute_expr(condition, subs),
             then_body: then_body
                 .iter()
                 .map(|s| substitute_statement(s, subs, suffix))
@@ -224,7 +196,7 @@ pub fn substitute_statement(
         },
         Statement::Return { value } => Statement::Return {
             value: value.as_ref().map(|e| {
-                rename_local_var_in_expr(&substitute_expr(e, subs), subs, suffix)
+                substitute_expr(e, subs)
             }),
         },
         Statement::Switch {
@@ -232,11 +204,7 @@ pub fn substitute_statement(
             cases,
             default,
         } => Statement::Switch {
-            expr: rename_local_var_in_expr(
-                &substitute_expr(expr, subs),
-                subs,
-                suffix,
-            ),
+            expr: substitute_expr(expr, subs),
             cases: cases
                 .iter()
                 .map(|(label, stmts)| {
@@ -265,36 +233,42 @@ pub fn substitute_statement(
     }
 }
 
-/// Collect local variable names declared in a helper body (VarDecl names).
+/// Collect local variable names declared in a helper body (VarDecl names),
+/// including those declared inside nested blocks, so that every helper-local
+/// is renamed consistently when the helper is inlined more than once.
 fn collect_local_names(body: &[Statement]) -> Vec<String> {
     let mut names = Vec::new();
     for stmt in body {
-        if let Statement::VarDecl { name, .. } = stmt {
-            names.push(name.clone());
+        match stmt {
+            Statement::VarDecl { name, .. } => names.push(name.clone()),
+            Statement::While { body, .. }
+            | Statement::DoWhile { body, .. }
+            | Statement::For { body, .. }
+            | Statement::Block { body } => names.extend(collect_local_names(body)),
+            Statement::If { then_body, else_body, .. } => {
+                names.extend(collect_local_names(then_body));
+                names.extend(collect_local_names(else_body));
+            }
+            Statement::ForC { init, update, body, .. } => {
+                names.extend(collect_local_names(std::slice::from_ref(init)));
+                names.extend(collect_local_names(std::slice::from_ref(update)));
+                names.extend(collect_local_names(body));
+            }
+            Statement::Switch { cases, default, .. } => {
+                for (_, stmts) in cases {
+                    names.extend(collect_local_names(stmts));
+                }
+                names.extend(collect_local_names(default));
+            }
+            Statement::Assign { .. }
+            | Statement::Return { .. }
+            | Statement::Break
+            | Statement::Continue => {}
         }
     }
     names
 }
 
-/// After parameter substitution, rename any remaining references to local
-/// variables (declared via `VarDecl` in the helper body) by appending `_suffix`.
-///
-/// This is needed because `substitute_expr` only replaces parameter names.
-/// Local variables like `range`, `tmp`, `avg` also need unique names
-/// to avoid collisions when the same helper is inlined multiple times.
-fn rename_local_var_in_expr(
-    expr: &Expr,
-    _subs: &HashMap<String, Expr>,
-    _suffix: usize,
-) -> Expr {
-    // The local-var renaming is already handled by substitute_statement:
-    // VarDecl renames the declaration, and Assign targets that are Var(name)
-    // get renamed. But we need to handle references to those locals in
-    // arbitrary expression positions too. We do this in a second pass
-    // (see inline_block) rather than here, to keep this function simple.
-    // The actual renaming is done by building a second subs map for locals.
-    expr.clone()
-}
 
 /// Inline a multi-statement helper. Returns (substituted body, temp var name).
 ///

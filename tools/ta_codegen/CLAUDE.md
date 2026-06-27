@@ -7,11 +7,12 @@
 ## Architecture
 
 ```
-ta_func_defs/*.yaml          (extracted indicator definitions)
+ta_func_defs/                (per-indicator .c logic + YAML metadata)
        ↓
-    parser                   (YAML → raw parsed structs)
+    parser                   (YAML metadata → raw serde structs → IR;
+                              .c source → IR Statement/Expr directly, no raw stage)
        ↓
-    ir                       (parsed → FuncDef intermediate representation)
+    ir                       (FuncDef + Statement/Expr intermediate representation)
        ↓
   ┌────┴─────────────┐
 backends            server_gen / bench_gen
@@ -32,8 +33,8 @@ include/ta_func.h        (generated public header)
 
 | Module | Purpose |
 |--------|---------|
-| `parser` | Parses YAML files into raw function definitions |
-| `ir` | Intermediate representation (`FuncDef`, `ParamType`, etc.) |
+| `parser` | Parses YAML metadata (via raw serde structs) into `FuncDef`; parses `.c` source directly into IR `Statement`/`Expr` (no intermediate raw-struct stage for the logic) |
+| `ir` | Intermediate representation (`FuncDef`, `ParamType`, `Statement`, `Expr`, etc.) |
 | `extractor` | Extracts indicator definitions from C source files → YAML |
 | `backends/c.rs` | Generates C indicator implementations (guarded + unguarded variants) |
 | `backends/rust_lang.rs` | Generates Rust indicator implementations with `<T: TaFloat>` generics |
@@ -177,7 +178,7 @@ Strict Clippy pedantic lints are enabled in `src/lib.rs`. Allowed exceptions:
 ## Performance: C Server Compilation
 
 - Server is single-TU (`#include .c` files) — do NOT switch to separate compilation, it causes CDL binary layout issues
-- Candle settings reads use `volatile` cast in `emit_c_unpacking()` to prevent constant propagation that kills loop unswitching
+- Candle settings are hoisted once into local `int`/`double` vars at the top of each function by `emit_c_unpacking()` — plain reads from `TA_Globals->candleSettings[...]`, no `volatile` cast
 - Ternary chains (not switch statements) for numeric-case switches — matches reference macro pattern for compiler optimization
 - CCI uses conditional reset (`idx++; if(idx>=max) idx=0`) not modulo — modulo costs ~10 cycles on ARM
 - Full parameter validation (NULL checks, INTEGER_DEFAULT, range) is required — missing validation changes compiler register allocation

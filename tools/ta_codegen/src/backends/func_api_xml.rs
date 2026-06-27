@@ -6,10 +6,7 @@
 use crate::ir::{FuncDef, ParamType};
 use std::fmt::Write as _;
 use std::path::Path;
-
-/// TA-Lib sentinel values (from `include/ta_defs.h`).
-const TA_REAL_MIN: f64 = -3e37;
-const TA_REAL_MAX: f64 = 3e37;
+use super::common::ta_real_sentinel;
 
 /// Generate `ta_func_api.xml` from the given function definitions.
 ///
@@ -121,15 +118,11 @@ fn write_inputs(out: &mut String, func: &FuncDef) {
     out.push_str("\t\t<RequiredInputArguments>\n");
     for input in &func.inputs {
         match &input.param_type {
-            ParamType::Price(components) => {
-                for comp in components {
-                    let name = price_component_name(comp);
-                    out.push_str("\t\t\t<RequiredInputArgument>\n");
-                    let _ = writeln!(out, "\t\t\t\t<Type>{name}</Type>");
-                    let _ = writeln!(out, "\t\t\t\t<Name>{name}</Name>");
-                    out.push_str("\t\t\t</RequiredInputArgument>\n");
-                }
-            }
+            // `Price` inputs are expanded into individual `Real` inputs by the YAML
+            // parser before they reach here (the live reverse-mapping is in the
+            // `Real` arm via `as_price_component`), and enum inputs are not emitted
+            // as required input arguments — so both arms are intentionally empty.
+            ParamType::Price(_) | ParamType::Enum(_) => {}
             ParamType::Real => {
                 out.push_str("\t\t\t<RequiredInputArgument>\n");
                 // Detect expanded price components (inHigh → High)
@@ -153,7 +146,6 @@ fn write_inputs(out: &mut String, func: &FuncDef) {
                     writeln!(out, "\t\t\t\t<Name>{}</Name>", input.name);
                 out.push_str("\t\t\t</RequiredInputArgument>\n");
             }
-            ParamType::Enum(_) => {}
         }
     }
     out.push_str("\t\t</RequiredInputArguments>\n");
@@ -232,8 +224,8 @@ fn write_real_opt(
 ) {
     out.push_str("\t\t\t\t<Type>Double</Type>\n");
     if let Some((min, max)) = opt.range {
-        let min_v = sentinel_to_ta_real(min);
-        let max_v = sentinel_to_ta_real(max);
+        let min_v = ta_real_sentinel(min);
+        let max_v = ta_real_sentinel(max);
         out.push_str("\t\t\t\t<Range>\n");
         let _ = writeln!(
             out,
@@ -251,17 +243,17 @@ fn write_real_opt(
         let _ = writeln!(
             out,
             "\t\t\t\t\t<SuggestedStart>{}</SuggestedStart>",
-            double_to_str(sentinel_to_ta_real(start))
+            double_to_str(ta_real_sentinel(start))
         );
         let _ = writeln!(
             out,
             "\t\t\t\t\t<SuggestedEnd>{}</SuggestedEnd>",
-            double_to_str(sentinel_to_ta_real(end))
+            double_to_str(ta_real_sentinel(end))
         );
         let _ = writeln!(
             out,
             "\t\t\t\t\t<SuggestedIncrement>{}</SuggestedIncrement>",
-            double_to_str(sentinel_to_ta_real(inc))
+            double_to_str(ta_real_sentinel(inc))
         );
         out.push_str("\t\t\t\t</Range>\n");
     }
@@ -269,7 +261,7 @@ fn write_real_opt(
     let _ = writeln!(
         out,
         "\t\t\t\t<DefaultValue>{}</DefaultValue>",
-        double_to_str(sentinel_to_ta_real(default))
+        double_to_str(ta_real_sentinel(default))
     );
 }
 
@@ -377,32 +369,6 @@ fn write_outputs(out: &mut String, func: &FuncDef) {
 }
 
 // --- Helpers ---
-
-fn price_component_name(component: &str) -> &str {
-    match component {
-        "open" => "Open",
-        "high" => "High",
-        "low" => "Low",
-        "close" => "Close",
-        "volume" => "Volume",
-        "openinterest" => "Open Interest",
-        "timestamp" => "Timestamp",
-        _ => component,
-    }
-}
-
-/// Map `f64::MIN`/`f64::MAX` (YAML parser sentinels) back to the TA-Lib
-/// constants `TA_REAL_MIN`/`TA_REAL_MAX` (`-3e37` / `3e37`).
-#[allow(clippy::float_cmp)]
-fn sentinel_to_ta_real(v: f64) -> f64 {
-    if v == f64::MIN {
-        TA_REAL_MIN
-    } else if v == f64::MAX {
-        TA_REAL_MAX
-    } else {
-        v
-    }
-}
 
 /// Format a float matching C `printf("%e")` after gen_code's `doubleToStr`
 /// post-processing (strip leading exponent zeros, keep sign).
