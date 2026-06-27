@@ -9,6 +9,7 @@ use crate::ir::{
 use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
+use super::expr_walk::ExprEmitter;
 
 /// Controls how the Rust renderer emits code.
 pub struct RustRenderCtx {
@@ -2600,28 +2601,21 @@ fn is_definitely_integer(expr: &Expr, ctx: &RustRenderCtx) -> bool {
     }
 }
 
-fn render_expr(
-    expr: &Expr,
-    ctx: &RustRenderCtx,
-    opt_real_params: &[String],
-    registry: &Registry,
-    helpers: &HelperRegistry,
-) -> String {
-    match expr {
-        Expr::Literal(f) => {
-            #[allow(clippy::float_cmp)]
-            let is_whole = *f == f.floor() && f.abs() < 1e15;
-            let lit_str = if is_whole {
-                #[allow(clippy::cast_possible_truncation)]
-                let i = *f as i64;
-                format!("{i}.0")
-            } else {
-                format!("{f}")
-            };
-            lit_str
-        }
-        Expr::IntLiteral(i) => format!("{i}"),
-        Expr::Var(name) => match name.as_str() {
+/// Rust-backend leaf formatting for the shared [`ExprEmitter`] tree-walk. Bundles
+/// the render context with `opt_real_params` and the registry/helper services the
+/// type-inference hooks need; the recursion itself lives in [`ExprEmitter::walk`].
+/// The heavy `BinOp`/`Ternary` arms keep dedicated free functions
+/// ([`render_binop`]/[`render_ternary`]) that the hooks delegate to.
+struct RustExpr<'a> {
+    ctx: &'a RustRenderCtx,
+    opt_real_params: &'a [String],
+    registry: &'a Registry,
+    helpers: &'a HelperRegistry,
+}
+
+impl ExprEmitter for RustExpr<'_> {
+    fn var(&self, name: &str) -> String {
+        match name {
             "COMPATIBILITY" => "(self.compatibility)".to_string(),
             "METASTOCK" => "Compatibility::Metastock".to_string(),
             "DEFAULT" => "Compatibility::Default".to_string(),
@@ -2638,324 +2632,368 @@ fn render_expr(
             "TA_MAType_KAMA" => "6".to_string(),
             "TA_MAType_MAMA" => "7".to_string(),
             "TA_MAType_T3" => "8".to_string(),
-            _ => {
-                name.clone()
-            }
-        },
-        Expr::ArrayAccess(name, idx) => {
-            let idx_rendered = render_index_expr(idx, ctx, opt_real_params, registry, helpers);
-            if ctx.unchecked {
-                // Use as_ptr().add() instead of get_unchecked() to avoid
-                // llvm.assume intrinsics that poison the optimizer under LTO.
-                format!("*{name}.as_ptr().add({idx_rendered})")
-            } else {
-                format!("{name}[{idx_rendered}]")
-            }
-        }
-        Expr::FuncCall(fname, args) => {
-            render_func_call(fname, args, ctx, opt_real_params, registry, helpers)
-        }
-        Expr::BinOp(left, op, right) => {
-            // Fused multiply-add: (a * b) + c → a.mul_add(b, c)
-            // Emits ARM fmadd (1 FP op, 4 cycles) vs fmul+fadd (2 FP ops, 8 cycles).
-            // Only for f64 operands (not integer arithmetic).
-            // Fused multiply-add: (a * b) + c → (a as f64).mul_add(b, c)
-            // Emits ARM fmadd (1 FP op) vs fmul+fadd (2 FP ops).
-            // Only when BOTH multiply operands are float (not i32 * f64 patterns).
-            if matches!(op, BinOp::Add) {
-                if let Expr::BinOp(a, BinOp::Mul, b) = left.as_ref() {
-                    let a_ok = expr_is_float_typed_ctx(a, Some(ctx)) && !is_definitely_integer(a, ctx);
-                    let b_ok = expr_is_float_typed_ctx(b, Some(ctx)) && !is_definitely_integer(b, ctx);
-                    if a_ok && b_ok {
-                        let a_str = render_expr(a, ctx, opt_real_params, registry, helpers);
-                        let b_str = render_expr(b, ctx, opt_real_params, registry, helpers);
-                        let c_str = render_expr(right, ctx, opt_real_params, registry, helpers);
-                        return format!("({a_str} as f64).mul_add({b_str}, {c_str})");
-                    }
-                }
-                if let Expr::BinOp(a, BinOp::Mul, b) = right.as_ref() {
-                    let a_ok = expr_is_float_typed_ctx(a, Some(ctx)) && !is_definitely_integer(a, ctx);
-                    let b_ok = expr_is_float_typed_ctx(b, Some(ctx)) && !is_definitely_integer(b, ctx);
-                    if a_ok && b_ok {
-                        let a_str = render_expr(a, ctx, opt_real_params, registry, helpers);
-                        let b_str = render_expr(b, ctx, opt_real_params, registry, helpers);
-                        let c_str = render_expr(left, ctx, opt_real_params, registry, helpers);
-                        return format!("({a_str} as f64).mul_add({b_str}, {c_str})");
-                    }
-                }
-            }
-            // C pointer-identity buffer comparisons (BBANDS' `inReal == outRealUpperBand`,
-            // DEMA's `inReal == outReal`, and the alias-optimization guards) must become
-            // Rust *pointer* comparisons, not value comparisons. In the borrow-checked
-            // slice API an input and an output buffer can never alias, so identity is the
-            // correct semantics; a value comparison wrongly trips on coincidentally-equal
-            // contents (e.g. an all-zero input vs a zero-initialized output → false
-            // TA_BAD_PARAM).
-            if matches!(op, BinOp::Eq | BinOp::NotEq)
-                && is_buffer_operand(left, ctx)
-                && is_buffer_operand(right, ctx)
-            {
-                let l = render_expr(left, ctx, opt_real_params, registry, helpers);
-                let r = render_expr(right, ctx, opt_real_params, registry, helpers);
-                let cmp = if matches!(op, BinOp::Eq) { "==" } else { "!=" };
-                return format!("{l}.as_ptr() {cmp} {r}.as_ptr()");
-            }
-            let op_str = match op {
-                BinOp::Add => " + ",
-                BinOp::Sub => " - ",
-                BinOp::Mul => " * ",
-                BinOp::Div => " / ",
-                BinOp::Mod => " % ",
-                BinOp::LessEq => " <= ",
-                BinOp::Less => " < ",
-                BinOp::Greater => " > ",
-                BinOp::GreaterEq => " >= ",
-                BinOp::Eq => " == ",
-                BinOp::NotEq => " != ",
-                BinOp::And => " && ",
-                BinOp::Or => " || ",
-                BinOp::BitwiseOr => " | ",
-                BinOp::Shr => " >> ",
-                BinOp::Shl => " << ",
-            };
-            let is_arithmetic = matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod | BinOp::Shr | BinOp::Shl);
-            let mut left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
-            let mut right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
-            if is_arithmetic {
-                // Sentinel vars are i32 — when mixed with usize, cast usize→i32
-                let left_is_sentinel = expr_is_i32_typed_ctx(left, ctx) && !expr_is_i32_typed(left);
-                let right_is_sentinel = expr_is_i32_typed_ctx(right, ctx) && !expr_is_i32_typed(right);
-                if left_is_sentinel && !right_is_sentinel && !expr_is_i32_typed(right) && !expr_is_float_typed_ctx(right, Some(ctx)) && !matches!(right.as_ref(), Expr::IntLiteral(_)) {
-                    right_str = format!("({right_str}) as i32");
-                }
-                if right_is_sentinel && !left_is_sentinel && !expr_is_i32_typed(left) && !expr_is_float_typed_ctx(left, Some(ctx)) && !matches!(left.as_ref(), Expr::IntLiteral(_)) {
-                    left_str = format!("({left_str}) as i32");
-                }
-                let left_is_i32 = expr_is_i32_typed(left) || left_is_sentinel;
-                let right_is_i32 = expr_is_i32_typed(right) || right_is_sentinel;
-                // i32-typed expressions are NOT float even if heuristics say otherwise
-                let left_is_float = expr_is_float_typed_ctx(left, Some(ctx)) && !left_is_i32;
-                let right_is_float = expr_is_float_typed_ctx(right, Some(ctx)) && !right_is_i32;
-                let left_is_int_lit = matches!(left.as_ref(), Expr::IntLiteral(_));
-                let right_is_int_lit = matches!(right.as_ref(), Expr::IntLiteral(_));
-
-                {
-                    // Cast integer operands to f64 when doing arithmetic with f64-typed expressions
-                    if left_is_int_lit && right_is_float {
-                        if let Expr::IntLiteral(v) = left.as_ref() {
-                            left_str = format!("{v}_f64");
-                        }
-                    }
-                    if right_is_int_lit && left_is_float {
-                        if let Expr::IntLiteral(v) = right.as_ref() {
-                            right_str = format!("{v}_f64");
-                        }
-                    }
-                    if left_is_i32 && right_is_float && !left_is_int_lit && !left_is_float {
-                        left_str = format!("(({left_str}) as f64)");
-                    }
-                    if right_is_i32 && left_is_float && !right_is_int_lit && !right_is_float {
-                        right_str = format!("(({right_str}) as f64)");
-                    }
-                    let left_is_untyped_int = expr_is_untyped_integer(left);
-                    let right_is_untyped_int = expr_is_untyped_integer(right);
-                    if left_is_untyped_int && !left_is_int_lit && right_is_float {
-                        left_str = format!("(({left_str}) as f64)");
-                    }
-                    if right_is_untyped_int && !right_is_int_lit && left_is_float {
-                        right_str = format!("(({right_str}) as f64)");
-                    }
-                    let left_is_known_usize = expr_is_known_usize_ctx(left, ctx);
-                    let right_is_known_usize = expr_is_known_usize_ctx(right, ctx);
-                    let left_eff_usize = left_is_known_usize
-                        || expr_binop_renders_as_usize(left, ctx);
-                    let right_eff_usize = right_is_known_usize
-                        || expr_binop_renders_as_usize(right, ctx);
-                    if left_eff_usize && right_is_float && !left_is_i32 {
-                        left_str = format!("(({left_str}) as f64)");
-                    }
-                    if right_eff_usize && left_is_float && !right_is_i32 {
-                        right_str = format!("(({right_str}) as f64)");
-                    }
-                }
-                // Cast i32 operands to usize when mixed with usize-typed operands (not float)
-                // Also detect i32 array accesses (IntArray/IntPointer)
-                let arith_left_is_i32_arr = matches!(left.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
-                let arith_right_is_i32_arr = matches!(right.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
-                let left_is_i32_eff = left_is_i32 || arith_left_is_i32_arr;
-                let right_is_i32_eff = right_is_i32 || arith_right_is_i32_arr;
-                let left_is_usize = !left_is_i32_eff && !left_is_float && !left_is_int_lit;
-                let right_is_usize = !right_is_i32_eff && !right_is_float && !right_is_int_lit;
-                if left_is_i32_eff && right_is_usize && !left_is_sentinel {
-                    left_str = format!("({left_str}) as usize");
-                }
-                if right_is_i32_eff && left_is_usize && !right_is_sentinel {
-                    right_str = format!("({right_str}) as usize");
-                }
-                // When both sides appear i32-typed but one actually renders as usize
-                // (e.g., Cast(Integer, usize_expr) drops the cast), fix the mismatch.
-                if left_is_i32_eff && right_is_i32_eff && !left_is_int_lit && !right_is_int_lit {
-                    let left_renders_usize = expr_renders_as_usize_despite_i32(left, ctx);
-                    let right_renders_usize = expr_renders_as_usize_despite_i32(right, ctx);
-                    if left_renders_usize && !right_renders_usize {
-                        right_str = format!("({right_str}) as usize");
-                    }
-                    if right_renders_usize && !left_renders_usize {
-                        left_str = format!("({left_str}) as usize");
-                    }
-                }
-            }
-            // For comparison operators, cast i32 to usize when mixed (not float)
-            // and wrap IntLiterals with T::ta_zero() / T::ta_from_i32() when comparing with T-typed exprs
-            if matches!(op, BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq | BinOp::NotEq) {
-                // Sentinel vars are i32 — when compared with usize, cast usize→i32
-                let cmp_left_sentinel = expr_is_i32_typed_ctx(left, ctx) && !expr_is_i32_typed(left);
-                let cmp_right_sentinel = expr_is_i32_typed_ctx(right, ctx) && !expr_is_i32_typed(right);
-                if cmp_left_sentinel && !cmp_right_sentinel && !expr_is_i32_typed(right) && !expr_is_float_typed_ctx(right, Some(ctx)) && !matches!(right.as_ref(), Expr::IntLiteral(_)) {
-                    right_str = format!("({right_str}) as i32");
-                }
-                if cmp_right_sentinel && !cmp_left_sentinel && !expr_is_i32_typed(left) && !expr_is_float_typed_ctx(left, Some(ctx)) && !matches!(left.as_ref(), Expr::IntLiteral(_)) {
-                    left_str = format!("({left_str}) as i32");
-                }
-                let left_is_i32 = expr_is_i32_typed(left) || cmp_left_sentinel;
-                let right_is_i32 = expr_is_i32_typed(right) || cmp_right_sentinel;
-                // i32-typed expressions are NOT float even if heuristics say otherwise
-                let left_is_float = expr_is_float_typed_ctx(left, Some(ctx)) && !left_is_i32;
-                let right_is_float = expr_is_float_typed_ctx(right, Some(ctx)) && !right_is_i32;
-                let left_is_int_lit = matches!(left.as_ref(), Expr::IntLiteral(_));
-                let right_is_int_lit = matches!(right.as_ref(), Expr::IntLiteral(_));
-                {
-                    let left_is_untyped_int = expr_is_untyped_integer(left);
-                    let right_is_untyped_int = expr_is_untyped_integer(right);
-                    // Cast IntLiteral to f64 when compared against f64-typed expression
-                    if right_is_int_lit && left_is_float {
-                        if let Expr::IntLiteral(v) = right.as_ref() {
-                            right_str = format!("{v}_f64");
-                        }
-                    }
-                    if left_is_int_lit && right_is_float {
-                        if let Expr::IntLiteral(v) = left.as_ref() {
-                            left_str = format!("{v}_f64");
-                        }
-                    }
-                    if left_is_i32 && right_is_float && !left_is_int_lit && !left_is_float {
-                        left_str = format!("(({left_str}) as f64)");
-                    }
-                    if right_is_i32 && left_is_float && !right_is_int_lit && !right_is_float {
-                        right_str = format!("(({right_str}) as f64)");
-                    }
-                    if left_is_untyped_int && !left_is_int_lit && right_is_float {
-                        left_str = format!("(({left_str}) as f64)");
-                    }
-                    if right_is_untyped_int && !right_is_int_lit && left_is_float {
-                        right_str = format!("(({right_str}) as f64)");
-                    }
-                    let cmp_left_is_known_usize = expr_is_known_usize_ctx(left, ctx);
-                    let cmp_right_is_known_usize = expr_is_known_usize_ctx(right, ctx);
-                    if cmp_left_is_known_usize && right_is_float && !cmp_right_is_known_usize && !left_is_i32 && !left_is_int_lit {
-                        left_str = format!("(({left_str}) as f64)");
-                    }
-                    if cmp_right_is_known_usize && left_is_float && !cmp_left_is_known_usize && !right_is_i32 && !right_is_int_lit {
-                        right_str = format!("(({right_str}) as f64)");
-                    }
-                }
-                // Also detect i32 array accesses (IntArray/IntPointer) using context
-                let left_is_i32_arr = matches!(left.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
-                let right_is_i32_arr = matches!(right.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
-                let left_is_i32_eff = left_is_i32 || left_is_i32_arr;
-                let right_is_i32_eff = right_is_i32 || right_is_i32_arr;
-                if left_is_i32_eff && !right_is_i32_eff && !right_is_float && !right_is_int_lit && !cmp_left_sentinel {
-                    left_str = format!("({left_str}) as usize");
-                }
-                if right_is_i32_eff && !left_is_i32_eff && !left_is_float && !left_is_int_lit && !cmp_right_sentinel {
-                    right_str = format!("({right_str}) as usize");
-                }
-            }
-            format!("{left_str}{op_str}{right_str}")
-        }
-        Expr::Cast(var_type, inner) => {
-            // IntLiteral cast to f64 → emit as float literal (e.g., 0.0 instead of (0) as f64)
-            if matches!(var_type, VarType::Real) {
-                if let Expr::IntLiteral(n) = inner.as_ref() {
-                    return format!("{n}.0");
-                }
-            }
-            // IntLiteral cast to usize → emit as bare literal (Rust infers usize from context)
-            if matches!(var_type, VarType::Integer | VarType::Index) {
-                if let Expr::IntLiteral(n) = inner.as_ref() {
-                    return format!("{n}");
-                }
-            }
-            {
-                let rust_type = match var_type {
-                    VarType::Real => "f64",
-                    VarType::Integer | VarType::Index => "usize",
-                    VarType::RetCodeType => "RetCode",
-                    VarType::RealPointer | VarType::IntPointer => "/* ptr cast */",
-                    VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
-                };
-                format!(
-                    "({}) as {}",
-                    render_expr(inner, ctx, opt_real_params, registry, helpers),
-                    rust_type
-                )
-            }
-        }
-        Expr::Not(inner) => {
-            format!("!({})", render_expr(inner, ctx, opt_real_params, registry, helpers))
-        }
-        Expr::PointerDeref(name) => format!("(*{name})"),
-        Expr::AddressOf(inner) => {
-            // address-of not idiomatic in Rust; render inner expression directly
-            render_expr(inner, ctx, opt_real_params, registry, helpers)
-        }
-        Expr::PostIncrement(inner) => {
-            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
-            format!("{{ let _v = {rendered}; {rendered} += 1; _v }}")
-        }
-        Expr::PostDecrement(inner) => {
-            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
-            format!("{{ let _v = {rendered}; {rendered} -= 1; _v }}")
-        }
-        Expr::PreIncrement(inner) => {
-            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
-            format!("{{ {rendered} += 1; {rendered} }}")
-        }
-        Expr::PreDecrement(inner) => {
-            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
-            format!("{{ {rendered} -= 1; {rendered} }}")
-        }
-        Expr::Ternary(cond, then_expr, else_expr) => {
-            // Use render_condition for the ternary condition when it's a non-boolean
-            // expression (integer variable, ternary producing integer, etc.)
-            let cond_needs_bool = match cond.as_ref() {
-                Expr::Ternary(_, t, _) => expr_is_untyped_integer(t) || matches!(t.as_ref(), Expr::IntLiteral(_)),
-                Expr::Var(name) => ctx.index_vars.contains(name) || is_likely_index_var(name) || is_i32_opt_in_param(name),
-                Expr::Not(inner) => matches!(inner.as_ref(), Expr::Var(name) if ctx.index_vars.contains(name) || is_likely_index_var(name)),
-                // FuncCall that inlines to integer-producing ternary (e.g., ta_realbodygapup)
-                Expr::FuncCall(fname, args) => {
-                    if let Some(helper) = helpers.get(fname) {
-                        if let Some(inlined) = try_inline_expr(helper, args) {
-                            if let Expr::Ternary(_, ref t, _) = inlined {
-                                expr_is_untyped_integer(t) || matches!(t.as_ref(), Expr::IntLiteral(_))
-                            } else { false }
-                        } else { is_integer_returning_helper(fname) }
-                    } else { is_integer_returning_helper(fname) }
-                }
-                _ => false,
-            };
-            let cond_str = if cond_needs_bool {
-                render_condition(cond, ctx, opt_real_params, registry, helpers)
-            } else {
-                render_expr(cond, ctx, opt_real_params, registry, helpers)
-            };
-            let then_str = render_expr(then_expr, ctx, opt_real_params, registry, helpers);
-            let else_str = render_expr(else_expr, ctx, opt_real_params, registry, helpers);
-            format!(
-                "(if {cond_str} {{ {then_str} }} else {{ {else_str} }})"
-            )
+            _ => name.to_string(),
         }
     }
+
+    fn array_access(&self, name: &str, idx: &Expr) -> String {
+        let idx_rendered =
+            render_index_expr(idx, self.ctx, self.opt_real_params, self.registry, self.helpers);
+        if self.ctx.unchecked {
+            // Use as_ptr().add() instead of get_unchecked() to avoid
+            // llvm.assume intrinsics that poison the optimizer under LTO.
+            format!("*{name}.as_ptr().add({idx_rendered})")
+        } else {
+            format!("{name}[{idx_rendered}]")
+        }
+    }
+
+    fn func_call(&self, name: &str, args: &[Expr]) -> String {
+        render_func_call(name, args, self.ctx, self.opt_real_params, self.registry, self.helpers)
+    }
+
+    fn binop(&self, left: &Expr, op: &BinOp, right: &Expr) -> String {
+        render_binop(left, op, right, self.ctx, self.opt_real_params, self.registry, self.helpers)
+    }
+
+    fn cast(&self, var_type: &VarType, inner: &Expr) -> String {
+        // IntLiteral cast to f64 -> emit as float literal (e.g., 0.0 instead of (0) as f64)
+        if matches!(var_type, VarType::Real) {
+            if let Expr::IntLiteral(n) = inner {
+                return format!("{n}.0");
+            }
+        }
+        // IntLiteral cast to usize -> emit as bare literal (Rust infers usize from context)
+        if matches!(var_type, VarType::Integer | VarType::Index) {
+            if let Expr::IntLiteral(n) = inner {
+                return format!("{n}");
+            }
+        }
+        let rust_type = match var_type {
+            VarType::Real => "f64",
+            VarType::Integer | VarType::Index => "usize",
+            VarType::RetCodeType => "RetCode",
+            VarType::RealPointer | VarType::IntPointer => "/* ptr cast */",
+            VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
+        };
+        format!("({}) as {}", self.walk(inner), rust_type)
+    }
+
+    fn pointer_deref(&self, name: &str) -> String {
+        format!("(*{name})")
+    }
+
+    fn address_of(&self, inner: &Expr) -> String {
+        // address-of not idiomatic in Rust; render inner expression directly
+        self.walk(inner)
+    }
+
+    fn post_increment(&self, inner: &Expr) -> String {
+        let rendered = self.walk(inner);
+        format!("{{ let _v = {rendered}; {rendered} += 1; _v }}")
+    }
+
+    fn post_decrement(&self, inner: &Expr) -> String {
+        let rendered = self.walk(inner);
+        format!("{{ let _v = {rendered}; {rendered} -= 1; _v }}")
+    }
+
+    fn pre_increment(&self, inner: &Expr) -> String {
+        let rendered = self.walk(inner);
+        format!("{{ {rendered} += 1; {rendered} }}")
+    }
+
+    fn pre_decrement(&self, inner: &Expr) -> String {
+        let rendered = self.walk(inner);
+        format!("{{ {rendered} -= 1; {rendered} }}")
+    }
+
+    fn ternary(&self, cond: &Expr, then_expr: &Expr, else_expr: &Expr) -> String {
+        render_ternary(
+            cond, then_expr, else_expr, self.ctx, self.opt_real_params, self.registry, self.helpers,
+        )
+    }
+}
+
+/// Render an `Expr::BinOp` to Rust, including the FMA fusion, pointer-identity
+/// buffer comparisons, and the operand int/usize/f64 cast inference. Delegated to
+/// by [`RustExpr::binop`].
+fn render_binop(
+    left: &Expr,
+    op: &BinOp,
+    right: &Expr,
+    ctx: &RustRenderCtx,
+    opt_real_params: &[String],
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    // Fused multiply-add: (a * b) + c → a.mul_add(b, c)
+    // Emits ARM fmadd (1 FP op, 4 cycles) vs fmul+fadd (2 FP ops, 8 cycles).
+    // Only for f64 operands (not integer arithmetic).
+    // Fused multiply-add: (a * b) + c → (a as f64).mul_add(b, c)
+    // Emits ARM fmadd (1 FP op) vs fmul+fadd (2 FP ops).
+    // Only when BOTH multiply operands are float (not i32 * f64 patterns).
+    if matches!(op, BinOp::Add) {
+        if let Expr::BinOp(a, BinOp::Mul, b) = left {
+            let a_ok = expr_is_float_typed_ctx(a, Some(ctx)) && !is_definitely_integer(a, ctx);
+            let b_ok = expr_is_float_typed_ctx(b, Some(ctx)) && !is_definitely_integer(b, ctx);
+            if a_ok && b_ok {
+                let a_str = render_expr(a, ctx, opt_real_params, registry, helpers);
+                let b_str = render_expr(b, ctx, opt_real_params, registry, helpers);
+                let c_str = render_expr(right, ctx, opt_real_params, registry, helpers);
+                return format!("({a_str} as f64).mul_add({b_str}, {c_str})");
+            }
+        }
+        if let Expr::BinOp(a, BinOp::Mul, b) = right {
+            let a_ok = expr_is_float_typed_ctx(a, Some(ctx)) && !is_definitely_integer(a, ctx);
+            let b_ok = expr_is_float_typed_ctx(b, Some(ctx)) && !is_definitely_integer(b, ctx);
+            if a_ok && b_ok {
+                let a_str = render_expr(a, ctx, opt_real_params, registry, helpers);
+                let b_str = render_expr(b, ctx, opt_real_params, registry, helpers);
+                let c_str = render_expr(left, ctx, opt_real_params, registry, helpers);
+                return format!("({a_str} as f64).mul_add({b_str}, {c_str})");
+            }
+        }
+    }
+    // C pointer-identity buffer comparisons (BBANDS' `inReal == outRealUpperBand`,
+    // DEMA's `inReal == outReal`, and the alias-optimization guards) must become
+    // Rust *pointer* comparisons, not value comparisons. In the borrow-checked
+    // slice API an input and an output buffer can never alias, so identity is the
+    // correct semantics; a value comparison wrongly trips on coincidentally-equal
+    // contents (e.g. an all-zero input vs a zero-initialized output → false
+    // TA_BAD_PARAM).
+    if matches!(op, BinOp::Eq | BinOp::NotEq)
+        && is_buffer_operand(left, ctx)
+        && is_buffer_operand(right, ctx)
+    {
+        let l = render_expr(left, ctx, opt_real_params, registry, helpers);
+        let r = render_expr(right, ctx, opt_real_params, registry, helpers);
+        let cmp = if matches!(op, BinOp::Eq) { "==" } else { "!=" };
+        return format!("{l}.as_ptr() {cmp} {r}.as_ptr()");
+    }
+    let op_str = match op {
+        BinOp::Add => " + ",
+        BinOp::Sub => " - ",
+        BinOp::Mul => " * ",
+        BinOp::Div => " / ",
+        BinOp::Mod => " % ",
+        BinOp::LessEq => " <= ",
+        BinOp::Less => " < ",
+        BinOp::Greater => " > ",
+        BinOp::GreaterEq => " >= ",
+        BinOp::Eq => " == ",
+        BinOp::NotEq => " != ",
+        BinOp::And => " && ",
+        BinOp::Or => " || ",
+        BinOp::BitwiseOr => " | ",
+        BinOp::Shr => " >> ",
+        BinOp::Shl => " << ",
+    };
+    let is_arithmetic = matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod | BinOp::Shr | BinOp::Shl);
+    let mut left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
+    let mut right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
+    if is_arithmetic {
+        // Sentinel vars are i32 — when mixed with usize, cast usize→i32
+        let left_is_sentinel = expr_is_i32_typed_ctx(left, ctx) && !expr_is_i32_typed(left);
+        let right_is_sentinel = expr_is_i32_typed_ctx(right, ctx) && !expr_is_i32_typed(right);
+        if left_is_sentinel && !right_is_sentinel && !expr_is_i32_typed(right) && !expr_is_float_typed_ctx(right, Some(ctx)) && !matches!(right, Expr::IntLiteral(_)) {
+            right_str = format!("({right_str}) as i32");
+        }
+        if right_is_sentinel && !left_is_sentinel && !expr_is_i32_typed(left) && !expr_is_float_typed_ctx(left, Some(ctx)) && !matches!(left, Expr::IntLiteral(_)) {
+            left_str = format!("({left_str}) as i32");
+        }
+        let left_is_i32 = expr_is_i32_typed(left) || left_is_sentinel;
+        let right_is_i32 = expr_is_i32_typed(right) || right_is_sentinel;
+        // i32-typed expressions are NOT float even if heuristics say otherwise
+        let left_is_float = expr_is_float_typed_ctx(left, Some(ctx)) && !left_is_i32;
+        let right_is_float = expr_is_float_typed_ctx(right, Some(ctx)) && !right_is_i32;
+        let left_is_int_lit = matches!(left, Expr::IntLiteral(_));
+        let right_is_int_lit = matches!(right, Expr::IntLiteral(_));
+
+        {
+            // Cast integer operands to f64 when doing arithmetic with f64-typed expressions
+            if left_is_int_lit && right_is_float {
+                if let Expr::IntLiteral(v) = left {
+                    left_str = format!("{v}_f64");
+                }
+            }
+            if right_is_int_lit && left_is_float {
+                if let Expr::IntLiteral(v) = right {
+                    right_str = format!("{v}_f64");
+                }
+            }
+            if left_is_i32 && right_is_float && !left_is_int_lit && !left_is_float {
+                left_str = format!("(({left_str}) as f64)");
+            }
+            if right_is_i32 && left_is_float && !right_is_int_lit && !right_is_float {
+                right_str = format!("(({right_str}) as f64)");
+            }
+            let left_is_untyped_int = expr_is_untyped_integer(left);
+            let right_is_untyped_int = expr_is_untyped_integer(right);
+            if left_is_untyped_int && !left_is_int_lit && right_is_float {
+                left_str = format!("(({left_str}) as f64)");
+            }
+            if right_is_untyped_int && !right_is_int_lit && left_is_float {
+                right_str = format!("(({right_str}) as f64)");
+            }
+            let left_is_known_usize = expr_is_known_usize_ctx(left, ctx);
+            let right_is_known_usize = expr_is_known_usize_ctx(right, ctx);
+            let left_eff_usize = left_is_known_usize
+                || expr_binop_renders_as_usize(left, ctx);
+            let right_eff_usize = right_is_known_usize
+                || expr_binop_renders_as_usize(right, ctx);
+            if left_eff_usize && right_is_float && !left_is_i32 {
+                left_str = format!("(({left_str}) as f64)");
+            }
+            if right_eff_usize && left_is_float && !right_is_i32 {
+                right_str = format!("(({right_str}) as f64)");
+            }
+        }
+        // Cast i32 operands to usize when mixed with usize-typed operands (not float)
+        // Also detect i32 array accesses (IntArray/IntPointer)
+        let arith_left_is_i32_arr = matches!(left, Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+        let arith_right_is_i32_arr = matches!(right, Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+        let left_is_i32_eff = left_is_i32 || arith_left_is_i32_arr;
+        let right_is_i32_eff = right_is_i32 || arith_right_is_i32_arr;
+        let left_is_usize = !left_is_i32_eff && !left_is_float && !left_is_int_lit;
+        let right_is_usize = !right_is_i32_eff && !right_is_float && !right_is_int_lit;
+        if left_is_i32_eff && right_is_usize && !left_is_sentinel {
+            left_str = format!("({left_str}) as usize");
+        }
+        if right_is_i32_eff && left_is_usize && !right_is_sentinel {
+            right_str = format!("({right_str}) as usize");
+        }
+        // When both sides appear i32-typed but one actually renders as usize
+        // (e.g., Cast(Integer, usize_expr) drops the cast), fix the mismatch.
+        if left_is_i32_eff && right_is_i32_eff && !left_is_int_lit && !right_is_int_lit {
+            let left_renders_usize = expr_renders_as_usize_despite_i32(left, ctx);
+            let right_renders_usize = expr_renders_as_usize_despite_i32(right, ctx);
+            if left_renders_usize && !right_renders_usize {
+                right_str = format!("({right_str}) as usize");
+            }
+            if right_renders_usize && !left_renders_usize {
+                left_str = format!("({left_str}) as usize");
+            }
+        }
+    }
+    // For comparison operators, cast i32 to usize when mixed (not float)
+    // and wrap IntLiterals with T::ta_zero() / T::ta_from_i32() when comparing with T-typed exprs
+    if matches!(op, BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq | BinOp::NotEq) {
+        // Sentinel vars are i32 — when compared with usize, cast usize→i32
+        let cmp_left_sentinel = expr_is_i32_typed_ctx(left, ctx) && !expr_is_i32_typed(left);
+        let cmp_right_sentinel = expr_is_i32_typed_ctx(right, ctx) && !expr_is_i32_typed(right);
+        if cmp_left_sentinel && !cmp_right_sentinel && !expr_is_i32_typed(right) && !expr_is_float_typed_ctx(right, Some(ctx)) && !matches!(right, Expr::IntLiteral(_)) {
+            right_str = format!("({right_str}) as i32");
+        }
+        if cmp_right_sentinel && !cmp_left_sentinel && !expr_is_i32_typed(left) && !expr_is_float_typed_ctx(left, Some(ctx)) && !matches!(left, Expr::IntLiteral(_)) {
+            left_str = format!("({left_str}) as i32");
+        }
+        let left_is_i32 = expr_is_i32_typed(left) || cmp_left_sentinel;
+        let right_is_i32 = expr_is_i32_typed(right) || cmp_right_sentinel;
+        // i32-typed expressions are NOT float even if heuristics say otherwise
+        let left_is_float = expr_is_float_typed_ctx(left, Some(ctx)) && !left_is_i32;
+        let right_is_float = expr_is_float_typed_ctx(right, Some(ctx)) && !right_is_i32;
+        let left_is_int_lit = matches!(left, Expr::IntLiteral(_));
+        let right_is_int_lit = matches!(right, Expr::IntLiteral(_));
+        {
+            let left_is_untyped_int = expr_is_untyped_integer(left);
+            let right_is_untyped_int = expr_is_untyped_integer(right);
+            // Cast IntLiteral to f64 when compared against f64-typed expression
+            if right_is_int_lit && left_is_float {
+                if let Expr::IntLiteral(v) = right {
+                    right_str = format!("{v}_f64");
+                }
+            }
+            if left_is_int_lit && right_is_float {
+                if let Expr::IntLiteral(v) = left {
+                    left_str = format!("{v}_f64");
+                }
+            }
+            if left_is_i32 && right_is_float && !left_is_int_lit && !left_is_float {
+                left_str = format!("(({left_str}) as f64)");
+            }
+            if right_is_i32 && left_is_float && !right_is_int_lit && !right_is_float {
+                right_str = format!("(({right_str}) as f64)");
+            }
+            if left_is_untyped_int && !left_is_int_lit && right_is_float {
+                left_str = format!("(({left_str}) as f64)");
+            }
+            if right_is_untyped_int && !right_is_int_lit && left_is_float {
+                right_str = format!("(({right_str}) as f64)");
+            }
+            let cmp_left_is_known_usize = expr_is_known_usize_ctx(left, ctx);
+            let cmp_right_is_known_usize = expr_is_known_usize_ctx(right, ctx);
+            if cmp_left_is_known_usize && right_is_float && !cmp_right_is_known_usize && !left_is_i32 && !left_is_int_lit {
+                left_str = format!("(({left_str}) as f64)");
+            }
+            if cmp_right_is_known_usize && left_is_float && !cmp_left_is_known_usize && !right_is_i32 && !right_is_int_lit {
+                right_str = format!("(({right_str}) as f64)");
+            }
+        }
+        // Also detect i32 array accesses (IntArray/IntPointer) using context
+        let left_is_i32_arr = matches!(left, Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+        let right_is_i32_arr = matches!(right, Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+        let left_is_i32_eff = left_is_i32 || left_is_i32_arr;
+        let right_is_i32_eff = right_is_i32 || right_is_i32_arr;
+        if left_is_i32_eff && !right_is_i32_eff && !right_is_float && !right_is_int_lit && !cmp_left_sentinel {
+            left_str = format!("({left_str}) as usize");
+        }
+        if right_is_i32_eff && !left_is_i32_eff && !left_is_float && !left_is_int_lit && !cmp_right_sentinel {
+            right_str = format!("({right_str}) as usize");
+        }
+    }
+    format!("{left_str}{op_str}{right_str}")
+}
+
+/// Render an `Expr::Ternary` to a Rust `if`/`else` expression, choosing a boolean
+/// vs. value condition rendering. Delegated to by [`RustExpr::ternary`].
+fn render_ternary(
+    cond: &Expr,
+    then_expr: &Expr,
+    else_expr: &Expr,
+    ctx: &RustRenderCtx,
+    opt_real_params: &[String],
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    // Use render_condition for the ternary condition when it's a non-boolean
+    // expression (integer variable, ternary producing integer, etc.)
+    let cond_needs_bool = match cond {
+        Expr::Ternary(_, t, _) => expr_is_untyped_integer(t) || matches!(t.as_ref(), Expr::IntLiteral(_)),
+        Expr::Var(name) => ctx.index_vars.contains(name) || is_likely_index_var(name) || is_i32_opt_in_param(name),
+        Expr::Not(inner) => matches!(inner.as_ref(), Expr::Var(name) if ctx.index_vars.contains(name) || is_likely_index_var(name)),
+        // FuncCall that inlines to integer-producing ternary (e.g., ta_realbodygapup)
+        Expr::FuncCall(fname, args) => {
+            if let Some(helper) = helpers.get(fname) {
+                if let Some(inlined) = try_inline_expr(helper, args) {
+                    if let Expr::Ternary(_, ref t, _) = inlined {
+                        expr_is_untyped_integer(t) || matches!(t.as_ref(), Expr::IntLiteral(_))
+                    } else { false }
+                } else { is_integer_returning_helper(fname) }
+            } else { is_integer_returning_helper(fname) }
+        }
+        _ => false,
+    };
+    let cond_str = if cond_needs_bool {
+        render_condition(cond, ctx, opt_real_params, registry, helpers)
+    } else {
+        render_expr(cond, ctx, opt_real_params, registry, helpers)
+    };
+    let then_str = render_expr(then_expr, ctx, opt_real_params, registry, helpers);
+    let else_str = render_expr(else_expr, ctx, opt_real_params, registry, helpers);
+    format!(
+        "(if {cond_str} {{ {then_str} }} else {{ {else_str} }})"
+    )
+}
+
+fn render_expr(
+    expr: &Expr,
+    ctx: &RustRenderCtx,
+    opt_real_params: &[String],
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    RustExpr { ctx, opt_real_params, registry, helpers }.walk(expr)
 }
 
 /// Check if an expression is clearly integer-typed (for Cast optimization in generic mode).
