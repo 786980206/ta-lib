@@ -590,7 +590,7 @@ fn generate_c_global_buffers() -> String {
     s
 }
 
-/// The abstract handler C code lives in ta_func_defs/lib/c/ta_abstract_serve.c
+/// The abstract handler C code lives in ta_codegen/input/lib/c/ta_abstract_serve.c
 /// (native C, not generated). The server just #includes it.
 fn generate_c_abstract_handlers() -> String {
     "#include \"ta_abstract_serve.c\"\n\n".to_string()

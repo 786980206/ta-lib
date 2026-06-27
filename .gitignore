@@ -90,12 +90,12 @@ cmake-build*/
 rust/target
 
 # Build artifacts (platform-specific, rebuilt locally)
-ta_codegen_output/c/ta_func/ta_codegen_funcs.c
-ta_codegen_output/dotnet/bin/
-ta_codegen_output/dotnet/obj/
-ta_codegen_output/java/*.class
+ta_codegen/output/c/ta_func/ta_codegen_funcs.c
+ta_codegen/output/dotnet/bin/
+ta_codegen/output/dotnet/obj/
+ta_codegen/output/java/*.class
 
 # Git worktrees
 .worktrees/
-ta_codegen_output/rust/target/
+ta_codegen/output/rust/target/
 .claude/worktrees

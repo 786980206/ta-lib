@@ -122,7 +122,7 @@ def main():
         # Rebuild ta_ref_serve against the fresh libta-lib.a
         # (statically linked, must be rebuilt whenever the library changes)
         print("=== Rebuilding ta_ref_serve ===")
-        c_out = os.path.join(root, "ta_codegen_output", "c")
+        c_out = os.path.join(root, "ta_codegen/output", "c")
         ref_serve_src = os.path.join(c_out, "ta_codegen_serve.c")
         if os.path.exists(ref_serve_src):
             import re as _re
@@ -154,7 +154,7 @@ def main():
             # `#include "ta_frame.h"` (frames/) and ta_abstract_serve.c won't resolve.
             ta_abstract_dir = os.path.join(c_out, "ta_abstract")
             ta_frames_dir = os.path.join(ta_abstract_dir, "frames")
-            ta_abstract_serve_dir = os.path.join(root, "ta_func_defs", "lib", "c")
+            ta_abstract_serve_dir = os.path.join(root, "ta_codegen/input", "lib", "c")
             rc_ref = subprocess.run([
                 "cc", "-O3", "-flto", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything",
                 f"-I{c_out}",

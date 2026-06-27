@@ -7,7 +7,7 @@
 ## Architecture
 
 ```
-ta_func_defs/                (per-indicator .c logic + YAML metadata)
+ta_codegen/input/                (per-indicator .c logic + YAML metadata)
        ↓
     parser                   (YAML metadata → raw serde structs → IR;
                               .c source → IR Statement/Expr directly, no raw stage)
@@ -21,7 +21,7 @@ c.rs, rust_lang.rs,   JSON-RPC servers, bench binary,
 java.rs, dotnet.rs    include/ta_func_unguarded.h
 ta_abstract_c.rs
   ↓
-ta_codegen_output/       (generated code per language)
+ta_codegen/output/       (generated code per language)
   c/ta_func/*.c          (C indicator code)
   c/ta_abstract/         (ta_abstract introspection layer)
   rust/src/ta_func/*.rs  (Rust indicator code)

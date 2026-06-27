@@ -349,14 +349,14 @@ mod tests {
     use std::path::Path;
 
     fn make_registry() -> Registry {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         Registry::from_dir(&base)
     }
 
     fn load_sma() -> FuncDef {
         let base = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let yaml_path = base.join("../../ta_func_defs/sma/sma.yaml");
-        let c_path = base.join("../../ta_func_defs/sma/sma.c");
+        let yaml_path = base.join("../../ta_codegen/input/sma/sma.yaml");
+        let c_path = base.join("../../ta_codegen/input/sma/sma.c");
         let mut func_def = parser::yaml::parse_yaml(&yaml_path);
         let parsed = parser::c_source::parse_c_source(&c_path);
         func_def.body = parsed.functions[0].body.clone();
@@ -399,8 +399,8 @@ mod tests {
 
     fn load_ema() -> FuncDef {
         let base = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let yaml_path = base.join("../../ta_func_defs/ema/ema.yaml");
-        let c_path = base.join("../../ta_func_defs/ema/ema.c");
+        let yaml_path = base.join("../../ta_codegen/input/ema/ema.yaml");
+        let c_path = base.join("../../ta_codegen/input/ema/ema.c");
         let mut func_def = parser::yaml::parse_yaml(&yaml_path);
         let parsed = parser::c_source::parse_c_source(&c_path);
 

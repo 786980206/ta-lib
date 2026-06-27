@@ -507,8 +507,8 @@ mod tests {
 
     #[test]
     fn test_from_dir_loads_helpers() {
-        // Use the real ta_func_defs directory (relative to CARGO_MANIFEST_DIR).
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        // Use the real ta_codegen/input directory (relative to CARGO_MANIFEST_DIR).
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         if !base.join("helpers").exists() {
             // Skip if not available in CI
             return;

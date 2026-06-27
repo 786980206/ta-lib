@@ -32,18 +32,18 @@ fi
 
 echo ""
 echo "=== Checking generated files exist and are non-empty ==="
-# Auto-discover indicators from ta_func_defs/ directories
-for dir in ../../ta_func_defs/*/; do
+# Auto-discover indicators from ta_codegen/input/ directories
+for dir in ../../ta_codegen/input/*/; do
     name=$(basename "$dir")
     # Skip if not a valid indicator (must have both .yaml and .c)
     [ -f "$dir/${name}.yaml" ] && [ -f "$dir/${name}.c" ] || continue
 
     UPPER=$(echo "$name" | tr '[:lower:]' '[:upper:]')
     for f in \
-        "../../ta_codegen_output/c/ta_func/ta_${UPPER}.c" \
-        "../../ta_codegen_output/rust/${name}.rs" \
-        "../../ta_codegen_output/java/Core_${UPPER}.java" \
-        "../../ta_codegen_output/dotnet/Core_${UPPER}.h"; do
+        "../../ta_codegen/output/c/ta_func/ta_${UPPER}.c" \
+        "../../ta_codegen/output/rust/${name}.rs" \
+        "../../ta_codegen/output/java/Core_${UPPER}.java" \
+        "../../ta_codegen/output/dotnet/Core_${UPPER}.h"; do
         if [ -s "$f" ]; then
             pass "Generated file exists: $(basename "$f")"
         else
@@ -55,12 +55,12 @@ done
 echo ""
 echo "=== Checking generated C files contain all function variants ==="
 # Auto-discover and check C variants for all indicators
-for dir in ../../ta_func_defs/*/; do
+for dir in ../../ta_codegen/input/*/; do
     name=$(basename "$dir")
     [ -f "$dir/${name}.yaml" ] && [ -f "$dir/${name}.c" ] || continue
 
     UPPER=$(echo "$name" | tr '[:lower:]' '[:upper:]')
-    c_file="../../ta_codegen_output/c/ta_func/ta_${UPPER}.c"
+    c_file="../../ta_codegen/output/c/ta_func/ta_${UPPER}.c"
     [ -s "$c_file" ] || continue
 
     for variant in "TA_${UPPER}_Logic" "TA_INT_${UPPER}" "TA_${UPPER}_Lookback" "TA_${UPPER}"; do

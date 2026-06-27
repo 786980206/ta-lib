@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::path::Path;
 
-/// Generate `ta_codegen_output/rust/src/abstract_.rs` from the function defs.
+/// Generate `ta_codegen/output/rust/src/abstract_.rs` from the function defs.
 ///
 /// Sorts alphabetically by name (so `FuncId` discriminants and the name `match`
 /// are deterministic), then emits the registry, and writes only if changed.

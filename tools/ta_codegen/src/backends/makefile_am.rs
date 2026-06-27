@@ -3,7 +3,7 @@ use std::path::Path;
 
 /// Generate `src/ta_func/Makefile.am` from function definitions.
 ///
-/// Uses the shared [`super::sorted_source_stems`] list (every `ta_func_defs/`
+/// Uses the shared [`super::sorted_source_stems`] list (every `ta_codegen/input/`
 /// function plus the un-ported `src/ta_func/` stubs like NVI/PVI) so the autotools
 /// source set matches the CMake `LIB_SOURCES`. Writes only if content has changed.
 pub fn generate(funcs: &[FuncDef], out_path: &Path, root: &Path) {

@@ -11,7 +11,7 @@ pub enum Lang {
 
 /// Registry of discovered indicators, used for cross-function call resolution.
 ///
-/// Scans `ta_func_defs/` subdirectories to discover indicator names,
+/// Scans `ta_codegen/input/` subdirectories to discover indicator names,
 /// then translates prefix-free calls (e.g. `sma_lookback`) to
 /// language-specific names (e.g. `TA_SMA_Lookback` for C).
 pub struct Registry {
@@ -79,7 +79,7 @@ impl Registry {
         }
 
         // Bare indicator names resolve to the Unguarded variant.
-        // All code in ta_func_defs is internal — cross-indicator calls skip validation.
+        // All code in ta_codegen/input is internal — cross-indicator calls skip validation.
         if self.contains(func_name) {
             return match lang {
                 Lang::Rust => format!("{func_name}_unguarded"),
@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_registry_discovers_indicators() {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         let registry = Registry::from_dir(&base);
         assert!(registry.contains("sma"));
         assert!(registry.contains("rsi"));
@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_registry_resolves_cross_calls() {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         let registry = Registry::from_dir(&base);
 
         // C backend: lookback suffixed calls
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_registry_unknown_func_returns_unchanged() {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         let registry = Registry::from_dir(&base);
         assert_eq!(
             registry.resolve_call("unknown_func", Lang::C),
@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_registry_bare_name_resolves_to_unguarded() {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         let registry = Registry::from_dir(&base);
         // Bare indicator names resolve to unguarded (cross-indicator calls skip validation)
         assert_eq!(registry.resolve_call("sma", Lang::C), "TA_SMA_Unguarded");
@@ -241,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_registry_does_not_include_non_dirs() {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         let registry = Registry::from_dir(&base);
         // enums.yaml is a file at the top level, not a directory
         assert!(!registry.contains("enums"));

@@ -12,12 +12,12 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 /// Find the repository root by walking up from the current directory
-/// looking for `ta_func_defs/`.
+/// looking for `ta_codegen/input/`.
 fn repo_root() -> PathBuf {
     if let Ok(cwd) = std::env::current_dir() {
         let mut dir = cwd.as_path();
         loop {
-            if dir.join("ta_func_defs").is_dir() {
+            if dir.join("ta_codegen/input").is_dir() {
                 return dir.to_path_buf();
             }
             match dir.parent() {
@@ -26,7 +26,7 @@ fn repo_root() -> PathBuf {
             }
         }
     }
-    eprintln!("error: cannot find ta_func_defs/ in any parent directory.");
+    eprintln!("error: cannot find ta_codegen/input/ in any parent directory.");
     eprintln!("       Run ta_codegen from within the ta-lib repository.");
     std::process::exit(1);
 }
@@ -65,7 +65,7 @@ fn main() {
             eprintln!("  generate-servers  Generate JSON-RPC server wrappers for each language");
             eprintln!("  generate-bench   Generate the direct-call C benchmark binary source");
             eprintln!("  build            Compile generated server source into executables");
-            eprintln!("  extract          Extract indicators from C source to ta_func_defs/");
+            eprintln!("  extract          Extract indicators from C source to ta_codegen/input/");
             eprintln!();
             eprintln!("Options for 'generate' / 'generate-servers' / 'build':");
             eprintln!(
@@ -169,7 +169,7 @@ fn find_arg(args: &[String], prefixes: &[&str]) -> Option<String> {
     None
 }
 
-/// True for non-indicator subdirectories of `ta_func_defs/` (shared `helpers/`,
+/// True for non-indicator subdirectories of `ta_codegen/input/` (shared `helpers/`,
 /// library scaffolding `lib/`) that never carry a `<name>.yaml` indicator
 /// definition and therefore contribute nothing to generated output.
 fn is_reserved_dir(name: &str) -> bool {
@@ -178,7 +178,7 @@ fn is_reserved_dir(name: &str) -> bool {
 
 fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     let root = repo_root();
-    let base = root.join("ta_func_defs");
+    let base = root.join("ta_codegen/input");
 
     // Load indicator registry for cross-call resolution
     let registry = Registry::from_dir(&base);
@@ -196,7 +196,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
     // Discover all function definition directories
     let mut func_dirs: Vec<_> = std::fs::read_dir(&base)
-        .expect("Cannot read ta_func_defs directory")
+        .expect("Cannot read ta_codegen/input directory")
         .filter_map(|e| e.ok())
         .filter(|e| e.path().is_dir())
         .collect();
@@ -215,7 +215,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     // (e.g., stale Core_*.java files that were generated with old code).
     // Only clean when generating all functions (no filter) to avoid
     // accidentally removing files for functions not being regenerated.
-    let out_base = root.join("ta_codegen_output");
+    let out_base = root.join("ta_codegen/output");
 
     if func_filter.is_none() {
         for backend in &backends_to_run {
@@ -268,7 +268,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
     // Generate Rust crate scaffolding when Rust is one of the backends
     if backends_to_run.contains(&"rust") {
-        let types_src = root.join("ta_func_defs/lib/rust/types.rs");
+        let types_src = root.join("ta_codegen/input/lib/rust/types.rs");
         generate_rust_crate_scaffolding(&out_base, &generated_funcs, &types_src);
     }
 
@@ -295,8 +295,8 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         backends::makefile_am::generate(all_funcs, &root.join("src/ta_func/Makefile.am"), &root);
         backends::cmake_lists::generate(all_funcs, &root.join("CMakeLists.txt"), &root);
 
-        let c_lib_src = root.join("ta_func_defs/lib/c");
-        let c_dir = root.join("ta_codegen_output/c");
+        let c_lib_src = root.join("ta_codegen/input/lib/c");
+        let c_dir = root.join("ta_codegen/output/c");
         std::fs::create_dir_all(&c_dir).unwrap();
         // Single-entry file list, kept as a loop to match the sibling copy loops below.
         #[allow(clippy::single_element_loop)]
@@ -339,7 +339,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         std::fs::write(&include_path, &unguarded_h).unwrap();
         println!("  ta_func_unguarded.h -> {}", include_path.display());
 
-        // Generate ta_func_private.h into ta_codegen_output/c/ta_func/
+        // Generate ta_func_private.h into ta_codegen/output/c/ta_func/
         let private_h = server_gen::generate_c_private_header(all_funcs);
         let private_path = out_base.join("c").join("ta_func").join("ta_func_private.h");
         std::fs::write(&private_path, &private_h).unwrap();
@@ -354,7 +354,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
 /// Used for cross-function outputs like `ta_func_list.txt`.
 fn load_all_yaml_defs(base: &Path) -> Vec<ir::FuncDef> {
     let mut dirs: Vec<_> = std::fs::read_dir(base)
-        .expect("Cannot read ta_func_defs directory")
+        .expect("Cannot read ta_codegen/input directory")
         .filter_map(|e| e.ok())
         .filter(|e| e.path().is_dir())
         .collect();
@@ -379,10 +379,10 @@ fn load_all_yaml_defs(base: &Path) -> Vec<ir::FuncDef> {
 }
 
 fn load_func_defs(func_filter: Option<&str>, root: &Path) -> Vec<ir::FuncDef> {
-    let base = root.join("ta_func_defs");
+    let base = root.join("ta_codegen/input");
 
     let mut func_dirs: Vec<_> = std::fs::read_dir(&base)
-        .expect("Cannot read ta_func_defs directory")
+        .expect("Cannot read ta_codegen/input directory")
         .filter_map(|e| e.ok())
         .filter(|e| e.path().is_dir())
         .collect();
@@ -438,7 +438,7 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
         None => backends::all_names(),
     };
 
-    let out_base = root.join("ta_codegen_output");
+    let out_base = root.join("ta_codegen/output");
 
     for backend in &backends_to_run {
         match backends::get(backend) {
@@ -464,7 +464,7 @@ fn generate_bench(backend_filter: Option<&str>) {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
         None => vec!["c"],
     };
-    let out_base = root.join("ta_codegen_output");
+    let out_base = root.join("ta_codegen/output");
     for backend in &backends {
         if *backend == "c" {
             let dir = out_base.join("c");
@@ -487,7 +487,7 @@ fn build_servers(backend_filter: Option<&str>) {
         None => backends::all_names(),
     };
 
-    let out_base = root.join("ta_codegen_output");
+    let out_base = root.join("ta_codegen/output");
     let bin_dir = root.join("bin");
 
     // Remove stale shared-lib marker so it rebuilds fresh each invocation.
@@ -502,7 +502,7 @@ fn build_servers(backend_filter: Option<&str>) {
                 let ta_common_dir = c_dir.join("ta_common");
                 let ta_abstract_dir = c_dir.join("ta_abstract");
                 let ta_frames_dir = ta_abstract_dir.join("frames");
-                let ta_abstract_serve_dir = root.join("ta_func_defs/lib/c");
+                let ta_abstract_serve_dir = root.join("ta_codegen/input/lib/c");
                 let src = c_dir.join("ta_codegen_serve.c");
                 let dst = bin_dir.join("ta_codegen_serve_c");
                 match std::process::Command::new("gcc")
@@ -717,8 +717,8 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     let unity_path = c_dir.join("ta_codegen_funcs.c");
     std::fs::write(&unity_path, &unity_src).unwrap();
 
-    // Derive root from out_base (ta_codegen_output's parent)
-    let root = out_base.parent().unwrap();
+    // out_base is `<root>/ta_codegen/output`, so the repo root is two levels up.
+    let root = out_base.parent().unwrap().parent().unwrap();
     let include_dir = root.join("include");
     let ta_common_dir = out_base.join("c/ta_common");
 
@@ -752,7 +752,7 @@ fn extract(func_filter: Option<&str>) {
     let tables_dir = base.join("src/ta_abstract/tables");
     let def_ui_path = base.join("src/ta_abstract/ta_def_ui.c");
     let func_dir = base.join("src/ta_func");
-    let out_dir = base.join("ta_func_defs");
+    let out_dir = base.join("ta_codegen/input");
 
     // 1. Parse shared definitions
     let def_ui_source = std::fs::read_to_string(&def_ui_path).expect("Cannot read ta_def_ui.c");
@@ -1013,7 +1013,7 @@ pub use ta_func::*;
     std::fs::write(&lib_path, lib_rs).unwrap();
     println!("  Scaffolding -> {}", lib_path.display());
 
-    // --- Copy hand-written types.rs from ta_func_defs/lib/rust/ ---
+    // --- Copy hand-written types.rs from ta_codegen/input/lib/rust/ ---
     if types_src.exists() {
         let types_dest = ta_func_dir.join("types.rs");
         std::fs::copy(types_src, &types_dest).unwrap();

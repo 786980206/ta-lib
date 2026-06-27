@@ -11,8 +11,8 @@ const END_MARKER: &str = "# [ta_codegen end LIB_SOURCES]";
 ///
 /// Sources included (sorted alphabetically):
 /// - `src/ta_func/ta_utility.c` (hand-written helper, always first)
-/// - `src/ta_func/ta_NAME.c` for each function in `ta_func_defs/` (from `funcs`)
-/// - Any extra `ta_*.c` files found in `src/ta_func/` not yet in `ta_func_defs/`
+/// - `src/ta_func/ta_NAME.c` for each function in `ta_codegen/input/` (from `funcs`)
+/// - Any extra `ta_*.c` files found in `src/ta_func/` not yet in `ta_codegen/input/`
 /// - `src/ta_abstract/frames/ta_frame.c`
 /// - `src/ta_abstract/ta_func_api.c`
 /// - `src/ta_abstract/ta_group_idx.c`
@@ -22,7 +22,7 @@ pub fn generate(funcs: &[FuncDef], cmake_path: &Path, root: &Path) {
     let (names, extras) = super::sorted_source_stems(funcs, root);
     if !extras.is_empty() {
         println!(
-            "  CMakeLists.txt: including {} extra src/ta_func file(s) not in ta_func_defs: {}",
+            "  CMakeLists.txt: including {} extra src/ta_func file(s) not in ta_codegen/input: {}",
             extras.len(),
             extras.join(", ")
         );

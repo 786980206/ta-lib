@@ -223,7 +223,7 @@ pub enum BinOp {
     BitwiseOr, // | bitwise OR
 }
 
-/// A helper function definition (parsed from ta_func_defs/helpers/*.c).
+/// A helper function definition (parsed from ta_codegen/input/helpers/*.c).
 /// Helpers are inlined at call sites during code generation.
 #[derive(Debug, Clone)]
 pub struct HelperDef {

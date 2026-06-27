@@ -63,7 +63,7 @@ cargo run -- build                               # Compile servers
 cargo run -- extract                             # Extract indicators from C source → YAML
 ```
 
-Generated output goes to `ta_codegen_output/` organized by language.
+Generated output goes to `ta_codegen/output/` organized by language.
 
 ## How to build with CMakeLists.txt
 ```

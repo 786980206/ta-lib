@@ -1,15 +1,15 @@
 ---
-title: ta_func_defs IDL Reference
+title: ta_codegen/input IDL Reference
 ---
 
-# ta_func_defs IDL Reference
+# ta_codegen/input IDL Reference
 
-The `ta_func_defs/` directory is the **Interface Definition Language (IDL)** for TA-Lib functions. Each function has a subdirectory containing a YAML metadata file and a C logic file. The `ta_codegen` tool reads these definitions and generates output for all target languages (C, Rust, Java, .NET, SWIG/Python).
+The `ta_codegen/input/` directory is the **Interface Definition Language (IDL)** for TA-Lib functions. Each function has a subdirectory containing a YAML metadata file and a C logic file. The `ta_codegen` tool reads these definitions and generates output for all target languages (C, Rust, Java, .NET, SWIG/Python).
 
 ## Directory Structure
 
 ```
-ta_func_defs/
+ta_codegen/input/
 ├── enums.yaml              # Shared enum type definitions
 ├── sma/
 │   ├── sma.yaml            # Function metadata
@@ -216,7 +216,7 @@ The `.c` file in each function directory contains the actual computation logic, 
 ## Complete Example
 
 ```yaml
-# ta_func_defs/sma/sma.yaml
+# ta_codegen/input/sma/sma.yaml
 name: SMA
 camel_case: Sma
 group: Overlap Studies

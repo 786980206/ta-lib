@@ -18,11 +18,11 @@ use ta_codegen_lib::registry::Registry;
 // Test infrastructure
 // ---------------------------------------------------------------------------
 
-/// Discover all indicator names from ta_func_defs/ that have both .yaml and .c files.
+/// Discover all indicator names from ta_codegen/input/ that have both .yaml and .c files.
 fn discover_indicators() -> Vec<String> {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     let mut indicators = Vec::new();
-    for entry in std::fs::read_dir(&base).expect("Cannot read ta_func_defs directory") {
+    for entry in std::fs::read_dir(&base).expect("Cannot read ta_codegen/input directory") {
         let entry = entry.expect("Cannot read directory entry");
         let path = entry.path();
         if !path.is_dir() {
@@ -42,7 +42,7 @@ fn discover_indicators() -> Vec<String> {
 /// Load a function definition from its .yaml + .c files.
 /// Always loads enums.yaml since multiple indicators use enum types.
 fn load_indicator(name: &str) -> (ir::FuncDef, HashMap<String, ir::EnumDef>) {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     let yaml_path = base.join(format!("{}/{}.yaml", name, name));
     let c_path = base.join(format!("{}/{}.c", name, name));
 
@@ -91,7 +91,7 @@ struct AllOutputs {
 }
 
 fn make_registry() -> Registry {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     Registry::from_dir(&base)
 }
 
@@ -1634,7 +1634,7 @@ fn report_failing_parse_indicators() {
     let indicators = discover_indicators();
     let mut failing = Vec::new();
     for name in &indicators {
-        let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         let c_path = base.join(format!("{}/{}.c", name, name));
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             parser::c_source::parse_c_source(&c_path);
@@ -1733,7 +1733,7 @@ double ta_candlerange(int rangeType, double open, double high, double low, doubl
 fn parse_helper_file_reads_from_disk() {
     use ta_codegen_lib::parser::c_source::parse_helper_file;
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../ta_func_defs/helpers/candlestick.c");
+        .join("../../ta_codegen/input/helpers/candlestick.c");
     let helpers = parse_helper_file(&path);
     assert_eq!(helpers.len(), 11);
     assert!(helpers.iter().any(|h| h.name == "ta_realbody" && h.params.len() == 2));
@@ -1744,7 +1744,7 @@ fn parse_helper_file_reads_from_disk() {
 fn helper_registry_loads_from_disk() {
     use ta_codegen_lib::helper_registry::HelperRegistry;
 
-    let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     let registry = HelperRegistry::from_dir(&base);
 
     // Should find all helpers from candlestick.c, range.c, rounding.c
@@ -1766,7 +1766,7 @@ fn helper_registry_loads_from_disk() {
 
 /// Load a HelperRegistry from the real helper files on disk.
 fn make_helper_registry() -> HelperRegistry {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     HelperRegistry::from_dir(&base)
 }
 
@@ -1967,7 +1967,7 @@ fn inlining_with_empty_registry_leaves_helpers_as_calls() {
 // ---------------------------------------------------------------------------
 
 fn make_helpers() -> HelperRegistry {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     HelperRegistry::from_dir(&base)
 }
 

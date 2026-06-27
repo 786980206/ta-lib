@@ -41,7 +41,7 @@ pub trait LanguageBackend {
         helpers: &HelperRegistry,
     ) -> String;
 
-    /// Output directory for per-indicator files, relative to `ta_codegen_output/`.
+    /// Output directory for per-indicator files, relative to `ta_codegen/output/`.
     fn out_subdir(&self) -> &'static str;
 
     /// File name for the per-indicator file of `func` (e.g. `ta_SMA.c`).
@@ -58,7 +58,7 @@ pub trait LanguageBackend {
     }
 
     /// Generate and write this backend's JSON-RPC test server source under
-    /// `out_base` (`ta_codegen_output/`).
+    /// `out_base` (`ta_codegen/output/`).
     fn generate_server(&self, funcs: &[FuncDef], out_base: &Path);
 }
 
@@ -249,11 +249,11 @@ pub fn write_if_changed_silent(path: &std::path::Path, content: &str) {
 /// CMake (`LIB_SOURCES`) and autotools (`libta_func_la_SOURCES`) source-list
 /// generators so the two lists cannot drift apart.
 ///
-/// Includes every function in `ta_func_defs/` plus any un-ported `ta_*.c` still
+/// Includes every function in `ta_codegen/input/` plus any un-ported `ta_*.c` still
 /// living only in `src/ta_func/` — currently the `NVI`/`PVI` do-nothing stubs.
 /// Their symbols are referenced by the `ta_abstract` tables (`table_n.c`/`table_p.c`),
 /// so both build systems must compile them until the functions are ported into
-/// `ta_func_defs/`. Names are upper-cased and sorted. Returns `(sorted_stems,
+/// `ta_codegen/input/`. Names are upper-cased and sorted. Returns `(sorted_stems,
 /// extras)`, where `extras` is the un-ported set in directory order for an
 /// informational log.
 pub fn sorted_source_stems(funcs: &[FuncDef], root: &Path) -> (Vec<String>, Vec<String>) {
@@ -262,7 +262,7 @@ pub fn sorted_source_stems(funcs: &[FuncDef], root: &Path) -> (Vec<String>, Vec<
 
     let mut extras: Vec<String> = Vec::new();
     if let Ok(dir) = std::fs::read_dir(root.join("src/ta_func")) {
-        // Any ta_*.c in src/ta_func/ whose function is not yet in ta_func_defs/.
+        // Any ta_*.c in src/ta_func/ whose function is not yet in ta_codegen/input/.
         extras = dir
             .filter_map(Result::ok)
             .filter_map(|e| {

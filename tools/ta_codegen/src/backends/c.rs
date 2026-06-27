@@ -1592,9 +1592,9 @@ mod tests {
     use crate::parser;
     use std::path::Path;
 
-    /// Helper to load a FuncDef from the ta_func_defs directory.
+    /// Helper to load a FuncDef from the ta_codegen/input directory.
     fn load_func(name: &str) -> (FuncDef, HashMap<String, EnumDef>) {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         let dir = base.join(name);
         let yaml_path = dir.join(format!("{name}.yaml"));
         let c_path = dir.join(format!("{name}.c"));
@@ -1615,7 +1615,7 @@ mod tests {
     }
 
     fn make_registry() -> Registry {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
         Registry::from_dir(&base)
     }
 

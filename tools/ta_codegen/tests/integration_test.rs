@@ -14,21 +14,21 @@ fn no_enums() -> HashMap<String, ir::EnumDef> {
 /// Load enums from the shared enums.yaml.
 fn load_enums() -> HashMap<String, ir::EnumDef> {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let enums_path = base.join("../../ta_func_defs/enums.yaml");
+    let enums_path = base.join("../../ta_codegen/input/enums.yaml");
     parser::enums::load_enums(&enums_path)
 }
 
 /// Build registry for cross-call resolution.
 fn make_registry() -> Registry {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     Registry::from_dir(&base)
 }
 
 /// Helper: parse mult.yaml + mult.c and build a FuncDef.
 fn load_mult() -> ir::FuncDef {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let yaml_path = base.join("../../ta_func_defs/mult/mult.yaml");
-    let c_path = base.join("../../ta_func_defs/mult/mult.c");
+    let yaml_path = base.join("../../ta_codegen/input/mult/mult.yaml");
+    let c_path = base.join("../../ta_codegen/input/mult/mult.c");
 
     let mut func_def = parser::yaml::parse_yaml(&yaml_path);
     let parsed = parser::c_source::parse_c_source(&c_path);
@@ -41,8 +41,8 @@ fn load_mult() -> ir::FuncDef {
 /// Helper: parse sma.yaml + sma.c and build a FuncDef.
 fn load_sma() -> ir::FuncDef {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let yaml_path = base.join("../../ta_func_defs/sma/sma.yaml");
-    let c_path = base.join("../../ta_func_defs/sma/sma.c");
+    let yaml_path = base.join("../../ta_codegen/input/sma/sma.yaml");
+    let c_path = base.join("../../ta_codegen/input/sma/sma.c");
 
     let mut func_def = parser::yaml::parse_yaml(&yaml_path);
     let parsed = parser::c_source::parse_c_source(&c_path);
@@ -58,8 +58,8 @@ fn load_sma() -> ir::FuncDef {
 /// Helper: load any function definition from its .yaml + .c files.
 fn load_func(name: &str) -> ir::FuncDef {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let yaml_path = base.join(format!("../../ta_func_defs/{}/{}.yaml", name, name));
-    let c_path = base.join(format!("../../ta_func_defs/{}/{}.c", name, name));
+    let yaml_path = base.join(format!("../../ta_codegen/input/{}/{}.yaml", name, name));
+    let c_path = base.join(format!("../../ta_codegen/input/{}/{}.c", name, name));
 
     let mut func_def = parser::yaml::parse_yaml(&yaml_path);
     let parsed = parser::c_source::parse_c_source(&c_path);
@@ -341,7 +341,7 @@ fn test_sma_from_c_lookback_body() {
 #[test]
 fn test_sma_from_c_has_logic_function() {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let c_path = base.join("../../ta_func_defs/sma/sma.c");
+    let c_path = base.join("../../ta_codegen/input/sma/sma.c");
     let parsed = parser::c_source::parse_c_source(&c_path);
 
     assert_eq!(parsed.functions.len(), 1, "Should have one function");
@@ -362,11 +362,11 @@ fn test_sma_from_c_has_logic_function() {
 // All indicators: all backends produce non-empty output (auto-discovered)
 // ---------------------------------------------------------------------------
 
-/// Discover all indicator names from ta_func_defs/ that have both .yaml and .c files.
+/// Discover all indicator names from ta_codegen/input/ that have both .yaml and .c files.
 fn discover_indicators() -> Vec<String> {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_codegen/input");
     let mut indicators = Vec::new();
-    for entry in std::fs::read_dir(&base).expect("Cannot read ta_func_defs directory") {
+    for entry in std::fs::read_dir(&base).expect("Cannot read ta_codegen/input directory") {
         let entry = entry.expect("Cannot read directory entry");
         let path = entry.path();
         if !path.is_dir() {

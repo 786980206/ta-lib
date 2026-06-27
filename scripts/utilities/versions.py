@@ -281,10 +281,10 @@ def set_version_string_spec_in(root_dir: str, new_version:str):
 
 def get_version_string_cargo(root_dir: str) -> str:
     """
-    Parse the file ta_codegen_output/rust/Cargo.toml to get the version string. Example:
+    Parse the file ta_codegen/output/rust/Cargo.toml to get the version string. Example:
       version = "0.6.4"
     """
-    cargo_file_path = path_join(root_dir, "ta_codegen_output", "rust", "Cargo.toml")
+    cargo_file_path = path_join(root_dir, "ta_codegen/output", "rust", "Cargo.toml")
 
     if not os.path.exists(cargo_file_path):
         print(f"Error: Cargo.toml not found at {cargo_file_path}")
@@ -307,9 +307,9 @@ def get_version_string_cargo(root_dir: str) -> str:
 
 def set_version_string_cargo(root_dir: str, new_version: str):
     """
-    Update the version in ta_codegen_output/rust/Cargo.toml.
+    Update the version in ta_codegen/output/rust/Cargo.toml.
     """
-    cargo_file_path = path_join(root_dir, "ta_codegen_output", "rust", "Cargo.toml")
+    cargo_file_path = path_join(root_dir, "ta_codegen/output", "rust", "Cargo.toml")
 
     if not os.path.exists(cargo_file_path):
         print(f"Warning: Cargo.toml not found at {cargo_file_path}")
@@ -437,7 +437,7 @@ def sync_versions(root_dir: str) -> Tuple[bool,str]:
     """
     Synchronize the version between:
           src/ta_common/ta_version.c
-          ta_codegen_output/rust/Cargo.toml
+          ta_codegen/output/rust/Cargo.toml
           CMakeLists.txt (root of repos)
           VERSION file (root of repos)
           conanfile.py (root of repos)

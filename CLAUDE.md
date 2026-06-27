@@ -6,7 +6,7 @@ All indicator code is **generated**. Two generators exist:
 
 | Tool | Language | Role |
 |------|----------|------|
-| `ta_codegen` (`tools/ta_codegen/`, Rust) | The current generator. Parses `ta_func_defs/` → IR → renders per-backend (C, Java, .NET, Rust) into `ta_codegen_output/`. Also generates the JSON-RPC test servers, the bench binary, `include/ta_func_unguarded.h`, and owns build-system source lists (CMake `LIB_SOURCES`, `Makefile.am`, `ta_func_list.txt`). |
+| `ta_codegen` (`tools/ta_codegen/`, Rust) | The current generator. Parses `ta_codegen/input/` → IR → renders per-backend (C, Java, .NET, Rust) into `ta_codegen/output/`. Also generates the JSON-RPC test servers, the bench binary, `include/ta_func_unguarded.h`, and owns build-system source lists (CMake `LIB_SOURCES`, `Makefile.am`, `ta_func_list.txt`). |
 | `gen_code` (`src/tools/gen_code/`, C) | The legacy generator, restored to its v0.6.4 role: regenerates the reference C library's GENCODE sections, Java bindings, and .NET wrappers (`ENABLE_JAVA`, `ENABLE_DOTNET`). It does **no** Rust generation. |
 
 The reference C library (`src/ta_func/`) is the correctness baseline that all
@@ -15,21 +15,21 @@ The reference C library (`src/ta_func/`) is the correctness baseline that all
 See `tools/ta_codegen/CLAUDE.md` for ta_codegen internals and
 `src/tools/ta_regtest/CLAUDE.md` for the test-runner spec.
 
-### Source of Truth: ta_func_defs/
+### Source of Truth: ta_codegen/input/
 
-`ta_func_defs/` is the single source of truth for ALL generated code
+`ta_codegen/input/` is the single source of truth for ALL generated code
 (~164 indicator definitions).
 
 - **YAML** = data, config, enums, IDL. Pure definitions with no logic.
-  - RetCode values, FuncUnstId mappings, MAType enum, CandleSetting defaults, Compatibility enum (in `ta_func_defs/types/`)
+  - RetCode values, FuncUnstId mappings, MAType enum, CandleSetting defaults, Compatibility enum (in `ta_codegen/input/types/`)
   - Function metadata (inputs, outputs, optional params, groups)
 - **C source files** = logic. Anything with computation.
-  - Indicator implementations (`ta_func_defs/<name>/<name>.c`)
-  - Helper functions (`ta_func_defs/helpers/`)
+  - Indicator implementations (`ta_codegen/input/<name>/<name>.c`)
+  - Helper functions (`ta_codegen/input/helpers/`)
   - **No logic in YAML, ever.**
 
 No hand-coded string literals for type definitions or scaffolding in the codegen.
-Do not hand-edit anything under `ta_codegen_output/` — it is overwritten on the
+Do not hand-edit anything under `ta_codegen/output/` — it is overwritten on the
 next `generate`.
 
 ## Quick Reference Commands
@@ -114,7 +114,7 @@ Without `--function`, all test groups run.
 
 ## Rust Backend
 
-Generated Rust lives in `ta_codegen_output/rust/` (a standalone crate).
+Generated Rust lives in `ta_codegen/output/rust/` (a standalone crate).
 
 - TA-Lib exports a `Core` struct (`src/ta_func/types.rs`, with `RetCode`);
   indicators are methods on `Core`, one file per indicator extending it via
@@ -132,7 +132,7 @@ Generated Rust lives in `ta_codegen_output/rust/` (a standalone crate).
 
 ## Adding or Modifying an Indicator
 
-1. Edit the definition in `ta_func_defs/<name>/` (C logic) and/or its YAML metadata
+1. Edit the definition in `ta_codegen/input/<name>/` (C logic) and/or its YAML metadata
 2. `cd tools/ta_codegen && cargo run -- generate` (optionally `--func=<NAME>`)
 3. `scripts/build.py servers` to rebuild the language servers
 4. `cd bin && ./ta_regtest --codegen --function=<NAME>` to verify all backends
@@ -205,11 +205,11 @@ use `--function=NAME --iters=500` for ground truth.
 ta-lib/
 ├── bin/                      # Built executables (gen_code, ta_regtest, ta_bench, servers)
 ├── cmake-build/              # CMake build directory
-├── ta_func_defs/             # SOURCE OF TRUTH: per-indicator C logic + YAML metadata
+├── ta_codegen/input/             # SOURCE OF TRUTH: per-indicator C logic + YAML metadata
 │   ├── <name>/<name>.c       # Indicator logic
 │   ├── helpers/              # Shared helper functions
 │   └── types/                # Enums, RetCode, CandleSettings, etc. (YAML)
-├── ta_codegen_output/        # Generated code per language (c, java, dotnet, rust)
+├── ta_codegen/output/        # Generated code per language (c, java, dotnet, rust)
 │   └── rust/                 # Standalone Rust crate
 ├── tools/ta_codegen/         # The Rust code generator (see its CLAUDE.md)
 ├── src/

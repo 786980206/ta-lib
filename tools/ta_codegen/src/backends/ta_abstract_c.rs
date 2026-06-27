@@ -1,6 +1,6 @@
 //! Generate the `ta_abstract` C layer from YAML-derived IR.
 //!
-//! Produces all files under `ta_codegen_output/c/ta_abstract/`:
+//! Produces all files under `ta_codegen/output/c/ta_abstract/`:
 //! - `ta_def_ui.h` / `ta_def_ui.c`
 //! - `ta_frame_priv.h`
 //! - `frames/ta_frame.h` / `frames/ta_frame.c`
@@ -132,7 +132,8 @@ pub fn generate(
     );
     write_if_changed_silent(&base.join("ta_abstract.c"), &gen_ta_abstract_c());
 
-    let repo_root = out_base.parent().unwrap();
+    // out_base is `<root>/ta_codegen/output`, so the repo root is two levels up.
+    let repo_root = out_base.parent().unwrap().parent().unwrap();
     write_if_changed_silent(&base.join("ta_func_api.c"), &gen_ta_func_api_c(repo_root));
 
     // Generate include/ta_func.h — this replaces gen_code's role.
