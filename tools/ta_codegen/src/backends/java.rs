@@ -7,6 +7,7 @@ use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statemen
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
+use super::builtins::MathFn;
 use super::expr_walk::ExprEmitter;
 use super::stmt_walk::StatementEmitter;
 
@@ -1554,20 +1555,15 @@ fn render_func_call(
             return format!("(2.0 / ((double)({x}) + 1.0))");
         }
         "0.0".to_string()
-    } else if MATH_FUNCTIONS.contains(&fname) {
-        // Java uses Math.func() for standard math functions.
-        // fabs/ABS → Math.abs; max/fmax → Math.max; min/fmin → Math.min
-        let java_name = match fname {
-            "fabs" | "ABS" => "abs",
-            "fmax" => "max",
-            "fmin" => "min",
-            other => other,
-        };
+    } else if let Some(mf) = MathFn::from_name(fname) {
+        // Java uses Math.func() for standard math functions. The canonical math
+        // name already matches java.lang.Math: fabs/ABS → abs, max/fmax → max,
+        // min/fmin → min.
         let rendered: Vec<String> = args
             .iter()
             .map(|a| render_expr(a, ctx, registry, helpers))
             .collect();
-        format!("Math.{}({})", java_name, rendered.join(", "))
+        format!("Math.{}({})", mf.canonical(), rendered.join(", "))
     } else if fname == "sizeof" {
         // sizeof(TYPE) → 1: normalizes byte counts to element counts for Java array operations
         "1".to_string()
@@ -1638,13 +1634,6 @@ fn render_func_call(
         format!("{}({})", java_name, rendered.join(", "))
     }
 }
-
-/// Math functions that map to `java.lang.Math` methods.
-/// `fabs`/`ABS` → `Math.abs`; `max`/`fmax` → `Math.max`; `min`/`fmin` → `Math.min`.
-const MATH_FUNCTIONS: &[&str] = &[
-    "atan", "sqrt", "fabs", "floor", "ceil", "log", "cos", "sin", "tan", "acos", "asin", "exp",
-    "cosh", "sinh", "tanh", "log10", "ABS", "max", "min", "fmax", "fmin",
-];
 
 /// Decompose an expression into (array_name, offset) for array copy operations.
 /// `Var("arr")` → `("arr", "0")`; `AddressOf(ArrayAccess("arr", idx))` → `("arr", rendered_idx)`

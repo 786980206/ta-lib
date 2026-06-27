@@ -9,6 +9,7 @@ use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{expr_directly_contains_candle_call, pascal_word};
 use super::expr_walk::ExprEmitter;
+use super::builtins::MathFn;
 use super::stmt_walk::StatementEmitter;
 
 /// Candle helper functions emitted as C preprocessor macros instead of expanded code.
@@ -1397,14 +1398,14 @@ fn render_func_call(
             return format!("(2.0 / ((double)({x}) + 1.0))");
         }
         "0.0".to_string()
-    } else if MATH_FUNCTIONS.contains(&fname) {
+    } else if let Some(mf) = MathFn::from_name(fname) {
         // Plain C math functions — remap names where needed, then emit as C function calls.
-        // max → fmax, min → fmin, ABS → fabs (all from <math.h>)
-        let c_name = match fname {
-            "max" => "fmax",
-            "min" => "fmin",
-            "ABS" => "fabs",
-            other => other,
+        // max → fmax, min → fmin, fabs/ABS → fabs (all from <math.h>)
+        let c_name = match mf {
+            MathFn::Max => "fmax",
+            MathFn::Min => "fmin",
+            MathFn::Abs => "fabs",
+            other => other.canonical(),
         };
         let rendered: Vec<String> = args
             .iter()
@@ -1518,13 +1519,6 @@ fn render_lookback_code(
 
     out
 }
-
-/// Math functions from `<math.h>` supported in C.
-/// `max`/`min` map to `fmax`/`fmin`; `ABS` maps to `fabs`.
-const MATH_FUNCTIONS: &[&str] = &[
-    "atan", "sqrt", "fabs", "floor", "ceil", "log", "cos", "sin", "tan", "acos", "asin", "exp",
-    "cosh", "sinh", "tanh", "log10", "max", "min", "fmax", "fmin", "ABS",
-];
 
 /// C standard library functions and macros that should pass through as-is (no `TA_` prefix).
 const STDLIB_FUNCTIONS: &[&str] = &[

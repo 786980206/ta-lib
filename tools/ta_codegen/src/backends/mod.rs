@@ -1,3 +1,4 @@
+pub mod builtins;
 pub mod c;
 pub mod cmake_lists;
 pub mod common;

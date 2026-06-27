@@ -9,6 +9,7 @@ use crate::ir::{
 use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
+use super::builtins::MathFn;
 use super::expr_walk::ExprEmitter;
 use super::stmt_walk::StatementEmitter;
 
@@ -3261,14 +3262,6 @@ fn to_pascal_case(s: &str) -> String {
         .collect()
 }
 
-/// Known math functions that map to `TaFloat` trait methods (generic) or `f64` methods (concrete).
-/// 2-arg functions (`max`, `min`, `fmax`, `fmin`) render as `a.max(b)` / `a.min(b)`.
-/// `ABS` maps to `abs` / `ta_abs`.
-const MATH_FUNCTIONS: &[&str] = &[
-    "sqrt", "sin", "cos", "tan", "asin", "acos", "atan", "exp", "log", "log10", "ceil", "floor",
-    "abs", "fabs", "cosh", "sinh", "tanh", "ABS", "max", "fmax", "min", "fmin",
-];
-
 /// Decompose an expression into (array_name, offset) for array copy operations.
 /// `Var("arr")` → `("arr", "0")`; `AddressOf(ArrayAccess("arr", idx))` → `("arr", rendered_idx)`
 fn decompose_rust_array_ref(
@@ -3416,22 +3409,22 @@ fn render_func_call(
             })
             .collect();
         format!("self.{}({})", fname, rendered_args.join(", "))
-    } else if is_math_function(fname) {
+    } else if let Some(mf) = MathFn::from_name(fname) {
         // Math functions take priority over the indicator registry.
         // `atan(x)` in source means the C math function, not a cross-indicator call.
         //
         // 2-arg: max/fmax → a.max(b), min/fmin → a.min(b)
         // 1-arg: ABS/fabs → .ta_abs() (generic) or .abs() (concrete)
         // 1-arg: all others → .ta_{fname}() (generic) or .{fname}() (concrete)
-        match fname {
-            "max" | "fmax" => {
+        match mf {
+            MathFn::Max => {
                 if args.len() >= 2 {
                     let a = render_expr(&args[0], ctx, opt_real_params, registry, helpers);
                     let b = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
                     return format!("({a}).max({b})");
                 }
             }
-            "min" | "fmin" => {
+            MathFn::Min => {
                 if args.len() >= 2 {
                     let a = render_expr(&args[0], ctx, opt_real_params, registry, helpers);
                     let b = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
@@ -3443,10 +3436,9 @@ fn render_func_call(
         if let Some(arg) = args.first() {
             let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
             // Use f64 method call syntax; fabs/ABS -> abs, log -> ln
-            let method = match fname {
-                "fabs" | "ABS" => "abs",
-                "log" => "ln",
-                other => other,
+            let method = match mf {
+                MathFn::Log => "ln",
+                other => other.canonical(),
             };
             // Cast integer args to f64 before calling f64 methods
             let x_wrapped = if matches!(arg, Expr::IntLiteral(_)) {
@@ -3839,10 +3831,6 @@ fn is_int_array_var(name: &str) -> bool {
     matches!(name,
         "periods" | "usedFlag" | "sortedPeriods"
     )
-}
-
-fn is_math_function(name: &str) -> bool {
-    MATH_FUNCTIONS.contains(&name)
 }
 
 /// Helper functions that return int (not double/T).
