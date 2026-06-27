@@ -3905,8 +3905,7 @@ fn is_ta_function(name: &str) -> bool {
 }
 
 fn gen_footer() -> String {
-    "/* Generated */\n\n\
-     /***************/\n\
+    "/***************/\n\
      /* End of File */\n\
      /***************/\n"
         .to_string()

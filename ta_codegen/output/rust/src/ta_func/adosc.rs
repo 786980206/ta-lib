@@ -293,8 +293,6 @@ impl Core {
         } // unsafe
     }
 }
-/* Generated */
-
 /***************/
 /* End of File */
 /***************/
