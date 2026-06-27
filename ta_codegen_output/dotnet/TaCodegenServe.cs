@@ -29,6 +29,9 @@ public class TaCodegenServe {
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SetUnstablePeriod")]
     static extern void TA_SetUnstablePeriod(int id, int period);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SetCompatibility")]
+    static extern int TA_SetCompatibility(int value);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ACCBANDS")]
     static extern int TA_ACCBANDS(
         int startIdx, int endIdx,

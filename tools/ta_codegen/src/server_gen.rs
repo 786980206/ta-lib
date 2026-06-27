@@ -1396,6 +1396,10 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_SetUnstablePeriod\")]\n");
     s.push_str("    static extern void TA_SetUnstablePeriod(int id, int period);\n\n");
 
+    // P/Invoke for compatibility setter (exported by ta_utility.c in the shared lib)
+    s.push_str("    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_SetCompatibility\")]\n");
+    s.push_str("    static extern int TA_SetCompatibility(int value);\n\n");
+
     // P/Invoke declarations
     for func in funcs {
         let func_upper = &func.name;
