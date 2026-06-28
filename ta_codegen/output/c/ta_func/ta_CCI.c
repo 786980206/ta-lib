@@ -60,7 +60,7 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
    int j;
    int outIdx;
    int lookbackTotal;
-   double circBuffer[30];
+   double *circBuffer;
    int circBuffer_Idx;
 
    if( startIdx < 0 )
@@ -92,6 +92,13 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
+   }
+   circBuffer = malloc((optInTimePeriod*sizeof(double)));
+   if( !(circBuffer) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
    }
    memset(circBuffer,0,(optInTimePeriod*sizeof(double)));
    circBuffer_Idx = 0;
@@ -142,6 +149,7 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
+   free(circBuffer);
    return TA_SUCCESS;
 }
 
@@ -163,7 +171,7 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
    int j;
    int outIdx;
    int lookbackTotal;
-   double circBuffer[30];
+   double *circBuffer;
    int circBuffer_Idx;
 
    circBuffer_Idx = 0;
@@ -177,6 +185,13 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
+   }
+   circBuffer = malloc((optInTimePeriod*sizeof(double)));
+   if( !(circBuffer) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
    }
    memset(circBuffer,0,(optInTimePeriod*sizeof(double)));
    circBuffer_Idx = 0;
@@ -227,6 +242,7 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
+   free(circBuffer);
    return TA_SUCCESS;
 }
 
@@ -248,7 +264,7 @@ TA_RetCode TA_S_CCI( int    startIdx,
    int j;
    int outIdx;
    int lookbackTotal;
-   double circBuffer[30];
+   double *circBuffer;
    int circBuffer_Idx;
 
    if( startIdx < 0 )
@@ -281,6 +297,13 @@ TA_RetCode TA_S_CCI( int    startIdx,
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   circBuffer = malloc((optInTimePeriod*sizeof(double)));
+   if( !(circBuffer) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
    memset(circBuffer,0,(optInTimePeriod*sizeof(double)));
    circBuffer_Idx = 0;
    i = (startIdx-lookbackTotal);
@@ -330,6 +353,7 @@ TA_RetCode TA_S_CCI( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
+   free(circBuffer);
    return TA_SUCCESS;
 }
 
@@ -351,7 +375,7 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
    int j;
    int outIdx;
    int lookbackTotal;
-   double circBuffer[30];
+   double *circBuffer;
    int circBuffer_Idx;
 
    circBuffer_Idx = 0;
@@ -365,6 +389,13 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
+   }
+   circBuffer = malloc((optInTimePeriod*sizeof(double)));
+   if( !(circBuffer) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
    }
    memset(circBuffer,0,(optInTimePeriod*sizeof(double)));
    circBuffer_Idx = 0;
@@ -415,6 +446,7 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
+   free(circBuffer);
    return TA_SUCCESS;
 }
 

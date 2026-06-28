@@ -22,7 +22,7 @@
       int j = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      double[] circBuffer = new double[30];
+      double[] circBuffer;
       int circBuffer_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -40,6 +40,7 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      circBuffer = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);
@@ -100,7 +101,7 @@
       int j = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      double[] circBuffer = new double[30];
+      double[] circBuffer;
       int circBuffer_Idx = 0;
       circBuffer_Idx = 0;
       lookbackTotal = (optInTimePeriod-1);
@@ -112,6 +113,7 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      circBuffer = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);
@@ -172,7 +174,7 @@
       int j = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      double[] circBuffer = new double[30];
+      double[] circBuffer;
       int circBuffer_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -190,6 +192,7 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      circBuffer = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);
@@ -250,7 +253,7 @@
       int j = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      double[] circBuffer = new double[30];
+      double[] circBuffer;
       int circBuffer_Idx = 0;
       circBuffer_Idx = 0;
       lookbackTotal = (optInTimePeriod-1);
@@ -262,6 +265,7 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      circBuffer = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);

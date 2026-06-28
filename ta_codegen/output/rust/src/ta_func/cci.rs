@@ -105,7 +105,7 @@ impl Core {
         let mut j: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut circBuffer: [f64; 30 as usize] = [0.0_f64; 30 as usize];
+        let mut circBuffer: Vec<f64> = Vec::new();
         let mut circBuffer_Idx: usize = 0_usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
@@ -116,6 +116,7 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        circBuffer = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
@@ -192,7 +193,7 @@ impl Core {
         let mut j: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut circBuffer: [f64; 30 as usize] = [0.0_f64; 30 as usize];
+        let mut circBuffer: Vec<f64> = Vec::new();
         let mut circBuffer_Idx: usize = 0_usize;
         unsafe {
         assert!(endIdx < inHigh.len());
@@ -208,6 +209,7 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        circBuffer = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;

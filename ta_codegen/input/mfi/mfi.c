@@ -9,11 +9,26 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     double tempValue1, tempValue2;
     int lookbackTotal, outIdx, i, today;
 
-    double mflow_positive[50];
-    double mflow_negative[50];
+    double *mflow_positive;
+    double *mflow_negative;
     int mflow_Idx;
 
     mflow_Idx = 0;
+    mflow_positive = malloc((optInTimePeriod) * sizeof(double));
+    if( !mflow_positive )
+    {
+    *outBegIdx = 0;
+    *outNBElement = 0;
+    return TA_ALLOC_ERR;
+    }
+    mflow_negative = malloc((optInTimePeriod) * sizeof(double));
+    if( !mflow_negative )
+    {
+    free(mflow_positive);
+    *outBegIdx = 0;
+    *outNBElement = 0;
+    return TA_ALLOC_ERR;
+    }
     memset(mflow_positive, 0, (optInTimePeriod) * sizeof(double));
     memset(mflow_negative, 0, (optInTimePeriod) * sizeof(double));
 
@@ -29,7 +44,8 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
     {
-    /* circular buffer cleanup (stack-allocated, no-op) */
+    free(mflow_positive);
+    free(mflow_negative);
     return TA_SUCCESS;
     }
 
@@ -159,7 +175,8 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
     }
 
-    /* circular buffer cleanup (stack-allocated, no-op) */
+    free(mflow_positive);
+    free(mflow_negative);
 
     *outBegIdx = startIdx;
     *outNBElement = outIdx;

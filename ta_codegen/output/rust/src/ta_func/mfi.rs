@@ -108,10 +108,12 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut today: usize = 0_usize;
-        let mut mflow_positive: [f64; 50 as usize] = [0.0_f64; 50 as usize];
-        let mut mflow_negative: [f64; 50 as usize] = [0.0_f64; 50 as usize];
+        let mut mflow_positive: Vec<f64> = Vec::new();
+        let mut mflow_negative: Vec<f64> = Vec::new();
         let mut mflow_Idx: usize = 0_usize;
         mflow_Idx = 0;
+        mflow_positive = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
+        mflow_negative = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
@@ -247,8 +249,8 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut today: usize = 0_usize;
-        let mut mflow_positive: [f64; 50 as usize] = [0.0_f64; 50 as usize];
-        let mut mflow_negative: [f64; 50 as usize] = [0.0_f64; 50 as usize];
+        let mut mflow_positive: Vec<f64> = Vec::new();
+        let mut mflow_negative: Vec<f64> = Vec::new();
         let mut mflow_Idx: usize = 0_usize;
         unsafe {
         assert!(endIdx < inHigh.len());
@@ -257,6 +259,8 @@ impl Core {
         assert!(endIdx < inVolume.len());
         assert!(endIdx - startIdx < outReal.len());
         mflow_Idx = 0;
+        mflow_positive = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
+        mflow_negative = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;

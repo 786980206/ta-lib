@@ -11,7 +11,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     /* This ptr will points on a circular buffer of
     * at least "optInTimePeriod" element.
     */
-    double circBuffer[30]; int circBuffer_Idx = 0;
+    double *circBuffer; int circBuffer_Idx = 0;
 
 
 
@@ -37,6 +37,13 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     /* Allocate a circular buffer equal to the requested
     * period.
     */
+    circBuffer = malloc((optInTimePeriod) * sizeof(double));
+    if( !circBuffer )
+    {
+    *outBegIdx = 0;
+    *outNBElement = 0;
+    return TA_ALLOC_ERR;
+    }
     memset(circBuffer, 0, (optInTimePeriod) * sizeof(double)); circBuffer_Idx = 0;
 
     /* Do the MA calculation using tight loops. */
@@ -99,7 +106,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     *outBegIdx    = startIdx;
 
     /* Free the circular buffer if it was dynamically allocated. */
-    /* circular buffer cleanup (stack-allocated, no-op) */
+    free(circBuffer);
 
     return TA_SUCCESS;
 }

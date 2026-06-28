@@ -24,8 +24,8 @@
       int outIdx = 0;
       int i = 0;
       int today = 0;
-      double[] mflow_positive = new double[50];
-      double[] mflow_negative = new double[50];
+      double[] mflow_positive;
+      double[] mflow_negative;
       int mflow_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -34,6 +34,8 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       mflow_Idx = 0;
+      mflow_positive = new double[(int)((optInTimePeriod*1))];
+      mflow_negative = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
       java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;
@@ -151,10 +153,12 @@
       int outIdx = 0;
       int i = 0;
       int today = 0;
-      double[] mflow_positive = new double[50];
-      double[] mflow_negative = new double[50];
+      double[] mflow_positive;
+      double[] mflow_negative;
       int mflow_Idx = 0;
       mflow_Idx = 0;
+      mflow_positive = new double[(int)((optInTimePeriod*1))];
+      mflow_negative = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
       java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;
@@ -272,8 +276,8 @@
       int outIdx = 0;
       int i = 0;
       int today = 0;
-      double[] mflow_positive = new double[50];
-      double[] mflow_negative = new double[50];
+      double[] mflow_positive;
+      double[] mflow_negative;
       int mflow_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -282,6 +286,8 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       mflow_Idx = 0;
+      mflow_positive = new double[(int)((optInTimePeriod*1))];
+      mflow_negative = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
       java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;
@@ -399,10 +405,12 @@
       int outIdx = 0;
       int i = 0;
       int today = 0;
-      double[] mflow_positive = new double[50];
-      double[] mflow_negative = new double[50];
+      double[] mflow_positive;
+      double[] mflow_negative;
       int mflow_Idx = 0;
       mflow_Idx = 0;
+      mflow_positive = new double[(int)((optInTimePeriod*1))];
+      mflow_negative = new double[(int)((optInTimePeriod*1))];
       java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
       java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;

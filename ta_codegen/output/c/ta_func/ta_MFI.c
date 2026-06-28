@@ -62,8 +62,8 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    int outIdx;
    int i;
    int today;
-   double mflow_positive[50];
-   double mflow_negative[50];
+   double *mflow_positive;
+   double *mflow_negative;
    int mflow_Idx;
 
    if( startIdx < 0 )
@@ -87,6 +87,21 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
       return TA_BAD_PARAM;
 
    mflow_Idx = 0;
+   mflow_positive = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_positive) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
+   mflow_negative = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_negative) )
+   {
+      free(mflow_positive);
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
    memset(mflow_positive,0,(optInTimePeriod*sizeof(double)));
    memset(mflow_negative,0,(optInTimePeriod*sizeof(double)));
    *outBegIdx= 0;
@@ -98,6 +113,8 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    }
    if( (startIdx>endIdx) )
    {
+      free(mflow_positive);
+      free(mflow_negative);
       return TA_SUCCESS;
    }
    outIdx = 0;
@@ -200,6 +217,8 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
       }
       mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
    }
+   free(mflow_positive);
+   free(mflow_negative);
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -225,11 +244,26 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
    int outIdx;
    int i;
    int today;
-   double mflow_positive[50];
-   double mflow_negative[50];
+   double *mflow_positive;
+   double *mflow_negative;
    int mflow_Idx;
 
    mflow_Idx = 0;
+   mflow_positive = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_positive) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
+   mflow_negative = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_negative) )
+   {
+      free(mflow_positive);
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
    memset(mflow_positive,0,(optInTimePeriod*sizeof(double)));
    memset(mflow_negative,0,(optInTimePeriod*sizeof(double)));
    *outBegIdx= 0;
@@ -241,6 +275,8 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
    }
    if( (startIdx>endIdx) )
    {
+      free(mflow_positive);
+      free(mflow_negative);
       return TA_SUCCESS;
    }
    outIdx = 0;
@@ -343,6 +379,8 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
       }
       mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
    }
+   free(mflow_positive);
+   free(mflow_negative);
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -368,8 +406,8 @@ TA_RetCode TA_S_MFI( int    startIdx,
    int outIdx;
    int i;
    int today;
-   double mflow_positive[50];
-   double mflow_negative[50];
+   double *mflow_positive;
+   double *mflow_negative;
    int mflow_Idx;
 
    if( startIdx < 0 )
@@ -393,6 +431,21 @@ TA_RetCode TA_S_MFI( int    startIdx,
       return TA_BAD_PARAM;
 
    mflow_Idx = 0;
+   mflow_positive = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_positive) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
+   mflow_negative = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_negative) )
+   {
+      free(mflow_positive);
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
    memset(mflow_positive,0,(optInTimePeriod*sizeof(double)));
    memset(mflow_negative,0,(optInTimePeriod*sizeof(double)));
    *outBegIdx= 0;
@@ -404,6 +457,8 @@ TA_RetCode TA_S_MFI( int    startIdx,
    }
    if( (startIdx>endIdx) )
    {
+      free(mflow_positive);
+      free(mflow_negative);
       return TA_SUCCESS;
    }
    outIdx = 0;
@@ -506,6 +561,8 @@ TA_RetCode TA_S_MFI( int    startIdx,
       }
       mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
    }
+   free(mflow_positive);
+   free(mflow_negative);
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -531,11 +588,26 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
    int outIdx;
    int i;
    int today;
-   double mflow_positive[50];
-   double mflow_negative[50];
+   double *mflow_positive;
+   double *mflow_negative;
    int mflow_Idx;
 
    mflow_Idx = 0;
+   mflow_positive = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_positive) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
+   mflow_negative = malloc((optInTimePeriod*sizeof(double)));
+   if( !(mflow_negative) )
+   {
+      free(mflow_positive);
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_ALLOC_ERR;
+   }
    memset(mflow_positive,0,(optInTimePeriod*sizeof(double)));
    memset(mflow_negative,0,(optInTimePeriod*sizeof(double)));
    *outBegIdx= 0;
@@ -547,6 +619,8 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
    }
    if( (startIdx>endIdx) )
    {
+      free(mflow_positive);
+      free(mflow_negative);
       return TA_SUCCESS;
    }
    outIdx = 0;
@@ -649,6 +723,8 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
       }
       mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
    }
+   free(mflow_positive);
+   free(mflow_negative);
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
