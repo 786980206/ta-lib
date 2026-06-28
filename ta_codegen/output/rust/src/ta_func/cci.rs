@@ -106,7 +106,8 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut circBuffer: Vec<f64> = Vec::new();
-        let mut circBuffer_Idx: usize = 0_usize;
+        let mut circBuffer_Idx: usize = 0;
+        let mut maxIdx_circBuffer: usize = 29;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -116,12 +117,9 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        circBuffer = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
-        {
-            let _n = ((optInTimePeriod) as usize * 1) as usize;
-            let _si = (0) as usize;
-            circBuffer[_si.._si + _n].fill(0.0_f64);
-        };
+        if optInTimePeriod < 1 { return RetCode::AllocErr; }
+        circBuffer = vec![0.0_f64; (optInTimePeriod) as usize];
+        maxIdx_circBuffer = ((optInTimePeriod) as usize) - 1;
         circBuffer_Idx = 0;
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
@@ -129,9 +127,7 @@ impl Core {
                 circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3_f64;
                 i += 1;
                 circBuffer_Idx += 1;
-                if circBuffer_Idx >= (optInTimePeriod) as usize {
-                    circBuffer_Idx = 0;
-                }
+                if circBuffer_Idx > maxIdx_circBuffer { circBuffer_Idx = 0; }
             }
         }
         outIdx = 0;
@@ -162,9 +158,7 @@ impl Core {
                 outIdx += 1;
             }
             circBuffer_Idx += 1;
-            if circBuffer_Idx >= (optInTimePeriod) as usize {
-                circBuffer_Idx = 0;
-            }
+            if circBuffer_Idx > maxIdx_circBuffer { circBuffer_Idx = 0; }
             i += 1;
             if !(i <= endIdx) { break; }
         }
@@ -194,7 +188,8 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut circBuffer: Vec<f64> = Vec::new();
-        let mut circBuffer_Idx: usize = 0_usize;
+        let mut circBuffer_Idx: usize = 0;
+        let mut maxIdx_circBuffer: usize = 29;
         unsafe {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
@@ -209,12 +204,9 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        circBuffer = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
-        {
-            let _n = ((optInTimePeriod) as usize * 1) as usize;
-            let _si = (0) as usize;
-            circBuffer[_si.._si + _n].fill(0.0_f64);
-        };
+        if optInTimePeriod < 1 { return RetCode::AllocErr; }
+        circBuffer = vec![0.0_f64; (optInTimePeriod) as usize];
+        maxIdx_circBuffer = ((optInTimePeriod) as usize) - 1;
         circBuffer_Idx = 0;
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
@@ -222,9 +214,7 @@ impl Core {
                 *circBuffer.as_mut_ptr().add(circBuffer_Idx) = (*inHigh.as_ptr().add(i) + *inLow.as_ptr().add(i) + *inClose.as_ptr().add(i)) / 3_f64;
                 i += 1;
                 circBuffer_Idx += 1;
-                if circBuffer_Idx >= (optInTimePeriod) as usize {
-                    circBuffer_Idx = 0;
-                }
+                if circBuffer_Idx > maxIdx_circBuffer { circBuffer_Idx = 0; }
             }
         }
         outIdx = 0;
@@ -255,9 +245,7 @@ impl Core {
                 outIdx += 1;
             }
             circBuffer_Idx += 1;
-            if circBuffer_Idx >= (optInTimePeriod) as usize {
-                circBuffer_Idx = 0;
-            }
+            if circBuffer_Idx > maxIdx_circBuffer { circBuffer_Idx = 0; }
             i += 1;
             if !(i <= endIdx) { break; }
         }

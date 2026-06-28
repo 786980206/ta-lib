@@ -97,6 +97,41 @@ pub enum LookbackExpr {
 
 // --- Logic AST ---
 
+/// Element layout of a CIRCBUF (circular FIFO buffer).
+#[derive(Debug, Clone)]
+pub enum CircBufLayout {
+    /// `CIRCBUF_PROLOG`: a single buffer stored under exactly `<id>`. Scalar elem type.
+    Plain(VarType),
+    /// `CIRCBUF_PROLOG_CLASS`: one parallel buffer per struct field, stored as `<id>_<field>`
+    /// (matches the existing `CIRCBUF_REF` flatten). Each entry is `(field_name, scalar_type)`.
+    Class(Vec<(String, VarType)>),
+}
+
+/// A circular FIFO buffer operation (the `CIRCBUF_*` macros from `ta_memory.h`).
+/// Lowered per-backend: C stack-first hybrid (static array + heap fallback),
+/// Rust `Vec`, Java `new[]`, .NET no-op (P/Invoke has no body).
+#[derive(Debug, Clone)]
+pub enum CircBuf {
+    /// `CIRCBUF_PROLOG(Id,Type,N)` / `_PROLOG_CLASS`. Declares storage, `<id>_Idx`, `maxIdx_<id>`.
+    Prolog {
+        id: String,
+        layout: CircBufLayout,
+        static_size: i64,
+    },
+    /// `CIRCBUF_INIT(Id,Type,size)` / `_INIT_CLASS`. Runtime-sized (heap iff size > static_size).
+    Init {
+        id: String,
+        layout: CircBufLayout,
+        size: Expr,
+    },
+    /// `CIRCBUF_INIT_LOCAL_ONLY(Id,Type)`. Always the static capacity; no runtime size.
+    InitLocalOnly { id: String, layout: CircBufLayout },
+    /// `CIRCBUF_NEXT(Id)`: advance the index with wraparound.
+    Next { id: String },
+    /// `CIRCBUF_DESTROY(Id)`: C frees each heap buffer iff allocated; other backends no-op.
+    Destroy { id: String, layout: CircBufLayout },
+}
+
 #[derive(Debug, Clone)]
 pub enum Statement {
     VarDecl {
@@ -157,6 +192,8 @@ pub enum Statement {
     /// e.g. a void function or macro call (`SAR_ROUNDING(x);`, `TRUE_RANGE(...);`).
     /// The expression's value is discarded.
     Expr(Expr),
+    /// Circular FIFO buffer op (`CIRCBUF_*`). Lowered per-backend (see [`CircBuf`]).
+    CircBuf(CircBuf),
 }
 
 #[derive(Debug, Clone, PartialEq)]

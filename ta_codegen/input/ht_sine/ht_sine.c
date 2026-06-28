@@ -72,7 +72,8 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     * smooth price. In the case of this algorithm,
     * we will never need more than 50 values.
     */
-    double smoothPrice[50]; int smoothPrice_Idx = 0;
+    CIRCBUF_PROLOG(smoothPrice,double,50);
+    CIRCBUF_INIT_LOCAL_ONLY(smoothPrice,double);
     int idx;
 
     /* Variable used to calculate the dominant cycle phase */
@@ -394,7 +395,7 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     }
 
     /* Ooof... let's do the next price bar now! */
-    smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
+    CIRCBUF_NEXT(smoothPrice);
     today++;
     }
 

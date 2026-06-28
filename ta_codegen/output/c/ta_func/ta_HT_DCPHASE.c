@@ -108,8 +108,10 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE( int    startIdx,
    double constDeg2RadBy360;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPhase;
@@ -129,6 +131,8 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    tempReal = atan(1);
    rad2Deg = (45.0/tempReal);
@@ -404,7 +408,8 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE( int    startIdx,
       {
          outReal[outIdx++] = DCPhase;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -477,8 +482,10 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE_Unguarded( int    startIdx,
    double constDeg2RadBy360;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPhase;
@@ -488,6 +495,8 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE_Unguarded( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    tempReal = atan(1);
    rad2Deg = (45.0/tempReal);
@@ -763,7 +772,8 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE_Unguarded( int    startIdx,
       {
          outReal[outIdx++] = DCPhase;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -836,8 +846,10 @@ TA_RetCode TA_S_HT_DCPHASE( int    startIdx,
    double constDeg2RadBy360;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPhase;
@@ -857,6 +869,8 @@ TA_RetCode TA_S_HT_DCPHASE( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    tempReal = atan(1);
    rad2Deg = (45.0/tempReal);
@@ -1132,7 +1146,8 @@ TA_RetCode TA_S_HT_DCPHASE( int    startIdx,
       {
          outReal[outIdx++] = DCPhase;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -1205,8 +1220,10 @@ TA_RetCode TA_S_HT_DCPHASE_Unguarded( int    startIdx,
    double constDeg2RadBy360;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPhase;
@@ -1216,6 +1233,8 @@ TA_RetCode TA_S_HT_DCPHASE_Unguarded( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    tempReal = atan(1);
    rad2Deg = (45.0/tempReal);
@@ -1491,7 +1510,8 @@ TA_RetCode TA_S_HT_DCPHASE_Unguarded( int    startIdx,
       {
          outReal[outIdx++] = DCPhase;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;

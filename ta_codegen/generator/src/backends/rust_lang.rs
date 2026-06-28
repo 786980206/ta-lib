@@ -4,7 +4,8 @@ use std::collections::HashMap;
 use crate::candle_settings::{detect_candle_settings, emit_rust_unpacking};
 use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistry};
 use crate::ir::{
-    BinOp, EnumDef, Expr, FuncDef, LookbackExpr, OptInput, ParamType, Statement, VarType,
+    BinOp, CircBuf, CircBufLayout, EnumDef, Expr, FuncDef, LookbackExpr, OptInput, ParamType,
+    Statement, VarType,
 };
 use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
@@ -421,6 +422,15 @@ fn gen_guarded_func(
         let g_inline_counter = std::cell::Cell::new(0);
         // For explicit guarded bodies, emit VarDecls as let bindings first
         for stmt in &func.body {
+            if let Statement::CircBuf(CircBuf::Prolog {
+                id,
+                layout,
+                static_size,
+            }) = stmt
+            {
+                out.push_str(&emit_circbuf_prolog_rust(id, layout, *static_size));
+                continue;
+            }
             if let Statement::VarDecl { var_type, name, init } = stmt {
                 let rust_type = match var_type {
                     VarType::Integer => "i32",
@@ -506,6 +516,15 @@ fn gen_guarded_func(
 
         // Variable declarations (same pattern as gen_unguarded_func)
         for stmt in &func.body {
+            if let Statement::CircBuf(CircBuf::Prolog {
+                id,
+                layout,
+                static_size,
+            }) = stmt
+            {
+                out.push_str(&emit_circbuf_prolog_rust(id, layout, *static_size));
+                continue;
+            }
             if let Statement::VarDecl { var_type, name, .. } = stmt {
                 if g_for_loop_vars.contains(name) {
                     continue;
@@ -709,6 +728,15 @@ fn gen_unguarded_or_private_func(
         .collect();
 
     for stmt in &func.body {
+        if let Statement::CircBuf(CircBuf::Prolog {
+            id,
+            layout,
+            static_size,
+        }) = stmt
+        {
+            out.push_str(&emit_circbuf_prolog_rust(id, layout, *static_size));
+            continue;
+        }
         if let Statement::VarDecl { var_type, name, .. } = stmt {
             if for_loop_vars.contains(name) {
                 continue;
@@ -946,6 +974,45 @@ fn gen_opt_param_validation(opt: &OptInput, pad: &str, is_lookback: bool) -> Str
 }
 
 /// Collect variable type information from VarDecl statements (recursively).
+/// The heap-backed storage buffers for a CIRCBUF. `Plain` is a single `Vec` named
+/// `<id>`; `Class` is one parallel `Vec` per struct field named `<id>_<field>`
+/// (matching the `CIRCBUF_REF` access flatten). Returns `(storage_name, element_type)`
+/// pairs. Mirrors `c::circbuf_fields`, but Rust always heaps (no stack-opt).
+fn circbuf_storage(id: &str, layout: &CircBufLayout) -> Vec<(String, VarType)> {
+    match layout {
+        CircBufLayout::Plain(t) => vec![(id.to_string(), t.clone())],
+        CircBufLayout::Class(fields) => fields
+            .iter()
+            .map(|(f, t)| (format!("{id}_{f}"), t.clone()))
+            .collect(),
+    }
+}
+
+/// Emit the function-top declarations for a CIRCBUF prolog: an empty `Vec` per
+/// field-split storage, the `usize` rotation index, and the `usize` bound. The bound
+/// is seeded to `static_size - 1` (NOT 0) so the `INIT_LOCAL_ONLY` path (HT functions)
+/// sizes its buffer correctly before any `INIT` runs. Indent is the 8-space body level.
+fn emit_circbuf_prolog_rust(id: &str, layout: &CircBufLayout, static_size: i64) -> String {
+    let mut s = String::new();
+    for (storage, t) in circbuf_storage(id, layout) {
+        let vt = if matches!(t, VarType::Integer) {
+            "i32"
+        } else {
+            "f64"
+        };
+        s.push_str(&format!(
+            "        let mut {storage}: Vec<{vt}> = Vec::new();\n"
+        ));
+    }
+    s.push_str(&format!("        let mut {id}_Idx: usize = 0;\n"));
+    s.push_str(&format!(
+        "        let mut maxIdx_{id}: usize = {};\n",
+        static_size - 1
+    ));
+    s
+}
+
+#[allow(clippy::too_many_lines)]
 fn collect_var_types(
     body: &[Statement],
     index_vars: &mut std::collections::HashSet<String>,
@@ -987,6 +1054,18 @@ fn collect_var_types(
                     collect_var_types(case_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
                 }
                 collect_var_types(default, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
+            }
+            // A CIRCBUF prolog declares Vec storage (+ usize index/bound) at the function
+            // top; classify the names so get_unchecked / usize inference apply.
+            Statement::CircBuf(CircBuf::Prolog { id, layout, .. }) => {
+                for (storage, t) in circbuf_storage(id, layout) {
+                    vec_vars.insert(storage.clone());
+                    if matches!(t, VarType::Integer) {
+                        int_vec_vars.insert(storage);
+                    }
+                }
+                index_vars.insert(format!("{id}_Idx"));
+                index_vars.insert(format!("maxIdx_{id}"));
             }
             _ => {}
         }
@@ -1257,7 +1336,10 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
                 count += count_assignments_inner(name, then_body, in_loop);
                 count += count_assignments_inner(name, else_body, in_loop);
             }
-            Statement::Return { .. } | Statement::Break | Statement::Continue => {}
+            Statement::Return { .. }
+            | Statement::Break
+            | Statement::Continue
+            | Statement::CircBuf(_) => {}
             Statement::Switch { cases, default, .. } => {
                 for (_, case_body) in cases {
                     count += count_assignments_inner(name, case_body, in_loop);
@@ -1309,7 +1391,8 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
             | Statement::Break
             | Statement::Continue
             | Statement::Switch { .. }
-            | Statement::DoWhile { .. } => {}
+            | Statement::DoWhile { .. }
+            | Statement::CircBuf(_) => {}
         }
     }
     vars
@@ -1560,6 +1643,64 @@ struct RustStmt<'a, 'e> {
 }
 
 impl StatementEmitter for RustStmt<'_, '_> {
+    fn circ_buf(&self, op: &CircBuf, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        match op {
+            // Prolog: storage + index/bound declared at the function top by the decl pass.
+            // Destroy: Vec storage drops automatically — no explicit free.
+            CircBuf::Prolog { .. } | CircBuf::Destroy { .. } => String::new(),
+            // Advance with conditional reset (not modulo) — matches the reference macro.
+            CircBuf::Next { id } => {
+                format!("{pad}{id}_Idx += 1;\n{pad}if {id}_Idx > maxIdx_{id} {{ {id}_Idx = 0; }}\n")
+            }
+            // Runtime-sized: (re)allocate each storage Vec to `size` (always heap).
+            CircBuf::Init { id, layout, size } => {
+                let sz = render_expr(
+                    size,
+                    self.ctx,
+                    self.opt_real_params,
+                    self.registry,
+                    self.helpers,
+                );
+                let mut s = String::new();
+                // Parity with the reference CIRCBUF_INIT guard (ta_memory.h _RUST branch);
+                // also prevents the `(sz as usize) - 1` underflow on the unguarded path.
+                s.push_str(&format!(
+                    "{pad}if {sz} < 1 {{ return RetCode::AllocErr; }}\n"
+                ));
+                for (storage, t) in circbuf_storage(id, layout) {
+                    let zero = if matches!(t, VarType::Integer) {
+                        "0i32"
+                    } else {
+                        "0.0_f64"
+                    };
+                    s.push_str(&format!(
+                        "{pad}{storage} = vec![{zero}; ({sz}) as usize];\n"
+                    ));
+                }
+                s.push_str(&format!("{pad}maxIdx_{id} = (({sz}) as usize) - 1;\n"));
+                s.push_str(&format!("{pad}{id}_Idx = 0;\n"));
+                s
+            }
+            // Always the static capacity; bound was seeded in the prolog (maxIdx + 1).
+            CircBuf::InitLocalOnly { id, layout } => {
+                let mut s = String::new();
+                for (storage, t) in circbuf_storage(id, layout) {
+                    let zero = if matches!(t, VarType::Integer) {
+                        "0i32"
+                    } else {
+                        "0.0_f64"
+                    };
+                    s.push_str(&format!(
+                        "{pad}{storage} = vec![{zero}; maxIdx_{id} + 1];\n"
+                    ));
+                }
+                s.push_str(&format!("{pad}{id}_Idx = 0;\n"));
+                s
+            }
+        }
+    }
+
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
     fn var_decl(&self, var_type: &VarType, name: &str, init: &Option<Expr>, indent: usize) -> String {
         let pad = " ".repeat(indent);

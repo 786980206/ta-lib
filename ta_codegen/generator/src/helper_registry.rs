@@ -231,6 +231,7 @@ pub fn substitute_statement(
         Statement::Expr(e) => Statement::Expr(substitute_expr(e, subs)),
         Statement::Break => Statement::Break,
         Statement::Continue => Statement::Continue,
+        Statement::CircBuf(op) => Statement::CircBuf(op.clone()),
     }
 }
 
@@ -265,7 +266,8 @@ fn collect_local_names(body: &[Statement]) -> Vec<String> {
             | Statement::Expr(_)
             | Statement::Return { .. }
             | Statement::Break
-            | Statement::Continue => {}
+            | Statement::Continue
+            | Statement::CircBuf(_) => {}
         }
     }
     names
@@ -367,7 +369,8 @@ fn replace_returns_with_assign(body: &mut [Statement], temp_name: &str) {
             | Statement::Assign { .. }
             | Statement::Expr(_)
             | Statement::Break
-            | Statement::Continue => {}
+            | Statement::Continue
+            | Statement::CircBuf(_) => {}
         }
     }
 }

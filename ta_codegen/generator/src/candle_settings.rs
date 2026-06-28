@@ -116,7 +116,7 @@ fn scan_statement(stmt: &Statement, found: &mut BTreeSet<String>) {
         Statement::Expr(e) => {
             scan_expr(e, found);
         }
-        Statement::Break | Statement::Continue => {}
+        Statement::Break | Statement::Continue | Statement::CircBuf(_) => {}
     }
 }
 

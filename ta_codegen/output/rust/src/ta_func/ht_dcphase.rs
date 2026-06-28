@@ -138,8 +138,9 @@ impl Core {
         let mut constDeg2RadBy360: f64 = 0.0_f64;
         let mut todayValue: f64 = 0.0_f64;
         let mut smoothPeriod: f64 = 0.0_f64;
-        let mut smoothPrice: [f64; 50 as usize] = [0.0_f64; 50 as usize];
-        let mut smoothPrice_Idx: usize = 0_usize;
+        let mut smoothPrice: Vec<f64> = Vec::new();
+        let mut smoothPrice_Idx: usize = 0;
+        let mut maxIdx_smoothPrice: usize = 49;
         let mut idx: usize = 0_usize;
         let mut DCPeriodInt: usize = 0_usize;
         let mut DCPhase: f64 = 0.0_f64;
@@ -148,6 +149,7 @@ impl Core {
         let mut realPart: f64 = 0.0_f64;
         a = 0.0962;
         b = 0.5769;
+        smoothPrice = vec![0.0_f64; maxIdx_smoothPrice + 1];
         smoothPrice_Idx = 0;
         tempReal = (1_f64).atan();
         rad2Deg = 45.0 / tempReal;
@@ -408,7 +410,8 @@ impl Core {
                 outReal[outIdx] = DCPhase;
                 outIdx += 1;
             }
-            smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
+            smoothPrice_Idx += 1;
+            if smoothPrice_Idx > maxIdx_smoothPrice { smoothPrice_Idx = 0; }
             today += 1;
         }
         (*outNBElement) = outIdx;
@@ -483,8 +486,9 @@ impl Core {
         let mut constDeg2RadBy360: f64 = 0.0_f64;
         let mut todayValue: f64 = 0.0_f64;
         let mut smoothPeriod: f64 = 0.0_f64;
-        let mut smoothPrice: [f64; 50 as usize] = [0.0_f64; 50 as usize];
-        let mut smoothPrice_Idx: usize = 0_usize;
+        let mut smoothPrice: Vec<f64> = Vec::new();
+        let mut smoothPrice_Idx: usize = 0;
+        let mut maxIdx_smoothPrice: usize = 49;
         let mut idx: usize = 0_usize;
         let mut DCPeriodInt: usize = 0_usize;
         let mut DCPhase: f64 = 0.0_f64;
@@ -496,6 +500,7 @@ impl Core {
         assert!(endIdx - startIdx < outReal.len());
         a = 0.0962;
         b = 0.5769;
+        smoothPrice = vec![0.0_f64; maxIdx_smoothPrice + 1];
         smoothPrice_Idx = 0;
         tempReal = (1_f64).atan();
         rad2Deg = 45.0 / tempReal;
@@ -756,7 +761,8 @@ impl Core {
                 *outReal.as_mut_ptr().add(outIdx) = DCPhase;
                 outIdx += 1;
             }
-            smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
+            smoothPrice_Idx += 1;
+            if smoothPrice_Idx > maxIdx_smoothPrice { smoothPrice_Idx = 0; }
             today += 1;
         }
         (*outNBElement) = outIdx;

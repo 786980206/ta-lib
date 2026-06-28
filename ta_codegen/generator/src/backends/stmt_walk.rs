@@ -14,7 +14,7 @@
 //! bundles its render context plus the enum/registry/helper services; its
 //! `render_stmt` then becomes a thin `emitter.walk_stmt(stmt, indent)`.
 
-use crate::ir::{Expr, Statement, VarType};
+use crate::ir::{CircBuf, Expr, Statement, VarType};
 
 /// Per-language leaf formatting for the shared [`walk_stmt`](StatementEmitter::walk_stmt)
 /// dispatch. Implementors provide the per-variant hooks; the default `walk_stmt` owns
@@ -74,6 +74,9 @@ pub trait StatementEmitter {
         indent: usize,
     ) -> String;
 
+    /// Render a `Statement::CircBuf` (a `CIRCBUF_*` op). Language-specific lowering.
+    fn circ_buf(&self, op: &CircBuf, indent: usize) -> String;
+
     /// Render a `Statement::Break` (`break;`). Identical across backends.
     fn break_stmt(&self, indent: usize) -> String {
         format!("{}break;\n", " ".repeat(indent))
@@ -121,6 +124,7 @@ pub trait StatementEmitter {
             }
             Statement::Block { body } => self.block(body, indent),
             Statement::Switch { expr, cases, default } => self.switch(expr, cases, default, indent),
+            Statement::CircBuf(op) => self.circ_buf(op, indent),
         }
     }
 }

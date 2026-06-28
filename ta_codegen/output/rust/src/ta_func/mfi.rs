@@ -110,20 +110,13 @@ impl Core {
         let mut today: usize = 0_usize;
         let mut mflow_positive: Vec<f64> = Vec::new();
         let mut mflow_negative: Vec<f64> = Vec::new();
-        let mut mflow_Idx: usize = 0_usize;
+        let mut mflow_Idx: usize = 0;
+        let mut maxIdx_mflow: usize = 49;
+        if optInTimePeriod < 1 { return RetCode::AllocErr; }
+        mflow_positive = vec![0.0_f64; (optInTimePeriod) as usize];
+        mflow_negative = vec![0.0_f64; (optInTimePeriod) as usize];
+        maxIdx_mflow = ((optInTimePeriod) as usize) - 1;
         mflow_Idx = 0;
-        mflow_positive = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
-        mflow_negative = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
-        {
-            let _n = ((optInTimePeriod) as usize * 1) as usize;
-            let _si = (0) as usize;
-            mflow_positive[_si.._si + _n].fill(0.0_f64);
-        };
-        {
-            let _n = ((optInTimePeriod) as usize * 1) as usize;
-            let _si = (0) as usize;
-            mflow_negative[_si.._si + _n].fill(0.0_f64);
-        };
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize]) as usize;
@@ -158,7 +151,8 @@ impl Core {
                 mflow_positive[mflow_Idx] = 0.0;
                 mflow_negative[mflow_Idx] = 0.0;
             }
-            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+            mflow_Idx += 1;
+            if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
             i -= 1;
         }
         if today > startIdx {
@@ -190,7 +184,8 @@ impl Core {
                     mflow_positive[mflow_Idx] = 0.0;
                     mflow_negative[mflow_Idx] = 0.0;
                 }
-                mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+                mflow_Idx += 1;
+                if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
             }
         }
         while today <= endIdx {
@@ -220,7 +215,8 @@ impl Core {
                 outReal[outIdx] = 100.0 * (posSumMF / tempValue1);
                 outIdx += 1;
             }
-            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+            mflow_Idx += 1;
+            if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
@@ -251,26 +247,19 @@ impl Core {
         let mut today: usize = 0_usize;
         let mut mflow_positive: Vec<f64> = Vec::new();
         let mut mflow_negative: Vec<f64> = Vec::new();
-        let mut mflow_Idx: usize = 0_usize;
+        let mut mflow_Idx: usize = 0;
+        let mut maxIdx_mflow: usize = 49;
         unsafe {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
         assert!(endIdx < inVolume.len());
         assert!(endIdx - startIdx < outReal.len());
+        if optInTimePeriod < 1 { return RetCode::AllocErr; }
+        mflow_positive = vec![0.0_f64; (optInTimePeriod) as usize];
+        mflow_negative = vec![0.0_f64; (optInTimePeriod) as usize];
+        maxIdx_mflow = ((optInTimePeriod) as usize) - 1;
         mflow_Idx = 0;
-        mflow_positive = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
-        mflow_negative = vec![0.0_f64; ((optInTimePeriod) as usize * 1) as usize];
-        {
-            let _n = ((optInTimePeriod) as usize * 1) as usize;
-            let _si = (0) as usize;
-            mflow_positive[_si.._si + _n].fill(0.0_f64);
-        };
-        {
-            let _n = ((optInTimePeriod) as usize * 1) as usize;
-            let _si = (0) as usize;
-            mflow_negative[_si.._si + _n].fill(0.0_f64);
-        };
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize]) as usize;
@@ -305,7 +294,8 @@ impl Core {
                 *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
                 *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
             }
-            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+            mflow_Idx += 1;
+            if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
             i -= 1;
         }
         if today > startIdx {
@@ -337,7 +327,8 @@ impl Core {
                     *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
                     *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
                 }
-                mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+                mflow_Idx += 1;
+                if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
             }
         }
         while today <= endIdx {
@@ -367,7 +358,8 @@ impl Core {
                 *outReal.as_mut_ptr().add(outIdx) = 100.0 * (posSumMF / tempValue1);
                 outIdx += 1;
             }
-            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+            mflow_Idx += 1;
+            if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;

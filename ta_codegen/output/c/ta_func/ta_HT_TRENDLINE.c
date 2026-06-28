@@ -110,8 +110,10 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
@@ -128,6 +130,8 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    iTrend3 = 0.0;
    iTrend2 = iTrend3;
@@ -377,7 +381,8 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
       {
          outReal[outIdx++] = tempReal2;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -452,14 +457,18 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE_Unguarded( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    iTrend3 = 0.0;
    iTrend2 = iTrend3;
@@ -709,7 +718,8 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE_Unguarded( int    startIdx,
       {
          outReal[outIdx++] = tempReal2;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -784,8 +794,10 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
@@ -802,6 +814,8 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    iTrend3 = 0.0;
    iTrend2 = iTrend3;
@@ -1051,7 +1065,8 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
       {
          outReal[outIdx++] = tempReal2;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -1126,14 +1141,18 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double smoothPrice[50];
+   double local_smoothPrice[50];
+   double *smoothPrice;
    int smoothPrice_Idx;
+   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
 
    a = 0.0962;
    b = 0.5769;
+   smoothPrice = &local_smoothPrice[0];
+   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
    smoothPrice_Idx = 0;
    iTrend3 = 0.0;
    iTrend2 = iTrend3;
@@ -1383,7 +1402,8 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
       {
          outReal[outIdx++] = tempReal2;
       }
-      smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+      smoothPrice_Idx++;
+      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;

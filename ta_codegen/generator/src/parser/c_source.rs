@@ -1,7 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
-use crate::ir::{BinOp, Expr, HelperDef, HelperParam, Statement, VarType};
+use crate::ir::{BinOp, CircBuf, CircBufLayout, Expr, HelperDef, HelperParam, Statement, VarType};
 
 // --- Public API ---
 
@@ -669,14 +669,86 @@ fn parse_body(tokens: &[Token]) -> Vec<Statement> {
 
 // --- Parser ---
 
+/// Map a C scalar element type token to a [`VarType`] (`int` -> Integer, else Real).
+fn c_type_to_vartype(type_name: &str) -> VarType {
+    if type_name == "int" {
+        VarType::Integer
+    } else {
+        VarType::Real
+    }
+}
+
 struct Parser {
     tokens: Vec<Token>,
     pos: usize,
+    /// Function-local `typedef struct {...} Name;` field lists, for CIRCBUF `*_CLASS`.
+    struct_defs: HashMap<String, Vec<(String, VarType)>>,
+    /// CIRCBUF id -> element layout, captured at PROLOG so INIT/INIT_LOCAL_ONLY/DESTROY
+    /// can carry the layout without a cross-statement lookup.
+    circbufs: HashMap<String, CircBufLayout>,
 }
 
 impl Parser {
     fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, pos: 0 }
+        Self {
+            tokens,
+            pos: 0,
+            struct_defs: HashMap::new(),
+            circbufs: HashMap::new(),
+        }
+    }
+
+    fn expect_ident(&mut self) -> String {
+        match self.advance() {
+            Token::Ident(s) => s,
+            other => panic!("Expected identifier, got {other:?}"),
+        }
+    }
+
+    fn expect_int_literal(&mut self) -> i64 {
+        match self.advance() {
+            Token::IntNumber(n) => n,
+            other => panic!("CIRCBUF static size must be an int literal, got {other:?}"),
+        }
+    }
+
+    /// Resolve the element layout for a CIRCBUF macro: `*_CLASS` looks up the typedef'd
+    /// struct fields (field-split storage); otherwise a scalar `Plain` layout.
+    fn circbuf_layout(&self, macro_name: &str, type_name: &str) -> CircBufLayout {
+        if macro_name.ends_with("_CLASS") {
+            let fields = self.struct_defs.get(type_name).cloned().unwrap_or_else(|| {
+                panic!(
+                    "CIRCBUF *_CLASS: unknown struct '{type_name}' \
+                     (typedef must precede PROLOG_CLASS in the function body)"
+                )
+            });
+            CircBufLayout::Class(fields)
+        } else {
+            CircBufLayout::Plain(c_type_to_vartype(type_name))
+        }
+    }
+
+    /// Parse a function-local `typedef struct { <type> <field>; ... } Name;` and record its
+    /// fields in `struct_defs` for CIRCBUF `*_CLASS`. Emits no code (storage is the Prolog's).
+    fn parse_typedef_struct(&mut self) -> Statement {
+        self.advance(); // typedef
+        match self.advance() {
+            Token::Ident(ref s) if s == "struct" => {}
+            other => panic!("Expected 'struct' after typedef, got {other:?}"),
+        }
+        self.expect(&Token::LBrace);
+        let mut fields = Vec::new();
+        while self.peek() != Some(&Token::RBrace) {
+            let ty = c_type_to_vartype(&self.expect_ident());
+            let fname = self.expect_ident();
+            self.consume_semicolon();
+            fields.push((fname, ty));
+        }
+        self.expect(&Token::RBrace);
+        let name = self.expect_ident();
+        self.consume_semicolon();
+        self.struct_defs.insert(name, fields);
+        Statement::Block { body: vec![] }
     }
 
     fn peek(&self) -> Option<&Token> {
@@ -778,6 +850,7 @@ impl Parser {
                 self.consume_semicolon();
                 Statement::Continue
             }
+            Some(Token::Ident(ref s)) if s == "typedef" => self.parse_typedef_struct(),
             Some(Token::Ident(ref s)) if Self::is_macro_decl(s) => self.parse_macro_decl(),
             Some(Token::Star) => self.parse_pointer_deref_assign(),
             // (void)identifier; — suppress-unused-variable cast, treat as no-op
@@ -835,8 +908,9 @@ impl Parser {
                 | "CONSTANT_INTEGER"
                 | "CIRCBUF_PROLOG"
                 | "CIRCBUF_PROLOG_CLASS"
-                | "CIRCBUF_CONSTRUCT"
+                | "CIRCBUF_INIT"
                 | "CIRCBUF_INIT_CLASS"
+                | "CIRCBUF_INIT_LOCAL_ONLY"
                 | "CIRCBUF_DESTROY"
                 | "CIRCBUF_NEXT"
                 | "HILBERT_VARIABLES"
@@ -900,15 +974,8 @@ impl Parser {
                     init: None,
                 }
             }
-            "ARRAY_ALLOC"
-            | "ARRAY_FREE"
-            | "CIRCBUF_PROLOG"
-            | "CIRCBUF_PROLOG_CLASS"
-            | "CIRCBUF_CONSTRUCT"
-            | "CIRCBUF_INIT_CLASS"
-            | "CIRCBUF_DESTROY"
-            | "CIRCBUF_NEXT" => {
-                // Skip all tokens until matching RParen, then semicolon
+            "ARRAY_ALLOC" | "ARRAY_FREE" => {
+                // Skip all tokens until matching RParen, then semicolon (no-op for codegen).
                 let mut depth = 1;
                 while depth > 0 {
                     match self.advance() {
@@ -919,6 +986,69 @@ impl Parser {
                 }
                 self.consume_semicolon();
                 Statement::Expr(Expr::FuncCall(macro_name, vec![]))
+            }
+            "CIRCBUF_PROLOG" | "CIRCBUF_PROLOG_CLASS" => {
+                // CIRCBUF_PROLOG(Id, Type, StaticSize)
+                let id = self.expect_ident();
+                self.expect(&Token::Comma);
+                let type_name = self.expect_ident();
+                self.expect(&Token::Comma);
+                let static_size = self.expect_int_literal();
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                let layout = self.circbuf_layout(&macro_name, &type_name);
+                self.circbufs.insert(id.clone(), layout.clone());
+                Statement::CircBuf(CircBuf::Prolog {
+                    id,
+                    layout,
+                    static_size,
+                })
+            }
+            "CIRCBUF_INIT" | "CIRCBUF_INIT_CLASS" => {
+                // CIRCBUF_INIT(Id, Type, RuntimeSize)
+                let id = self.expect_ident();
+                self.expect(&Token::Comma);
+                let _type_name = self.expect_ident();
+                self.expect(&Token::Comma);
+                let size = self.parse_expr();
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                let layout = self
+                    .circbufs
+                    .get(&id)
+                    .cloned()
+                    .unwrap_or_else(|| panic!("CIRCBUF_INIT before PROLOG for '{id}'"));
+                Statement::CircBuf(CircBuf::Init { id, layout, size })
+            }
+            "CIRCBUF_INIT_LOCAL_ONLY" => {
+                // CIRCBUF_INIT_LOCAL_ONLY(Id, Type)
+                let id = self.expect_ident();
+                self.expect(&Token::Comma);
+                let _type_name = self.expect_ident();
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                let layout =
+                    self.circbufs.get(&id).cloned().unwrap_or_else(|| {
+                        panic!("CIRCBUF_INIT_LOCAL_ONLY before PROLOG for '{id}'")
+                    });
+                Statement::CircBuf(CircBuf::InitLocalOnly { id, layout })
+            }
+            "CIRCBUF_NEXT" => {
+                let id = self.expect_ident();
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                Statement::CircBuf(CircBuf::Next { id })
+            }
+            "CIRCBUF_DESTROY" => {
+                let id = self.expect_ident();
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                let layout = self
+                    .circbufs
+                    .get(&id)
+                    .cloned()
+                    .unwrap_or_else(|| panic!("CIRCBUF_DESTROY before PROLOG for '{id}'"));
+                Statement::CircBuf(CircBuf::Destroy { id, layout })
             }
             "CONSTANT_DOUBLE" => {
                 // CONSTANT_DOUBLE(name) = value;
@@ -3253,23 +3383,66 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
 
     #[test]
     fn test_circbuf_macros() {
-        for macro_name in &[
-            "CIRCBUF_PROLOG",
-            "CIRCBUF_PROLOG_CLASS",
-            "CIRCBUF_CONSTRUCT",
-            "CIRCBUF_INIT_CLASS",
-            "CIRCBUF_DESTROY",
-            "CIRCBUF_NEXT",
-        ] {
-            let input = format!("{macro_name}(arg1, arg2);");
-            let tokens = tokenize(&input);
-            let mut parser = Parser::new(tokens);
-            let stmt = parser.parse_statement();
-            match stmt {
-                Statement::Expr(Expr::FuncCall(name, _)) => assert_eq!(name, *macro_name),
-                other => panic!("Expected no-op for {macro_name}, got {other:?}"),
+        use crate::ir::{CircBuf, CircBufLayout};
+
+        // Plain scalar buffer (CCI shape): PROLOG / INIT / NEXT / DESTROY.
+        let src = "CIRCBUF_PROLOG(circBuffer,double,30); \
+                   CIRCBUF_INIT(circBuffer,double,optInTimePeriod); \
+                   CIRCBUF_NEXT(circBuffer); \
+                   CIRCBUF_DESTROY(circBuffer);";
+        let mut parser = Parser::new(tokenize(src));
+        let stmts = parser.parse_statements();
+        match &stmts[0] {
+            Statement::CircBuf(CircBuf::Prolog {
+                id,
+                layout,
+                static_size,
+            }) => {
+                assert_eq!(id, "circBuffer");
+                assert_eq!(*static_size, 30);
+                assert!(matches!(layout, CircBufLayout::Plain(VarType::Real)));
             }
+            other => panic!("expected Prolog, got {other:?}"),
         }
+        assert!(
+            matches!(&stmts[1], Statement::CircBuf(CircBuf::Init { id, .. }) if id == "circBuffer")
+        );
+        assert!(
+            matches!(&stmts[2], Statement::CircBuf(CircBuf::Next { id }) if id == "circBuffer")
+        );
+        assert!(
+            matches!(&stmts[3], Statement::CircBuf(CircBuf::Destroy { id, .. }) if id == "circBuffer")
+        );
+
+        // Class buffer (MFI shape): function-local typedef + PROLOG_CLASS + INIT_LOCAL_ONLY.
+        let src2 = "typedef struct { double positive; double negative; } MoneyFlow; \
+                    CIRCBUF_PROLOG_CLASS(mflow,MoneyFlow,50); \
+                    CIRCBUF_INIT_LOCAL_ONLY(mflow,MoneyFlow);";
+        let mut parser2 = Parser::new(tokenize(src2));
+        let stmts2 = parser2.parse_statements();
+        let prolog = stmts2
+            .iter()
+            .find_map(|s| match s {
+                Statement::CircBuf(cb @ CircBuf::Prolog { .. }) => Some(cb),
+                _ => None,
+            })
+            .expect("expected a Prolog");
+        if let CircBuf::Prolog {
+            layout: CircBufLayout::Class(fields),
+            static_size,
+            ..
+        } = prolog
+        {
+            assert_eq!(*static_size, 50);
+            assert_eq!(fields.len(), 2);
+            assert_eq!(fields[0].0, "positive");
+            assert_eq!(fields[1].0, "negative");
+        } else {
+            panic!("expected Class prolog, got {prolog:?}");
+        }
+        assert!(stmts2
+            .iter()
+            .any(|s| matches!(s, Statement::CircBuf(CircBuf::InitLocalOnly { .. }))));
     }
 
     #[test]

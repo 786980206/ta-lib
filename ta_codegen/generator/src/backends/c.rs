@@ -4,7 +4,10 @@ use std::cell::Cell;
 
 use crate::candle_settings::{detect_candle_settings, emit_c_unpacking};
 use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistry};
-use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement, VarType};
+use crate::ir::{
+    BinOp, CircBuf, CircBufLayout, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement,
+    VarType,
+};
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{expr_directly_contains_candle_call, pascal_word};
@@ -79,6 +82,19 @@ fn c_type_name(var_type: &VarType) -> &'static str {
         VarType::RealArray(_) | VarType::IntArray(_) => {
             unreachable!("array-typed cast is not representable in C")
         }
+    }
+}
+
+/// The field-split storage buffers backing a CIRCBUF. `Plain` is a single buffer named
+/// `<id>`; `Class` is one buffer per struct field named `<id>_<field>` (matching the
+/// `CIRCBUF_REF` access flatten). Returns `(storage_name, element_type)` pairs.
+fn circbuf_fields(id: &str, layout: &CircBufLayout) -> Vec<(String, VarType)> {
+    match layout {
+        CircBufLayout::Plain(t) => vec![(id.to_string(), t.clone())],
+        CircBufLayout::Class(fields) => fields
+            .iter()
+            .map(|(f, t)| (format!("{id}_{f}"), t.clone()))
+            .collect(),
     }
 }
 
@@ -615,6 +631,80 @@ struct CStmt<'a> {
 }
 
 impl StatementEmitter for CStmt<'_> {
+    #[allow(clippy::too_many_lines)]
+    fn circ_buf(&self, op: &CircBuf, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        match op {
+            // Storage is hoisted/declared by emit_c_var_decls; nothing to emit here.
+            CircBuf::Prolog { .. } => String::new(),
+            // Advance with conditional reset (not modulo) — matches the reference macro.
+            CircBuf::Next { id } => {
+                format!("{pad}{id}_Idx++;\n{pad}if( {id}_Idx > maxIdx_{id} ) {id}_Idx = 0;\n")
+            }
+            // Free each heap buffer iff it was allocated (pointer != the stack buffer).
+            CircBuf::Destroy { id, layout } => {
+                let mut s = String::new();
+                for (storage, _t) in circbuf_fields(id, layout) {
+                    s.push_str(&format!(
+                        "{pad}if( {storage} != &local_{storage}[0] ) TA_Free( {storage} );\n"
+                    ));
+                }
+                s
+            }
+            // Always use the stack buffer; bound from its static capacity.
+            CircBuf::InitLocalOnly { id, layout } => {
+                let fields = circbuf_fields(id, layout);
+                let mut s = String::new();
+                for (storage, _t) in &fields {
+                    s.push_str(&format!("{pad}{storage} = &local_{storage}[0];\n"));
+                }
+                let (first, first_t) = &fields[0];
+                let et = c_type_name(first_t);
+                s.push_str(&format!(
+                    "{pad}maxIdx_{id} = (int)(sizeof(local_{first})/sizeof({et}))-1;\n"
+                ));
+                s.push_str(&format!("{pad}{id}_Idx = 0;\n"));
+                s
+            }
+            // Stack-first hybrid (ta_memory.h #else): heap-allocate only when the runtime
+            // size exceeds the static stack capacity; otherwise point at the stack buffer.
+            CircBuf::Init { id, layout, size } => {
+                let fields = circbuf_fields(id, layout);
+                let sz = render_expr(size, self.ctx, self.registry, self.helpers);
+                let (first, first_t) = &fields[0];
+                let et0 = c_type_name(first_t);
+                let mut s = String::new();
+                s.push_str(&format!(
+                    "{pad}if( {sz} < 1 ) return TA_INTERNAL_ERROR(137);\n"
+                ));
+                s.push_str(&format!(
+                    "{pad}if( (int){sz} > (int)(sizeof(local_{first})/sizeof({et0})) )\n{pad}{{\n"
+                ));
+                let mut allocated: Vec<String> = Vec::new();
+                for (storage, t) in &fields {
+                    let et = c_type_name(t);
+                    s.push_str(&format!(
+                        "{pad}   {storage} = TA_Malloc( sizeof({et})*{sz} );\n"
+                    ));
+                    s.push_str(&format!("{pad}   if( !{storage} )\n{pad}   {{\n"));
+                    for prev in &allocated {
+                        s.push_str(&format!("{pad}      TA_Free( {prev} );\n"));
+                    }
+                    s.push_str(&format!("{pad}      return TA_ALLOC_ERR;\n{pad}   }}\n"));
+                    allocated.push(storage.clone());
+                }
+                s.push_str(&format!("{pad}}}\n{pad}else\n{pad}{{\n"));
+                for (storage, _t) in &fields {
+                    s.push_str(&format!("{pad}   {storage} = &local_{storage}[0];\n"));
+                }
+                s.push_str(&format!("{pad}}}\n"));
+                s.push_str(&format!("{pad}maxIdx_{id} = ({sz}-1);\n"));
+                s.push_str(&format!("{pad}{id}_Idx = 0;\n"));
+                s
+            }
+        }
+    }
+
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
     fn var_decl(&self, var_type: &VarType, name: &str, init: &Option<Expr>, indent: usize) -> String {
         let pad = " ".repeat(indent);
@@ -1578,6 +1668,46 @@ fn emit_c_var_decls(stmt: &Statement, out: &mut String, declared: &mut Vec<Strin
         Statement::Block { body } => {
             for s in body {
                 emit_c_var_decls(s, out, declared);
+            }
+        }
+        // A CIRCBUF declares, hoisted to the function top: per field-split storage a
+        // static stack buffer `<elem> local_<storage>[N]` and a pointer `<elem> *<storage>`,
+        // plus the shared `int <id>_Idx` and `int maxIdx_<id>`. (matches ta_memory.h #else)
+        Statement::CircBuf(CircBuf::Prolog {
+            id,
+            layout,
+            static_size,
+        }) => {
+            for (storage, t) in circbuf_fields(id, layout) {
+                let local = format!("local_{storage}");
+                if !declared.contains(&local) {
+                    declared.push(local.clone());
+                    let arr_t = if matches!(t, VarType::Integer) {
+                        VarType::IntArray(static_size.to_string())
+                    } else {
+                        VarType::RealArray(static_size.to_string())
+                    };
+                    out.push_str(&format!("   {};\n", c_decl(&arr_t, &local)));
+                }
+                if !declared.contains(&storage) {
+                    declared.push(storage.clone());
+                    let ptr_t = if matches!(t, VarType::Integer) {
+                        VarType::IntPointer
+                    } else {
+                        VarType::RealPointer
+                    };
+                    out.push_str(&format!("   {};\n", c_decl(&ptr_t, &storage)));
+                }
+            }
+            let idx = format!("{id}_Idx");
+            if !declared.contains(&idx) {
+                declared.push(idx.clone());
+                out.push_str(&format!("   int {idx};\n"));
+            }
+            let maxidx = format!("maxIdx_{id}");
+            if !declared.contains(&maxidx) {
+                declared.push(maxidx.clone());
+                out.push_str(&format!("   int {maxidx};\n"));
             }
         }
         _ => {}

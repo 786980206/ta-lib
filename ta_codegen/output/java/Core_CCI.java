@@ -24,13 +24,13 @@
       int lookbackTotal = 0;
       double[] circBuffer;
       int circBuffer_Idx = 0;
+      int maxIdx_circBuffer = (30)-1;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      circBuffer_Idx = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -40,18 +40,17 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      circBuffer = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      circBuffer = new double[optInTimePeriod];
+      maxIdx_circBuffer = (optInTimePeriod)-1;
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx += 1;
-            if( (circBuffer_Idx>=optInTimePeriod) ) {
-               circBuffer_Idx = 0;
-            }
+            circBuffer_Idx++;
+            if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          }
       }
       outIdx = 0;
@@ -73,10 +72,8 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx += 1;
-         if( (circBuffer_Idx>=optInTimePeriod) ) {
-            circBuffer_Idx = 0;
-         }
+         circBuffer_Idx++;
+         if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;
@@ -103,7 +100,7 @@
       int lookbackTotal = 0;
       double[] circBuffer;
       int circBuffer_Idx = 0;
-      circBuffer_Idx = 0;
+      int maxIdx_circBuffer = (30)-1;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -113,18 +110,17 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      circBuffer = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      circBuffer = new double[optInTimePeriod];
+      maxIdx_circBuffer = (optInTimePeriod)-1;
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx += 1;
-            if( (circBuffer_Idx>=optInTimePeriod) ) {
-               circBuffer_Idx = 0;
-            }
+            circBuffer_Idx++;
+            if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          }
       }
       outIdx = 0;
@@ -146,10 +142,8 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx += 1;
-         if( (circBuffer_Idx>=optInTimePeriod) ) {
-            circBuffer_Idx = 0;
-         }
+         circBuffer_Idx++;
+         if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;
@@ -176,13 +170,13 @@
       int lookbackTotal = 0;
       double[] circBuffer;
       int circBuffer_Idx = 0;
+      int maxIdx_circBuffer = (30)-1;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      circBuffer_Idx = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -192,18 +186,17 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      circBuffer = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      circBuffer = new double[optInTimePeriod];
+      maxIdx_circBuffer = (optInTimePeriod)-1;
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx += 1;
-            if( (circBuffer_Idx>=optInTimePeriod) ) {
-               circBuffer_Idx = 0;
-            }
+            circBuffer_Idx++;
+            if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          }
       }
       outIdx = 0;
@@ -225,10 +218,8 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx += 1;
-         if( (circBuffer_Idx>=optInTimePeriod) ) {
-            circBuffer_Idx = 0;
-         }
+         circBuffer_Idx++;
+         if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;
@@ -255,7 +246,7 @@
       int lookbackTotal = 0;
       double[] circBuffer;
       int circBuffer_Idx = 0;
-      circBuffer_Idx = 0;
+      int maxIdx_circBuffer = (30)-1;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -265,18 +256,17 @@
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      circBuffer = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      circBuffer = new double[optInTimePeriod];
+      maxIdx_circBuffer = (optInTimePeriod)-1;
       circBuffer_Idx = 0;
       i = (startIdx-lookbackTotal);
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx += 1;
-            if( (circBuffer_Idx>=optInTimePeriod) ) {
-               circBuffer_Idx = 0;
-            }
+            circBuffer_Idx++;
+            if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          }
       }
       outIdx = 0;
@@ -298,10 +288,8 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx += 1;
-         if( (circBuffer_Idx>=optInTimePeriod) ) {
-            circBuffer_Idx = 0;
-         }
+         circBuffer_Idx++;
+         if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;

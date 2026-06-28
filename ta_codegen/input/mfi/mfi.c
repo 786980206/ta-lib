@@ -9,28 +9,10 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     double tempValue1, tempValue2;
     int lookbackTotal, outIdx, i, today;
 
-    double *mflow_positive;
-    double *mflow_negative;
-    int mflow_Idx;
+    typedef struct { double positive; double negative; } MoneyFlow;
+    CIRCBUF_PROLOG_CLASS( mflow, MoneyFlow, 50 );
 
-    mflow_Idx = 0;
-    mflow_positive = malloc((optInTimePeriod) * sizeof(double));
-    if( !mflow_positive )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_ALLOC_ERR;
-    }
-    mflow_negative = malloc((optInTimePeriod) * sizeof(double));
-    if( !mflow_negative )
-    {
-    free(mflow_positive);
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_ALLOC_ERR;
-    }
-    memset(mflow_positive, 0, (optInTimePeriod) * sizeof(double));
-    memset(mflow_negative, 0, (optInTimePeriod) * sizeof(double));
+    CIRCBUF_INIT_CLASS( mflow, MoneyFlow, optInTimePeriod );
 
     *outBegIdx = 0;
     *outNBElement = 0;
@@ -44,8 +26,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
     {
-    free(mflow_positive);
-    free(mflow_negative);
+    CIRCBUF_DESTROY(mflow);
     return TA_SUCCESS;
     }
 
@@ -84,7 +65,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     mflow_negative[mflow_Idx] = 0.0;
     }
 
-    mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+    CIRCBUF_NEXT(mflow);
     }
 
     /* The following two equations are equivalent:
@@ -132,7 +113,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     mflow_negative[mflow_Idx] = 0.0;
     }
 
-    mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+    CIRCBUF_NEXT(mflow);
     }
     }
 
@@ -172,11 +153,10 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     else
     outReal[outIdx++] = 100.0*(posSumMF/tempValue1);
 
-    mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+    CIRCBUF_NEXT(mflow);
     }
 
-    free(mflow_positive);
-    free(mflow_negative);
+    CIRCBUF_DESTROY(mflow);
 
     *outBegIdx = startIdx;
     *outNBElement = outIdx;

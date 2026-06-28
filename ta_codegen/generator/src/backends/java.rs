@@ -3,7 +3,10 @@ use std::collections::{HashMap, HashSet};
 
 use crate::candle_settings::{detect_candle_settings, emit_java_unpacking};
 use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistry};
-use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement, VarType};
+use crate::ir::{
+    BinOp, CircBuf, CircBufLayout, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement,
+    VarType,
+};
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
@@ -54,6 +57,29 @@ fn is_boolean_expr(expr: &Expr) -> bool {
 /// Check if an expression is an integer literal with a specific value.
 fn is_int_literal(expr: &Expr, value: i64) -> bool {
     matches!(expr, Expr::IntLiteral(v) if *v == value)
+}
+
+/// The heap array storage names for a CIRCBUF. `Plain` is a single array named `<id>`;
+/// `Class` is one array per struct field named `<id>_<field>` (matching the `CIRCBUF_REF`
+/// access flatten). Returns `(array_name, element_type)` pairs. Java arrays are always
+/// heap-allocated via `new[]` (no stack form).
+fn circbuf_arrays(id: &str, layout: &CircBufLayout) -> Vec<(String, VarType)> {
+    match layout {
+        CircBufLayout::Plain(t) => vec![(id.to_string(), t.clone())],
+        CircBufLayout::Class(fields) => fields
+            .iter()
+            .map(|(f, t)| (format!("{id}_{f}"), t.clone()))
+            .collect(),
+    }
+}
+
+/// Java scalar element type for a CIRCBUF buffer (`double` / `int`).
+fn java_circbuf_elem(t: &VarType) -> &'static str {
+    if matches!(t, VarType::Integer) {
+        "int"
+    } else {
+        "double"
+    }
 }
 
 /// Collect all variable names used in `AddressOf(Var(name))` contexts.
@@ -127,7 +153,8 @@ fn collect_address_of_vars_stmt(stmt: &Statement, vars: &mut HashSet<String>) {
         Statement::VarDecl { init: None, .. }
         | Statement::Return { value: None }
         | Statement::Break
-        | Statement::Continue => {}
+        | Statement::Continue
+        | Statement::CircBuf(_) => {}
     }
 }
 
@@ -542,6 +569,22 @@ fn gen_func_inner(
 
     // Declare local variables
     for stmt in body {
+        // A CIRCBUF prolog declares heap arrays (+ index/bound) at the function top.
+        // maxIdx is seeded here (static_size-1) so INIT_LOCAL_ONLY (HT) has a valid
+        // bound and Java definite-assignment is satisfied.
+        if let Statement::CircBuf(CircBuf::Prolog {
+            id,
+            layout,
+            static_size,
+        }) = stmt
+        {
+            for (arr, t) in circbuf_arrays(id, layout) {
+                out.push_str(&format!("      {}[] {arr};\n", java_circbuf_elem(&t)));
+            }
+            out.push_str(&format!("      int {id}_Idx = 0;\n"));
+            out.push_str(&format!("      int maxIdx_{id} = ({static_size})-1;\n"));
+            continue;
+        }
         if let Statement::VarDecl { var_type, name, .. } = stmt {
             let java_decl = if matype_vars.contains(name) {
                 format!("MAType {name}")
@@ -769,6 +812,46 @@ struct JavaStmt<'a> {
 }
 
 impl StatementEmitter for JavaStmt<'_> {
+    fn circ_buf(&self, op: &CircBuf, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        match op {
+            // Prolog: arrays + index/bound declared at the function top by the decl pass.
+            // Destroy: Java arrays are GC-managed — no explicit free.
+            CircBuf::Prolog { .. } | CircBuf::Destroy { .. } => String::new(),
+            // Advance with conditional reset (not modulo) — matches the reference macro.
+            CircBuf::Next { id } => {
+                format!("{pad}{id}_Idx++;\n{pad}if( {id}_Idx > maxIdx_{id} ) {{ {id}_Idx = 0; }}\n")
+            }
+            // Runtime-sized: allocate each array to `size` (Java zero-fills new arrays).
+            CircBuf::Init { id, layout, size } => {
+                let sz = render_expr(size, self.ctx, self.registry, self.helpers);
+                let mut s = String::new();
+                // Parity with the reference CIRCBUF_INIT guard (ta_memory.h _JAVA branch).
+                s.push_str(&format!("{pad}if( {sz} < 1 ) return RetCode.AllocErr;\n"));
+                for (arr, t) in circbuf_arrays(id, layout) {
+                    s.push_str(&format!(
+                        "{pad}{arr} = new {}[{sz}];\n",
+                        java_circbuf_elem(&t)
+                    ));
+                }
+                s.push_str(&format!("{pad}maxIdx_{id} = ({sz})-1;\n"));
+                s.push_str(&format!("{pad}{id}_Idx = 0;\n"));
+                s
+            }
+            // Always the static capacity; bound was seeded in the prolog (maxIdx + 1).
+            CircBuf::InitLocalOnly { id, layout } => {
+                let mut s = String::new();
+                for (arr, t) in circbuf_arrays(id, layout) {
+                    s.push_str(&format!(
+                        "{pad}{arr} = new {}[maxIdx_{id}+1];\n",
+                        java_circbuf_elem(&t)
+                    ));
+                }
+                s
+            }
+        }
+    }
+
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
     fn var_decl(&self, var_type: &VarType, name: &str, init: &Option<Expr>, indent: usize) -> String {
         let pad = " ".repeat(indent);

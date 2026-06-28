@@ -70,8 +70,9 @@
       double constDeg2RadBy360 = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPhase = 0;
@@ -86,7 +87,7 @@
       }
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
       constDeg2RadBy360 = (tempReal*8.0);
@@ -338,7 +339,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = DCPhase;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -410,8 +412,9 @@
       double constDeg2RadBy360 = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPhase = 0;
@@ -420,7 +423,7 @@
       double realPart = 0;
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
       constDeg2RadBy360 = (tempReal*8.0);
@@ -672,7 +675,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = DCPhase;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -744,8 +748,9 @@
       double constDeg2RadBy360 = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPhase = 0;
@@ -760,7 +765,7 @@
       }
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
       constDeg2RadBy360 = (tempReal*8.0);
@@ -1012,7 +1017,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = DCPhase;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -1084,8 +1090,9 @@
       double constDeg2RadBy360 = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPhase = 0;
@@ -1094,7 +1101,7 @@
       double realPart = 0;
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
       constDeg2RadBy360 = (tempReal*8.0);
@@ -1346,7 +1353,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = DCPhase;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;

@@ -27,17 +27,18 @@
       double[] mflow_positive;
       double[] mflow_negative;
       int mflow_Idx = 0;
+      int maxIdx_mflow = (50)-1;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      mflow_positive = new double[optInTimePeriod];
+      mflow_negative = new double[optInTimePeriod];
+      maxIdx_mflow = (optInTimePeriod)-1;
       mflow_Idx = 0;
-      mflow_positive = new double[(int)((optInTimePeriod*1))];
-      mflow_negative = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-      java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;
       outNBElement.value = 0;
       lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -70,7 +71,8 @@
             mflow_positive[mflow_Idx] = 0.0;
             mflow_negative[mflow_Idx] = 0.0;
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       if( (today>startIdx) ) {
          tempValue1 = (posSumMF+negSumMF);
@@ -99,7 +101,8 @@
                mflow_positive[mflow_Idx] = 0.0;
                mflow_negative[mflow_Idx] = 0.0;
             }
-            mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+            mflow_Idx++;
+            if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
          }
       }
       while( (today<=endIdx) ) {
@@ -127,7 +130,8 @@
          } else {
             outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
@@ -156,11 +160,12 @@
       double[] mflow_positive;
       double[] mflow_negative;
       int mflow_Idx = 0;
+      int maxIdx_mflow = (50)-1;
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      mflow_positive = new double[optInTimePeriod];
+      mflow_negative = new double[optInTimePeriod];
+      maxIdx_mflow = (optInTimePeriod)-1;
       mflow_Idx = 0;
-      mflow_positive = new double[(int)((optInTimePeriod*1))];
-      mflow_negative = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-      java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;
       outNBElement.value = 0;
       lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -193,7 +198,8 @@
             mflow_positive[mflow_Idx] = 0.0;
             mflow_negative[mflow_Idx] = 0.0;
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       if( (today>startIdx) ) {
          tempValue1 = (posSumMF+negSumMF);
@@ -222,7 +228,8 @@
                mflow_positive[mflow_Idx] = 0.0;
                mflow_negative[mflow_Idx] = 0.0;
             }
-            mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+            mflow_Idx++;
+            if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
          }
       }
       while( (today<=endIdx) ) {
@@ -250,7 +257,8 @@
          } else {
             outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
@@ -279,17 +287,18 @@
       double[] mflow_positive;
       double[] mflow_negative;
       int mflow_Idx = 0;
+      int maxIdx_mflow = (50)-1;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      mflow_positive = new double[optInTimePeriod];
+      mflow_negative = new double[optInTimePeriod];
+      maxIdx_mflow = (optInTimePeriod)-1;
       mflow_Idx = 0;
-      mflow_positive = new double[(int)((optInTimePeriod*1))];
-      mflow_negative = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-      java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;
       outNBElement.value = 0;
       lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -322,7 +331,8 @@
             mflow_positive[mflow_Idx] = 0.0;
             mflow_negative[mflow_Idx] = 0.0;
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       if( (today>startIdx) ) {
          tempValue1 = (posSumMF+negSumMF);
@@ -351,7 +361,8 @@
                mflow_positive[mflow_Idx] = 0.0;
                mflow_negative[mflow_Idx] = 0.0;
             }
-            mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+            mflow_Idx++;
+            if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
          }
       }
       while( (today<=endIdx) ) {
@@ -379,7 +390,8 @@
          } else {
             outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
@@ -408,11 +420,12 @@
       double[] mflow_positive;
       double[] mflow_negative;
       int mflow_Idx = 0;
+      int maxIdx_mflow = (50)-1;
+      if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+      mflow_positive = new double[optInTimePeriod];
+      mflow_negative = new double[optInTimePeriod];
+      maxIdx_mflow = (optInTimePeriod)-1;
       mflow_Idx = 0;
-      mflow_positive = new double[(int)((optInTimePeriod*1))];
-      mflow_negative = new double[(int)((optInTimePeriod*1))];
-      java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-      java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
       outBegIdx.value = 0;
       outNBElement.value = 0;
       lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -445,7 +458,8 @@
             mflow_positive[mflow_Idx] = 0.0;
             mflow_negative[mflow_Idx] = 0.0;
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       if( (today>startIdx) ) {
          tempValue1 = (posSumMF+negSumMF);
@@ -474,7 +488,8 @@
                mflow_positive[mflow_Idx] = 0.0;
                mflow_negative[mflow_Idx] = 0.0;
             }
-            mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+            mflow_Idx++;
+            if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
          }
       }
       while( (today<=endIdx) ) {
@@ -502,7 +517,8 @@
          } else {
             outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
          }
-         mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+         mflow_Idx++;
+         if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;

@@ -72,8 +72,9 @@
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
@@ -85,7 +86,7 @@
       }
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -318,7 +319,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = tempReal2;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -392,14 +394,15 @@
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -632,7 +635,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = tempReal2;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -706,8 +710,9 @@
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
@@ -719,7 +724,7 @@
       }
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -952,7 +957,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = tempReal2;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -1026,14 +1032,15 @@
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice = new double[50];
+      double[] smoothPrice;
       int smoothPrice_Idx = 0;
+      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
       a = 0.0962;
       b = 0.5769;
-      smoothPrice_Idx = 0;
+      smoothPrice = new double[maxIdx_smoothPrice+1];
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -1266,7 +1273,8 @@
          if( (today>=startIdx) ) {
             outReal[outIdx++] = tempReal2;
          }
-         smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+         smoothPrice_Idx++;
+         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;

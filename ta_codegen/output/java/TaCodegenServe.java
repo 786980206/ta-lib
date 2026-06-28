@@ -4785,13 +4785,13 @@ class Core {
           int lookbackTotal = 0;
           double[] circBuffer;
           int circBuffer_Idx = 0;
+          int maxIdx_circBuffer = (30)-1;
           if( startIdx < 0 ) {
              return RetCode.OutOfRangeStartIndex ;
           }
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
-          circBuffer_Idx = 0;
           lookbackTotal = (optInTimePeriod-1);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
@@ -4801,18 +4801,17 @@ class Core {
              outNBElement.value = 0;
              return RetCode.Success ;
           }
-          circBuffer = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          circBuffer = new double[optInTimePeriod];
+          maxIdx_circBuffer = (optInTimePeriod)-1;
           circBuffer_Idx = 0;
           i = (startIdx-lookbackTotal);
           if( (optInTimePeriod>1) ) {
              while( (i<startIdx) ) {
                 circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
                 i += 1;
-                circBuffer_Idx += 1;
-                if( (circBuffer_Idx>=optInTimePeriod) ) {
-                   circBuffer_Idx = 0;
-                }
+                circBuffer_Idx++;
+                if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              }
           }
           outIdx = 0;
@@ -4834,10 +4833,8 @@ class Core {
              } else {
                 outReal[outIdx++] = 0.0;
              }
-             circBuffer_Idx += 1;
-             if( (circBuffer_Idx>=optInTimePeriod) ) {
-                circBuffer_Idx = 0;
-             }
+             circBuffer_Idx++;
+             if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              i += 1;
           } while( (i<=endIdx) );
           outNBElement.value = outIdx;
@@ -4864,7 +4861,7 @@ class Core {
           int lookbackTotal = 0;
           double[] circBuffer;
           int circBuffer_Idx = 0;
-          circBuffer_Idx = 0;
+          int maxIdx_circBuffer = (30)-1;
           lookbackTotal = (optInTimePeriod-1);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
@@ -4874,18 +4871,17 @@ class Core {
              outNBElement.value = 0;
              return RetCode.Success ;
           }
-          circBuffer = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          circBuffer = new double[optInTimePeriod];
+          maxIdx_circBuffer = (optInTimePeriod)-1;
           circBuffer_Idx = 0;
           i = (startIdx-lookbackTotal);
           if( (optInTimePeriod>1) ) {
              while( (i<startIdx) ) {
                 circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
                 i += 1;
-                circBuffer_Idx += 1;
-                if( (circBuffer_Idx>=optInTimePeriod) ) {
-                   circBuffer_Idx = 0;
-                }
+                circBuffer_Idx++;
+                if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              }
           }
           outIdx = 0;
@@ -4907,10 +4903,8 @@ class Core {
              } else {
                 outReal[outIdx++] = 0.0;
              }
-             circBuffer_Idx += 1;
-             if( (circBuffer_Idx>=optInTimePeriod) ) {
-                circBuffer_Idx = 0;
-             }
+             circBuffer_Idx++;
+             if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              i += 1;
           } while( (i<=endIdx) );
           outNBElement.value = outIdx;
@@ -4937,13 +4931,13 @@ class Core {
           int lookbackTotal = 0;
           double[] circBuffer;
           int circBuffer_Idx = 0;
+          int maxIdx_circBuffer = (30)-1;
           if( startIdx < 0 ) {
              return RetCode.OutOfRangeStartIndex ;
           }
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
-          circBuffer_Idx = 0;
           lookbackTotal = (optInTimePeriod-1);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
@@ -4953,18 +4947,17 @@ class Core {
              outNBElement.value = 0;
              return RetCode.Success ;
           }
-          circBuffer = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          circBuffer = new double[optInTimePeriod];
+          maxIdx_circBuffer = (optInTimePeriod)-1;
           circBuffer_Idx = 0;
           i = (startIdx-lookbackTotal);
           if( (optInTimePeriod>1) ) {
              while( (i<startIdx) ) {
                 circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
                 i += 1;
-                circBuffer_Idx += 1;
-                if( (circBuffer_Idx>=optInTimePeriod) ) {
-                   circBuffer_Idx = 0;
-                }
+                circBuffer_Idx++;
+                if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              }
           }
           outIdx = 0;
@@ -4986,10 +4979,8 @@ class Core {
              } else {
                 outReal[outIdx++] = 0.0;
              }
-             circBuffer_Idx += 1;
-             if( (circBuffer_Idx>=optInTimePeriod) ) {
-                circBuffer_Idx = 0;
-             }
+             circBuffer_Idx++;
+             if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              i += 1;
           } while( (i<=endIdx) );
           outNBElement.value = outIdx;
@@ -5016,7 +5007,7 @@ class Core {
           int lookbackTotal = 0;
           double[] circBuffer;
           int circBuffer_Idx = 0;
-          circBuffer_Idx = 0;
+          int maxIdx_circBuffer = (30)-1;
           lookbackTotal = (optInTimePeriod-1);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
@@ -5026,18 +5017,17 @@ class Core {
              outNBElement.value = 0;
              return RetCode.Success ;
           }
-          circBuffer = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(circBuffer, 0, (int)((optInTimePeriod*1)), 0.0);
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          circBuffer = new double[optInTimePeriod];
+          maxIdx_circBuffer = (optInTimePeriod)-1;
           circBuffer_Idx = 0;
           i = (startIdx-lookbackTotal);
           if( (optInTimePeriod>1) ) {
              while( (i<startIdx) ) {
                 circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
                 i += 1;
-                circBuffer_Idx += 1;
-                if( (circBuffer_Idx>=optInTimePeriod) ) {
-                   circBuffer_Idx = 0;
-                }
+                circBuffer_Idx++;
+                if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              }
           }
           outIdx = 0;
@@ -5059,10 +5049,8 @@ class Core {
              } else {
                 outReal[outIdx++] = 0.0;
              }
-             circBuffer_Idx += 1;
-             if( (circBuffer_Idx>=optInTimePeriod) ) {
-                circBuffer_Idx = 0;
-             }
+             circBuffer_Idx++;
+             if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
              i += 1;
           } while( (i<=endIdx) );
           outNBElement.value = outIdx;
@@ -26604,8 +26592,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -26620,7 +26609,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
@@ -26872,7 +26861,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = DCPhase;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -26944,8 +26934,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -26954,7 +26945,7 @@ class Core {
           double realPart = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
@@ -27206,7 +27197,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = DCPhase;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -27278,8 +27270,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -27294,7 +27287,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
@@ -27546,7 +27539,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = DCPhase;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -27618,8 +27612,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -27628,7 +27623,7 @@ class Core {
           double realPart = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
@@ -27880,7 +27875,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = DCPhase;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -29118,8 +29114,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -29134,7 +29131,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
@@ -29388,7 +29385,8 @@ class Core {
                 outSine[outIdx] = Math.sin((DCPhase*deg2Rad));
                 outLeadSine[outIdx++] = Math.sin(((DCPhase+45)*deg2Rad));
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -29462,8 +29460,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -29472,7 +29471,7 @@ class Core {
           double realPart = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
@@ -29726,7 +29725,8 @@ class Core {
                 outSine[outIdx] = Math.sin((DCPhase*deg2Rad));
                 outLeadSine[outIdx++] = Math.sin(((DCPhase+45)*deg2Rad));
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -29800,8 +29800,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -29816,7 +29817,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
@@ -30070,7 +30071,8 @@ class Core {
                 outSine[outIdx] = Math.sin((DCPhase*deg2Rad));
                 outLeadSine[outIdx++] = Math.sin(((DCPhase+45)*deg2Rad));
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -30144,8 +30146,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -30154,7 +30157,7 @@ class Core {
           double realPart = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
@@ -30408,7 +30411,8 @@ class Core {
                 outSine[outIdx] = Math.sin((DCPhase*deg2Rad));
                 outLeadSine[outIdx++] = Math.sin(((DCPhase+45)*deg2Rad));
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -30488,8 +30492,9 @@ class Core {
           double rad2Deg = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPeriod = 0;
@@ -30501,7 +30506,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -30734,7 +30739,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = tempReal2;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -30808,14 +30814,15 @@ class Core {
           double rad2Deg = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPeriod = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -31048,7 +31055,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = tempReal2;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -31122,8 +31130,9 @@ class Core {
           double rad2Deg = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPeriod = 0;
@@ -31135,7 +31144,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -31368,7 +31377,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = tempReal2;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -31442,14 +31452,15 @@ class Core {
           double rad2Deg = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPeriod = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -31682,7 +31693,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outReal[outIdx++] = tempReal2;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -31764,8 +31776,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -31788,7 +31801,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -32087,7 +32100,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outInteger[outIdx++] = trend;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -32163,8 +32177,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -32181,7 +32196,7 @@ class Core {
           double leadSine = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -32480,7 +32495,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outInteger[outIdx++] = trend;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -32556,8 +32572,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -32580,7 +32597,7 @@ class Core {
           }
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -32879,7 +32896,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outInteger[outIdx++] = trend;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -32955,8 +32973,9 @@ class Core {
           double constDeg2RadBy360 = 0;
           double todayValue = 0;
           double smoothPeriod = 0;
-          double[] smoothPrice = new double[50];
+          double[] smoothPrice;
           int smoothPrice_Idx = 0;
+          int maxIdx_smoothPrice = (50)-1;
           int idx = 0;
           int DCPeriodInt = 0;
           double DCPhase = 0;
@@ -32973,7 +32992,7 @@ class Core {
           double leadSine = 0;
           a = 0.0962;
           b = 0.5769;
-          smoothPrice_Idx = 0;
+          smoothPrice = new double[maxIdx_smoothPrice+1];
           iTrend3 = 0.0;
           iTrend2 = iTrend3;
           iTrend1 = iTrend2;
@@ -33272,7 +33291,8 @@ class Core {
              if( (today>=startIdx) ) {
                 outInteger[outIdx++] = trend;
              }
-             smoothPrice_Idx = ((smoothPrice_Idx+1)%50);
+             smoothPrice_Idx++;
+             if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
              today += 1;
           }
           outNBElement.value = outIdx;
@@ -38255,17 +38275,18 @@ class Core {
           double[] mflow_positive;
           double[] mflow_negative;
           int mflow_Idx = 0;
+          int maxIdx_mflow = (50)-1;
           if( startIdx < 0 ) {
              return RetCode.OutOfRangeStartIndex ;
           }
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          mflow_positive = new double[optInTimePeriod];
+          mflow_negative = new double[optInTimePeriod];
+          maxIdx_mflow = (optInTimePeriod)-1;
           mflow_Idx = 0;
-          mflow_positive = new double[(int)((optInTimePeriod*1))];
-          mflow_negative = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-          java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
           outBegIdx.value = 0;
           outNBElement.value = 0;
           lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -38298,7 +38319,8 @@ class Core {
                 mflow_positive[mflow_Idx] = 0.0;
                 mflow_negative[mflow_Idx] = 0.0;
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           if( (today>startIdx) ) {
              tempValue1 = (posSumMF+negSumMF);
@@ -38327,7 +38349,8 @@ class Core {
                    mflow_positive[mflow_Idx] = 0.0;
                    mflow_negative[mflow_Idx] = 0.0;
                 }
-                mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+                mflow_Idx++;
+                if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
              }
           }
           while( (today<=endIdx) ) {
@@ -38355,7 +38378,8 @@ class Core {
              } else {
                 outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           outBegIdx.value = startIdx;
           outNBElement.value = outIdx;
@@ -38384,11 +38408,12 @@ class Core {
           double[] mflow_positive;
           double[] mflow_negative;
           int mflow_Idx = 0;
+          int maxIdx_mflow = (50)-1;
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          mflow_positive = new double[optInTimePeriod];
+          mflow_negative = new double[optInTimePeriod];
+          maxIdx_mflow = (optInTimePeriod)-1;
           mflow_Idx = 0;
-          mflow_positive = new double[(int)((optInTimePeriod*1))];
-          mflow_negative = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-          java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
           outBegIdx.value = 0;
           outNBElement.value = 0;
           lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -38421,7 +38446,8 @@ class Core {
                 mflow_positive[mflow_Idx] = 0.0;
                 mflow_negative[mflow_Idx] = 0.0;
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           if( (today>startIdx) ) {
              tempValue1 = (posSumMF+negSumMF);
@@ -38450,7 +38476,8 @@ class Core {
                    mflow_positive[mflow_Idx] = 0.0;
                    mflow_negative[mflow_Idx] = 0.0;
                 }
-                mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+                mflow_Idx++;
+                if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
              }
           }
           while( (today<=endIdx) ) {
@@ -38478,7 +38505,8 @@ class Core {
              } else {
                 outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           outBegIdx.value = startIdx;
           outNBElement.value = outIdx;
@@ -38507,17 +38535,18 @@ class Core {
           double[] mflow_positive;
           double[] mflow_negative;
           int mflow_Idx = 0;
+          int maxIdx_mflow = (50)-1;
           if( startIdx < 0 ) {
              return RetCode.OutOfRangeStartIndex ;
           }
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          mflow_positive = new double[optInTimePeriod];
+          mflow_negative = new double[optInTimePeriod];
+          maxIdx_mflow = (optInTimePeriod)-1;
           mflow_Idx = 0;
-          mflow_positive = new double[(int)((optInTimePeriod*1))];
-          mflow_negative = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-          java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
           outBegIdx.value = 0;
           outNBElement.value = 0;
           lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -38550,7 +38579,8 @@ class Core {
                 mflow_positive[mflow_Idx] = 0.0;
                 mflow_negative[mflow_Idx] = 0.0;
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           if( (today>startIdx) ) {
              tempValue1 = (posSumMF+negSumMF);
@@ -38579,7 +38609,8 @@ class Core {
                    mflow_positive[mflow_Idx] = 0.0;
                    mflow_negative[mflow_Idx] = 0.0;
                 }
-                mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+                mflow_Idx++;
+                if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
              }
           }
           while( (today<=endIdx) ) {
@@ -38607,7 +38638,8 @@ class Core {
              } else {
                 outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           outBegIdx.value = startIdx;
           outNBElement.value = outIdx;
@@ -38636,11 +38668,12 @@ class Core {
           double[] mflow_positive;
           double[] mflow_negative;
           int mflow_Idx = 0;
+          int maxIdx_mflow = (50)-1;
+          if( optInTimePeriod < 1 ) return RetCode.AllocErr;
+          mflow_positive = new double[optInTimePeriod];
+          mflow_negative = new double[optInTimePeriod];
+          maxIdx_mflow = (optInTimePeriod)-1;
           mflow_Idx = 0;
-          mflow_positive = new double[(int)((optInTimePeriod*1))];
-          mflow_negative = new double[(int)((optInTimePeriod*1))];
-          java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
-          java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
           outBegIdx.value = 0;
           outNBElement.value = 0;
           lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
@@ -38673,7 +38706,8 @@ class Core {
                 mflow_positive[mflow_Idx] = 0.0;
                 mflow_negative[mflow_Idx] = 0.0;
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           if( (today>startIdx) ) {
              tempValue1 = (posSumMF+negSumMF);
@@ -38702,7 +38736,8 @@ class Core {
                    mflow_positive[mflow_Idx] = 0.0;
                    mflow_negative[mflow_Idx] = 0.0;
                 }
-                mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+                mflow_Idx++;
+                if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
              }
           }
           while( (today<=endIdx) ) {
@@ -38730,7 +38765,8 @@ class Core {
              } else {
                 outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
              }
-             mflow_Idx = ((mflow_Idx+1)%optInTimePeriod);
+             mflow_Idx++;
+             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
           }
           outBegIdx.value = startIdx;
           outNBElement.value = outIdx;
