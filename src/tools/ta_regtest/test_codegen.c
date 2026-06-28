@@ -282,6 +282,10 @@ typedef struct {
     /* Error tracking */
     ErrorNumber codegenError;
 
+    /* When set, build_json_request uses a large value for every IntegerRange
+     * opt param (Task 10 large-period coverage) instead of the default. */
+    int useLargePeriod;
+
     /* Timing */
     long long c_ref_total_ns;
     long long server_total_ns;
@@ -289,6 +293,67 @@ typedef struct {
     long long server_unguarded_total_ns;
     int       timing_unguarded_count;
 } CodegenRangeTestParam;
+
+/* ---- Large-period stress coverage (Task 10) ----
+ * The default codegen sweep uses each opt param's default (e.g. period 14), so a
+ * period-dependent buffer sized smaller than a larger period would never be
+ * exercised. These helpers drive a second comparison pass with every
+ * IntegerRange opt param pushed above the historical CIRCBUF static-buffer sizes
+ * (50 for MFI, 30 for CCI), catching that class of regression for ALL
+ * period-parameterized indicators. */
+
+/* A stress period for an IntegerRange opt param: above the historical CIRCBUF
+ * static buffers (50/30), clamped to [min,max] and bounded so meaningful output
+ * remains. Uses default+50 (not a fixed constant) so multi-period functions like
+ * APO/PPO/ADOSC keep their fast<slow ordering and don't collapse to an all-zero
+ * difference series (which would make the comparison pass while verifying nothing). */
+static int compute_large_int(const TA_OptInputParameterInfo *optInfo, int nbBars)
+{
+    const TA_IntegerRange *r = (const TA_IntegerRange *)optInfo->dataSet;
+    int lo = r ? (int)r->min : 1;
+    int hi = r ? (int)r->max : 1;
+    int target = (int)optInfo->defaultValue + 50;
+    if( target > hi ) target = hi;
+    if( target > nbBars - 5 ) target = nbBars - 5;
+    if( target < lo ) target = lo;
+    return target;
+}
+
+/* Set every IntegerRange opt param on the holder to its stress period; IntegerList
+ * (enums) and Real* params are left at their defaults. Returns the count that
+ * ended up strictly larger than the default (so a large-period pass is meaningful). */
+static int set_large_opt_periods(TA_ParamHolder *paramHolder,
+                                 const TA_FuncInfo *funcInfo, int nbBars)
+{
+    unsigned int i;
+    int nLarger = 0;
+    for( i = 0; i < funcInfo->nbOptInput; i++ )
+    {
+        const TA_OptInputParameterInfo *optInfo;
+        TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInfo);
+        if( optInfo->type != TA_OptInput_IntegerRange )
+            continue;
+        int large = compute_large_int(optInfo, nbBars);
+        if( large > (int)optInfo->defaultValue )
+            nLarger++;
+        TA_SetOptInputParamInteger(paramHolder, i, large);
+    }
+    return nLarger;
+}
+
+/* Restore every IntegerRange opt param to its default. */
+static void reset_opt_periods_to_default(TA_ParamHolder *paramHolder,
+                                         const TA_FuncInfo *funcInfo)
+{
+    unsigned int i;
+    for( i = 0; i < funcInfo->nbOptInput; i++ )
+    {
+        const TA_OptInputParameterInfo *optInfo;
+        TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInfo);
+        if( optInfo->type == TA_OptInput_IntegerRange )
+            TA_SetOptInputParamInteger(paramHolder, i, (int)optInfo->defaultValue);
+    }
+}
 
 /* ---- Generic JSON request builder (Task 7) ---- */
 
@@ -417,6 +482,10 @@ static int build_json_request(CodegenRangeTestParam *p,
             pos += snprintf(buf + pos, bufSize - pos, "%.15g", optInfo->defaultValue);
             break;
         case TA_OptInput_IntegerRange:
+            pos += snprintf(buf + pos, bufSize - pos, "%d",
+                p->useLargePeriod ? compute_large_int(optInfo, p->nbBars)
+                                  : (int)optInfo->defaultValue);
+            break;
         case TA_OptInput_IntegerList:
             pos += snprintf(buf + pos, bufSize - pos, "%d", (int)optInfo->defaultValue);
             break;
@@ -903,6 +972,12 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
             compare_codegen_output_generic(&params, outNb);
     }
 
+    /* Whether the backend supported this function at the default period (non-error
+     * response). Used so the large-period pass can flag a server error that appears
+     * ONLY at the large period as a real regression, not an unsupported-skip. */
+    int defaultSupported = (codegenErr == TA_TEST_PASS)
+                           && !json_is_error(params.responseBuf);
+
     /* Snapshot server timing from the full-range comparison call.
      * Both c_ref_ns and s_avg_ns are single full-range calls (apples-to-apples).
      * Note: C-ref includes ta_abstract dispatch overhead; server measures the
@@ -914,6 +989,54 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     double s_avg_ns_unguarded = (params.timing_unguarded_count > 0)
                       ? (double)params.server_unguarded_total_ns / (double)params.timing_unguarded_count
                       : 0.0;
+
+    /* ---- Large-period pass (Task 10) ----
+     * Re-run the codegen value comparison with every IntegerRange opt param pushed
+     * above the historical CIRCBUF static-buffer sizes (50/30), so period-dependent
+     * buffer regressions (the MFI/CCI overflow class) are caught. Runs after the
+     * timing snapshot (no skew); periods are restored before doRangeTest. Skipped
+     * when the default pass already failed. Note: an indicator whose large-period
+     * lookback exceeds the test history (e.g. high EMA-multiplier functions like T3)
+     * produces no output and is skipped here — such functions have no period-sized
+     * buffer, so the overflow class does not apply to them. */
+    if( params.codegenError == TA_TEST_PASS )
+    {
+        int nLarge = set_large_opt_periods(paramHolder, funcInfo, params.nbBars);
+        if( nLarge > 0 )
+        {
+            TA_Integer lbeg = 0, lnb = 0;
+            TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &lbeg, &lnb);
+            if( lnb > 0 )
+            {
+                params.lastBegIdx    = lbeg;
+                params.lastNbElement = lnb;
+                params.useLargePeriod = 1;
+                build_json_request(&params, 0, params.nbBars - 1);
+                ErrorNumber le = codegen_pipe_call(params.cp, params.requestBuf,
+                                                   params.responseBuf, JSON_BUF_SIZE);
+                if( le != TA_TEST_PASS )
+                    params.codegenError = le;
+                else if( defaultSupported && json_is_error(params.responseBuf) )
+                {
+                    /* C reference produced output at this period but the backend
+                     * errored only at the large period -- a real divergence, not an
+                     * unsupported-skip. */
+                    printf("CODEGEN MISMATCH [TA_%s]: large-period (lnb=%d) server "
+                           "error where C reference succeeded\n",
+                           funcInfo->name, (int)lnb);
+                    params.codegenError = TA_CODEGEN_RETCODE_MISMATCH;
+                }
+                else
+                    for( unsigned int o = 0; o < funcInfo->nbOutput; o++ )
+                        compare_codegen_output_generic(&params, o);
+                params.useLargePeriod = 0;
+            }
+        }
+        /* set_large_opt_periods mutated the holder (for every IntegerRange param,
+         * even when nLarge==0); always restore so doRangeTest and the next function
+         * run at the default period. */
+        reset_opt_periods_to_default(paramHolder, funcInfo);
+    }
 
     /* Run doRangeTest with the generic callback (C reference coherency only).
      * Skip when lookback exceeds data range (no output possible). */
