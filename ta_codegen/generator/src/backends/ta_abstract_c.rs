@@ -79,7 +79,13 @@ pub fn generate(
     enums: &HashMap<String, EnumDef>,
     out_base: &Path,
 ) {
-    let base = out_base.join("c").join("ta_abstract");
+    // out_base is `<root>/ta_codegen/output`, so the repo root is two levels up.
+    // Canonical cutover option B: the ta_abstract introspection layer is generated
+    // in place under `src/ta_abstract` (the shipped library), replacing gen_code.
+    // Hand-written / gen_code-only files there (ta_java_defs.h, templates/) are not
+    // produced here and are left untouched until gen_code is removed (Stage 7).
+    let repo_root = out_base.parent().unwrap().parent().unwrap();
+    let base = repo_root.join("src/ta_abstract");
     std::fs::create_dir_all(base.join("tables")).unwrap();
     std::fs::create_dir_all(base.join("frames")).unwrap();
 
@@ -132,8 +138,6 @@ pub fn generate(
     );
     write_if_changed_silent(&base.join("ta_abstract.c"), &gen_ta_abstract_c());
 
-    // out_base is `<root>/ta_codegen/output`, so the repo root is two levels up.
-    let repo_root = out_base.parent().unwrap().parent().unwrap();
     write_if_changed_silent(&base.join("ta_func_api.c"), &gen_ta_func_api_c(repo_root));
 
     // Generate include/ta_func.h — this replaces gen_code's role.
@@ -1754,11 +1758,14 @@ fn gen_ta_abstract_c() -> String {
     o.push_str("                          TA_DEF_TableWSize, TA_DEF_TableXSize,\n");
     o.push_str("                          TA_DEF_TableYSize, TA_DEF_TableZSize;\n\n");
 
+    // Declared unconditionally: the generated ta_group_idx.c always defines these
+    // (no TA_GEN_CODE guard), and the autotools `-DTA_GEN_CODE` "gc" lib (used to
+    // bootstrap gen_code) compiles ta_group_idx.c too — so the decls must be visible
+    // there as well, otherwise getGroupSize/getFuncNameByIdx reference undeclared
+    // symbols when compiled with -DTA_GEN_CODE.
     o.push_str(
-        "#ifndef TA_GEN_CODE\n\
-         \x20  extern const TA_FuncDef **TA_PerGroupFuncDef[];\n\
-         \x20  extern const unsigned int TA_PerGroupSize[];\n\
-         #endif\n\n",
+        "extern const TA_FuncDef **TA_PerGroupFuncDef[];\n\
+         extern const unsigned int TA_PerGroupSize[];\n\n",
     );
 
     // Local declarations.

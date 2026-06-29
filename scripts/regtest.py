@@ -63,6 +63,132 @@ def get_filter(args, prefix):
     return None
 
 
+# Canonical cutover task #7 (reference-as-server): the reference C library is
+# frozen at this immutable tag and checked out in a sibling git worktree, so
+# ta_ref_serve stays a true oracle even after src/ta_func becomes the generated
+# code. See docs/canonical-cutover-runbook.md.
+REF_TAG = "reference-pre-cutover"
+
+
+def _ta_ref_serve_paths(src_root, build_dir):
+    """(serve_src, lib_a, include_dirs) for building ta_ref_serve from a given
+    checkout (src_root) whose static lib lives in build_dir."""
+    c_out = os.path.join(src_root, "ta_codegen", "output", "c")
+    return (
+        os.path.join(c_out, "ta_codegen_serve.c"),
+        os.path.join(build_dir, "libta-lib.a"),
+        [
+            c_out,
+            os.path.join(src_root, "include"),
+            os.path.join(c_out, "ta_common"),
+            os.path.join(c_out, "ta_abstract"),
+            os.path.join(c_out, "ta_abstract", "frames"),
+            # ta_def_ui.h does `#include "ta_frame.h"` (frames/) and pulls in
+            # ta_abstract_serve.c, which lives under ta_codegen/input/lib/c.
+            os.path.join(src_root, "ta_codegen", "input", "lib", "c"),
+        ],
+    )
+
+
+def _compile_ta_ref_serve(serve_src, lib_a, include_dirs, bin_dir):
+    """Turn the generated C server source into the reference server: strip the
+    generated indicator + ta_common .c includes (libta-lib.a provides those),
+    add the reference headers + TA_Initialize, and link against lib_a. Returns
+    the cc exit code."""
+    import re
+    with open(serve_src) as f:
+        src_text = f.read()
+    src_text = re.sub(r'#include "ta_func/[^"]*\.c"\n', '', src_text)
+    src_text = re.sub(r'#include "ta_common/[^"]*\.c"\n', '', src_text)
+    src_text = src_text.replace(
+        '#include <stdio.h>',
+        '#include <stdio.h>\n'
+        '#include "ta_func.h"\n'
+        '#include "ta_memory.h"\n'
+        '#include "ta_utility.h"\n'
+    )
+    src_text = src_text.replace(
+        'int main(void) {',
+        'int main(void) { TA_Initialize(); TA_RestoreCandleDefaultSettings(TA_AllCandleSettings);'
+    )
+    tmp_ref = os.path.join(bin_dir, "_ta_ref_serve.c")
+    with open(tmp_ref, "w") as f:
+        f.write(src_text)
+    cmd = ["cc", "-O3", "-flto", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything"]
+    cmd += [f"-I{d}" for d in include_dirs]
+    cmd += ["-o", os.path.join(bin_dir, "ta_ref_serve"), tmp_ref, lib_a, "-lm"]
+    rc = subprocess.run(cmd).returncode
+    os.unlink(tmp_ref)
+    return rc
+
+
+def ensure_reference_serve(root, bin_dir):
+    """Build bin/ta_ref_serve, the frozen reference oracle for ta_regtest's
+    cross-language codegen verification (canonical cutover task #7).
+
+    Preferred path: build from the pinned-tag worktree (../ta-lib-ref @ REF_TAG),
+    so the oracle is independent of this tree. The tag is immutable, so the
+    reference lib + server are built once and reused.
+
+    Fallback (loud warning): if the tag/worktree is unavailable, build from the
+    CURRENT tree. That is valid PRE-cutover (this tree IS the reference today),
+    but becomes circular once src/ta_func is symlinked to the generated code, so
+    the warning must be resolved by creating the tag."""
+    print("=== Building ta_ref_serve (frozen reference oracle) ===")
+    ref_root = os.path.join(os.path.dirname(root), "ta-lib-ref")
+    ref_build = os.path.join(ref_root, "cmake-build")
+    bin_serve = os.path.join(bin_dir, "ta_ref_serve")
+
+    tag_ok = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"refs/tags/{REF_TAG}"],
+        cwd=root, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+    # Create the worktree once, from the tag.
+    if tag_ok and not os.path.isdir(ref_root):
+        print(f"  Creating reference worktree {ref_root} @ {REF_TAG}")
+        subprocess.run(["git", "worktree", "add", ref_root, REF_TAG],
+                       check=True, cwd=root)
+
+    if tag_ok and os.path.isdir(ref_root):
+        serve_src, lib_a, includes = _ta_ref_serve_paths(ref_root, ref_build)
+        # Build the frozen reference static lib once (the tag is immutable).
+        if not os.path.exists(lib_a):
+            print("  Building frozen reference libta-lib.a (one time)...")
+            os.makedirs(ref_build, exist_ok=True)
+            if not os.path.exists(os.path.join(ref_build, "CMakeCache.txt")):
+                subprocess.run(["cmake", ref_root, "-DCMAKE_BUILD_TYPE=Release"],
+                               check=True, cwd=ref_build)
+            subprocess.run(["cmake", "--build", ".", "--target", "ta-lib-static",
+                            "-j", str(os.cpu_count() or 4)], check=True, cwd=ref_build)
+        if not os.path.exists(serve_src):
+            print(f"  ta_ref_serve: FAILED — {serve_src} missing in worktree")
+            return
+        # Rebuild only if missing or older than the frozen lib (normally: never).
+        if (os.path.exists(bin_serve)
+                and os.path.getmtime(bin_serve) >= os.path.getmtime(lib_a)):
+            print("  ta_ref_serve: up to date (frozen reference unchanged)")
+            return
+        rc = _compile_ta_ref_serve(serve_src, lib_a, includes, bin_dir)
+        print("  ta_ref_serve:",
+              "OK (from pinned-tag worktree)" if rc == 0 else f"FAILED (exit {rc})")
+        return
+
+    # --- Fallback: build from the CURRENT tree (pre-cutover only) ---
+    print(f"  WARNING: tag '{REF_TAG}' / worktree ../ta-lib-ref unavailable;")
+    print(f"  WARNING: building ta_ref_serve from the CURRENT tree. Valid only")
+    print(f"  WARNING: PRE-cutover — circular once src/ta_func is generated.")
+    print(f"  WARNING: create the tag (cutover Stage 0):  git tag {REF_TAG} <commit>")
+    serve_src, lib_a, includes = _ta_ref_serve_paths(
+        root, os.path.join(root, "cmake-build"))
+    if not os.path.exists(serve_src):
+        print(f"  ta_ref_serve: SKIPPED — {serve_src} not found")
+        return
+    rc = _compile_ta_ref_serve(serve_src, lib_a, includes, bin_dir)
+    print("  ta_ref_serve:",
+          "OK (from current tree — see warning)" if rc == 0 else f"FAILED (exit {rc})")
+
+
 def main():
     if "--help" in sys.argv or "-h" in sys.argv:
         print(__doc__.strip())
@@ -119,55 +245,9 @@ def main():
                         os.remove(dst)
                     shutil.copy2(src, dst)
 
-        # Rebuild ta_ref_serve against the fresh libta-lib.a
-        # (statically linked, must be rebuilt whenever the library changes)
-        print("=== Rebuilding ta_ref_serve ===")
-        c_out = os.path.join(root, "ta_codegen/output", "c")
-        ref_serve_src = os.path.join(c_out, "ta_codegen_serve.c")
-        if os.path.exists(ref_serve_src):
-            import re as _re
-            with open(ref_serve_src) as f:
-                src_text = f.read()
-            # Strip indicator includes AND ta_common includes (libta-lib.a provides them)
-            src_text = _re.sub(r'#include "ta_func/[^"]*\.c"\n', '', src_text)
-            src_text = _re.sub(r'#include "ta_common/[^"]*\.c"\n', '', src_text)
-            # Add headers and TA_Initialize() call
-            src_text = src_text.replace(
-                '#include <stdio.h>',
-                '#include <stdio.h>\n'
-                '#include "ta_func.h"\n'
-                '#include "ta_memory.h"\n'
-                '#include "ta_utility.h"\n'
-            )
-            src_text = src_text.replace(
-                'int main(void) {',
-                'int main(void) { TA_Initialize(); TA_RestoreCandleDefaultSettings(TA_AllCandleSettings);'
-            )
-            tmp_ref = os.path.join(bin_dir, "_ta_ref_serve.c")
-            with open(tmp_ref, "w") as f:
-                f.write(src_text)
-            lib_a = os.path.join(build_dir, "libta-lib.a")
-            include_dir = os.path.join(root, "include")
-            ta_common_dir = os.path.join(c_out, "ta_common")
-            # The server #includes the ta_abstract layer; match the include paths
-            # the working C-server build (ta_codegen build) uses, or ta_def_ui.h's
-            # `#include "ta_frame.h"` (frames/) and ta_abstract_serve.c won't resolve.
-            ta_abstract_dir = os.path.join(c_out, "ta_abstract")
-            ta_frames_dir = os.path.join(ta_abstract_dir, "frames")
-            ta_abstract_serve_dir = os.path.join(root, "ta_codegen/input", "lib", "c")
-            rc_ref = subprocess.run([
-                "cc", "-O3", "-flto", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything",
-                f"-I{c_out}",
-                f"-I{include_dir}",
-                f"-I{ta_common_dir}",
-                f"-I{ta_abstract_dir}",
-                f"-I{ta_frames_dir}",
-                f"-I{ta_abstract_serve_dir}",
-                "-o", os.path.join(bin_dir, "ta_ref_serve"),
-                tmp_ref, lib_a, "-lm"
-            ]).returncode
-            os.unlink(tmp_ref)
-            print("  ta_ref_serve:", "OK" if rc_ref == 0 else f"FAILED (exit {rc_ref})")
+        # Build ta_ref_serve from the FROZEN pinned-tag reference worktree
+        # (canonical cutover task #7, reference-as-server). See ensure_reference_serve.
+        ensure_reference_serve(root, bin_dir)
 
     # 2. generate indicators
     if not no_gen_ind:

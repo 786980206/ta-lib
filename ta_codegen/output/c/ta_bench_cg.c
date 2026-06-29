@@ -15,7 +15,7 @@
 #include "ta_func/ta_func_private.h"
 
 #include "ta_common/ta_global.c"
-#include "ta_common/ta_utility.c"
+#include "ta_func/ta_utility.c"
 #include "ta_common/ta_version.c"
 #include "ta_common/ta_retcode.c"
 

@@ -28,27 +28,8 @@ int g_hideUnguarded = 0;
 #include "ta_libc.h"
 #include "ta_abstract.h"
 
-/* ---- High-resolution nanosecond timer ---- */
-static long long get_nanotime(void) {
-#ifdef __APPLE__
-    static mach_timebase_info_data_t info = {0, 0};
-    if( info.denom == 0 ) mach_timebase_info(&info);
-    uint64_t t = mach_absolute_time();
-    return (long long)(t * info.numer / info.denom);
-#elif defined(WIN32) || defined(_WIN32)
-    static LARGE_INTEGER freq = {0};
-    LARGE_INTEGER t;
-    if( freq.QuadPart == 0 ) QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&t);
-    return (t.QuadPart / freq.QuadPart) * 1000000000LL
-         + (t.QuadPart % freq.QuadPart) * 1000000000LL / freq.QuadPart;
-#else
-    struct timespec ts;
-    if( clock_gettime(CLOCK_MONOTONIC, &ts) == 0 )
-        return (long long)ts.tv_sec * 1000000000LL + (long long)ts.tv_nsec;
-    return 0;
-#endif
-}
+/* Timing now comes from each server's JSON-RPC timing_ns field (the reference
+ * baseline is ta_ref_serve, task #7), so no in-process timer is needed here. */
 
 /* ---- Language definitions ---- */
 
@@ -62,6 +43,12 @@ static const char *const argv_rust[]  = {"./ta_codegen_serve_rust", NULL};
 static const char *const argv_c[]     = {"./ta_codegen_serve_c", NULL};
 static const char *const argv_java[]  = {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL};
 static const char *const argv_dotnet[]= {"dotnet", "ta_codegen_dotnet/TaCodegenServe.dll", NULL};
+/* Reference oracle (reference-as-server, task #7): the frozen reference C
+ * library exposed as a JSON-RPC server. NOT a tested language — it is the
+ * baseline every language server (including the generated C server) is diffed
+ * against. Built from the pinned-tag worktree by scripts/regtest.py so it stays
+ * frozen once src/ta_func becomes the generated code. */
+static const char *const argv_cref[]  = {"./ta_ref_serve", NULL};
 static const CodegenLanguage ALL_LANGUAGES[] = {
     {"c",      "C",            argv_c},
     {"rust",   "Rust",         argv_rust},
@@ -274,8 +261,10 @@ typedef struct {
     /* Unstable period info */
     TA_FuncUnstId unstId;
 
-    /* Codegen pipe */
+    /* Codegen pipe (language server under test) */
     CodegenPipe *cp;
+    /* Reference oracle pipe (ta_ref_serve) — fills the comparison baseline */
+    CodegenPipe *refCp;
     char *requestBuf;
     char *responseBuf;
 
@@ -829,12 +818,55 @@ static int codegen_matches_filter(const char *filter, const char *name)
     return 0;
 }
 
+/* ---- Reference-as-server baseline (task #7) ----
+ * Parse a ta_ref_serve JSON-RPC response into the same baseline fields that
+ * compare_codegen_output_generic() diffs each language server against. This
+ * replaces the former in-process TA_CallFunc baseline so that post-cutover
+ * (when src/ta_func is the generated code) the reference comes from the frozen
+ * reference library exposed as a server, not from an in-process call that would
+ * be the generated code comparing against itself. Field names mirror
+ * compare_codegen_output_generic() exactly (output 0 has no numeric suffix).
+ * Returns the server's timing_ns (raw indicator time) for the C-ref column. */
+static double parse_ref_baseline(CodegenRangeTestParam *p)
+{
+    p->lastRetCode   = (TA_RetCode)json_get_int(p->responseBuf, "retCode");
+    p->lastBegIdx    = json_get_int(p->responseBuf, "outBegIdx");
+    p->lastNbElement = json_get_int(p->responseBuf, "outNBElement");
+
+    if( p->lastRetCode == TA_SUCCESS && p->lastNbElement > 0 )
+    {
+        for( unsigned int o = 0; o < p->funcInfo->nbOutput; o++ )
+        {
+            char fieldName[64];
+            if( p->outputIsInteger[o] )
+            {
+                if( o == 0 ) snprintf(fieldName, sizeof(fieldName), "outInteger");
+                else         snprintf(fieldName, sizeof(fieldName), "outInteger%d", (int)o);
+                json_get_int_array(p->responseBuf, fieldName,
+                                   p->outIntBufs[o], MAX_NB_TEST_ELEMENT);
+            }
+            else
+            {
+                if( o == 0 ) snprintf(fieldName, sizeof(fieldName), "outReal");
+                else         snprintf(fieldName, sizeof(fieldName), "outReal%d", (int)o);
+                json_get_double_array(p->responseBuf, fieldName,
+                                      p->outRealBufs[o], MAX_NB_TEST_ELEMENT);
+            }
+        }
+    }
+
+    int len;
+    const char *t = json_find_field(p->responseBuf, "timing_ns", &len);
+    return t ? (double)strtoll(t, NULL, 10) : 0.0;
+}
+
 /* ---- Per-function callback for TA_ForEachFunc (Task 9) ---- */
 
 typedef struct {
     const TA_History *history;
     const char       *functionFilter;
     CodegenPipe      *cp;
+    CodegenPipe      *refCp;       /* ta_ref_serve oracle (shared across languages) */
     char             *requestBuf;
     char             *responseBuf;
     ErrorNumber       error;
@@ -919,6 +951,7 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     params.nbBars      = (int)ctx->history->nbBars;
     params.unstId      = get_unst_id(funcInfo->name);
     params.cp          = ctx->cp;
+    params.refCp       = ctx->refCp;
     params.requestBuf  = ctx->requestBuf;
     params.responseBuf = ctx->responseBuf;
     params.codegenError = TA_TEST_PASS;
@@ -929,24 +962,34 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     /* Set up output buffers */
     setup_outputs(&params);
 
-    /* Warmup C reference call (cache priming) */
-    TA_Integer begIdx  = 0;
-    TA_Integer nbElem  = 0;
-    TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
-
-    /* Measure C reference call (single, post-warmup) */
-    begIdx = 0;
-    nbElem = 0;
-    long long c_ns0 = get_nanotime();
-    TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
-    long long c_ns1 = get_nanotime();
-    double c_avg_ns = (double)(c_ns1 - c_ns0);
+    /* ---- Baseline from ta_ref_serve (reference-as-server, task #7) ----
+     * The codegen comparison baseline is the reference C library exposed as a
+     * JSON-RPC server, NOT an in-process call. ta_ref_serve links the frozen
+     * pinned-tag reference and speaks the same protocol, so one request drives
+     * both it and the language server under test. Post-cutover this keeps the
+     * generated C server diffed against a frozen reference, not against itself.
+     * (doRangeTest below still calls the in-process lib for self-coherency.) */
+    build_json_request(&params, 0, params.nbBars - 1);
+    /* Warmup (discard) then measured baseline call (same request). */
+    codegen_pipe_call(params.refCp, params.requestBuf, params.responseBuf, JSON_BUF_SIZE);
+    ErrorNumber refErr = codegen_pipe_call(params.refCp, params.requestBuf,
+                                           params.responseBuf, JSON_BUF_SIZE);
+    if( refErr != TA_TEST_PASS || json_is_error(params.responseBuf) )
+    {
+        printf("FAILED (ta_ref_serve: %s for TA_%s)\n",
+               refErr != TA_TEST_PASS ? "call failed" : "no result",
+               funcInfo->name);
+        free_outputs(&params);
+        TA_ParamHolderFree(paramHolder);
+        ctx->error = (refErr != TA_TEST_PASS) ? refErr : TA_CODEGEN_RETCODE_MISMATCH;
+        ctx->failed++;
+        return;
+    }
+    double c_avg_ns = parse_ref_baseline(&params);
     params.c_ref_total_ns = (long long)c_avg_ns;
-
-    /* Save C reference results for codegen comparison */
-    params.lastRetCode  = TA_SUCCESS;
-    params.lastBegIdx   = begIdx;
-    params.lastNbElement = nbElem;
+    /* Default-period element count, captured for the doRangeTest guard below
+     * (params.lastNbElement is overwritten by the large-period pass). */
+    TA_Integer nbElem = params.lastNbElement;
 
     /* Warmup call: discard the first call to eliminate cold-start effects
      * (JVM class loading, Rust monomorphization, CPU cache priming, etc.) */
@@ -978,11 +1021,9 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     int defaultSupported = (codegenErr == TA_TEST_PASS)
                            && !json_is_error(params.responseBuf);
 
-    /* Snapshot server timing from the full-range comparison call.
-     * Both c_ref_ns and s_avg_ns are single full-range calls (apples-to-apples).
-     * Note: C-ref includes ta_abstract dispatch overhead; server measures the
-     * raw indicator call only. This is intentional — the dispatch overhead is
-     * real cost that library users pay. */
+    /* Snapshot server timing from the full-range comparison call. Both c_ref_ns
+     * (ta_ref_serve) and s_avg_ns are single full-range JSON-RPC calls measuring
+     * the raw indicator time server-side — apples-to-apples. */
     double s_avg_ns = (params.timing_count > 0)
                       ? (double)params.server_total_ns / (double)params.timing_count
                       : 0.0;
@@ -1004,33 +1045,43 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         int nLarge = set_large_opt_periods(paramHolder, funcInfo, params.nbBars);
         if( nLarge > 0 )
         {
-            TA_Integer lbeg = 0, lnb = 0;
-            TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &lbeg, &lnb);
-            if( lnb > 0 )
+            /* Large-period baseline also comes from ta_ref_serve; the same request
+             * (built with useLargePeriod) then drives the language server. */
+            params.useLargePeriod = 1;
+            build_json_request(&params, 0, params.nbBars - 1);
+            ErrorNumber lref = codegen_pipe_call(params.refCp, params.requestBuf,
+                                                 params.responseBuf, JSON_BUF_SIZE);
+            if( lref != TA_TEST_PASS )
             {
-                params.lastBegIdx    = lbeg;
-                params.lastNbElement = lnb;
-                params.useLargePeriod = 1;
-                build_json_request(&params, 0, params.nbBars - 1);
-                ErrorNumber le = codegen_pipe_call(params.cp, params.requestBuf,
-                                                   params.responseBuf, JSON_BUF_SIZE);
-                if( le != TA_TEST_PASS )
-                    params.codegenError = le;
-                else if( defaultSupported && json_is_error(params.responseBuf) )
-                {
-                    /* C reference produced output at this period but the backend
-                     * errored only at the large period -- a real divergence, not an
-                     * unsupported-skip. */
-                    printf("CODEGEN MISMATCH [TA_%s]: large-period (lnb=%d) server "
-                           "error where C reference succeeded\n",
-                           funcInfo->name, (int)lnb);
-                    params.codegenError = TA_CODEGEN_RETCODE_MISMATCH;
-                }
-                else
-                    for( unsigned int o = 0; o < funcInfo->nbOutput; o++ )
-                        compare_codegen_output_generic(&params, o);
-                params.useLargePeriod = 0;
+                params.codegenError = lref;
             }
+            else if( !json_is_error(params.responseBuf) )
+            {
+                parse_ref_baseline(&params);
+                if( params.lastNbElement > 0 )
+                {
+                    ErrorNumber le = codegen_pipe_call(params.cp, params.requestBuf,
+                                                       params.responseBuf, JSON_BUF_SIZE);
+                    if( le != TA_TEST_PASS )
+                        params.codegenError = le;
+                    else if( defaultSupported && json_is_error(params.responseBuf) )
+                    {
+                        /* Reference produced output at this period but the backend
+                         * errored only at the large period -- a real divergence, not
+                         * an unsupported-skip. */
+                        printf("CODEGEN MISMATCH [TA_%s]: large-period (lnb=%d) server "
+                               "error where C reference succeeded\n",
+                               funcInfo->name, (int)params.lastNbElement);
+                        params.codegenError = TA_CODEGEN_RETCODE_MISMATCH;
+                    }
+                    else
+                        for( unsigned int o = 0; o < funcInfo->nbOutput; o++ )
+                            compare_codegen_output_generic(&params, o);
+                }
+            }
+            /* else: reference produced no result at the large period (e.g. lookback
+             * exceeds the test history) — nothing to compare, like the old lnb==0. */
+            params.useLargePeriod = 0;
         }
         /* set_large_opt_periods mutated the holder (for every IntegerRange param,
          * even when nLarge==0); always restore so doRangeTest and the next function
@@ -1139,7 +1190,8 @@ static ErrorNumber test_codegen_for_language(
     const CodegenLanguage *lang,
     int langIndex,
     const TA_History *history,
-    const char *functionFilter)
+    const char *functionFilter,
+    CodegenPipe *refCp)
 {
     CodegenPipe cp;
     ErrorNumber errNb;
@@ -1178,6 +1230,7 @@ static ErrorNumber test_codegen_for_language(
     ctx.history        = history;
     ctx.functionFilter = functionFilter;
     ctx.cp             = &cp;
+    ctx.refCp          = refCp;
     ctx.requestBuf     = requestBuf;
     ctx.responseBuf    = responseBuf;
     ctx.error          = TA_TEST_PASS;
@@ -1573,18 +1626,37 @@ ErrorNumber test_codegen(const TA_History *history,
     printf("Codegen Multi-Language Verification\n");
     printf("=============================================\n");
 
+    /* Spawn the reference oracle once; it is the shared baseline for every
+     * language server, including the generated C server (reference-as-server,
+     * task #7). The runner no longer computes the baseline in-process. */
+    CodegenPipe refCp;
+    errNb = codegen_pipe_open(&refCp, argv_cref);
+    if( errNb != TA_TEST_PASS )
+    {
+        printf("\nFAILED: cannot start ta_ref_serve (the reference oracle).\n"
+               "        Build it via scripts/regtest.py (it builds ta_ref_serve\n"
+               "        from the pinned-tag reference worktree into bin/).\n");
+        return errNb;
+    }
+    printf("Reference oracle: ta_ref_serve (pid=%d)\n", refCp.child_pid);
+
     for( unsigned int i = 0; i < NUM_LANGUAGES; i++ )
     {
         if( !language_matches_filter(languageFilter, ALL_LANGUAGES[i].name) )
             continue;
 
         errNb = test_codegen_for_language(&ALL_LANGUAGES[i], (int)i, history,
-                                          functionFilter);
+                                          functionFilter, &refCp);
         if( errNb != TA_TEST_PASS )
+        {
+            codegen_pipe_close(&refCp);
             return errNb;
+        }
 
         langsTested++;
     }
+
+    codegen_pipe_close(&refCp);
 
     if( langsTested == 0 )
     {

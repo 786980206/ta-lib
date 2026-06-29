@@ -331,12 +331,10 @@ set(LIB_SOURCES
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_MOM.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_MULT.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_NATR.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_NVI.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_OBV.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_PLUS_DI.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_PLUS_DM.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_PPO.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_PVI.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_ROC.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_ROCP.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func/ta_ROCR.c"
@@ -468,12 +466,25 @@ if(BUILD_DEV_TOOLS)
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/gen_code/gen_code.c"
 	)
 
-	list(APPEND GEN_CODE_SOURCES ${COMMON_SOURCES})
-	list(APPEND GEN_CODE_SOURCES ${IDL_SOURCES})
+	# gen_code links the full library (indicators + abstract + common), compiled here
+	# with -DTA_GEN_CODE — mirroring the autotools gen_code (libta_func +
+	# libta_abstract_gc + libta_common). Since the cutover, the abstract introspection
+	# sources (ta_group_idx.c, ta_func_api.c, frames/ta_frame.c) and the indicators live
+	# in the ta_codegen-generated LIB_SOURCES block, so COMMON_SOURCES + IDL_SOURCES
+	# alone no longer resolve TA_PerGroupSize/TA_PerGroupFuncDef or the TA_* functions
+	# referenced by ta_frame.c. (Only ta_abstract carries TA_GEN_CODE guards, so
+	# compiling common/func with -DTA_GEN_CODE is a no-op. gen_code is removed in cutover
+	# Stage 7, taking this with it.)
+	list(APPEND GEN_CODE_SOURCES ${LIB_SOURCES})
 
 	add_executable(gen_code ${GEN_CODE_SOURCES})
 
 	target_compile_definitions(gen_code PRIVATE TA_GEN_CODE)
+
+	# The indicator sources need libm (acos/asin/fmax/...); autotools links $(LIBM).
+	if(NOT WIN32)
+		target_link_libraries(gen_code m)
+	endif()
 
 	set_target_properties(gen_code PROPERTIES
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"

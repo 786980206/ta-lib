@@ -114,28 +114,6 @@ fn main() {
     }
 }
 
-/// Strip TA_INT_* function declarations from ta_utility.h content.
-/// Removes everything between sentinel markers (inclusive).
-fn strip_ta_int_declarations(content: &str) -> String {
-    let mut result = String::new();
-    let mut skip = false;
-    for line in content.lines() {
-        if line.contains("BEGIN_TA_INT_DECLARATIONS") {
-            skip = true;
-            continue;
-        }
-        if line.contains("END_TA_INT_DECLARATIONS") {
-            skip = false;
-            continue;
-        }
-        if !skip {
-            result.push_str(line);
-            result.push('\n');
-        }
-    }
-    result
-}
-
 /// Wire parsed C source (guarded + optional private) into a FuncDef.
 fn wire_parsed_source(func_def: &mut ir::FuncDef, parsed: &parser::c_source::ParsedCSource) {
     let guarded = parsed
@@ -338,29 +316,10 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
             }
         }
 
-        // Copy ta_common from src/ — unmodified c-ref code
-        let ta_common_dst = c_dir.join("ta_common");
-        std::fs::create_dir_all(&ta_common_dst).unwrap();
-        let ta_common_src = root.join("src/ta_common");
-        for filename in &["ta_memory.h", "ta_magic_nb.h", "ta_global.h", "ta_global.c", "ta_pragma.h", "ta_retcode.c", "ta_version.c"] {
-            let src = ta_common_src.join(filename);
-            if src.exists() {
-                std::fs::copy(&src, ta_common_dst.join(filename)).unwrap();
-            }
-        }
-        // Copy ta_utility.c from src/ta_func/
-        let utility_c_src = root.join("src/ta_func/ta_utility.c");
-        if utility_c_src.exists() {
-            std::fs::copy(&utility_c_src, ta_common_dst.join("ta_utility.c")).unwrap();
-        }
-        // Generate stripped ta_utility.h (remove TA_INT_* declarations, keep macros)
-        let utility_h_src = root.join("src/ta_func/ta_utility.h");
-        if utility_h_src.exists() {
-            let content = std::fs::read_to_string(&utility_h_src).unwrap();
-            let stripped = strip_ta_int_declarations(&content);
-            std::fs::write(ta_common_dst.join("ta_utility.h"), &stripped).unwrap();
-        }
-        println!("  Copied ta_common/ -> {}", ta_common_dst.display());
+        // ta_common (ta_global/ta_retcode/ta_version + headers) and
+        // ta_func/ta_utility.{c,h} are hand-written and stay in `src/` (canonical
+        // cutover option B). The generated C lib lives in `src/` too, so the
+        // servers/unity build directly against `src/...` — no copy into output/c.
 
         // Generate ta_func_unguarded.h into include/ (public header)
         let unguarded_h = server_gen::generate_c_header_stub(all_funcs);
@@ -368,14 +327,24 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         std::fs::write(&include_path, &unguarded_h).unwrap();
         println!("  ta_func_unguarded.h -> {}", include_path.display());
 
-        // Generate ta_func_private.h into ta_codegen/output/c/ta_func/
+        // Generate ta_func_private.h into src/ta_func/ (alongside the generated indicators)
         let private_h = server_gen::generate_c_private_header(all_funcs);
-        let private_path = out_base.join("c").join("ta_func").join("ta_func_private.h");
+        let private_path = root.join("src/ta_func").join("ta_func_private.h");
         std::fs::write(&private_path, &private_h).unwrap();
         println!("  ta_func_private.h -> {}", private_path.display());
 
         // Generate ta_abstract layer from YAML definitions
         backends::ta_abstract_c::generate(all_funcs, &enums, &out_base);
+
+        // Take over gen_code's two remaining C-side scalar generators:
+        //   - the FuncUnstId enum (GENCODE SECTION 1) in the public header ta_defs.h
+        //   - the TA_SetRetCodeInfo table in ta_common/ta_retcode.c (from the csv)
+        backends::ta_defs::generate(&enums, &root.join("include/ta_defs.h"));
+        backends::retcode::generate(
+            &root.join("ta_codegen/input/lib/c/ta_retcode.c.template"),
+            &root.join("src/ta_common/ta_retcode.csv"),
+            &root.join("src/ta_common/ta_retcode.c"),
+        );
     }
 }
 
@@ -528,8 +497,13 @@ fn build_servers(backend_filter: Option<&str>) {
                 print!("  Building C server... ");
                 let c_dir = out_base.join("c");
                 let include_dir = root.join("include");
-                let ta_common_dir = c_dir.join("ta_common");
-                let ta_abstract_dir = c_dir.join("ta_abstract");
+                let src_dir = root.join("src");
+                // Option B: the whole C library (indicators + ta_common + the generated
+                // ta_abstract layer) lives in src/; output/c holds only the
+                // server/unity wrappers.
+                let ta_func_dir = src_dir.join("ta_func");
+                let ta_common_dir = src_dir.join("ta_common");
+                let ta_abstract_dir = src_dir.join("ta_abstract");
                 let ta_frames_dir = ta_abstract_dir.join("frames");
                 let ta_abstract_serve_dir = root.join("ta_codegen/input/lib/c");
                 let src = c_dir.join("ta_codegen_serve.c");
@@ -540,10 +514,12 @@ fn build_servers(backend_filter: Option<&str>) {
                         dst.to_str().unwrap(),
                         src.to_str().unwrap(),
                         &format!("-I{}", c_dir.to_str().unwrap()),
-                        &format!("-I{}", include_dir.to_str().unwrap()),
-                        &format!("-I{}", ta_common_dir.to_str().unwrap()),
                         &format!("-I{}", ta_abstract_dir.to_str().unwrap()),
                         &format!("-I{}", ta_frames_dir.to_str().unwrap()),
+                        &format!("-I{}", include_dir.to_str().unwrap()),
+                        &format!("-I{}", src_dir.to_str().unwrap()),
+                        &format!("-I{}", ta_func_dir.to_str().unwrap()),
+                        &format!("-I{}", ta_common_dir.to_str().unwrap()),
                         &format!("-I{}", ta_abstract_serve_dir.to_str().unwrap()),
                     ])
                     .args(COMMON_GCC_FLAGS)
@@ -559,15 +535,15 @@ fn build_servers(backend_filter: Option<&str>) {
                     print!("  Building C bench... ");
                     let bench_dst = bin_dir.join("ta_bench_cg");
                     let bench_inc_c = out_base.join("c");
-                    let bench_inc_func = out_base.join("c/ta_func");
                     match std::process::Command::new("gcc")
                         .args([
                             "-o",
                             bench_dst.to_str().unwrap(),
                             bench_src.to_str().unwrap(),
                             &format!("-I{}", bench_inc_c.to_str().unwrap()),
-                            &format!("-I{}", bench_inc_func.to_str().unwrap()),
                             &format!("-I{}", include_dir.to_str().unwrap()),
+                            &format!("-I{}", src_dir.to_str().unwrap()),
+                            &format!("-I{}", ta_func_dir.to_str().unwrap()),
                             &format!("-I{}", ta_common_dir.to_str().unwrap()),
                         ])
                         .args(COMMON_GCC_FLAGS)
@@ -686,7 +662,11 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     }
 
     print!("  Building shared library... ");
-    let c_dir = out_base.join("c/ta_func");
+    // out_base is `<root>/ta_codegen/output`, so the repo root is two levels up.
+    let root = out_base.parent().unwrap().parent().unwrap();
+    // The generated C library lives in src/ (option B); only the unity wrapper is
+    // a codegen artifact under output/c.
+    let c_lib_dir = root.join("src/ta_func");
     let lib_name = if cfg!(target_os = "macos") {
         "libta_codegen_funcs.dylib"
     } else {
@@ -701,27 +681,27 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     };
 
     // Generate a unified source file that includes all individual C files.
-    // This handles forward declarations (e.g., MA calls SMA/EMA/WMA).
+    // This handles forward declarations (e.g., MA calls SMA/EMA/WMA). Library
+    // sources come from src/ via -I; ta_utility.c is the hand-written helper.
     let mut unity_src = String::new();
     unity_src.push_str("/* Unity build for shared library */\n");
     unity_src.push_str("#include \"ta_func_unguarded.h\"\n");
     unity_src.push_str("#include \"ta_func_private.h\"\n");
     unity_src.push_str("#include \"ta_common/ta_global.c\"\n");
-    unity_src.push_str("#include \"ta_common/ta_utility.c\"\n");
+    unity_src.push_str("#include \"ta_func/ta_utility.c\"\n");
     unity_src.push_str("#include \"ta_common/ta_version.c\"\n");
     unity_src.push_str("#include \"ta_common/ta_retcode.c\"\n\n");
 
     let mut c_names: Vec<String> = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(&c_dir) {
+    if let Ok(entries) = std::fs::read_dir(&c_lib_dir) {
         let mut sorted: Vec<_> = entries.filter_map(|e| e.ok()).collect();
         sorted.sort_by_key(|e| e.file_name());
         for entry in sorted {
             let name = entry.file_name().to_string_lossy().to_string();
             if name.starts_with("ta_")
                 && name.ends_with(".c")
-                && name != "ta_codegen_serve.c"
-                && name != "ta_codegen_funcs.c"
-                && name != "ta_bench_cg.c"
+                // ta_utility.c is the hand-written helper, included explicitly above.
+                && name != "ta_utility.c"
             {
                 c_names.push(name);
             }
@@ -743,13 +723,12 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         unity_src.push_str(&format!("#include \"{}\"\n", name));
     }
 
-    let unity_path = c_dir.join("ta_codegen_funcs.c");
+    let unity_path = out_base.join("c").join("ta_codegen_funcs.c");
     std::fs::write(&unity_path, &unity_src).unwrap();
 
-    // out_base is `<root>/ta_codegen/output`, so the repo root is two levels up.
-    let root = out_base.parent().unwrap().parent().unwrap();
     let include_dir = root.join("include");
-    let ta_common_dir = out_base.join("c/ta_common");
+    let src_dir = root.join("src");
+    let ta_common_dir = src_dir.join("ta_common");
 
     let args = vec![
         shared_flag.to_string(),
@@ -757,8 +736,9 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         "-o".to_string(),
         dst.to_str().unwrap().to_string(),
         unity_path.to_str().unwrap().to_string(),
-        format!("-I{}", c_dir.parent().unwrap().to_str().unwrap()),
         format!("-I{}", include_dir.to_str().unwrap()),
+        format!("-I{}", src_dir.to_str().unwrap()),
+        format!("-I{}", c_lib_dir.to_str().unwrap()),
         format!("-I{}", ta_common_dir.to_str().unwrap()),
     ];
 
@@ -1096,7 +1076,7 @@ fn clean_generated_files(out_base: &Path, backend: &str) {
     let Some(backend) = backends::get(backend) else {
         return;
     };
-    let dir = out_base.join(backend.out_subdir());
+    let dir = backend.lib_output_dir(out_base);
     if !dir.exists() {
         return;
     }
@@ -1136,7 +1116,7 @@ fn generate_backend(
         return;
     };
     let output = backend.generate(func_def, enums, registry, helpers);
-    let dir = out_base.join(backend.out_subdir());
+    let dir = backend.lib_output_dir(out_base);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join(backend.file_name(func_def));
     std::fs::write(&path, &output).unwrap();

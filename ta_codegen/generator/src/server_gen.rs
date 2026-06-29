@@ -386,7 +386,7 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
 
     // Include ta_common (globals, utility functions, version, retcode)
     s.push_str("#include \"ta_common/ta_global.c\"\n");
-    s.push_str("#include \"ta_common/ta_utility.c\"\n");
+    s.push_str("#include \"ta_func/ta_utility.c\"\n");
     s.push_str("#include \"ta_common/ta_version.c\"\n");
     s.push_str("#include \"ta_common/ta_retcode.c\"\n\n");
 
