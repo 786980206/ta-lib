@@ -112,3 +112,44 @@ jobs:
           else
             echo "No changes detected in dist directory"
           fi
+
+  # Runs LAST (needs: test) so every other job tested the committed,
+  # already-generated sources. This regenerates from ta_codegen/input/ and fails
+  # if anything differs — i.e. an input edit whose generated output was never
+  # re-generated and committed.
+  regen-check:
+    name: ta_codegen output up-to-date
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout dev Branch
+        uses: actions/checkout@v6
+        with:
+          ref: dev
+
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install mcpp (ta_codegen preprocessor)
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y mcpp
+
+      - name: Regenerate all backends and verify committed output matches
+        shell: bash
+        run: |
+          # cmake + cargo are preinstalled on ubuntu-latest; generate is cargo-only.
+          python3 scripts/build.py generate
+          status="$(git status --porcelain)"
+          if [ -n "$status" ]; then
+            echo "::error::ta_codegen output is out of date. Run 'scripts/build.py generate' and commit the regenerated files."
+            echo "$status"
+            echo "----- git diff -----"
+            git --no-pager diff
+            exit 1
+          fi
+          echo "ta_codegen output matches the committed source. OK."
