@@ -1,6 +1,6 @@
 # ta_codegen Logic File Syntax Reference
 
-The `.logic` file contains the algorithm for a TA-Lib function, written in a restricted C-like syntax. The generator reads this file along with the companion `.yaml` metadata and produces native code for C, Rust, Java, .NET, and SWIG.
+The `.c` logic file contains the algorithm for a TA-Lib function, written in a restricted C-like syntax. The generator reads this file along with the companion `.yaml` metadata and produces native code for C, Rust, Java, and .NET.
 
 **No macros. No preprocessor. No GENCODE markers.** Just the algorithm.
 
@@ -253,7 +253,7 @@ int unstablePeriod = UNSTABLE_PERIOD(RSI);    // read unstable period for a func
 if( COMPATIBILITY == METASTOCK ) { ... }       // check compatibility mode
 ```
 
-`UNSTABLE_PERIOD(name)` and `COMPATIBILITY` are the only global state accessors. The generator maps them to each language's state mechanism (`self.unstable_period[FuncUnstId::Rsi as usize]` in Rust, `TA_GetUnstablePeriod(...)` in C via FFI, etc.).
+`UNSTABLE_PERIOD(name)` and `COMPATIBILITY` are the only global state accessors. The generator maps them to each language's state mechanism (`self.unstable_period[FuncUnstId::Rsi as usize]` in Rust, the `TA_GLOBALS_UNSTABLE_PERIOD(...)` macro over `TA_Globals` in C, etc.).
 
 Compatibility values: `DEFAULT`, `METASTOCK`
 
@@ -296,6 +296,6 @@ The generator handles these automatically from the YAML metadata — they do NOT
 - Not C source code — it doesn't `#include` anything or use the preprocessor
 - Not a macro template — no `#if defined(_RUST)`, no `DECLARE_DOUBLE_VAR`
 - Not a complete program — no `main()`, no function signature, no return type
-- Not language-specific — the same logic file produces all 5 target languages
+- Not language-specific — the same logic file produces all 4 target languages
 
 The logic file is **just the algorithm**, expressed in syntax that any C programmer can read and modify.

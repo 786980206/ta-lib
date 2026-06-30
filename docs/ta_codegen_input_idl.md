@@ -4,7 +4,7 @@ title: ta_codegen/input IDL Reference
 
 # ta_codegen/input IDL Reference
 
-The `ta_codegen/input/` directory is the **Interface Definition Language (IDL)** for TA-Lib functions. Each function has a subdirectory containing a YAML metadata file and a C logic file. The `ta_codegen` tool reads these definitions and generates output for all target languages (C, Rust, Java, .NET, SWIG/Python).
+The `ta_codegen/input/` directory is the **Interface Definition Language (IDL)** for TA-Lib functions. Each function has a subdirectory containing a YAML metadata file and a C logic file. The `ta_codegen` tool reads these definitions and generates output for all target languages (C, Rust, Java, .NET).
 
 ## Directory Structure
 
@@ -42,6 +42,7 @@ ta_codegen/input/
 |-------|------|----------|-------------|
 | `name` | string | yes | Parameter name (e.g., `inReal`, `inReal0`) |
 | `type` | string | yes | Data type (see [Input Types](#input-types)) |
+| `price_components` | list | for `price` | OHLCV components for a `price`-type input (e.g., `[high, low, close]`) |
 
 ### Optional input parameters
 
@@ -72,15 +73,16 @@ ta_codegen/input/
 |-----------|--------|-----------|-------------|
 | `real` | `const double[]` | `&[f64]` | Floating-point array |
 | `integer` | `const int[]` | `&[i32]` | Integer array |
-| `price` | multiple arrays | multiple slices | Candlestick data (planned) |
+| `price` | multiple arrays | multiple slices | Candlestick / OHLCV data |
 
-Price inputs will specify which OHLCV components are required:
+A `price` input names its required OHLCV components via `price_components`; the
+generator expands it into one array parameter per component:
 
 ```yaml
 inputs:
   - name: inPriceHLC
     type: price
-    components: [high, low, close]
+    price_components: [high, low, close]
 ```
 
 Available components: `open`, `high`, `low`, `close`, `volume`, `open_interest`
@@ -100,7 +102,7 @@ Each backend renders enums appropriately:
 - **C**: `TA_MAType` (typedef'd enum)
 - **Java**: `MAType` (Java enum)
 - **Rust**: `i32` (integer constants)
-- **.NET/SWIG**: `int`
+- **.NET**: `int`
 
 ## Flags
 
