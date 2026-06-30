@@ -82,8 +82,8 @@ pub fn generate(
     // out_base is `<root>/ta_codegen/output`, so the repo root is two levels up.
     // Canonical cutover option B: the ta_abstract introspection layer is generated
     // in place under `src/ta_abstract` (the shipped library), replacing gen_code.
-    // Hand-written / gen_code-only files there (ta_java_defs.h, templates/) are not
-    // produced here and are left untouched until gen_code is removed (Stage 7).
+    // gen_code and its hand-written-only files (ta_java_defs.h, templates/) were
+    // removed in the Stage 7 cutover; only the generated tables/frames live here now.
     let repo_root = out_base.parent().unwrap().parent().unwrap();
     let base = repo_root.join("src/ta_abstract");
     std::fs::create_dir_all(base.join("tables")).unwrap();
@@ -1758,11 +1758,9 @@ fn gen_ta_abstract_c() -> String {
     o.push_str("                          TA_DEF_TableWSize, TA_DEF_TableXSize,\n");
     o.push_str("                          TA_DEF_TableYSize, TA_DEF_TableZSize;\n\n");
 
-    // Declared unconditionally: the generated ta_group_idx.c always defines these
-    // (no TA_GEN_CODE guard), and the autotools `-DTA_GEN_CODE` "gc" lib (used to
-    // bootstrap gen_code) compiles ta_group_idx.c too — so the decls must be visible
-    // there as well, otherwise getGroupSize/getFuncNameByIdx reference undeclared
-    // symbols when compiled with -DTA_GEN_CODE.
+    // Declared unconditionally: the generated ta_group_idx.c always defines these,
+    // so the decls must be visible to every consumer — otherwise getGroupSize/
+    // getFuncNameByIdx would reference undeclared symbols.
     o.push_str(
         "extern const TA_FuncDef **TA_PerGroupFuncDef[];\n\
          extern const unsigned int TA_PerGroupSize[];\n\n",

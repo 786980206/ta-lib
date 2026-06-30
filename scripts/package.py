@@ -633,7 +633,6 @@ def update_package_digest(root_dir: str, results: dict, sources_digest: str, bui
     #      "sources_digest": "some_digest_value",
     #      "package_md5": "some_md5_value",
     #      "built_success": "True".
-    #      "gen_code_pass": "Disabled",
     #      "ta_regtest_pass": "True",
     #      "dist_test_pass": "False"
     #    }
@@ -663,10 +662,6 @@ def update_package_digest(root_dir: str, results: dict, sources_digest: str, bui
     # A results[] key exist for a test only if the test was executed.
     # When a test is not executed, then the corresponding digest field should not be touched here.
     # (logic in other places will force "Uknown" state when, say, the build was not successful)
-    if pdigest.gen_code_pass != "Disabled":
-        if "gen_code_pass" in results:
-            pdigest.gen_code_pass = "True" if results["gen_code_pass"] else "False"
-
     if pdigest.ta_regtest_pass != "Disabled":
         if "ta_regtest_pass" in results:
             pdigest.ta_regtest_pass = "True" if results["ta_regtest_pass"] else "False"
@@ -721,10 +716,6 @@ def update_package_digest(root_dir: str, results: dict, sources_digest: str, bui
         if pdigest.dist_test_pass == "True":
             print(f"Warning: {asset_file_name} digest says dist test pass, but build was not successful.")
             pdigest.dist_test_pass = "Unknown"
-
-        if pdigest.gen_code_pass == "True":
-            print(f"Warning: {asset_file_name} digest says gen code pass, but build was not successful.")
-            pdigest.gen_code_pass = "Unknown"
 
         if pdigest.ta_regtest_pass == "True":
             print(f"Warning: {asset_file_name} digest says ta regtest pass, but build was not successful.")

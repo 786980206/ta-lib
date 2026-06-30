@@ -1,301 +1,153 @@
-# ta_codegen Logic File Syntax Reference
+# ta_codegen Logic File (`<name>.c`) Reference
 
-The `.c` logic file contains the algorithm for a TA-Lib function, written in a restricted C-like syntax. The generator reads this file along with the companion `.yaml` metadata and produces native code for C, Rust, Java, and .NET.
+Each indicator's algorithm lives in `ta_codegen/input/<name>/<name>.c`, written as
+**plain, standard C** using the types and macros from `ta_defs.h` — essentially the
+same code you would find in `src/ta_func`. The generator parses this C
+(parser: `ta_codegen/generator/src/parser/c_source.rs`) and re-emits it for every
+backend: C, Rust, Java, .NET.
 
-**No macros. No preprocessor. No GENCODE markers.** Just the algorithm.
+There is **no bespoke DSL** — write idiomatic C. Metadata (inputs, optional params,
+outputs, flags) lives in the companion `<name>.yaml`; see
+[ta_codegen_input_idl.md](ta_codegen_input_idl.md). The generator adds parameter
+validation, the guarded/unguarded split, single-precision variants, and per-language
+naming — so the `.c` file contains only the algorithm.
 
-## Quick Example (MULT)
+## File contents
+
+Two C functions, named after the directory (`<name>`):
 
 ```c
-size_t outIdx = 0;
-size_t i = startIdx;
-while( i <= endIdx ) {
-    outReal[outIdx] = inReal0[i] * inReal1[i];
-    outIdx += 1;
-    i += 1;
+int <name>_lookback( /* optional params */ )
+{
+    return /* first valid output index */;
 }
-outNBElement = outIdx;
-outBegIdx = startIdx;
+
+TA_RetCode <name>( int startIdx, int endIdx,
+                   const double inReal[], /* optional params */,
+                   int *outBegIdx, int *outNBElement, double outReal[] )
+{
+    /* ... algorithm ... */
+    *outBegIdx    = startIdx;
+    *outNBElement = outIdx;
+    return TA_SUCCESS;
+}
 ```
+
+### Complete example — `ta_codegen/input/sma/sma.c`
+
+```c
+int sma_lookback(int optInTimePeriod)
+{
+    return optInTimePeriod - 1;
+}
+
+TA_RetCode sma(int startIdx, int endIdx, const double *inReal, int optInTimePeriod,
+               int *outBegIdx, int *outNBElement, double *outReal)
+{
+    double periodTotal, tempReal;
+    size_t i, outIdx, trailingIdx, lookbackTotal;
+
+    lookbackTotal = (size_t)(optInTimePeriod - 1);
+    if( startIdx < lookbackTotal ) {
+        startIdx = lookbackTotal;
+    }
+    if( startIdx > endIdx ) {
+        *outBegIdx = 0;
+        *outNBElement = 0;
+        return TA_SUCCESS;
+    }
+
+    periodTotal = 0.0;
+    trailingIdx = startIdx - lookbackTotal;
+    i = trailingIdx;
+    if( optInTimePeriod > 1 ) {
+        while( i < startIdx ) {
+            periodTotal += (double)(inReal[i]);
+            i = i + 1;
+        }
+    }
+
+    outIdx = 0;
+    while( i <= endIdx ) {
+        periodTotal += (double)(inReal[i]);
+        i = i + 1;
+        tempReal = periodTotal;
+        periodTotal -= (double)(inReal[trailingIdx]);
+        trailingIdx = trailingIdx + 1;
+        outReal[outIdx] = tempReal / (double)optInTimePeriod;
+        outIdx = outIdx + 1;
+    }
+
+    *outNBElement = outIdx;
+    *outBegIdx    = startIdx;
+    return TA_SUCCESS;
+}
+```
+
+Array parameters may be written either `const double inReal[]` (the common style) or
+`const double *inReal` — both parse identically.
 
 ## Types
 
-| Logic type | C | Rust | Java | Purpose |
-|---|---|---|---|---|
-| `double` | `double` | `f64` | `double` | Floating-point values |
-| `int` | `int` | `i32` | `int` | Integer parameters, counters |
-| `size_t` | `int` | `usize` | `int` | Array indices, sizes |
+| Type | Use |
+|------|-----|
+| `TA_RetCode` | main function return type |
+| `double`, `const double inReal[]`, `double outReal[]` | price inputs and outputs |
+| `int` | optional params, counters, `int *outBegIdx` / `int *outNBElement` |
+| `size_t` | array indices and counts |
 
-Use `size_t` for anything that indexes into an array or represents a count/size. Use `int` for optional parameters and integer arithmetic. Use `double` for price data and calculations.
+Outputs are written through their pointer/array parameters: `*outBegIdx = ...`,
+`*outNBElement = ...`, `outReal[outIdx] = ...`.
 
-## Variable Declarations
+Return values are the real `ta_defs.h` codes: `TA_SUCCESS`, `TA_BAD_PARAM`,
+`TA_ALLOC_ERR`. The generator maps these to each language's enum
+(`RetCode::Success` in Rust, `RetCode.Success` in Java, etc.).
 
-```c
-double periodTotal = 0.0;
-double tempReal;
-size_t i = startIdx;
-size_t outIdx = 0;
-int lookbackTotal;
-```
+## Control flow & expressions
 
-Variables can be declared with or without an initializer. All variables are mutable.
+Standard C: `if` / `else if` / `else`, `while`, `for`, `switch` / `case`; the
+arithmetic (`+ - * /`), comparison (`< <= > >= == !=`), and boolean (`&& || !`)
+operators; C-style casts (`(double)x`, `(size_t)(n - 1)`); and array indexing. Follow
+the bracing/spacing style of the existing input files.
 
-## Statements
+## `ta_defs.h` vocabulary
 
-Every statement ends with a semicolon.
+Beyond plain C, the input files use a small set of TA-Lib macros/functions that the
+generator recognizes and maps per language:
 
-### Assignment
+| Construct | Meaning |
+|---|---|
+| `TA_IS_ZERO(x)` / `TA_IS_ZERO_OR_NEG(x)` | epsilon comparison against zero |
+| `TA_GetUnstablePeriod(TA_FUNC_UNST_<NAME>)` | this function's configured unstable period |
+| `TA_COMPATIBILITY_DEFAULT` / `TA_COMPATIBILITY_METASTOCK` | compatibility-mode constants |
+| candle-settings access (CDL* patterns) | resolved via the generated candle helpers |
 
-```c
-periodTotal = 0.0;
-outReal[outIdx] = tempReal / (double)optInTimePeriod;
-outBegIdx = startIdx;
-outNBElement = outIdx;
-```
+Standard math functions (`sqrt`, `floor`, `ceil`, `fabs`, `sin`, `cos`, `atan`,
+`atan2`, `log`, `exp`, `pow`, `fmod`, …) are mapped to each language's math library.
 
-### Compound Assignment
+## Cross-indicator calls
 
-```c
-periodTotal += (double)inReal[i];
-periodTotal -= (double)inReal[trailingIdx];
-trailingIdx += 1;
-prevLoss *= (double)(optInTimePeriod - 1);
-prevGain /= (double)optInTimePeriod;
-```
-
-Supported: `+=`, `-=`, `*=`, `/=`
-
-## Control Flow
-
-### if / else if / else
+Call another indicator by its **bare lowercase name** (matching its directory) — the
+generator resolves it to the correct symbol per language and routes it to the
+*unguarded* variant to avoid double validation. From `ta_codegen/input/ma/ma.c`:
 
 ```c
-if( startIdx < lookbackTotal ) {
-    startIdx = lookbackTotal;
-}
-
-if( startIdx > endIdx ) {
-    outBegIdx = 0;
-    outNBElement = 0;
-    return SUCCESS;
-} else if( optInTimePeriod == 1 ) {
-    // degenerate case
-} else {
-    // normal path
-}
+retCode = sma( startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal );
 ```
 
-Curly braces are always required (no single-statement bodies).
+maps to `TA_SMA_Unguarded(...)` in C, `self.sma_unguarded(...)` in Rust, etc.
+`sma_lookback(...)` similarly maps to `TA_SMA_Lookback(...)` / `self.sma_lookback(...)`.
 
-### while
+## What the generator adds (do NOT write these)
 
-```c
-while( i < startIdx ) {
-    periodTotal += (double)inReal[i];
-    i += 1;
-}
-```
+- Parameter validation (NULL checks, range checks, `INTEGER_DEFAULT` substitution) and
+  the guarded `<name>` vs. unguarded `<name>_unguarded` split
+- Single-precision (`TA_S_*`) variants — generated automatically with `(double)` casts
+  on inputs
+- Per-language function signatures/naming, doc comments, file headers, imports
 
-### for (countdown)
+## What the logic file is NOT
 
-Used for iterating a fixed number of times in reverse (common in RSI and similar):
-
-```c
-for( i = optInTimePeriod; i > 0; i-- ) {
-    tempValue1 = (double)inReal[today];
-    today += 1;
-}
-```
-
-The generator maps this to idiomatic constructs per language (e.g., `for i in (1..=n).rev()` in Rust).
-
-### break / continue
-
-```c
-while( i <= endIdx ) {
-    if( someCondition ) {
-        break;
-    }
-    if( otherCondition ) {
-        continue;
-    }
-    // ...
-}
-```
-
-### return (early exit)
-
-```c
-return SUCCESS;
-```
-
-The final `return SUCCESS` at the end of the function is implicit — the generator adds it. Use explicit `return` only for early exits (empty output, degenerate cases).
-
-Return values: `SUCCESS`, `BAD_PARAM`, `ALLOC_ERR`, `INTERNAL_ERROR`. The generator maps these to each language's enum (`TA_SUCCESS` in C, `RetCode::Success` in Rust, `RetCode.Success` in Java).
-
-### switch / case
-
-For functions that dispatch to other TA functions (MA, SAR):
-
-```c
-switch( optInMAType ) {
-    case MAType_SMA:
-        retCode = SMA(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
-        break;
-    case MAType_EMA:
-        retCode = EMA(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
-        break;
-}
-```
-
-## Expressions
-
-### Arithmetic
-
-```c
-periodTotal + inReal[i]
-tempReal / (double)optInTimePeriod
-100.0 * (prevGain / tempValue1)
-optInTimePeriod - 1
-```
-
-Operators: `+`, `-`, `*`, `/`
-
-### Comparison
-
-```c
-startIdx < lookbackTotal
-i <= endIdx
-optInTimePeriod > 1
-unstablePeriod == 0
-```
-
-Operators: `<`, `<=`, `>`, `>=`, `==`, `!=`
-
-### Boolean Logic
-
-```c
-unstablePeriod == 0 && COMPATIBILITY == METASTOCK
-optInTimePeriod < 2 || optInTimePeriod > 100000
-!IS_ZERO(tempValue1)
-```
-
-Operators: `&&`, `||`, `!`
-
-### Type Casts
-
-C-style cast syntax:
-
-```c
-(double)inReal[i]          // input value to double (important for f32 inputs)
-(double)optInTimePeriod    // int param to double for division
-(size_t)(optInTimePeriod - 1)  // int expression to index
-(int)someValue             // to integer
-```
-
-### Array Access
-
-```c
-inReal[i]                  // read input
-outReal[outIdx]            // write output
-inReal[trailingIdx]        // trailing window
-```
-
-### Math Functions
-
-Standard math functions are available. The generator maps them to each language's math library:
-
-```c
-sqrt(x)
-floor(x)
-ceil(x)
-fabs(x)
-sin(x)
-cos(x)
-tan(x)
-atan(x)
-atan2(y, x)
-log(x)
-exp(x)
-pow(base, exp)
-fmod(x, y)
-```
-
-## Function Calls
-
-Call other TA-Lib functions without prefix — the generator adds the appropriate prefix/method syntax per language:
-
-```c
-retCode = SMA(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
-lookback = SMA_Lookback(optInTimePeriod);
-```
-
-The generator maps these: `TA_SMA(...)` in C, `self.sma(...)` in Rust, `sma(...)` in Java, etc.
-
-## Temp Buffers
-
-For functions that need temporary working arrays (STOCH, MACD, etc.), use VLA-style declaration:
-
-```c
-double tempBuffer[endIdx - today + 1];
-```
-
-The generator handles allocation per language (stack/heap as appropriate) and automatic cleanup. No explicit `free` needed.
-
-## Built-in Identifiers
-
-These reserved identifiers are recognized by the generator and mapped to language-specific constructs:
-
-### Global State
-
-```c
-int unstablePeriod = UNSTABLE_PERIOD(RSI);    // read unstable period for a function
-if( COMPATIBILITY == METASTOCK ) { ... }       // check compatibility mode
-```
-
-`UNSTABLE_PERIOD(name)` and `COMPATIBILITY` are the only global state accessors. The generator maps them to each language's state mechanism (`self.unstable_period[FuncUnstId::Rsi as usize]` in Rust, the `TA_GLOBALS_UNSTABLE_PERIOD(...)` macro over `TA_Globals` in C, etc.).
-
-Compatibility values: `DEFAULT`, `METASTOCK`
-
-### Zero Check
-
-```c
-if( !IS_ZERO(tempValue1) ) {
-    outReal[outIdx] = 100.0 * (prevGain / tempValue1);
-} else {
-    outReal[outIdx] = 0.0;
-}
-```
-
-`IS_ZERO(x)` tests whether `x` is within epsilon of zero (±1e-14). The generator emits the appropriate epsilon comparison per language.
-
-### Bulk Array Copy
-
-```c
-ARRAY_COPY(outReal, 0, inReal, startIdx, count);
-```
-
-Copies `count` elements from `inReal[startIdx..]` to `outReal[0..]`. The generator maps to `copy_from_slice` in Rust, `memcpy` in C, `System.arraycopy` in Java, etc. For single-precision variants, the generator automatically inserts element-wise f32→f64 conversion.
-
-## Implicit Behavior
-
-The generator handles these automatically from the YAML metadata — they do NOT appear in the logic file:
-
-- **Parameter validation** — default substitution (`INT_MIN` sentinel), range checking
-- **endIdx < startIdx check** — always generated
-- **Public/private function split** — public validates, private holds the algorithm
-- **Lookback calculation** — derived from YAML `lookback:` field
-- **startIdx adjustment** — `if( startIdx < lookbackTotal ) startIdx = lookbackTotal`
-- **Single-precision variant** — generated automatically with `(double)` casts on inputs
-- **Function signatures** — generated from YAML inputs/outputs
-- **Doc comments** — generated from YAML description
-- **File headers** — copyright, imports, module structure
-
-## What the Logic File Is NOT
-
-- Not C source code — it doesn't `#include` anything or use the preprocessor
-- Not a macro template — no `#if defined(_RUST)`, no `DECLARE_DOUBLE_VAR`
-- Not a complete program — no `main()`, no function signature, no return type
-- Not language-specific — the same logic file produces all 4 target languages
-
-The logic file is **just the algorithm**, expressed in syntax that any C programmer can read and modify.
+- Not a macro template — no `#include`, no preprocessor `#if defined(_RUST)`, no
+  `GENCODE` markers
+- Not language-specific — the same `.c` file produces all four target languages

@@ -31,11 +31,12 @@ See `ta_codegen/generator/CLAUDE.md` for ta_codegen internals and
 ### Source of Truth: ta_codegen/input/
 
 `ta_codegen/input/` is the single source of truth for ALL generated code
-(~164 indicator definitions).
+(161 indicator definitions).
 
 - **YAML** = data, config, enums, IDL. Pure definitions with no logic.
-  - RetCode values, FuncUnstId mappings, MAType enum, CandleSetting defaults, Compatibility enum (in `ta_codegen/input/types/`)
-  - Function metadata (inputs, outputs, optional params, groups)
+  - MAType and FuncUnstId enums (`ta_codegen/input/enums.yaml`)
+  - Function metadata (inputs, outputs, optional params, groups) — per-function `<name>/<name>.yaml`
+  - Shared library types — RetCode, CandleSetting defaults, Compatibility — live as templates under `ta_codegen/input/lib/` (e.g. `lib/rust/types.rs`, `lib/c/ta_retcode.c.template`), not YAML
 - **C source files** = logic. Anything with computation.
   - Indicator implementations (`ta_codegen/input/<name>/<name>.c`)
   - Helper functions (`ta_codegen/input/helpers/`)

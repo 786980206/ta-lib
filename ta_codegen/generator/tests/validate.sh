@@ -40,8 +40,8 @@ for dir in ../../ta_codegen/input/*/; do
 
     UPPER=$(echo "$name" | tr '[:lower:]' '[:upper:]')
     for f in \
-        "../../ta_codegen/output/c/ta_func/ta_${UPPER}.c" \
-        "../../ta_codegen/output/rust/${name}.rs" \
+        "../../src/ta_func/ta_${UPPER}.c" \
+        "../../ta_codegen/output/rust/src/ta_func/${name}.rs" \
         "../../ta_codegen/output/java/Core_${UPPER}.java" \
         "../../ta_codegen/output/dotnet/Core_${UPPER}.h"; do
         if [ -s "$f" ]; then
@@ -60,10 +60,10 @@ for dir in ../../ta_codegen/input/*/; do
     [ -f "$dir/${name}.yaml" ] && [ -f "$dir/${name}.c" ] || continue
 
     UPPER=$(echo "$name" | tr '[:lower:]' '[:upper:]')
-    c_file="../../ta_codegen/output/c/ta_func/ta_${UPPER}.c"
+    c_file="../../src/ta_func/ta_${UPPER}.c"
     [ -s "$c_file" ] || continue
 
-    for variant in "TA_${UPPER}_Logic" "TA_INT_${UPPER}" "TA_${UPPER}_Lookback" "TA_${UPPER}"; do
+    for variant in "TA_${UPPER}_Unguarded" "TA_${UPPER}_Lookback" "TA_${UPPER}"; do
         if grep -q "$variant" "$c_file"; then
             pass "ta_${UPPER}.c contains $variant"
         else

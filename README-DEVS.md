@@ -79,7 +79,7 @@ Libraries will be in ```ta-lib/build``` and executable in ```ta-lib/bin```
 
 
 ## How to run ta_regtest
-After ```make```, call ```ta_regtest``` located in ta-lib/src/tools
+After ```make```, run ```ta_regtest``` from ```ta-lib/bin``` (CMake build) or ```ta-lib/src/tools/ta_regtest``` (autotools build)
 
 Exit code is 0 on success
 

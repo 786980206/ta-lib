@@ -21,9 +21,10 @@ c.rs, rust_lang.rs,   JSON-RPC servers, bench binary,
 java.rs, dotnet.rs    include/ta_func_unguarded.h
 ta_abstract_c.rs
   ↓
-ta_codegen/output/       (generated code per language)
-  c/ta_func/*.c          (C indicator code)
-  c/ta_abstract/         (ta_abstract introspection layer)
+src/ta_func/*.c          (C indicator code — generated IN PLACE)
+src/ta_abstract/         (ta_abstract introspection layer — generated IN PLACE)
+ta_codegen/output/       (other backends + C aggregation TUs)
+  c/                     (server + bench + shared-lib aggregation TUs only)
   rust/src/ta_func/*.rs  (Rust indicator code)
   java/, dotnet/         (Java/.NET code)
 include/ta_func.h        (generated public header)

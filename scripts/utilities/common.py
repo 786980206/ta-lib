@@ -238,7 +238,7 @@ def get_release_assets(version:str) -> list:
         f'ta-lib_{version}_i386.deb',
     ]
 
-# Utility functions to identify the gen_code generated files.
+# Utility functions to identify the ta_codegen-generated files.
 def get_src_generated_files() -> list:
     """
     Return the list of generated files and directories.
