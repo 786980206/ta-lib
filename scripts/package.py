@@ -569,7 +569,7 @@ def test_autotool_src(configure_dir: str, sudo_pwd: str) -> bool:
     # - './configure'
     # - 'make' (verify returning zero)
     # - Run './src/tools/ta_regtest/ta_regtest' (verify returning zero)
-    # - Run './src/tools/gen_code/gen_code' (verify no unexpected changes)
+    # - Verify the build did not modify any generated/committed files
     # - 'sudo make install' (verify returning zero)
 
     original_dir = os.getcwd()
@@ -591,24 +591,19 @@ def test_autotool_src(configure_dir: str, sudo_pwd: str) -> bool:
         # Run its src/tools/ta_regtest/ta_regtest
         subprocess.run(['src/tools/ta_regtest/ta_regtest'], check=True)
 
-        if not os.path.isfile('src/tools/gen_code/gen_code'):
-            print("Error: src/tools/gen_code/gen_code does not exist.")
-            return False
-
-        # Re-running gen_code should not cause changes to the root directory.
-        # (but do nothing if there was already git changes prior to gen_code).
-        # This is just a sanity check that the script is not breaking something
-        # unexpected outside of the "end-user simulated" directory.
+        # Building the package must not modify any generated/committed files in the
+        # root repository — a sanity check that configure/make/install do not
+        # accidentally regenerate or touch anything outside the "end-user simulated"
+        # directory. gen_code is no longer run (or required) here: the generated C is
+        # owned by ta_codegen, and its regeneration is verified separately (the
+        # ta_codegen regen oracle), not from inside the released source package.
         if not git_changed and are_generated_files_git_changed(root_dir):
-            print("Error: Unexpected changes from gen_code to root_dir. Do 'git diff'")
+            print("Error: the package build unexpectedly changed generated files in root_dir. Do 'git diff'")
             return False
 
-        # Now verify if gen_code did change files unexpectably within
-        # the "end-user simulated" directory.
-        #
-        # It should not, because we are at the point of testing the src
-        # package, which should have the latest generated files version
-        # and re-running gen_code should have no effect.
+        # Likewise, building within the "end-user simulated" directory must not
+        # modify its generated files (the src package already ships the latest
+        # generated versions, so the build must have no effect on them).
         copy_file_list(configure_dir,
                        generated_files_temp_copy_2,
                        get_src_generated_files())
