@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           sudo apt update
-          sudo apt install -y automake libtool autogen mcpp
+          sudo apt install -y automake libtool autogen
           sudo apt install -y openjdk-21-jdk
           sudo apt install -y gcc-multilib
           sudo apt install -y gcc-i686-linux-gnu
@@ -133,16 +133,10 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install mcpp (ta_codegen preprocessor)
-        shell: bash
-        run: |
-          sudo apt update
-          sudo apt install -y mcpp
-
       - name: Regenerate all backends and verify committed output matches
         shell: bash
         run: |
-          # cmake + cargo are preinstalled on ubuntu-latest; generate is cargo-only.
+          # cmake + cargo are preinstalled on ubuntu-latest; generate is cargo-only (no mcpp needed).
           python3 scripts/build.py generate
           status="$(git status --porcelain)"
           if [ -n "$status" ]; then

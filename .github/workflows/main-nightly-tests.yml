@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           sudo apt update
-          sudo apt install -y automake libtool autogen mcpp
+          sudo apt install -y automake libtool autogen
           sudo apt install -y openjdk-21-jdk
           sudo apt install -y gcc-multilib
           sudo apt install -y gcc-i686-linux-gnu

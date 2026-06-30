@@ -100,14 +100,6 @@ def is_java_installed() -> bool:
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
-def is_mcpp_installed() -> bool:
-    try:
-        subprocess.run(['mcpp', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return True
-    except FileNotFoundError:
-        return False
-
-
 def check_prerequisites(tools: list):
     """Check that all required tools are installed. Exit with an error if any are missing.
 
@@ -138,12 +130,11 @@ PREREQS_GCC = ("gcc", is_gcc_installed, "apt install build-essential (or brew in
 PREREQS_JAVAC = ("javac", is_javac_installed, "apt install default-jdk (or brew install openjdk)")
 PREREQS_JAVA = ("java", is_java_installed, "apt install default-jdk (or brew install openjdk)")
 PREREQS_DOTNET = ("dotnet", is_dotnet_installed, "see https://dotnet.microsoft.com/download")
-PREREQS_MCPP = ("mcpp", is_mcpp_installed, "apt install mcpp (or brew install mcpp)")
 
 # Grouped prerequisite sets for common build scenarios.
 PREREQS_BUILD_BASIC = [PREREQS_CMAKE]
-PREREQS_BUILD_CODEGEN = [PREREQS_CMAKE, PREREQS_CARGO, PREREQS_MCPP]
-PREREQS_BUILD_SERVERS = [PREREQS_CMAKE, PREREQS_CARGO, PREREQS_MCPP, PREREQS_GCC, PREREQS_JAVAC, PREREQS_JAVA, PREREQS_DOTNET]
+PREREQS_BUILD_CODEGEN = [PREREQS_CMAKE, PREREQS_CARGO]
+PREREQS_BUILD_SERVERS = [PREREQS_CMAKE, PREREQS_CARGO, PREREQS_GCC, PREREQS_JAVAC, PREREQS_JAVA, PREREQS_DOTNET]
 
 def is_wix_installed() -> bool:
     # For installation, see https://cmake.org/cmake/help/latest/cpack_gen/wix.html#wix-net-tools

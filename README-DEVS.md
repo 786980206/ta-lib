@@ -20,7 +20,7 @@ Repeat whenever you need to refresh the makefiles.
 
 ## How to build and test with scripts/build.py
 
-Prerequisites: CMake 3.18+, a C compiler (clang or gcc), the Rust toolchain (`rustup`), and `mcpp`.
+Prerequisites: CMake 3.18+, a C compiler (clang or gcc), and the Rust toolchain (`rustup`).
 
 For cross-language server testing (`servers`, `regtest`, `regtest-only` targets), also: JDK (`javac` + `java`) and .NET SDK (`dotnet`).
 

@@ -159,7 +159,6 @@ The `/convert-indicator` skill automates picking up and resuming this work.
 - CMake 3.18+
 - C compiler (clang/gcc)
 - Rust toolchain (`rustup`)
-- `mcpp` preprocessor (`brew install mcpp` or `apt install mcpp`)
 - For server testing: JDK (`javac` + `java`) and .NET SDK (`dotnet`)
 
 `scripts/build.py` checks the prerequisites per target and configures CMake
