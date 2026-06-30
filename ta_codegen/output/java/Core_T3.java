@@ -121,14 +121,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode t3Logic( int startIdx,
-                           int endIdx,
-                           double inReal[],
-                           int optInTimePeriod,
-                           double optInVFactor,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode t3Unguarded( int startIdx,
+                               int endIdx,
+                               double inReal[],
+                               int optInTimePeriod,
+                               double optInVFactor,
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
       int outIdx = 0;
       int lookbackTotal = 0;
@@ -349,14 +349,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode t3Logic( int startIdx,
-                           int endIdx,
-                           float inReal[],
-                           int optInTimePeriod,
-                           double optInVFactor,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode t3Unguarded( int startIdx,
+                               int endIdx,
+                               float inReal[],
+                               int optInTimePeriod,
+                               double optInVFactor,
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
       int outIdx = 0;
       int lookbackTotal = 0;

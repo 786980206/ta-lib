@@ -31,13 +31,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode multLogic( int startIdx,
-                             int endIdx,
-                             double inReal0[],
-                             double inReal1[],
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode multUnguarded( int startIdx,
+                                 int endIdx,
+                                 double inReal0[],
+                                 double inReal1[],
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -79,13 +79,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode multLogic( int startIdx,
-                             int endIdx,
-                             float inReal0[],
-                             float inReal1[],
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode multUnguarded( int startIdx,
+                                 int endIdx,
+                                 float inReal0[],
+                                 float inReal1[],
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

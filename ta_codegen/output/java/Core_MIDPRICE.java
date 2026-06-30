@@ -1,10 +1,10 @@
 /* Generated */
-   public int midpriceLookback( int optInTimePeriod )
+   public int midPriceLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode midprice( int startIdx,
+   public RetCode midPrice( int startIdx,
                             int endIdx,
                             double inHigh[],
                             double inLow[],
@@ -60,14 +60,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode midpriceLogic( int startIdx,
-                                 int endIdx,
-                                 double inHigh[],
-                                 double inLow[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode midPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inHigh[],
+                                     double inLow[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       double lowest = 0;
       double highest = 0;
@@ -110,7 +110,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode midprice( int startIdx,
+   public RetCode midPrice( int startIdx,
                             int endIdx,
                             float inHigh[],
                             float inLow[],
@@ -166,14 +166,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode midpriceLogic( int startIdx,
-                                 int endIdx,
-                                 float inHigh[],
-                                 float inLow[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode midPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inHigh[],
+                                     float inLow[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       double lowest = 0;
       double highest = 0;

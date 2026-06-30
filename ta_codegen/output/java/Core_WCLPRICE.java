@@ -1,10 +1,10 @@
 /* Generated */
-   public int wclpriceLookback( )
+   public int wclPriceLookback( )
    {
       return 0 ;
 
    }
-   public RetCode wclprice( int startIdx,
+   public RetCode wclPrice( int startIdx,
                             int endIdx,
                             double inHigh[],
                             double inLow[],
@@ -29,14 +29,14 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode wclpriceLogic( int startIdx,
-                                 int endIdx,
-                                 double inHigh[],
-                                 double inLow[],
-                                 double inClose[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode wclPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inHigh[],
+                                     double inLow[],
+                                     double inClose[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -48,7 +48,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode wclprice( int startIdx,
+   public RetCode wclPrice( int startIdx,
                             int endIdx,
                             float inHigh[],
                             float inLow[],
@@ -73,14 +73,14 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode wclpriceLogic( int startIdx,
-                                 int endIdx,
-                                 float inHigh[],
-                                 float inLow[],
-                                 float inClose[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode wclPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inHigh[],
+                                     float inLow[],
+                                     float inClose[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

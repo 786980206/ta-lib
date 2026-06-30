@@ -82,7 +82,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -92,7 +92,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -121,17 +121,17 @@
       outNBElement.value = outNbElement2.value;
       return RetCode.Success ;
    }
-   public RetCode macdLogic( int startIdx,
-                             int endIdx,
-                             double inReal[],
-                             int optInFastPeriod,
-                             int optInSlowPeriod,
-                             int optInSignalPeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outMACD[],
-                             double outMACDSignal[],
-                             double outMACDHist[] )
+   public RetCode macdUnguarded( int startIdx,
+                                 int endIdx,
+                                 double inReal[],
+                                 int optInFastPeriod,
+                                 int optInSlowPeriod,
+                                 int optInSignalPeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outMACD[],
+                                 double outMACDSignal[],
+                                 double outMACDHist[] )
    {
       double[] slowEMABuffer;
       double[] fastEMABuffer;
@@ -187,7 +187,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -197,7 +197,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -298,7 +298,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -308,7 +308,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -337,17 +337,17 @@
       outNBElement.value = outNbElement2.value;
       return RetCode.Success ;
    }
-   public RetCode macdLogic( int startIdx,
-                             int endIdx,
-                             float inReal[],
-                             int optInFastPeriod,
-                             int optInSlowPeriod,
-                             int optInSignalPeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outMACD[],
-                             double outMACDSignal[],
-                             double outMACDHist[] )
+   public RetCode macdUnguarded( int startIdx,
+                                 int endIdx,
+                                 float inReal[],
+                                 int optInFastPeriod,
+                                 int optInSlowPeriod,
+                                 int optInSignalPeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outMACD[],
+                                 double outMACDSignal[],
+                                 double outMACDHist[] )
    {
       double[] slowEMABuffer;
       double[] fastEMABuffer;
@@ -403,7 +403,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -413,7 +413,7 @@
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       } else {
-         retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+         retCode = emaUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;

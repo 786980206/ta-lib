@@ -1,10 +1,10 @@
 /* Generated */
-   public int minindexLookback( int optInTimePeriod )
+   public int minIndexLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode minindex( int startIdx,
+   public RetCode minIndex( int startIdx,
                             int endIdx,
                             double inReal[],
                             int optInTimePeriod,
@@ -65,13 +65,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minindexLogic( int startIdx,
-                                 int endIdx,
-                                 double inReal[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 int outInteger[] )
+   public RetCode minIndexUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inReal[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     int outInteger[] )
    {
       double lowest = 0;
       double tmp = 0;
@@ -120,7 +120,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minindex( int startIdx,
+   public RetCode minIndex( int startIdx,
                             int endIdx,
                             float inReal[],
                             int optInTimePeriod,
@@ -181,13 +181,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minindexLogic( int startIdx,
-                                 int endIdx,
-                                 float inReal[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 int outInteger[] )
+   public RetCode minIndexUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inReal[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     int outInteger[] )
    {
       double lowest = 0;
       double tmp = 0;

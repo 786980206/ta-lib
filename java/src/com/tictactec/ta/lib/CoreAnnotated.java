@@ -854,53 +854,6 @@ public RetCode atr(
 ); }
 
 
-public int avgPriceLookback(
-) {
-    return super.avgPriceLookback(
-); }
-
-@FuncInfo(
-        name  = "AVGPRICE",
-        group = "Price Transform",
-        flags = 16777216,
-        nbInput    = 1,
-        nbOptInput = 0,
-        nbOutput   = 1
-)
-public RetCode avgPrice(
-            int startIdx,
-            int endIdx,
-            @InputParameterInfo(
-                paramName = "inPriceOHLC",
-                flags     = 15,
-                type = InputParameterType.TA_Input_Price
-            )
-            double inOpen [],
-            double inHigh [],
-            double inLow [],
-            double inClose [],
-            MInteger     outBegIdx,
-            MInteger     outNBElement,
-            @OutputParameterInfo(
-                paramName = "outReal",
-                flags     = 1,
-                type = OutputParameterType.TA_Output_Real
-            )
-            double outReal[]
-) {
-    return super.avgPrice (
-        startIdx,
-        endIdx,
-        inOpen ,
-        inHigh ,
-        inLow ,
-        inClose ,
-        outBegIdx,
-        outNBElement,
-        outReal
-); }
-
-
 public int avgDevLookback(
         int optInTimePeriod) {
     return super.avgDevLookback(
@@ -954,6 +907,53 @@ public RetCode avgDev(
         endIdx,
         inReal,
         optInTimePeriod,
+        outBegIdx,
+        outNBElement,
+        outReal
+); }
+
+
+public int avgPriceLookback(
+) {
+    return super.avgPriceLookback(
+); }
+
+@FuncInfo(
+        name  = "AVGPRICE",
+        group = "Price Transform",
+        flags = 16777216,
+        nbInput    = 1,
+        nbOptInput = 0,
+        nbOutput   = 1
+)
+public RetCode avgPrice(
+            int startIdx,
+            int endIdx,
+            @InputParameterInfo(
+                paramName = "inPriceOHLC",
+                flags     = 15,
+                type = InputParameterType.TA_Input_Price
+            )
+            double inOpen [],
+            double inHigh [],
+            double inLow [],
+            double inClose [],
+            MInteger     outBegIdx,
+            MInteger     outNBElement,
+            @OutputParameterInfo(
+                paramName = "outReal",
+                flags     = 1,
+                type = OutputParameterType.TA_Output_Real
+            )
+            double outReal[]
+) {
+    return super.avgPrice (
+        startIdx,
+        endIdx,
+        inOpen ,
+        inHigh ,
+        inLow ,
+        inClose ,
         outBegIdx,
         outNBElement,
         outReal

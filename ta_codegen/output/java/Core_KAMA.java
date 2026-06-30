@@ -105,13 +105,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode kamaLogic( int startIdx,
-                             int endIdx,
-                             double inReal[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode kamaUnguarded( int startIdx,
+                                 int endIdx,
+                                 double inReal[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double constMax = 0;
       double constDiff = 0;
@@ -301,13 +301,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode kamaLogic( int startIdx,
-                             int endIdx,
-                             float inReal[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode kamaUnguarded( int startIdx,
+                                 int endIdx,
+                                 float inReal[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double constMax = 0;
       double constDiff = 0;

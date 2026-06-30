@@ -1,10 +1,10 @@
 /* Generated */
-   public int cdlengulfingLookback( )
+   public int cdlEngulfingLookback( )
    {
       return 2 ;
 
    }
-   public RetCode cdlengulfing( int startIdx,
+   public RetCode cdlEngulfing( int startIdx,
                                 int endIdx,
                                 double inOpen[],
                                 double inHigh[],
@@ -23,7 +23,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlengulfingLookback();
+      lookbackTotal = cdlEngulfingLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -50,20 +50,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlengulfingLogic( int startIdx,
-                                     int endIdx,
-                                     double inOpen[],
-                                     double inHigh[],
-                                     double inLow[],
-                                     double inClose[],
-                                     MInteger outBegIdx,
-                                     MInteger outNBElement,
-                                     int outInteger[] )
+   public RetCode cdlEngulfingUnguarded( int startIdx,
+                                         int endIdx,
+                                         double inOpen[],
+                                         double inHigh[],
+                                         double inLow[],
+                                         double inClose[],
+                                         MInteger outBegIdx,
+                                         MInteger outNBElement,
+                                         int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = cdlengulfingLookback();
+      lookbackTotal = cdlEngulfingLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -90,7 +90,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlengulfing( int startIdx,
+   public RetCode cdlEngulfing( int startIdx,
                                 int endIdx,
                                 float inOpen[],
                                 float inHigh[],
@@ -109,7 +109,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlengulfingLookback();
+      lookbackTotal = cdlEngulfingLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -136,20 +136,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlengulfingLogic( int startIdx,
-                                     int endIdx,
-                                     float inOpen[],
-                                     float inHigh[],
-                                     float inLow[],
-                                     float inClose[],
-                                     MInteger outBegIdx,
-                                     MInteger outNBElement,
-                                     int outInteger[] )
+   public RetCode cdlEngulfingUnguarded( int startIdx,
+                                         int endIdx,
+                                         float inOpen[],
+                                         float inHigh[],
+                                         float inLow[],
+                                         float inClose[],
+                                         MInteger outBegIdx,
+                                         MInteger outNBElement,
+                                         int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = cdlengulfingLookback();
+      lookbackTotal = cdlEngulfingLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

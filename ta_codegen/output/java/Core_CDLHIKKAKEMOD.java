@@ -1,13 +1,13 @@
 /* Generated */
-   public int cdlhikkakemodLookback( )
+   public int cdlHikkakeModLookback( )
    {
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
       return (Math.max(1, Near_avgPeriod)+5) ;
 
    }
-   public RetCode cdlhikkakemod( int startIdx,
+   public RetCode cdlHikkakeMod( int startIdx,
                                  int endIdx,
                                  double inOpen[],
                                  double inHigh[],
@@ -24,16 +24,16 @@
       int lookbackTotal = 0;
       int patternIdx = 0;
       int patternResult = 0;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlhikkakemodLookback();
+      lookbackTotal = cdlHikkakeModLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -84,15 +84,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhikkakemodLogic( int startIdx,
-                                      int endIdx,
-                                      double inOpen[],
-                                      double inHigh[],
-                                      double inLow[],
-                                      double inClose[],
-                                      MInteger outBegIdx,
-                                      MInteger outNBElement,
-                                      int outInteger[] )
+   public RetCode cdlHikkakeModUnguarded( int startIdx,
+                                          int endIdx,
+                                          double inOpen[],
+                                          double inHigh[],
+                                          double inLow[],
+                                          double inClose[],
+                                          MInteger outBegIdx,
+                                          MInteger outNBElement,
+                                          int outInteger[] )
    {
       double NearPeriodTotal = 0;
       int i = 0;
@@ -101,10 +101,10 @@
       int lookbackTotal = 0;
       int patternIdx = 0;
       int patternResult = 0;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      lookbackTotal = cdlhikkakemodLookback();
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      lookbackTotal = cdlHikkakeModLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -155,7 +155,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhikkakemod( int startIdx,
+   public RetCode cdlHikkakeMod( int startIdx,
                                  int endIdx,
                                  float inOpen[],
                                  float inHigh[],
@@ -172,16 +172,16 @@
       int lookbackTotal = 0;
       int patternIdx = 0;
       int patternResult = 0;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlhikkakemodLookback();
+      lookbackTotal = cdlHikkakeModLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -232,15 +232,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhikkakemodLogic( int startIdx,
-                                      int endIdx,
-                                      float inOpen[],
-                                      float inHigh[],
-                                      float inLow[],
-                                      float inClose[],
-                                      MInteger outBegIdx,
-                                      MInteger outNBElement,
-                                      int outInteger[] )
+   public RetCode cdlHikkakeModUnguarded( int startIdx,
+                                          int endIdx,
+                                          float inOpen[],
+                                          float inHigh[],
+                                          float inLow[],
+                                          float inClose[],
+                                          MInteger outBegIdx,
+                                          MInteger outNBElement,
+                                          int outInteger[] )
    {
       double NearPeriodTotal = 0;
       int i = 0;
@@ -249,10 +249,10 @@
       int lookbackTotal = 0;
       int patternIdx = 0;
       int patternResult = 0;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      lookbackTotal = cdlhikkakemodLookback();
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      lookbackTotal = cdlHikkakeModLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

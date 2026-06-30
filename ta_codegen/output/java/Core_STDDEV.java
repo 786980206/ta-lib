@@ -1,10 +1,10 @@
 /* Generated */
-   public int stddevLookback( int optInTimePeriod, double optInNbDev )
+   public int stdDevLookback( int optInTimePeriod, double optInNbDev )
    {
-      return varLookback(optInTimePeriod, optInNbDev) ;
+      return varianceLookback(optInTimePeriod, optInNbDev) ;
 
    }
-   public RetCode stddev( int startIdx,
+   public RetCode stdDev( int startIdx,
                           int endIdx,
                           double inReal[],
                           int optInTimePeriod,
@@ -22,7 +22,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -47,19 +47,19 @@
       }
       return RetCode.Success ;
    }
-   public RetCode stddevLogic( int startIdx,
-                               int endIdx,
-                               double inReal[],
-                               int optInTimePeriod,
-                               double optInNbDev,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode stdDevUnguarded( int startIdx,
+                                   int endIdx,
+                                   double inReal[],
+                                   int optInTimePeriod,
+                                   double optInNbDev,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       int i = 0;
       RetCode retCode;
       double tempReal = 0;
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -84,7 +84,7 @@
       }
       return RetCode.Success ;
    }
-   public RetCode stddev( int startIdx,
+   public RetCode stdDev( int startIdx,
                           int endIdx,
                           float inReal[],
                           int optInTimePeriod,
@@ -102,7 +102,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -127,19 +127,19 @@
       }
       return RetCode.Success ;
    }
-   public RetCode stddevLogic( int startIdx,
-                               int endIdx,
-                               float inReal[],
-                               int optInTimePeriod,
-                               double optInNbDev,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode stdDevUnguarded( int startIdx,
+                                   int endIdx,
+                                   float inReal[],
+                                   int optInTimePeriod,
+                                   double optInNbDev,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       int i = 0;
       RetCode retCode;
       double tempReal = 0;
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }

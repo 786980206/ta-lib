@@ -40,13 +40,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode obvLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            double inVolume[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode obvUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                double inVolume[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int i = 0;
       int outIdx = 0;
@@ -106,13 +106,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode obvLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            float inVolume[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode obvUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                float inVolume[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int i = 0;
       int outIdx = 0;

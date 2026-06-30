@@ -26,12 +26,12 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode tanLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode tanUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -64,12 +64,12 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode tanLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode tanUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

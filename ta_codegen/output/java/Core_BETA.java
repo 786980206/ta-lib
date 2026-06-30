@@ -130,14 +130,14 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode betaLogic( int startIdx,
-                             int endIdx,
-                             double inReal0[],
-                             double inReal1[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode betaUnguarded( int startIdx,
+                                 int endIdx,
+                                 double inReal0[],
+                                 double inReal1[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double S_xx = 0;
       double S_xy = 0;
@@ -376,14 +376,14 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode betaLogic( int startIdx,
-                             int endIdx,
-                             float inReal0[],
-                             float inReal1[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode betaUnguarded( int startIdx,
+                                 int endIdx,
+                                 float inReal0[],
+                                 float inReal1[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double S_xx = 0;
       double S_xy = 0;

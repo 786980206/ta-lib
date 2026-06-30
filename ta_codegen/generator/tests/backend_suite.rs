@@ -223,8 +223,8 @@ fn check_java_variants(j: &str, lower: &str, name: &str) {
         lower
     );
     assert!(
-        j.contains(&format!("{}Logic(", lower)),
-        "{}: Java missing {}Logic",
+        j.contains(&format!("{}Unguarded(", lower)),
+        "{}: Java missing {}Unguarded",
         name,
         lower
     );
@@ -356,7 +356,18 @@ fn test_all_indicators_all_backends() {
         let upper = func.name.clone();
         let snake = name.clone();
         let pascal = to_pascal(name);
-        let camel = to_camel(name);
+        // Java method name comes from the YAML `camel_case` field (first char
+        // lower-cased), matching the backend; this captures the historical
+        // irregular/typo names (e.g. ma -> movingAverage, willr -> willR).
+        let camel = func.camel_case.as_deref().map_or_else(
+            || to_camel(name),
+            |cc| {
+                let mut chars = cc.chars();
+                chars.next().map_or_else(String::new, |c| {
+                    c.to_lowercase().collect::<String>() + chars.as_str()
+                })
+            },
+        );
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             check_c_variants(&out.c, &upper, &snake);
@@ -447,9 +458,9 @@ fn test_ma_java_cross_calls() {
         j.contains("emaLookback("),
         "Java: MA should call emaLookback"
     );
-    // Bare cross-indicator calls resolve to Logic (skip validation)
-    assert!(j.contains("smaLogic("), "Java: MA should call smaLogic");
-    assert!(j.contains("emaLogic("), "Java: MA should call emaLogic");
+    // Bare cross-indicator calls resolve to Unguarded (skip validation)
+    assert!(j.contains("smaUnguarded("), "Java: MA should call smaUnguarded");
+    assert!(j.contains("emaUnguarded("), "Java: MA should call emaUnguarded");
 }
 
 #[test]
@@ -532,8 +543,8 @@ fn test_java_sma_guarded_has_validation() {
     let (func, enums) = load_indicator("sma");
     let out = generate_all(&func, &enums);
 
-    // Extract guarded function (between "RetCode sma(" and "smaLogic(")
-    let guarded = extract_section(&out.java, "RetCode sma(", "smaLogic(");
+    // Extract guarded function (between "RetCode sma(" and "smaUnguarded(")
+    let guarded = extract_section(&out.java, "RetCode sma(", "smaUnguarded(");
     assert!(
         guarded.contains("OutOfRangeStartIndex"),
         "Java guarded SMA should have start index validation"
@@ -545,8 +556,8 @@ fn test_java_sma_logic_omits_validation() {
     let (func, enums) = load_indicator("sma");
     let out = generate_all(&func, &enums);
 
-    // Extract logic function (find smaLogic, get section until next "public RetCode")
-    let logic_start = out.java.find("smaLogic(").expect("Missing smaLogic");
+    // Extract unguarded function (find smaUnguarded, get section until next "public RetCode")
+    let logic_start = out.java.find("smaUnguarded(").expect("Missing smaUnguarded");
     let logic_section = &out.java[logic_start..];
     // Look for next public function or end
     let end = logic_section
@@ -1022,7 +1033,7 @@ fn test_all_indicators_contain_success_returns() {
             // Accept: literal RetCode.Success OR a return of a RetCode variable/call.
             let java_has_success = out.java.contains("RetCode.Success")
                 || out.java.contains("return retCode ;")
-                || (out.java.contains("return ") && out.java.contains("Logic("));
+                || (out.java.contains("return ") && out.java.contains("Unguarded("));
             assert!(
                 java_has_success,
                 "Java {}: missing RetCode.Success return",
@@ -2343,18 +2354,18 @@ fn java_backend_emits_candle_settings() {
     let helpers = make_helpers();
     let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
 
-    // Assert Java output contains unpacking lines
+    // Assert Java output contains unpacking lines (canonical array/ordinal form)
     assert!(
-        java_out.contains("this.candleSettings.bodyLong.rangeType"),
-        "Java output should unpack bodyLong.rangeType: {java_out}"
+        java_out.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType"),
+        "Java output should unpack BodyLong.rangeType: {java_out}"
     );
     assert!(
-        java_out.contains("this.candleSettings.bodyLong.avgPeriod"),
-        "Java output should unpack bodyLong.avgPeriod"
+        java_out.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod"),
+        "Java output should unpack BodyLong.avgPeriod"
     );
     assert!(
-        java_out.contains("this.candleSettings.bodyLong.factor"),
-        "Java output should unpack bodyLong.factor"
+        java_out.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor"),
+        "Java output should unpack BodyLong.factor"
     );
 }
 
@@ -2385,10 +2396,10 @@ fn candle_settings_unpacking_in_lookback() {
         "Rust lookback should contain candle settings unpacking"
     );
 
-    let java_lookback_end = java_out.find("public RetCode cdl2crows(").unwrap();
+    let java_lookback_end = java_out.find("public RetCode cdl2Crows(").unwrap();
     let java_lookback = &java_out[..java_lookback_end];
     assert!(
-        java_lookback.contains("this.candleSettings.bodyLong"),
+        java_lookback.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()]"),
         "Java lookback should contain candle settings unpacking"
     );
 }
@@ -2422,12 +2433,12 @@ fn candle_settings_multiple_settings_in_kicking() {
 
     let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
     assert!(
-        java_out.contains("this.candleSettings.bodyLong"),
-        "Java output should unpack bodyLong"
+        java_out.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()]"),
+        "Java output should unpack BodyLong"
     );
     assert!(
-        java_out.contains("this.candleSettings.shadowVeryShort"),
-        "Java output should unpack shadowVeryShort"
+        java_out.contains("this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()]"),
+        "Java output should unpack ShadowVeryShort"
     );
 }
 
@@ -4440,14 +4451,14 @@ fn java_stochrsi_cross_indicator_calls() {
     let out = generate_all(&func, &enums);
     let j = &out.java;
 
-    // STOCHRSI calls rsi and stochf
+    // STOCHRSI calls rsi and stochf (stochf's Java name is the irregular `stochF`)
     assert!(
-        j.contains("rsi(") || j.contains("rsiLookback("),
+        j.contains("rsiUnguarded(") || j.contains("rsiLookback("),
         "Java STOCHRSI should call rsi: {j}"
     );
     assert!(
-        j.contains("stochf(") || j.contains("stochfLookback("),
-        "Java STOCHRSI should call stochf: {j}"
+        j.contains("stochFUnguarded(") || j.contains("stochFLookback("),
+        "Java STOCHRSI should call stochF: {j}"
     );
 }
 

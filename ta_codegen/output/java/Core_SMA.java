@@ -56,13 +56,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode smaLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode smaUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double periodTotal = 0;
       double tempReal = 0;
@@ -154,13 +154,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode smaLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode smaUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double periodTotal = 0;
       double tempReal = 0;

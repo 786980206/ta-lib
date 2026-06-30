@@ -1,10 +1,10 @@
 /* Generated */
-   public int cdlhikkakeLookback( )
+   public int cdlHikkakeLookback( )
    {
       return 5 ;
 
    }
-   public RetCode cdlhikkake( int startIdx,
+   public RetCode cdlHikkake( int startIdx,
                               int endIdx,
                               double inOpen[],
                               double inHigh[],
@@ -25,7 +25,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlhikkakeLookback();
+      lookbackTotal = cdlHikkakeLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -65,22 +65,22 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhikkakeLogic( int startIdx,
-                                   int endIdx,
-                                   double inOpen[],
-                                   double inHigh[],
-                                   double inLow[],
-                                   double inClose[],
-                                   MInteger outBegIdx,
-                                   MInteger outNBElement,
-                                   int outInteger[] )
+   public RetCode cdlHikkakeUnguarded( int startIdx,
+                                       int endIdx,
+                                       double inOpen[],
+                                       double inHigh[],
+                                       double inLow[],
+                                       double inClose[],
+                                       MInteger outBegIdx,
+                                       MInteger outNBElement,
+                                       int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
       int patternIdx = 0;
       int patternResult = 0;
-      lookbackTotal = cdlhikkakeLookback();
+      lookbackTotal = cdlHikkakeLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -120,7 +120,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhikkake( int startIdx,
+   public RetCode cdlHikkake( int startIdx,
                               int endIdx,
                               float inOpen[],
                               float inHigh[],
@@ -141,7 +141,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlhikkakeLookback();
+      lookbackTotal = cdlHikkakeLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -181,22 +181,22 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhikkakeLogic( int startIdx,
-                                   int endIdx,
-                                   float inOpen[],
-                                   float inHigh[],
-                                   float inLow[],
-                                   float inClose[],
-                                   MInteger outBegIdx,
-                                   MInteger outNBElement,
-                                   int outInteger[] )
+   public RetCode cdlHikkakeUnguarded( int startIdx,
+                                       int endIdx,
+                                       float inOpen[],
+                                       float inHigh[],
+                                       float inLow[],
+                                       float inClose[],
+                                       MInteger outBegIdx,
+                                       MInteger outNBElement,
+                                       int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
       int patternIdx = 0;
       int patternResult = 0;
-      lookbackTotal = cdlhikkakeLookback();
+      lookbackTotal = cdlHikkakeLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

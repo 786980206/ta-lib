@@ -120,13 +120,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode trimaLogic( int startIdx,
-                              int endIdx,
-                              double inReal[],
-                              int optInTimePeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outReal[] )
+   public RetCode trimaUnguarded( int startIdx,
+                                  int endIdx,
+                                  double inReal[],
+                                  int optInTimePeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
    {
       int lookbackTotal = 0;
       double numerator = 0;
@@ -346,13 +346,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode trimaLogic( int startIdx,
-                              int endIdx,
-                              float inReal[],
-                              int optInTimePeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outReal[] )
+   public RetCode trimaUnguarded( int startIdx,
+                                  int endIdx,
+                                  float inReal[],
+                                  int optInTimePeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
    {
       int lookbackTotal = 0;
       double numerator = 0;

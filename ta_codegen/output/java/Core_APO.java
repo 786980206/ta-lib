@@ -1,7 +1,7 @@
 /* Generated */
    public int apoLookback( int optInFastPeriod, int optInSlowPeriod, MAType optInMAType )
    {
-      return maLookback(Math.max(optInSlowPeriod, optInFastPeriod), optInMAType) ;
+      return movingAverageLookback(Math.max(optInSlowPeriod, optInFastPeriod), optInMAType) ;
 
    }
    public RetCode apo( int startIdx,
@@ -35,9 +35,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -49,15 +49,15 @@
       }
       return retCode ;
    }
-   public RetCode apoLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            int optInFastPeriod,
-                            int optInSlowPeriod,
-                            MAType optInMAType,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode apoUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                int optInFastPeriod,
+                                int optInSlowPeriod,
+                                MAType optInMAType,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double[] tempBuffer;
       RetCode retCode;
@@ -74,9 +74,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -119,9 +119,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -133,15 +133,15 @@
       }
       return retCode ;
    }
-   public RetCode apoLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            int optInFastPeriod,
-                            int optInSlowPeriod,
-                            MAType optInMAType,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode apoUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                int optInFastPeriod,
+                                int optInSlowPeriod,
+                                MAType optInMAType,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double[] tempBuffer;
       RetCode retCode;
@@ -158,9 +158,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {

@@ -350,13 +350,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htSineLogic( int startIdx,
-                               int endIdx,
-                               double inReal[],
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outSine[],
-                               double outLeadSine[] )
+   public RetCode htSineUnguarded( int startIdx,
+                                   int endIdx,
+                                   double inReal[],
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outSine[],
+                                   double outLeadSine[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -1036,13 +1036,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htSineLogic( int startIdx,
-                               int endIdx,
-                               float inReal[],
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outSine[],
-                               double outLeadSine[] )
+   public RetCode htSineUnguarded( int startIdx,
+                                   int endIdx,
+                                   float inReal[],
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outSine[],
+                                   double outLeadSine[] )
    {
       int outIdx = 0;
       int i = 0;

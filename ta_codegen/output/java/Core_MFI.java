@@ -137,16 +137,16 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode mfiLogic( int startIdx,
-                            int endIdx,
-                            double inHigh[],
-                            double inLow[],
-                            double inClose[],
-                            double inVolume[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode mfiUnguarded( int startIdx,
+                                int endIdx,
+                                double inHigh[],
+                                double inLow[],
+                                double inClose[],
+                                double inVolume[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double posSumMF = 0;
       double negSumMF = 0;
@@ -397,16 +397,16 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode mfiLogic( int startIdx,
-                            int endIdx,
-                            float inHigh[],
-                            float inLow[],
-                            float inClose[],
-                            float inVolume[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode mfiUnguarded( int startIdx,
+                                int endIdx,
+                                float inHigh[],
+                                float inLow[],
+                                float inClose[],
+                                float inVolume[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double posSumMF = 0;
       double negSumMF = 0;

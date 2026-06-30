@@ -326,12 +326,12 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htTrendlineLogic( int startIdx,
-                                    int endIdx,
-                                    double inReal[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    double outReal[] )
+   public RetCode htTrendlineUnguarded( int startIdx,
+                                        int endIdx,
+                                        double inReal[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -964,12 +964,12 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htTrendlineLogic( int startIdx,
-                                    int endIdx,
-                                    float inReal[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    double outReal[] )
+   public RetCode htTrendlineUnguarded( int startIdx,
+                                        int endIdx,
+                                        float inReal[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

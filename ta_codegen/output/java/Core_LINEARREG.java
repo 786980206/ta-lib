@@ -1,10 +1,10 @@
 /* Generated */
-   public int linearregLookback( int optInTimePeriod )
+   public int linearRegLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode linearreg( int startIdx,
+   public RetCode linearReg( int startIdx,
                              int endIdx,
                              double inReal[],
                              int optInTimePeriod,
@@ -30,7 +30,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = linearregLookback(optInTimePeriod);
+      lookbackTotal = linearRegLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -61,13 +61,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearregLogic( int startIdx,
-                                  int endIdx,
-                                  double inReal[],
-                                  int optInTimePeriod,
-                                  MInteger outBegIdx,
-                                  MInteger outNBElement,
-                                  double outReal[] )
+   public RetCode linearRegUnguarded( int startIdx,
+                                      int endIdx,
+                                      double inReal[],
+                                      int optInTimePeriod,
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
       int outIdx = 0;
       int today = 0;
@@ -81,7 +81,7 @@
       double b = 0;
       int i = 0;
       double tempValue1 = 0;
-      lookbackTotal = linearregLookback(optInTimePeriod);
+      lookbackTotal = linearRegLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -112,7 +112,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearreg( int startIdx,
+   public RetCode linearReg( int startIdx,
                              int endIdx,
                              float inReal[],
                              int optInTimePeriod,
@@ -138,7 +138,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = linearregLookback(optInTimePeriod);
+      lookbackTotal = linearRegLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -169,13 +169,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearregLogic( int startIdx,
-                                  int endIdx,
-                                  float inReal[],
-                                  int optInTimePeriod,
-                                  MInteger outBegIdx,
-                                  MInteger outNBElement,
-                                  double outReal[] )
+   public RetCode linearRegUnguarded( int startIdx,
+                                      int endIdx,
+                                      float inReal[],
+                                      int optInTimePeriod,
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
       int outIdx = 0;
       int today = 0;
@@ -189,7 +189,7 @@
       double b = 0;
       int i = 0;
       double tempValue1 = 0;
-      lookbackTotal = linearregLookback(optInTimePeriod);
+      lookbackTotal = linearRegLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

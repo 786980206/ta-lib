@@ -52,14 +52,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode imiLogic( int startIdx,
-                            int endIdx,
-                            double inOpen[],
-                            double inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode imiUnguarded( int startIdx,
+                                int endIdx,
+                                double inOpen[],
+                                double inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int lookback = 0;
       int outIdx = 0;
@@ -142,14 +142,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode imiLogic( int startIdx,
-                            int endIdx,
-                            float inOpen[],
-                            float inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode imiUnguarded( int startIdx,
+                                int endIdx,
+                                float inOpen[],
+                                float inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int lookback = 0;
       int outIdx = 0;

@@ -1,5 +1,5 @@
 /* Generated */
-   public int adoscLookback( int optInFastPeriod, int optInSlowPeriod )
+   public int adOscLookback( int optInFastPeriod, int optInSlowPeriod )
    {
       int slowestPeriod;
       if( (optInFastPeriod<optInSlowPeriod) ) {
@@ -10,7 +10,7 @@
       return emaLookback(slowestPeriod) ;
 
    }
-   public RetCode adosc( int startIdx,
+   public RetCode adOsc( int startIdx,
                          int endIdx,
                          double inHigh[],
                          double inLow[],
@@ -103,17 +103,17 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode adoscLogic( int startIdx,
-                              int endIdx,
-                              double inHigh[],
-                              double inLow[],
-                              double inClose[],
-                              double inVolume[],
-                              int optInFastPeriod,
-                              int optInSlowPeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outReal[] )
+   public RetCode adOscUnguarded( int startIdx,
+                                  int endIdx,
+                                  double inHigh[],
+                                  double inLow[],
+                                  double inClose[],
+                                  double inVolume[],
+                                  int optInFastPeriod,
+                                  int optInSlowPeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
    {
       int today = 0;
       int outIdx = 0;
@@ -190,7 +190,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode adosc( int startIdx,
+   public RetCode adOsc( int startIdx,
                          int endIdx,
                          float inHigh[],
                          float inLow[],
@@ -283,17 +283,17 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode adoscLogic( int startIdx,
-                              int endIdx,
-                              float inHigh[],
-                              float inLow[],
-                              float inClose[],
-                              float inVolume[],
-                              int optInFastPeriod,
-                              int optInSlowPeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outReal[] )
+   public RetCode adOscUnguarded( int startIdx,
+                                  int endIdx,
+                                  float inHigh[],
+                                  float inLow[],
+                                  float inClose[],
+                                  float inVolume[],
+                                  int optInFastPeriod,
+                                  int optInSlowPeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
    {
       int today = 0;
       int outIdx = 0;

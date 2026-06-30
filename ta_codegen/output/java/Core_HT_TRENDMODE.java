@@ -1,10 +1,10 @@
 /* Generated */
-   public int htTrendmodeLookback( )
+   public int htTrendModeLookback( )
    {
       return (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]) ;
 
    }
-   public RetCode htTrendmode( int startIdx,
+   public RetCode htTrendMode( int startIdx,
                                int endIdx,
                                double inReal[],
                                MInteger outBegIdx,
@@ -405,12 +405,12 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htTrendmodeLogic( int startIdx,
-                                    int endIdx,
-                                    double inReal[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode htTrendModeUnguarded( int startIdx,
+                                        int endIdx,
+                                        double inReal[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -800,7 +800,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htTrendmode( int startIdx,
+   public RetCode htTrendMode( int startIdx,
                                int endIdx,
                                float inReal[],
                                MInteger outBegIdx,
@@ -1201,12 +1201,12 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htTrendmodeLogic( int startIdx,
-                                    int endIdx,
-                                    float inReal[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode htTrendModeUnguarded( int startIdx,
+                                        int endIdx,
+                                        float inReal[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       int outIdx = 0;
       int i = 0;

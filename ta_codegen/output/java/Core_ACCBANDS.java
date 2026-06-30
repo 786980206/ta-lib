@@ -57,19 +57,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = smaUnguarded(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -79,17 +79,17 @@
       outNBElement.value = outputSize;
       return RetCode.Success ;
    }
-   public RetCode accbandsLogic( int startIdx,
-                                 int endIdx,
-                                 double inHigh[],
-                                 double inLow[],
-                                 double inClose[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outRealUpperBand[],
-                                 double outRealMiddleBand[],
-                                 double outRealLowerBand[] )
+   public RetCode accbandsUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inHigh[],
+                                     double inLow[],
+                                     double inClose[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outRealUpperBand[],
+                                     double outRealMiddleBand[],
+                                     double outRealLowerBand[] )
    {
       RetCode retCode;
       double[] tempBuffer1;
@@ -126,19 +126,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = smaUnguarded(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -201,19 +201,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = smaUnguarded(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -223,17 +223,17 @@
       outNBElement.value = outputSize;
       return RetCode.Success ;
    }
-   public RetCode accbandsLogic( int startIdx,
-                                 int endIdx,
-                                 float inHigh[],
-                                 float inLow[],
-                                 float inClose[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outRealUpperBand[],
-                                 double outRealMiddleBand[],
-                                 double outRealLowerBand[] )
+   public RetCode accbandsUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inHigh[],
+                                     float inLow[],
+                                     float inClose[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outRealUpperBand[],
+                                     double outRealMiddleBand[],
+                                     double outRealLowerBand[] )
    {
       RetCode retCode;
       double[] tempBuffer1;
@@ -270,19 +270,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = smaUnguarded(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = smaUnguarded(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;

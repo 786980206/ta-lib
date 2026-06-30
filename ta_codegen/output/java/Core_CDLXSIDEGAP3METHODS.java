@@ -1,10 +1,10 @@
 /* Generated */
-   public int cdlxsidegap3methodsLookback( )
+   public int cdlXSideGap3MethodsLookback( )
    {
       return 2 ;
 
    }
-   public RetCode cdlxsidegap3methods( int startIdx,
+   public RetCode cdlXSideGap3Methods( int startIdx,
                                        int endIdx,
                                        double inOpen[],
                                        double inHigh[],
@@ -23,7 +23,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlxsidegap3methodsLookback();
+      lookbackTotal = cdlXSideGap3MethodsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -46,20 +46,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlxsidegap3methodsLogic( int startIdx,
-                                            int endIdx,
-                                            double inOpen[],
-                                            double inHigh[],
-                                            double inLow[],
-                                            double inClose[],
-                                            MInteger outBegIdx,
-                                            MInteger outNBElement,
-                                            int outInteger[] )
+   public RetCode cdlXSideGap3MethodsUnguarded( int startIdx,
+                                                int endIdx,
+                                                double inOpen[],
+                                                double inHigh[],
+                                                double inLow[],
+                                                double inClose[],
+                                                MInteger outBegIdx,
+                                                MInteger outNBElement,
+                                                int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = cdlxsidegap3methodsLookback();
+      lookbackTotal = cdlXSideGap3MethodsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -82,7 +82,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlxsidegap3methods( int startIdx,
+   public RetCode cdlXSideGap3Methods( int startIdx,
                                        int endIdx,
                                        float inOpen[],
                                        float inHigh[],
@@ -101,7 +101,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlxsidegap3methodsLookback();
+      lookbackTotal = cdlXSideGap3MethodsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -124,20 +124,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlxsidegap3methodsLogic( int startIdx,
-                                            int endIdx,
-                                            float inOpen[],
-                                            float inHigh[],
-                                            float inLow[],
-                                            float inClose[],
-                                            MInteger outBegIdx,
-                                            MInteger outNBElement,
-                                            int outInteger[] )
+   public RetCode cdlXSideGap3MethodsUnguarded( int startIdx,
+                                                int endIdx,
+                                                float inOpen[],
+                                                float inHigh[],
+                                                float inLow[],
+                                                float inClose[],
+                                                MInteger outBegIdx,
+                                                MInteger outNBElement,
+                                                int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = cdlxsidegap3methodsLookback();
+      lookbackTotal = cdlXSideGap3MethodsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

@@ -1,5 +1,5 @@
 /* Generated */
-   public int minusDmLookback( int optInTimePeriod )
+   public int minusDMLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
          return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDM.ordinal()])-1) ;
@@ -8,7 +8,7 @@
       }
 
    }
-   public RetCode minusDm( int startIdx,
+   public RetCode minusDM( int startIdx,
                            int endIdx,
                            double inHigh[],
                            double inLow[],
@@ -122,14 +122,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minusDmLogic( int startIdx,
-                                int endIdx,
-                                double inHigh[],
-                                double inLow[],
-                                int optInTimePeriod,
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
+   public RetCode minusDMUnguarded( int startIdx,
+                                    int endIdx,
+                                    double inHigh[],
+                                    double inLow[],
+                                    int optInTimePeriod,
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    double outReal[] )
    {
       int today = 0;
       int lookbackTotal = 0;
@@ -230,7 +230,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minusDm( int startIdx,
+   public RetCode minusDM( int startIdx,
                            int endIdx,
                            float inHigh[],
                            float inLow[],
@@ -344,14 +344,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minusDmLogic( int startIdx,
-                                int endIdx,
-                                float inHigh[],
-                                float inLow[],
-                                int optInTimePeriod,
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
+   public RetCode minusDMUnguarded( int startIdx,
+                                    int endIdx,
+                                    float inHigh[],
+                                    float inLow[],
+                                    int optInTimePeriod,
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    double outReal[] )
    {
       int today = 0;
       int lookbackTotal = 0;

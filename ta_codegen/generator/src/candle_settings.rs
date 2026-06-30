@@ -227,23 +227,28 @@ pub fn emit_rust_unpacking(settings: &BTreeSet<String>, indent: usize) -> String
 /// Emit Java unpacking lines for the given candle settings.
 ///
 /// ```java
-/// int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-/// int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-/// double BodyLong_factor = this.candleSettings.bodyLong.factor;
+/// int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+/// int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+/// double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
 /// ```
+///
+/// This is the canonical shipped-`Core.java` access form: `candleSettings` is a
+/// `CandleSetting[]` indexed by `CandleSettingType` ordinals. `rangeType` is a
+/// `RangeType` enum there, so it is read via `.ordinal()` into the `int` local the
+/// candle ternaries compare against (`RealBody`=0, `HighLow`=1, `Shadows`=2). Shared
+/// with the JSON-RPC Java server, whose `Core` mirrors this array + `RangeType` model.
 pub fn emit_java_unpacking(settings: &BTreeSet<String>, indent: usize) -> String {
     let pad = " ".repeat(indent);
     let mut out = String::new();
     for setting in settings {
-        let camel = pascal_to_camel_case(setting);
         out.push_str(&format!(
-            "{pad}int {setting}_rangeType = this.candleSettings.{camel}.rangeType;\n"
+            "{pad}int {setting}_rangeType = this.candleSettings[CandleSettingType.{setting}.ordinal()].rangeType.ordinal();\n"
         ));
         out.push_str(&format!(
-            "{pad}int {setting}_avgPeriod = this.candleSettings.{camel}.avgPeriod;\n"
+            "{pad}int {setting}_avgPeriod = this.candleSettings[CandleSettingType.{setting}.ordinal()].avgPeriod;\n"
         ));
         out.push_str(&format!(
-            "{pad}double {setting}_factor = this.candleSettings.{camel}.factor;\n"
+            "{pad}double {setting}_factor = this.candleSettings[CandleSettingType.{setting}.ordinal()].factor;\n"
         ));
     }
     out
@@ -263,21 +268,6 @@ fn pascal_to_snake_case(s: &str) -> String {
     result
 }
 
-/// Convert `PascalCase` to `camelCase`.
-///
-/// `"BodyLong"` -> `"bodyLong"`, `"ShadowVeryShort"` -> `"shadowVeryShort"`
-fn pascal_to_camel_case(s: &str) -> String {
-    let mut chars = s.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(c) => {
-            let mut result: String = c.to_lowercase().collect();
-            result.extend(chars);
-            result
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -289,15 +279,6 @@ mod tests {
         assert_eq!(pascal_to_snake_case("ShadowVeryShort"), "shadow_very_short");
         assert_eq!(pascal_to_snake_case("Near"), "near");
         assert_eq!(pascal_to_snake_case("Equal"), "equal");
-    }
-
-    #[test]
-    fn pascal_to_camel_case_converts_correctly() {
-        assert_eq!(pascal_to_camel_case("BodyLong"), "bodyLong");
-        assert_eq!(pascal_to_camel_case("BodyVeryLong"), "bodyVeryLong");
-        assert_eq!(pascal_to_camel_case("ShadowVeryShort"), "shadowVeryShort");
-        assert_eq!(pascal_to_camel_case("Near"), "near");
-        assert_eq!(pascal_to_camel_case("Equal"), "equal");
     }
 
     #[test]
@@ -403,9 +384,9 @@ mod tests {
         let mut settings = BTreeSet::new();
         settings.insert("BodyLong".to_string());
         let code = emit_java_unpacking(&settings, 6);
-        assert!(code.contains("this.candleSettings.bodyLong.rangeType"));
-        assert!(code.contains("this.candleSettings.bodyLong.avgPeriod"));
-        assert!(code.contains("this.candleSettings.bodyLong.factor"));
+        assert!(code.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();"));
+        assert!(code.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;"));
+        assert!(code.contains("this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;"));
     }
 
     #[test]

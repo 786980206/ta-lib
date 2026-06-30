@@ -48,15 +48,15 @@
       }
       return RetCode.Success ;
    }
-   public RetCode adLogic( int startIdx,
-                           int endIdx,
-                           double inHigh[],
-                           double inLow[],
-                           double inClose[],
-                           double inVolume[],
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode adUnguarded( int startIdx,
+                               int endIdx,
+                               double inHigh[],
+                               double inLow[],
+                               double inClose[],
+                               double inVolume[],
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
       int nbBar = 0;
       int currentBar = 0;
@@ -130,15 +130,15 @@
       }
       return RetCode.Success ;
    }
-   public RetCode adLogic( int startIdx,
-                           int endIdx,
-                           float inHigh[],
-                           float inLow[],
-                           float inClose[],
-                           float inVolume[],
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode adUnguarded( int startIdx,
+                               int endIdx,
+                               float inHigh[],
+                               float inLow[],
+                               float inClose[],
+                               float inVolume[],
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
       int nbBar = 0;
       int currentBar = 0;

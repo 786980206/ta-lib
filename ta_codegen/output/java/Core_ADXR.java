@@ -41,7 +41,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -56,15 +56,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode adxrLogic( int startIdx,
-                             int endIdx,
-                             double inHigh[],
-                             double inLow[],
-                             double inClose[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode adxrUnguarded( int startIdx,
+                                 int endIdx,
+                                 double inHigh[],
+                                 double inLow[],
+                                 double inClose[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double[] adx;
       int adxrLookback = 0;
@@ -83,7 +83,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -131,7 +131,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -146,15 +146,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode adxrLogic( int startIdx,
-                             int endIdx,
-                             float inHigh[],
-                             float inLow[],
-                             float inClose[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode adxrUnguarded( int startIdx,
+                                 int endIdx,
+                                 float inHigh[],
+                                 float inLow[],
+                                 float inClose[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double[] adx;
       int adxrLookback = 0;
@@ -173,7 +173,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }

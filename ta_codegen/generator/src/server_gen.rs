@@ -995,38 +995,48 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("    Sma, Ema, Wma, Dema, Tema, Trima, Kama, Mama, T3;\n");
     s.push_str("}\n\n");
 
-    // CandleSetting holds rangeType, avgPeriod, factor for one candle setting
-    s.push_str("class CandleSetting {\n");
-    s.push_str("    int rangeType;\n");
-    s.push_str("    int avgPeriod;\n");
-    s.push_str("    double factor;\n");
-    s.push_str("    CandleSetting(int rt, int ap, double f) { rangeType = rt; avgPeriod = ap; factor = f; }\n");
+    // RangeType — mirrors the shipped enum (RealBody=0, HighLow=1, Shadows=2) so the
+    // canonical candle access (`rangeType.ordinal()`) compiles here as in Core.java.
+    s.push_str("enum RangeType {\n");
+    s.push_str("    RealBody, HighLow, Shadows;\n");
     s.push_str("}\n\n");
 
-    // CandleSettings container with named fields for each setting.
-    // Field names are camelCase versions of PascalCase setting names,
-    // matching the access pattern in candle_settings.rs emit_java_unpacking().
-    // Defaults from TA_RestoreCandleDefaultSettings in ta_global.c.
-    // RangeType values: 0=RealBody, 1=HighLow, 2=Shadows.
-    s.push_str("class CandleSettings {\n");
-    s.push_str("    CandleSetting bodyLong = new CandleSetting(0, 10, 1.0);\n");
-    s.push_str("    CandleSetting bodyVeryLong = new CandleSetting(0, 10, 3.0);\n");
-    s.push_str("    CandleSetting bodyShort = new CandleSetting(0, 10, 1.0);\n");
-    s.push_str("    CandleSetting bodyDoji = new CandleSetting(1, 10, 0.1);\n");
-    s.push_str("    CandleSetting shadowLong = new CandleSetting(0, 0, 1.0);\n");
-    s.push_str("    CandleSetting shadowVeryLong = new CandleSetting(0, 0, 2.0);\n");
-    s.push_str("    CandleSetting shadowShort = new CandleSetting(2, 10, 1.0);\n");
-    s.push_str("    CandleSetting shadowVeryShort = new CandleSetting(1, 10, 0.1);\n");
-    s.push_str("    CandleSetting near = new CandleSetting(1, 5, 0.2);\n");
-    s.push_str("    CandleSetting far = new CandleSetting(1, 5, 0.6);\n");
-    s.push_str("    CandleSetting equal = new CandleSetting(1, 5, 0.05);\n");
+    // CandleSetting holds rangeType, avgPeriod, factor for one candle setting
+    s.push_str("class CandleSetting {\n");
+    s.push_str("    RangeType rangeType;\n");
+    s.push_str("    int avgPeriod;\n");
+    s.push_str("    double factor;\n");
+    s.push_str("    CandleSetting(RangeType rt, int ap, double f) { rangeType = rt; avgPeriod = ap; factor = f; }\n");
+    s.push_str("}\n\n");
+
+    // CandleSettingType — ordinals index the `candleSettings` array below, matching
+    // the canonical shipped Core.java access form emitted by emit_java_unpacking()
+    // (`candleSettings[CandleSettingType.X.ordinal()]`).
+    s.push_str("enum CandleSettingType {\n");
+    s.push_str("    BodyLong, BodyVeryLong, BodyShort, BodyDoji,\n");
+    s.push_str("    ShadowLong, ShadowVeryLong, ShadowShort, ShadowVeryShort,\n");
+    s.push_str("    Near, Far, Equal, AllCandleSettings;\n");
     s.push_str("}\n\n");
 
     // Core class — method bodies are inlined by the caller via inline_java_core_methods()
     s.push_str("class Core {\n");
     s.push_str("    int[] unstablePeriod = new int[FuncUnstId.values().length];\n");
     s.push_str("    Compatibility compatibility = Compatibility.Default;\n");
-    s.push_str("    CandleSettings candleSettings = new CandleSettings();\n\n");
+    // candleSettings[] in CandleSettingType ordinal order. Defaults from
+    // TA_RestoreCandleDefaultSettings in ta_global.c. RangeType: 0=RealBody, 1=HighLow, 2=Shadows.
+    s.push_str("    CandleSetting[] candleSettings = {\n");
+    s.push_str("        new CandleSetting(RangeType.RealBody, 10, 1.0),   // BodyLong\n");
+    s.push_str("        new CandleSetting(RangeType.RealBody, 10, 3.0),   // BodyVeryLong\n");
+    s.push_str("        new CandleSetting(RangeType.RealBody, 10, 1.0),   // BodyShort\n");
+    s.push_str("        new CandleSetting(RangeType.HighLow,  10, 0.1),   // BodyDoji\n");
+    s.push_str("        new CandleSetting(RangeType.RealBody, 0,  1.0),   // ShadowLong\n");
+    s.push_str("        new CandleSetting(RangeType.RealBody, 0,  2.0),   // ShadowVeryLong\n");
+    s.push_str("        new CandleSetting(RangeType.Shadows,  10, 1.0),   // ShadowShort\n");
+    s.push_str("        new CandleSetting(RangeType.HighLow,  10, 0.1),   // ShadowVeryShort\n");
+    s.push_str("        new CandleSetting(RangeType.HighLow,  5,  0.2),   // Near\n");
+    s.push_str("        new CandleSetting(RangeType.HighLow,  5,  0.6),   // Far\n");
+    s.push_str("        new CandleSetting(RangeType.HighLow,  5,  0.05),  // Equal\n");
+    s.push_str("    };\n\n");
     for func in funcs {
         s.push_str(&format!("    // @@CORE_{}@@\n", func.name));
     }
@@ -1168,7 +1178,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
     // Per-function handler methods — each is small enough for C2 JIT compilation.
     for func in funcs {
-        let func_lower = to_java_method_name(&func.name);
+        let func_lower = to_java_method_name(&func.name, func.camel_case.as_deref());
 
         s.push_str(&format!(
             "    static String handle_{}(String json) {{\n",
@@ -1286,10 +1296,10 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         s.push_str("        long elapsedNs = (System.nanoTime() - startNs) / bench_iters;\n");
 
         // Unguarded timing loop
-        let logic_name = format!("{func_lower}Logic");
+        let unguarded_name = format!("{func_lower}Unguarded");
         s.push_str("        long startNsUng = System.nanoTime();\n");
         s.push_str("        for (int _biu = 0; _biu < bench_iters; _biu++) {\n");
-        s.push_str(&format!("        rc = core.{logic_name}(\n"));
+        s.push_str(&format!("        rc = core.{unguarded_name}(\n"));
         s.push_str("            startIdx, endIdx,\n");
         for name in &input_names {
             s.push_str(&format!("            {name},\n"));

@@ -1,17 +1,17 @@
 /* Generated */
-   public int trangeLookback( )
+   public int trueRangeLookback( )
    {
       return 1 ;
 
    }
-   public RetCode trange( int startIdx,
-                          int endIdx,
-                          double inHigh[],
-                          double inLow[],
-                          double inClose[],
-                          MInteger outBegIdx,
-                          MInteger outNBElement,
-                          double outReal[] )
+   public RetCode trueRange( int startIdx,
+                             int endIdx,
+                             double inHigh[],
+                             double inLow[],
+                             double inClose[],
+                             MInteger outBegIdx,
+                             MInteger outNBElement,
+                             double outReal[] )
    {
       int today = 0;
       int outIdx = 0;
@@ -57,14 +57,14 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode trangeLogic( int startIdx,
-                               int endIdx,
-                               double inHigh[],
-                               double inLow[],
-                               double inClose[],
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode trueRangeUnguarded( int startIdx,
+                                      int endIdx,
+                                      double inHigh[],
+                                      double inLow[],
+                                      double inClose[],
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
       int today = 0;
       int outIdx = 0;
@@ -104,14 +104,14 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode trange( int startIdx,
-                          int endIdx,
-                          float inHigh[],
-                          float inLow[],
-                          float inClose[],
-                          MInteger outBegIdx,
-                          MInteger outNBElement,
-                          double outReal[] )
+   public RetCode trueRange( int startIdx,
+                             int endIdx,
+                             float inHigh[],
+                             float inLow[],
+                             float inClose[],
+                             MInteger outBegIdx,
+                             MInteger outNBElement,
+                             double outReal[] )
    {
       int today = 0;
       int outIdx = 0;
@@ -157,14 +157,14 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode trangeLogic( int startIdx,
-                               int endIdx,
-                               float inHigh[],
-                               float inLow[],
-                               float inClose[],
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode trueRangeUnguarded( int startIdx,
+                                      int endIdx,
+                                      float inHigh[],
+                                      float inLow[],
+                                      float inClose[],
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
       int today = 0;
       int outIdx = 0;

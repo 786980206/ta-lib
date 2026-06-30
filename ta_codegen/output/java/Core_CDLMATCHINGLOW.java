@@ -1,13 +1,13 @@
 /* Generated */
-   public int cdlmatchinglowLookback( )
+   public int cdlMatchingLowLookback( )
    {
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
       return (Equal_avgPeriod+1) ;
 
    }
-   public RetCode cdlmatchinglow( int startIdx,
+   public RetCode cdlMatchingLow( int startIdx,
                                   int endIdx,
                                   double inOpen[],
                                   double inHigh[],
@@ -22,16 +22,16 @@
       int outIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlmatchinglowLookback();
+      lookbackTotal = cdlMatchingLowLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -63,25 +63,25 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlmatchinglowLogic( int startIdx,
-                                       int endIdx,
-                                       double inOpen[],
-                                       double inHigh[],
-                                       double inLow[],
-                                       double inClose[],
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       int outInteger[] )
+   public RetCode cdlMatchingLowUnguarded( int startIdx,
+                                           int endIdx,
+                                           double inOpen[],
+                                           double inHigh[],
+                                           double inLow[],
+                                           double inClose[],
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           int outInteger[] )
    {
       double EqualPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
-      lookbackTotal = cdlmatchinglowLookback();
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
+      lookbackTotal = cdlMatchingLowLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -113,7 +113,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlmatchinglow( int startIdx,
+   public RetCode cdlMatchingLow( int startIdx,
                                   int endIdx,
                                   float inOpen[],
                                   float inHigh[],
@@ -128,16 +128,16 @@
       int outIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlmatchinglowLookback();
+      lookbackTotal = cdlMatchingLowLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -169,25 +169,25 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlmatchinglowLogic( int startIdx,
-                                       int endIdx,
-                                       float inOpen[],
-                                       float inHigh[],
-                                       float inLow[],
-                                       float inClose[],
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       int outInteger[] )
+   public RetCode cdlMatchingLowUnguarded( int startIdx,
+                                           int endIdx,
+                                           float inOpen[],
+                                           float inHigh[],
+                                           float inLow[],
+                                           float inClose[],
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           int outInteger[] )
    {
       double EqualPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
-      lookbackTotal = cdlmatchinglowLookback();
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
+      lookbackTotal = cdlMatchingLowLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

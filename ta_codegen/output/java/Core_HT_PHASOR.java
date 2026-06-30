@@ -295,13 +295,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htPhasorLogic( int startIdx,
-                                 int endIdx,
-                                 double inReal[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outInPhase[],
-                                 double outQuadrature[] )
+   public RetCode htPhasorUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inReal[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outInPhase[],
+                                     double outQuadrature[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -871,13 +871,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htPhasorLogic( int startIdx,
-                                 int endIdx,
-                                 float inReal[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outInPhase[],
-                                 double outQuadrature[] )
+   public RetCode htPhasorUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inReal[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outInPhase[],
+                                     double outQuadrature[] )
    {
       int outIdx = 0;
       int i = 0;

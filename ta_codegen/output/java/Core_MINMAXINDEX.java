@@ -1,10 +1,10 @@
 /* Generated */
-   public int minmaxindexLookback( int optInTimePeriod )
+   public int minMaxIndexLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode minmaxindex( int startIdx,
+   public RetCode minMaxIndex( int startIdx,
                                int endIdx,
                                double inReal[],
                                int optInTimePeriod,
@@ -89,14 +89,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minmaxindexLogic( int startIdx,
-                                    int endIdx,
-                                    double inReal[],
-                                    int optInTimePeriod,
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outMinIdx[],
-                                    int outMaxIdx[] )
+   public RetCode minMaxIndexUnguarded( int startIdx,
+                                        int endIdx,
+                                        double inReal[],
+                                        int optInTimePeriod,
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outMinIdx[],
+                                        int outMaxIdx[] )
    {
       double highest = 0;
       double lowest = 0;
@@ -168,7 +168,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minmaxindex( int startIdx,
+   public RetCode minMaxIndex( int startIdx,
                                int endIdx,
                                float inReal[],
                                int optInTimePeriod,
@@ -253,14 +253,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minmaxindexLogic( int startIdx,
-                                    int endIdx,
-                                    float inReal[],
-                                    int optInTimePeriod,
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outMinIdx[],
-                                    int outMaxIdx[] )
+   public RetCode minMaxIndexUnguarded( int startIdx,
+                                        int endIdx,
+                                        float inReal[],
+                                        int optInTimePeriod,
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outMinIdx[],
+                                        int outMaxIdx[] )
    {
       double highest = 0;
       double lowest = 0;
