@@ -1,13 +1,13 @@
 /* Generated */
-   public int cdldojiLookback( )
+   public int cdlDojiLookback( )
    {
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
       return BodyDoji_avgPeriod ;
 
    }
-   public RetCode cdldoji( int startIdx,
+   public RetCode cdlDoji( int startIdx,
                            int endIdx,
                            double inOpen[],
                            double inHigh[],
@@ -22,16 +22,16 @@
       int outIdx = 0;
       int BodyDojiTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdldojiLookback();
+      lookbackTotal = cdlDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -62,25 +62,25 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldojiLogic( int startIdx,
-                                int endIdx,
-                                double inOpen[],
-                                double inHigh[],
-                                double inLow[],
-                                double inClose[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                int outInteger[] )
+   public RetCode cdlDojiUnguarded( int startIdx,
+                                    int endIdx,
+                                    double inOpen[],
+                                    double inHigh[],
+                                    double inLow[],
+                                    double inClose[],
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    int outInteger[] )
    {
       double BodyDojiPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int BodyDojiTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      lookbackTotal = cdldojiLookback();
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      lookbackTotal = cdlDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -111,7 +111,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldoji( int startIdx,
+   public RetCode cdlDoji( int startIdx,
                            int endIdx,
                            float inOpen[],
                            float inHigh[],
@@ -126,16 +126,16 @@
       int outIdx = 0;
       int BodyDojiTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdldojiLookback();
+      lookbackTotal = cdlDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -166,25 +166,25 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldojiLogic( int startIdx,
-                                int endIdx,
-                                float inOpen[],
-                                float inHigh[],
-                                float inLow[],
-                                float inClose[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                int outInteger[] )
+   public RetCode cdlDojiUnguarded( int startIdx,
+                                    int endIdx,
+                                    float inOpen[],
+                                    float inHigh[],
+                                    float inLow[],
+                                    float inClose[],
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    int outInteger[] )
    {
       double BodyDojiPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int BodyDojiTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      lookbackTotal = cdldojiLookback();
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      lookbackTotal = cdlDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

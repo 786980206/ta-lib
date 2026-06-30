@@ -3,8 +3,8 @@
    {
       int retValue;
       retValue = (optInFastK_Period-1);
-      retValue += maLookback(optInSlowK_Period, optInSlowK_MAType);
-      retValue += maLookback(optInSlowD_Period, optInSlowD_MAType);
+      retValue += movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
+      retValue += movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
       return retValue ;
 
    }
@@ -47,8 +47,8 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       lookbackK = (optInFastK_Period-1);
-      lookbackKSlow = maLookback(optInSlowK_Period, optInSlowK_MAType);
-      lookbackDSlow = maLookback(optInSlowD_Period, optInSlowD_MAType);
+      lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
+      lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
       lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -120,7 +120,7 @@
          trailingIdx += 1;
          today += 1;
       }
-      retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          if( (bufferIsAllocated) != 0 ) {
          }
@@ -128,7 +128,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
       if( (bufferIsAllocated) != 0 ) {
       }
@@ -140,20 +140,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode stochLogic( int startIdx,
-                              int endIdx,
-                              double inHigh[],
-                              double inLow[],
-                              double inClose[],
-                              int optInFastK_Period,
-                              int optInSlowK_Period,
-                              MAType optInSlowK_MAType,
-                              int optInSlowD_Period,
-                              MAType optInSlowD_MAType,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outSlowK[],
-                              double outSlowD[] )
+   public RetCode stochUnguarded( int startIdx,
+                                  int endIdx,
+                                  double inHigh[],
+                                  double inLow[],
+                                  double inClose[],
+                                  int optInFastK_Period,
+                                  int optInSlowK_Period,
+                                  MAType optInSlowK_MAType,
+                                  int optInSlowD_Period,
+                                  MAType optInSlowD_MAType,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outSlowK[],
+                                  double outSlowD[] )
    {
       RetCode retCode;
       double lowest = 0;
@@ -173,8 +173,8 @@
       int i = 0;
       int bufferIsAllocated = 0;
       lookbackK = (optInFastK_Period-1);
-      lookbackKSlow = maLookback(optInSlowK_Period, optInSlowK_MAType);
-      lookbackDSlow = maLookback(optInSlowD_Period, optInSlowD_MAType);
+      lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
+      lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
       lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -246,7 +246,7 @@
          trailingIdx += 1;
          today += 1;
       }
-      retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          if( (bufferIsAllocated) != 0 ) {
          }
@@ -254,7 +254,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
       if( (bufferIsAllocated) != 0 ) {
       }
@@ -305,8 +305,8 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       lookbackK = (optInFastK_Period-1);
-      lookbackKSlow = maLookback(optInSlowK_Period, optInSlowK_MAType);
-      lookbackDSlow = maLookback(optInSlowD_Period, optInSlowD_MAType);
+      lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
+      lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
       lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -378,7 +378,7 @@
          trailingIdx += 1;
          today += 1;
       }
-      retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          if( (bufferIsAllocated) != 0 ) {
          }
@@ -386,7 +386,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
       if( (bufferIsAllocated) != 0 ) {
       }
@@ -398,20 +398,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode stochLogic( int startIdx,
-                              int endIdx,
-                              float inHigh[],
-                              float inLow[],
-                              float inClose[],
-                              int optInFastK_Period,
-                              int optInSlowK_Period,
-                              MAType optInSlowK_MAType,
-                              int optInSlowD_Period,
-                              MAType optInSlowD_MAType,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outSlowK[],
-                              double outSlowD[] )
+   public RetCode stochUnguarded( int startIdx,
+                                  int endIdx,
+                                  float inHigh[],
+                                  float inLow[],
+                                  float inClose[],
+                                  int optInFastK_Period,
+                                  int optInSlowK_Period,
+                                  MAType optInSlowK_MAType,
+                                  int optInSlowD_Period,
+                                  MAType optInSlowD_MAType,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outSlowK[],
+                                  double outSlowD[] )
    {
       RetCode retCode;
       double lowest = 0;
@@ -431,8 +431,8 @@
       int i = 0;
       int bufferIsAllocated = 0;
       lookbackK = (optInFastK_Period-1);
-      lookbackKSlow = maLookback(optInSlowK_Period, optInSlowK_MAType);
-      lookbackDSlow = maLookback(optInSlowD_Period, optInSlowD_MAType);
+      lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
+      lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
       lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -504,7 +504,7 @@
          trailingIdx += 1;
          today += 1;
       }
-      retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          if( (bufferIsAllocated) != 0 ) {
          }
@@ -512,7 +512,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
       if( (bufferIsAllocated) != 0 ) {
       }

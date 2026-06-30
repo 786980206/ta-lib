@@ -1,5 +1,5 @@
 /* Generated */
-   public int plusDiLookback( int optInTimePeriod )
+   public int plusDILookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
          return (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]) ;
@@ -8,7 +8,7 @@
       }
 
    }
-   public RetCode plusDi( int startIdx,
+   public RetCode plusDI( int startIdx,
                           int endIdx,
                           double inHigh[],
                           double inLow[],
@@ -197,15 +197,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode plusDiLogic( int startIdx,
-                               int endIdx,
-                               double inHigh[],
-                               double inLow[],
-                               double inClose[],
-                               int optInTimePeriod,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode plusDIUnguarded( int startIdx,
+                                   int endIdx,
+                                   double inHigh[],
+                                   double inLow[],
+                                   double inClose[],
+                                   int optInTimePeriod,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       int today = 0;
       int lookbackTotal = 0;
@@ -380,7 +380,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode plusDi( int startIdx,
+   public RetCode plusDI( int startIdx,
                           int endIdx,
                           float inHigh[],
                           float inLow[],
@@ -569,15 +569,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode plusDiLogic( int startIdx,
-                               int endIdx,
-                               float inHigh[],
-                               float inLow[],
-                               float inClose[],
-                               int optInTimePeriod,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode plusDIUnguarded( int startIdx,
+                                   int endIdx,
+                                   float inHigh[],
+                                   float inLow[],
+                                   float inClose[],
+                                   int optInTimePeriod,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       int today = 0;
       int lookbackTotal = 0;

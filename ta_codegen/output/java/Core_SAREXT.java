@@ -1,10 +1,10 @@
 /* Generated */
-   public int sarextLookback( double optInStartValue, double optInOffsetOnReverse, double optInAccelerationInitLong, double optInAccelerationLong, double optInAccelerationMaxLong, double optInAccelerationInitShort, double optInAccelerationShort, double optInAccelerationMaxShort )
+   public int sarExtLookback( double optInStartValue, double optInOffsetOnReverse, double optInAccelerationInitLong, double optInAccelerationLong, double optInAccelerationMaxLong, double optInAccelerationInitShort, double optInAccelerationShort, double optInAccelerationMaxShort )
    {
       return 1 ;
 
    }
-   public RetCode sarext( int startIdx,
+   public RetCode sarExt( int startIdx,
                           int endIdx,
                           double inHigh[],
                           double inLow[],
@@ -65,7 +65,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -192,21 +192,21 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode sarextLogic( int startIdx,
-                               int endIdx,
-                               double inHigh[],
-                               double inLow[],
-                               double optInStartValue,
-                               double optInOffsetOnReverse,
-                               double optInAccelerationInitLong,
-                               double optInAccelerationLong,
-                               double optInAccelerationMaxLong,
-                               double optInAccelerationInitShort,
-                               double optInAccelerationShort,
-                               double optInAccelerationMaxShort,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode sarExtUnguarded( int startIdx,
+                                   int endIdx,
+                                   double inHigh[],
+                                   double inLow[],
+                                   double optInStartValue,
+                                   double optInOffsetOnReverse,
+                                   double optInAccelerationInitLong,
+                                   double optInAccelerationLong,
+                                   double optInAccelerationMaxLong,
+                                   double optInAccelerationInitShort,
+                                   double optInAccelerationShort,
+                                   double optInAccelerationMaxShort,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       RetCode retCode;
       int isLong = 0;
@@ -247,7 +247,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -374,7 +374,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode sarext( int startIdx,
+   public RetCode sarExt( int startIdx,
                           int endIdx,
                           float inHigh[],
                           float inLow[],
@@ -435,7 +435,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -562,21 +562,21 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode sarextLogic( int startIdx,
-                               int endIdx,
-                               float inHigh[],
-                               float inLow[],
-                               double optInStartValue,
-                               double optInOffsetOnReverse,
-                               double optInAccelerationInitLong,
-                               double optInAccelerationLong,
-                               double optInAccelerationMaxLong,
-                               double optInAccelerationInitShort,
-                               double optInAccelerationShort,
-                               double optInAccelerationMaxShort,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode sarExtUnguarded( int startIdx,
+                                   int endIdx,
+                                   float inHigh[],
+                                   float inLow[],
+                                   double optInStartValue,
+                                   double optInOffsetOnReverse,
+                                   double optInAccelerationInitLong,
+                                   double optInAccelerationLong,
+                                   double optInAccelerationMaxLong,
+                                   double optInAccelerationInitShort,
+                                   double optInAccelerationShort,
+                                   double optInAccelerationMaxShort,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       RetCode retCode;
       int isLong = 0;
@@ -617,7 +617,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {

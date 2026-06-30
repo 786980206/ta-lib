@@ -1,10 +1,10 @@
 /* Generated */
-   public int willrLookback( int optInTimePeriod )
+   public int willRLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode willr( int startIdx,
+   public RetCode willR( int startIdx,
                          int endIdx,
                          double inHigh[],
                          double inLow[],
@@ -98,15 +98,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode willrLogic( int startIdx,
-                              int endIdx,
-                              double inHigh[],
-                              double inLow[],
-                              double inClose[],
-                              int optInTimePeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outReal[] )
+   public RetCode willRUnguarded( int startIdx,
+                                  int endIdx,
+                                  double inHigh[],
+                                  double inLow[],
+                                  double inClose[],
+                                  int optInTimePeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
    {
       double lowest = 0;
       double highest = 0;
@@ -186,7 +186,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode willr( int startIdx,
+   public RetCode willR( int startIdx,
                          int endIdx,
                          float inHigh[],
                          float inLow[],
@@ -280,15 +280,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode willrLogic( int startIdx,
-                              int endIdx,
-                              float inHigh[],
-                              float inLow[],
-                              float inClose[],
-                              int optInTimePeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outReal[] )
+   public RetCode willRUnguarded( int startIdx,
+                                  int endIdx,
+                                  float inHigh[],
+                                  float inLow[],
+                                  float inClose[],
+                                  int optInTimePeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
    {
       double lowest = 0;
       double highest = 0;

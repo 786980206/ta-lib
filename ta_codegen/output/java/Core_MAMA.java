@@ -325,15 +325,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode mamaLogic( int startIdx,
-                             int endIdx,
-                             double inReal[],
-                             double optInFastLimit,
-                             double optInSlowLimit,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outMAMA[],
-                             double outFAMA[] )
+   public RetCode mamaUnguarded( int startIdx,
+                                 int endIdx,
+                                 double inReal[],
+                                 double optInFastLimit,
+                                 double optInSlowLimit,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outMAMA[],
+                                 double outFAMA[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -961,15 +961,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode mamaLogic( int startIdx,
-                             int endIdx,
-                             float inReal[],
-                             double optInFastLimit,
-                             double optInSlowLimit,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outMAMA[],
-                             double outFAMA[] )
+   public RetCode mamaUnguarded( int startIdx,
+                                 int endIdx,
+                                 float inReal[],
+                                 double optInFastLimit,
+                                 double optInSlowLimit,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outMAMA[],
+                                 double outFAMA[] )
    {
       int outIdx = 0;
       int i = 0;

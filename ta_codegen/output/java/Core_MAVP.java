@@ -1,19 +1,19 @@
 /* Generated */
-   public int mavpLookback( int optInMinPeriod, int optInMaxPeriod, MAType optInMAType )
+   public int movingAverageVariablePeriodLookback( int optInMinPeriod, int optInMaxPeriod, MAType optInMAType )
    {
-      return maLookback(optInMaxPeriod, optInMAType) ;
+      return movingAverageLookback(optInMaxPeriod, optInMAType) ;
 
    }
-   public RetCode mavp( int startIdx,
-                        int endIdx,
-                        double inReal[],
-                        double inPeriods[],
-                        int optInMinPeriod,
-                        int optInMaxPeriod,
-                        MAType optInMAType,
-                        MInteger outBegIdx,
-                        MInteger outNBElement,
-                        double outReal[] )
+   public RetCode movingAverageVariablePeriod( int startIdx,
+                                               int endIdx,
+                                               double inReal[],
+                                               double inPeriods[],
+                                               int optInMinPeriod,
+                                               int optInMaxPeriod,
+                                               MAType optInMAType,
+                                               MInteger outBegIdx,
+                                               MInteger outNBElement,
+                                               double outReal[] )
    {
       int i = 0;
       int j = 0;
@@ -32,7 +32,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = maLookback(optInMaxPeriod, optInMAType);
+      lookbackTotal = movingAverageLookback(optInMaxPeriod, optInMAType);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -66,7 +66,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = movingAverageUnguarded(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;
@@ -85,16 +85,16 @@
       outNBElement.value = outputSize;
       return RetCode.Success ;
    }
-   public RetCode mavpLogic( int startIdx,
-                             int endIdx,
-                             double inReal[],
-                             double inPeriods[],
-                             int optInMinPeriod,
-                             int optInMaxPeriod,
-                             MAType optInMAType,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode movingAverageVariablePeriodUnguarded( int startIdx,
+                                                        int endIdx,
+                                                        double inReal[],
+                                                        double inPeriods[],
+                                                        int optInMinPeriod,
+                                                        int optInMaxPeriod,
+                                                        MAType optInMAType,
+                                                        MInteger outBegIdx,
+                                                        MInteger outNBElement,
+                                                        double outReal[] )
    {
       int i = 0;
       int j = 0;
@@ -107,7 +107,7 @@
       MInteger localBegIdx = new MInteger();
       MInteger localNbElement = new MInteger();
       RetCode retCode;
-      lookbackTotal = maLookback(optInMaxPeriod, optInMAType);
+      lookbackTotal = movingAverageLookback(optInMaxPeriod, optInMAType);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -141,7 +141,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = movingAverageUnguarded(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;
@@ -160,16 +160,16 @@
       outNBElement.value = outputSize;
       return RetCode.Success ;
    }
-   public RetCode mavp( int startIdx,
-                        int endIdx,
-                        float inReal[],
-                        float inPeriods[],
-                        int optInMinPeriod,
-                        int optInMaxPeriod,
-                        MAType optInMAType,
-                        MInteger outBegIdx,
-                        MInteger outNBElement,
-                        double outReal[] )
+   public RetCode movingAverageVariablePeriod( int startIdx,
+                                               int endIdx,
+                                               float inReal[],
+                                               float inPeriods[],
+                                               int optInMinPeriod,
+                                               int optInMaxPeriod,
+                                               MAType optInMAType,
+                                               MInteger outBegIdx,
+                                               MInteger outNBElement,
+                                               double outReal[] )
    {
       int i = 0;
       int j = 0;
@@ -188,7 +188,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = maLookback(optInMaxPeriod, optInMAType);
+      lookbackTotal = movingAverageLookback(optInMaxPeriod, optInMAType);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -222,7 +222,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = movingAverageUnguarded(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;
@@ -241,16 +241,16 @@
       outNBElement.value = outputSize;
       return RetCode.Success ;
    }
-   public RetCode mavpLogic( int startIdx,
-                             int endIdx,
-                             float inReal[],
-                             float inPeriods[],
-                             int optInMinPeriod,
-                             int optInMaxPeriod,
-                             MAType optInMAType,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode movingAverageVariablePeriodUnguarded( int startIdx,
+                                                        int endIdx,
+                                                        float inReal[],
+                                                        float inPeriods[],
+                                                        int optInMinPeriod,
+                                                        int optInMaxPeriod,
+                                                        MAType optInMAType,
+                                                        MInteger outBegIdx,
+                                                        MInteger outNBElement,
+                                                        double outReal[] )
    {
       int i = 0;
       int j = 0;
@@ -263,7 +263,7 @@
       MInteger localBegIdx = new MInteger();
       MInteger localNbElement = new MInteger();
       RetCode retCode;
-      lookbackTotal = maLookback(optInMaxPeriod, optInMAType);
+      lookbackTotal = movingAverageLookback(optInMaxPeriod, optInMAType);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -297,7 +297,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = movingAverageUnguarded(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;

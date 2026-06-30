@@ -1,16 +1,16 @@
 /* Generated */
-   public int cdldragonflydojiLookback( )
+   public int cdlDragonflyDojiLookback( )
    {
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       return Math.max(BodyDoji_avgPeriod, ShadowVeryShort_avgPeriod) ;
 
    }
-   public RetCode cdldragonflydoji( int startIdx,
+   public RetCode cdlDragonflyDoji( int startIdx,
                                     int endIdx,
                                     double inOpen[],
                                     double inHigh[],
@@ -27,19 +27,19 @@
       int BodyDojiTrailingIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdldragonflydojiLookback();
+      lookbackTotal = cdlDragonflyDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -79,15 +79,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldragonflydojiLogic( int startIdx,
-                                         int endIdx,
-                                         double inOpen[],
-                                         double inHigh[],
-                                         double inLow[],
-                                         double inClose[],
-                                         MInteger outBegIdx,
-                                         MInteger outNBElement,
-                                         int outInteger[] )
+   public RetCode cdlDragonflyDojiUnguarded( int startIdx,
+                                             int endIdx,
+                                             double inOpen[],
+                                             double inHigh[],
+                                             double inLow[],
+                                             double inClose[],
+                                             MInteger outBegIdx,
+                                             MInteger outNBElement,
+                                             int outInteger[] )
    {
       double BodyDojiPeriodTotal = 0;
       double ShadowVeryShortPeriodTotal = 0;
@@ -96,13 +96,13 @@
       int BodyDojiTrailingIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdldragonflydojiLookback();
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdlDragonflyDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -142,7 +142,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldragonflydoji( int startIdx,
+   public RetCode cdlDragonflyDoji( int startIdx,
                                     int endIdx,
                                     float inOpen[],
                                     float inHigh[],
@@ -159,19 +159,19 @@
       int BodyDojiTrailingIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdldragonflydojiLookback();
+      lookbackTotal = cdlDragonflyDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -211,15 +211,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldragonflydojiLogic( int startIdx,
-                                         int endIdx,
-                                         float inOpen[],
-                                         float inHigh[],
-                                         float inLow[],
-                                         float inClose[],
-                                         MInteger outBegIdx,
-                                         MInteger outNBElement,
-                                         int outInteger[] )
+   public RetCode cdlDragonflyDojiUnguarded( int startIdx,
+                                             int endIdx,
+                                             float inOpen[],
+                                             float inHigh[],
+                                             float inLow[],
+                                             float inClose[],
+                                             MInteger outBegIdx,
+                                             MInteger outNBElement,
+                                             int outInteger[] )
    {
       double BodyDojiPeriodTotal = 0;
       double ShadowVeryShortPeriodTotal = 0;
@@ -228,13 +228,13 @@
       int BodyDojiTrailingIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdldragonflydojiLookback();
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdlDragonflyDojiLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

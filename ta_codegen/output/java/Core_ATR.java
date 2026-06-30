@@ -39,14 +39,14 @@
          return RetCode.Success ;
       }
       if( (optInTimePeriod<=1) ) {
-         return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+         return trueRangeUnguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
       }
       tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-      retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+      retCode = trueRangeUnguarded(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
-      retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+      retCode = smaUnguarded((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -71,15 +71,15 @@
       outNBElement.value = outIdx;
       return retCode ;
    }
-   public RetCode atrLogic( int startIdx,
-                            int endIdx,
-                            double inHigh[],
-                            double inLow[],
-                            double inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode atrUnguarded( int startIdx,
+                                int endIdx,
+                                double inHigh[],
+                                double inLow[],
+                                double inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       RetCode retCode;
       int outIdx = 0;
@@ -100,14 +100,14 @@
          return RetCode.Success ;
       }
       if( (optInTimePeriod<=1) ) {
-         return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+         return trueRangeUnguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
       }
       tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-      retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+      retCode = trueRangeUnguarded(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
-      retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+      retCode = smaUnguarded((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -167,14 +167,14 @@
          return RetCode.Success ;
       }
       if( (optInTimePeriod<=1) ) {
-         return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+         return trueRangeUnguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
       }
       tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-      retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+      retCode = trueRangeUnguarded(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
-      retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+      retCode = smaUnguarded((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -199,15 +199,15 @@
       outNBElement.value = outIdx;
       return retCode ;
    }
-   public RetCode atrLogic( int startIdx,
-                            int endIdx,
-                            float inHigh[],
-                            float inLow[],
-                            float inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode atrUnguarded( int startIdx,
+                                int endIdx,
+                                float inHigh[],
+                                float inLow[],
+                                float inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       RetCode retCode;
       int outIdx = 0;
@@ -228,14 +228,14 @@
          return RetCode.Success ;
       }
       if( (optInTimePeriod<=1) ) {
-         return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+         return trueRangeUnguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
       }
       tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-      retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+      retCode = trueRangeUnguarded(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
-      retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+      retCode = smaUnguarded((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }

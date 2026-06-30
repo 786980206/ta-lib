@@ -1,16 +1,16 @@
 /* Generated */
-   public int cdlhighwaveLookback( )
+   public int cdlHignWaveLookback( )
    {
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int ShadowVeryLong_rangeType = this.candleSettings.shadowVeryLong.rangeType;
-      int ShadowVeryLong_avgPeriod = this.candleSettings.shadowVeryLong.avgPeriod;
-      double ShadowVeryLong_factor = this.candleSettings.shadowVeryLong.factor;
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int ShadowVeryLong_rangeType = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].rangeType.ordinal();
+      int ShadowVeryLong_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].avgPeriod;
+      double ShadowVeryLong_factor = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].factor;
       return Math.max(BodyShort_avgPeriod, ShadowVeryLong_avgPeriod) ;
 
    }
-   public RetCode cdlhighwave( int startIdx,
+   public RetCode cdlHignWave( int startIdx,
                                int endIdx,
                                double inOpen[],
                                double inHigh[],
@@ -27,19 +27,19 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int ShadowVeryLong_rangeType = this.candleSettings.shadowVeryLong.rangeType;
-      int ShadowVeryLong_avgPeriod = this.candleSettings.shadowVeryLong.avgPeriod;
-      double ShadowVeryLong_factor = this.candleSettings.shadowVeryLong.factor;
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int ShadowVeryLong_rangeType = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].rangeType.ordinal();
+      int ShadowVeryLong_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].avgPeriod;
+      double ShadowVeryLong_factor = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlhighwaveLookback();
+      lookbackTotal = cdlHignWaveLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -79,15 +79,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhighwaveLogic( int startIdx,
-                                    int endIdx,
-                                    double inOpen[],
-                                    double inHigh[],
-                                    double inLow[],
-                                    double inClose[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode cdlHignWaveUnguarded( int startIdx,
+                                        int endIdx,
+                                        double inOpen[],
+                                        double inHigh[],
+                                        double inLow[],
+                                        double inClose[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       double BodyPeriodTotal = 0;
       double ShadowPeriodTotal = 0;
@@ -96,13 +96,13 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int ShadowVeryLong_rangeType = this.candleSettings.shadowVeryLong.rangeType;
-      int ShadowVeryLong_avgPeriod = this.candleSettings.shadowVeryLong.avgPeriod;
-      double ShadowVeryLong_factor = this.candleSettings.shadowVeryLong.factor;
-      lookbackTotal = cdlhighwaveLookback();
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int ShadowVeryLong_rangeType = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].rangeType.ordinal();
+      int ShadowVeryLong_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].avgPeriod;
+      double ShadowVeryLong_factor = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].factor;
+      lookbackTotal = cdlHignWaveLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -142,7 +142,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhighwave( int startIdx,
+   public RetCode cdlHignWave( int startIdx,
                                int endIdx,
                                float inOpen[],
                                float inHigh[],
@@ -159,19 +159,19 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int ShadowVeryLong_rangeType = this.candleSettings.shadowVeryLong.rangeType;
-      int ShadowVeryLong_avgPeriod = this.candleSettings.shadowVeryLong.avgPeriod;
-      double ShadowVeryLong_factor = this.candleSettings.shadowVeryLong.factor;
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int ShadowVeryLong_rangeType = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].rangeType.ordinal();
+      int ShadowVeryLong_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].avgPeriod;
+      double ShadowVeryLong_factor = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlhighwaveLookback();
+      lookbackTotal = cdlHignWaveLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -211,15 +211,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlhighwaveLogic( int startIdx,
-                                    int endIdx,
-                                    float inOpen[],
-                                    float inHigh[],
-                                    float inLow[],
-                                    float inClose[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode cdlHignWaveUnguarded( int startIdx,
+                                        int endIdx,
+                                        float inOpen[],
+                                        float inHigh[],
+                                        float inLow[],
+                                        float inClose[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       double BodyPeriodTotal = 0;
       double ShadowPeriodTotal = 0;
@@ -228,13 +228,13 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int ShadowVeryLong_rangeType = this.candleSettings.shadowVeryLong.rangeType;
-      int ShadowVeryLong_avgPeriod = this.candleSettings.shadowVeryLong.avgPeriod;
-      double ShadowVeryLong_factor = this.candleSettings.shadowVeryLong.factor;
-      lookbackTotal = cdlhighwaveLookback();
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int ShadowVeryLong_rangeType = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].rangeType.ordinal();
+      int ShadowVeryLong_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].avgPeriod;
+      double ShadowVeryLong_factor = this.candleSettings[CandleSettingType.ShadowVeryLong.ordinal()].factor;
+      lookbackTotal = cdlHignWaveLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

@@ -1,13 +1,13 @@
 /* Generated */
-   public int cdlladderbottomLookback( )
+   public int cdlLadderBottomLookback( )
    {
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       return (ShadowVeryShort_avgPeriod+4) ;
 
    }
-   public RetCode cdlladderbottom( int startIdx,
+   public RetCode cdlLadderBottom( int startIdx,
                                    int endIdx,
                                    double inOpen[],
                                    double inHigh[],
@@ -22,16 +22,16 @@
       int outIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlladderbottomLookback();
+      lookbackTotal = cdlLadderBottomLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -63,25 +63,25 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlladderbottomLogic( int startIdx,
-                                        int endIdx,
-                                        double inOpen[],
-                                        double inHigh[],
-                                        double inLow[],
-                                        double inClose[],
-                                        MInteger outBegIdx,
-                                        MInteger outNBElement,
-                                        int outInteger[] )
+   public RetCode cdlLadderBottomUnguarded( int startIdx,
+                                            int endIdx,
+                                            double inOpen[],
+                                            double inHigh[],
+                                            double inLow[],
+                                            double inClose[],
+                                            MInteger outBegIdx,
+                                            MInteger outNBElement,
+                                            int outInteger[] )
    {
       double ShadowVeryShortPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdlladderbottomLookback();
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdlLadderBottomLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -113,7 +113,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlladderbottom( int startIdx,
+   public RetCode cdlLadderBottom( int startIdx,
                                    int endIdx,
                                    float inOpen[],
                                    float inHigh[],
@@ -128,16 +128,16 @@
       int outIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlladderbottomLookback();
+      lookbackTotal = cdlLadderBottomLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -169,25 +169,25 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlladderbottomLogic( int startIdx,
-                                        int endIdx,
-                                        float inOpen[],
-                                        float inHigh[],
-                                        float inLow[],
-                                        float inClose[],
-                                        MInteger outBegIdx,
-                                        MInteger outNBElement,
-                                        int outInteger[] )
+   public RetCode cdlLadderBottomUnguarded( int startIdx,
+                                            int endIdx,
+                                            float inOpen[],
+                                            float inHigh[],
+                                            float inLow[],
+                                            float inClose[],
+                                            MInteger outBegIdx,
+                                            MInteger outNBElement,
+                                            int outInteger[] )
    {
       double ShadowVeryShortPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdlladderbottomLookback();
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdlLadderBottomLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

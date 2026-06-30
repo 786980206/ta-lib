@@ -1,12 +1,12 @@
 /* Generated */
-   public int ultoscLookback( int optInTimePeriod1, int optInTimePeriod2, int optInTimePeriod3 )
+   public int ultOscLookback( int optInTimePeriod1, int optInTimePeriod2, int optInTimePeriod3 )
    {
       int maxPeriod;
       maxPeriod = Math.max(Math.max(optInTimePeriod1, optInTimePeriod2), optInTimePeriod3);
       return (smaLookback(maxPeriod)+1) ;
 
    }
-   public RetCode ultosc( int startIdx,
+   public RetCode ultOsc( int startIdx,
                           int endIdx,
                           double inHigh[],
                           double inLow[],
@@ -74,7 +74,7 @@
       optInTimePeriod1 = sortedPeriods[2];
       optInTimePeriod2 = sortedPeriods[1];
       optInTimePeriod3 = sortedPeriods[0];
-      lookbackTotal = ultoscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+      lookbackTotal = ultOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -236,17 +236,17 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode ultoscLogic( int startIdx,
-                               int endIdx,
-                               double inHigh[],
-                               double inLow[],
-                               double inClose[],
-                               int optInTimePeriod1,
-                               int optInTimePeriod2,
-                               int optInTimePeriod3,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode ultOscUnguarded( int startIdx,
+                                   int endIdx,
+                                   double inHigh[],
+                                   double inLow[],
+                                   double inClose[],
+                                   int optInTimePeriod1,
+                                   int optInTimePeriod2,
+                                   int optInTimePeriod3,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       double a1Total = 0;
       double a2Total = 0;
@@ -298,7 +298,7 @@
       optInTimePeriod1 = sortedPeriods[2];
       optInTimePeriod2 = sortedPeriods[1];
       optInTimePeriod3 = sortedPeriods[0];
-      lookbackTotal = ultoscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+      lookbackTotal = ultOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -460,7 +460,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode ultosc( int startIdx,
+   public RetCode ultOsc( int startIdx,
                           int endIdx,
                           float inHigh[],
                           float inLow[],
@@ -528,7 +528,7 @@
       optInTimePeriod1 = sortedPeriods[2];
       optInTimePeriod2 = sortedPeriods[1];
       optInTimePeriod3 = sortedPeriods[0];
-      lookbackTotal = ultoscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+      lookbackTotal = ultOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -690,17 +690,17 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode ultoscLogic( int startIdx,
-                               int endIdx,
-                               float inHigh[],
-                               float inLow[],
-                               float inClose[],
-                               int optInTimePeriod1,
-                               int optInTimePeriod2,
-                               int optInTimePeriod3,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode ultOscUnguarded( int startIdx,
+                                   int endIdx,
+                                   float inHigh[],
+                                   float inLow[],
+                                   float inClose[],
+                                   int optInTimePeriod1,
+                                   int optInTimePeriod2,
+                                   int optInTimePeriod3,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       double a1Total = 0;
       double a2Total = 0;
@@ -752,7 +752,7 @@
       optInTimePeriod1 = sortedPeriods[2];
       optInTimePeriod2 = sortedPeriods[1];
       optInTimePeriod3 = sortedPeriods[0];
-      lookbackTotal = ultoscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+      lookbackTotal = ultOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

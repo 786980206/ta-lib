@@ -1,16 +1,16 @@
 /* Generated */
-   public int cdlgapsidesidewhiteLookback( )
+   public int cdlGapSideSideWhiteLookback( )
    {
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
       return (Math.max(Near_avgPeriod, Equal_avgPeriod)+2) ;
 
    }
-   public RetCode cdlgapsidesidewhite( int startIdx,
+   public RetCode cdlGapSideSideWhite( int startIdx,
                                        int endIdx,
                                        double inOpen[],
                                        double inHigh[],
@@ -27,19 +27,19 @@
       int NearTrailingIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlgapsidesidewhiteLookback();
+      lookbackTotal = cdlGapSideSideWhiteLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -80,15 +80,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlgapsidesidewhiteLogic( int startIdx,
-                                            int endIdx,
-                                            double inOpen[],
-                                            double inHigh[],
-                                            double inLow[],
-                                            double inClose[],
-                                            MInteger outBegIdx,
-                                            MInteger outNBElement,
-                                            int outInteger[] )
+   public RetCode cdlGapSideSideWhiteUnguarded( int startIdx,
+                                                int endIdx,
+                                                double inOpen[],
+                                                double inHigh[],
+                                                double inLow[],
+                                                double inClose[],
+                                                MInteger outBegIdx,
+                                                MInteger outNBElement,
+                                                int outInteger[] )
    {
       double NearPeriodTotal = 0;
       double EqualPeriodTotal = 0;
@@ -97,13 +97,13 @@
       int NearTrailingIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      lookbackTotal = cdlgapsidesidewhiteLookback();
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      lookbackTotal = cdlGapSideSideWhiteLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -144,7 +144,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlgapsidesidewhite( int startIdx,
+   public RetCode cdlGapSideSideWhite( int startIdx,
                                        int endIdx,
                                        float inOpen[],
                                        float inHigh[],
@@ -161,19 +161,19 @@
       int NearTrailingIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlgapsidesidewhiteLookback();
+      lookbackTotal = cdlGapSideSideWhiteLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -214,15 +214,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlgapsidesidewhiteLogic( int startIdx,
-                                            int endIdx,
-                                            float inOpen[],
-                                            float inHigh[],
-                                            float inLow[],
-                                            float inClose[],
-                                            MInteger outBegIdx,
-                                            MInteger outNBElement,
-                                            int outInteger[] )
+   public RetCode cdlGapSideSideWhiteUnguarded( int startIdx,
+                                                int endIdx,
+                                                float inOpen[],
+                                                float inHigh[],
+                                                float inLow[],
+                                                float inClose[],
+                                                MInteger outBegIdx,
+                                                MInteger outNBElement,
+                                                int outInteger[] )
    {
       double NearPeriodTotal = 0;
       double EqualPeriodTotal = 0;
@@ -231,13 +231,13 @@
       int NearTrailingIdx = 0;
       int EqualTrailingIdx = 0;
       int lookbackTotal = 0;
-      int Equal_rangeType = this.candleSettings.equal.rangeType;
-      int Equal_avgPeriod = this.candleSettings.equal.avgPeriod;
-      double Equal_factor = this.candleSettings.equal.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      lookbackTotal = cdlgapsidesidewhiteLookback();
+      int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
+      int Equal_avgPeriod = this.candleSettings[CandleSettingType.Equal.ordinal()].avgPeriod;
+      double Equal_factor = this.candleSettings[CandleSettingType.Equal.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      lookbackTotal = cdlGapSideSideWhiteLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

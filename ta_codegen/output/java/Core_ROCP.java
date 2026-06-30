@@ -1,10 +1,10 @@
 /* Generated */
-   public int rocpLookback( int optInTimePeriod )
+   public int rocPLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
 
    }
-   public RetCode rocp( int startIdx,
+   public RetCode rocP( int startIdx,
                         int endIdx,
                         double inReal[],
                         int optInTimePeriod,
@@ -46,13 +46,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode rocpLogic( int startIdx,
-                             int endIdx,
-                             double inReal[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode rocPUnguarded( int startIdx,
+                                 int endIdx,
+                                 double inReal[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       int inIdx = 0;
       int outIdx = 0;
@@ -82,7 +82,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode rocp( int startIdx,
+   public RetCode rocP( int startIdx,
                         int endIdx,
                         float inReal[],
                         int optInTimePeriod,
@@ -124,13 +124,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode rocpLogic( int startIdx,
-                             int endIdx,
-                             float inReal[],
-                             int optInTimePeriod,
-                             MInteger outBegIdx,
-                             MInteger outNBElement,
-                             double outReal[] )
+   public RetCode rocPUnguarded( int startIdx,
+                                 int endIdx,
+                                 float inReal[],
+                                 int optInTimePeriod,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       int inIdx = 0;
       int outIdx = 0;

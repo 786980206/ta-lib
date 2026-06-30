@@ -26,12 +26,12 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode sinLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode sinUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -64,12 +64,12 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode sinLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode sinUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

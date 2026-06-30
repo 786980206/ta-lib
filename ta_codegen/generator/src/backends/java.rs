@@ -328,7 +328,7 @@ fn gen_lookback(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    let name = to_java_method_name(&func.name);
+    let name = to_java_method_name(&func.name, func.camel_case.as_deref());
 
     // Build parameter list for signature
     let param_str = if func.optional_inputs.is_empty() {
@@ -401,7 +401,7 @@ fn gen_private(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    let base_name = to_java_method_name(&func.name);
+    let base_name = to_java_method_name(&func.name, func.camel_case.as_deref());
     let name_override = format!("{base_name}Private");
     gen_func_inner(func, false, true, Some(&name_override), enums, registry, helpers)
 }
@@ -415,7 +415,7 @@ fn gen_private_sp(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    let base_name = to_java_method_name(&func.name);
+    let base_name = to_java_method_name(&func.name, func.camel_case.as_deref());
     let name_override = format!("{base_name}Private");
     gen_func_inner(func, true, true, Some(&name_override), enums, registry, helpers)
 }
@@ -442,11 +442,12 @@ fn gen_func_inner(
     helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
-    let base_name = to_java_method_name(&func.name);
+    let base_name = to_java_method_name(&func.name, func.camel_case.as_deref());
     let name = if let Some(n) = name_override {
         n.to_string()
     } else if logic {
-        format!("{base_name}Logic")
+        // Public unguarded variant — matches C's `TA_<NAME>_Unguarded` surface.
+        format!("{base_name}Unguarded")
     } else {
         base_name
     };
@@ -1463,12 +1464,26 @@ fn to_pascal_case(s: &str) -> String {
         .collect()
 }
 
-/// Convert a function name to Java `camelCase`.
-/// Keeps the first segment lowercase, capitalizes subsequent segments.
-/// e.g., "linearreg_angle" -> "linearregAngle", "ht_dcperiod" -> "htDcperiod"
-/// Names without underscores pass through unchanged: "sma" -> "sma"
-pub(crate) fn to_java_method_name(s: &str) -> String {
-    let lower = s.to_lowercase();
+/// Convert a function to its Java `camelCase` method base name.
+///
+/// The canonical name is the YAML `camel_case` field with its first character
+/// lower-cased (e.g. `MovingAverage` -> `movingAverage`, `WillR` -> `willR`,
+/// `CdlHignWave` -> `cdlHignWave` — historical typos preserved verbatim). This is
+/// the public API surface the shipped `Core.java` exposes, ported from the legacy
+/// `ta_java_defs.h` method-name map.
+///
+/// When `camel_case` is absent, falls back to a naive lowercase-split of the C
+/// name (`ht_dcperiod` -> `htDcperiod`): keeps the first segment lowercase and
+/// capitalizes subsequent underscore-delimited segments.
+pub(crate) fn to_java_method_name(name: &str, camel_case: Option<&str>) -> String {
+    if let Some(cc) = camel_case {
+        let mut chars = cc.chars();
+        return match chars.next() {
+            None => String::new(),
+            Some(c) => c.to_lowercase().collect::<String>() + chars.as_str(),
+        };
+    }
+    let lower = name.to_lowercase();
     let parts: Vec<&str> = lower.split('_').collect();
     let mut result = String::new();
     for (i, part) in parts.iter().enumerate() {
@@ -1843,18 +1858,18 @@ mod tests {
     }
 
     #[test]
-    fn test_java_generates_logic_variant() {
+    fn test_java_generates_unguarded_variant() {
         let func = load_sma();
         let enums = HashMap::new();
         let registry = make_registry();
         let output = generate(&func, &enums, &registry, &HelperRegistry::empty());
 
-        // Should contain the logic variant
-        assert!(output.contains("smaLogic("), "Missing smaLogic function");
+        // Should contain the unguarded variant
+        assert!(output.contains("smaUnguarded("), "Missing smaUnguarded function");
 
-        // Logic variant should NOT have validation
-        // Find the smaLogic section and verify no validation
-        let logic_pos = output.find("smaLogic( ").unwrap();
+        // Unguarded variant should NOT have validation
+        // Find the smaUnguarded section and verify no validation
+        let logic_pos = output.find("smaUnguarded( ").unwrap();
         let logic_section = &output[logic_pos..];
         let next_fn_pos = logic_section
             .find("   public RetCode")
@@ -1862,14 +1877,14 @@ mod tests {
         let logic_body = &logic_section[..next_fn_pos];
         assert!(
             !logic_body.contains("OutOfRangeStartIndex"),
-            "Logic variant should not contain validation"
+            "Unguarded variant should not contain validation"
         );
 
         // The guarded variant should have validation
         let guarded_pos = output.find("public RetCode sma( ").unwrap();
         let guarded_section = &output[guarded_pos..];
         let guarded_end = guarded_section
-            .find("public RetCode smaLogic(")
+            .find("public RetCode smaUnguarded(")
             .unwrap_or(guarded_section.len());
         let guarded_body = &guarded_section[..guarded_end];
         assert!(

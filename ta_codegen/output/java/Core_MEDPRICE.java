@@ -1,10 +1,10 @@
 /* Generated */
-   public int medpriceLookback( )
+   public int medPriceLookback( )
    {
       return 0 ;
 
    }
-   public RetCode medprice( int startIdx,
+   public RetCode medPrice( int startIdx,
                             int endIdx,
                             double inHigh[],
                             double inLow[],
@@ -28,13 +28,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode medpriceLogic( int startIdx,
-                                 int endIdx,
-                                 double inHigh[],
-                                 double inLow[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode medPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inHigh[],
+                                     double inLow[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -46,7 +46,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode medprice( int startIdx,
+   public RetCode medPrice( int startIdx,
                             int endIdx,
                             float inHigh[],
                             float inLow[],
@@ -70,13 +70,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode medpriceLogic( int startIdx,
-                                 int endIdx,
-                                 float inHigh[],
-                                 float inLow[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode medPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inHigh[],
+                                     float inLow[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

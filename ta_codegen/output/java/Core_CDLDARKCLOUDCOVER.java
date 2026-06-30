@@ -1,13 +1,13 @@
 /* Generated */
-   public int cdldarkcloudcoverLookback( double optInPenetration )
+   public int cdlDarkCloudCoverLookback( double optInPenetration )
    {
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
       return (BodyLong_avgPeriod+1) ;
 
    }
-   public RetCode cdldarkcloudcover( int startIdx,
+   public RetCode cdlDarkCloudCover( int startIdx,
                                      int endIdx,
                                      double inOpen[],
                                      double inHigh[],
@@ -23,16 +23,16 @@
       int outIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdldarkcloudcoverLookback(optInPenetration);
+      lookbackTotal = cdlDarkCloudCoverLookback(optInPenetration);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -64,26 +64,26 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldarkcloudcoverLogic( int startIdx,
-                                          int endIdx,
-                                          double inOpen[],
-                                          double inHigh[],
-                                          double inLow[],
-                                          double inClose[],
-                                          double optInPenetration,
-                                          MInteger outBegIdx,
-                                          MInteger outNBElement,
-                                          int outInteger[] )
+   public RetCode cdlDarkCloudCoverUnguarded( int startIdx,
+                                              int endIdx,
+                                              double inOpen[],
+                                              double inHigh[],
+                                              double inLow[],
+                                              double inClose[],
+                                              double optInPenetration,
+                                              MInteger outBegIdx,
+                                              MInteger outNBElement,
+                                              int outInteger[] )
    {
       double BodyLongPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      lookbackTotal = cdldarkcloudcoverLookback(optInPenetration);
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      lookbackTotal = cdlDarkCloudCoverLookback(optInPenetration);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -115,7 +115,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldarkcloudcover( int startIdx,
+   public RetCode cdlDarkCloudCover( int startIdx,
                                      int endIdx,
                                      float inOpen[],
                                      float inHigh[],
@@ -131,16 +131,16 @@
       int outIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdldarkcloudcoverLookback(optInPenetration);
+      lookbackTotal = cdlDarkCloudCoverLookback(optInPenetration);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -172,26 +172,26 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdldarkcloudcoverLogic( int startIdx,
-                                          int endIdx,
-                                          float inOpen[],
-                                          float inHigh[],
-                                          float inLow[],
-                                          float inClose[],
-                                          double optInPenetration,
-                                          MInteger outBegIdx,
-                                          MInteger outNBElement,
-                                          int outInteger[] )
+   public RetCode cdlDarkCloudCoverUnguarded( int startIdx,
+                                              int endIdx,
+                                              float inOpen[],
+                                              float inHigh[],
+                                              float inLow[],
+                                              float inClose[],
+                                              double optInPenetration,
+                                              MInteger outBegIdx,
+                                              MInteger outNBElement,
+                                              int outInteger[] )
    {
       double BodyLongPeriodTotal = 0;
       int i = 0;
       int outIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      lookbackTotal = cdldarkcloudcoverLookback(optInPenetration);
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      lookbackTotal = cdlDarkCloudCoverLookback(optInPenetration);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

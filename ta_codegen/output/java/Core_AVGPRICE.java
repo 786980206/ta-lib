@@ -1,10 +1,10 @@
 /* Generated */
-   public int avgpriceLookback( )
+   public int avgPriceLookback( )
    {
       return 0 ;
 
    }
-   public RetCode avgprice( int startIdx,
+   public RetCode avgPrice( int startIdx,
                             int endIdx,
                             double inOpen[],
                             double inHigh[],
@@ -30,15 +30,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode avgpriceLogic( int startIdx,
-                                 int endIdx,
-                                 double inOpen[],
-                                 double inHigh[],
-                                 double inLow[],
-                                 double inClose[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode avgPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inOpen[],
+                                     double inHigh[],
+                                     double inLow[],
+                                     double inClose[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -50,7 +50,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode avgprice( int startIdx,
+   public RetCode avgPrice( int startIdx,
                             int endIdx,
                             float inOpen[],
                             float inHigh[],
@@ -76,15 +76,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode avgpriceLogic( int startIdx,
-                                 int endIdx,
-                                 float inOpen[],
-                                 float inHigh[],
-                                 float inLow[],
-                                 float inClose[],
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode avgPriceUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inOpen[],
+                                     float inHigh[],
+                                     float inLow[],
+                                     float inClose[],
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

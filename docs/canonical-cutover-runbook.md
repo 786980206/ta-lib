@@ -10,9 +10,12 @@ hand-written ta_common) is ta_codegen-owned. **gen_code's entire C side is now r
 CMake **and** autotools build the shipped lib from `src/`; **gen_code still compiles**; absolute
 oracle passes; `--codegen` 161/0 all 4 langs vs frozen `ta_ref_serve`; ABI gate green; regen
 deterministic; generator `cargo test` (445) + clippy clean. Nothing committed.
-**gen_code-removal audit (2026-06-29):** the ONLY remaining blocker is **#4 (Java backend)** — .NET
-is NOT a blocker (its shipped dir was deleted 2026-03-19; gen_code's .NET/MSVC output is dead surface
-removed *with* gen_code). Next: **#4 (Java)**, then **Stage 6/7**. · **Branch:** `dev`
+**#4 (Java backend) DONE 2026-06-29 (not committed)** — `ta_codegen` now generates the shipped Java
+(`Core.java` GENCODE + `CoreAnnotated.java` + `FuncUnstId.java`); gen_code's last unique role is gone.
+Verified: cargo test 444 + clippy clean; regen oracle = only `java/src` + generator + `output/java`
+(C lib + `include/` ABI untouched); javac whole `java/src` + sanity call; `--codegen` **161/0 all 4
+langs**; gen_code still compiles. See the **#4** prerequisite-gate entry below for the full detail.
+**Remaining: Stage 6-B (package.py) + Stage 7 (remove gen_code).** · **Branch:** `dev`
 
 > This is a *careful, reversible, one-step-at-a-time* runbook for retiring the legacy
 > `gen_code` generator and making `ta_codegen`'s generated C the canonical/shipped
@@ -158,8 +161,25 @@ These are the tracked Phase-0 tasks. The symlink cutover is Phase 2; do not star
       Green: the generated lib exports a **superset** of the reference public ABI (all 522
       public function symbols present, verified bidirectionally), `include/` unchanged (type ABI
       frozen). See "Stage 2" below for the symbol deltas + the `_Unguarded` visibility decision.
-- [ ] **#4 Java backend** — only required before *shipping* a release from the new canonical,
-      not before the C symlink swap. Can proceed in parallel.
+- [x] **#4 Java backend** — DONE 2026-06-29 (not yet committed). `ta_codegen` now generates the
+      shipped Java (`java/.../Core.java` GENCODE + `CoreAnnotated.java` + `FuncUnstId.java`), retiring
+      gen_code's last unique role. Four increments: (A) generator foundation — `to_java_method_name`
+      uses the YAML `camel_case` field (irregular/typo names), `Registry` threads a `java_names` map so
+      cross-calls match, `Logic`→`Unguarded` (matches C's public `_Unguarded`), `emit_java_unpacking`
+      → canonical `candleSettings[CandleSettingType.X.ordinal()].rangeType.ordinal()` (server candle
+      model switched to a `CandleSetting[]`+`RangeType` enum to match); (B) `FuncUnstId.java` from
+      `enums.yaml` (adds the missing `Imi`, sentinels `All`/`None`); (C) `Core.java` GENCODE assembly
+      (the verified per-indicator method text + the new public `xxxUnguarded` variants); (D)
+      `CoreAnnotated.java` — a faithful gen_code port, **byte-identical except the `avgPrice`/`avgDev`
+      canonical reorder** (matches `ta_func_list.txt`/`table_a.c`). Verified: cargo test 444 + forced
+      clippy clean; regen deterministic; full regen oracle = only `java/src` + generator + `output/java`
+      changed (**nothing in `src/`/`include/`/`output/{c,rust,dotnet}`** — C lib + ABI untouched); javac
+      whole `java/src` (40 classes, 0 errors) + a sanity call; `--codegen` Java 161/0 (all-4-lang green
+      from increment A, servers unchanged by B–D); gen_code still compiles. Generator: new
+      `backends/java_enums.rs` + `backends/java_shipped.rs`, wired in `main.rs`'s `"java"` block (Core/
+      CoreAnnotated only on a full, unfiltered `generate`). `ta_java_defs.h` stays gen_code-owned and
+      dies WITH gen_code in Stage 7. Deferred to the PR (maintainer: "good enough, fix later"): JUnit
+      suite not run (compile + 1 sanity call only), no dedicated unit tests for the new modules.
 
 ---
 

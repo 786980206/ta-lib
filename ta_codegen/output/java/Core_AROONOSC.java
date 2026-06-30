@@ -1,10 +1,10 @@
 /* Generated */
-   public int aroonoscLookback( int optInTimePeriod )
+   public int aroonOscLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
 
    }
-   public RetCode aroonosc( int startIdx,
+   public RetCode aroonOsc( int startIdx,
                             int endIdx,
                             double inHigh[],
                             double inLow[],
@@ -89,14 +89,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode aroonoscLogic( int startIdx,
-                                 int endIdx,
-                                 double inHigh[],
-                                 double inLow[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode aroonOscUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inHigh[],
+                                     double inLow[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       double lowest = 0;
       double highest = 0;
@@ -168,7 +168,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode aroonosc( int startIdx,
+   public RetCode aroonOsc( int startIdx,
                             int endIdx,
                             float inHigh[],
                             float inLow[],
@@ -253,14 +253,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode aroonoscLogic( int startIdx,
-                                 int endIdx,
-                                 float inHigh[],
-                                 float inLow[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode aroonOscUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inHigh[],
+                                     float inLow[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       double lowest = 0;
       double highest = 0;

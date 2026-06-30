@@ -120,13 +120,13 @@
       optInK_1 = (2.0/((double)(optInTimePeriod+1)));
       return emaPrivate(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal) ;
    }
-   public RetCode emaLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode emaUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double optInK_1 = 0;
       optInK_1 = (2.0/((double)(optInTimePeriod+1)));
@@ -187,13 +187,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode emaLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode emaUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double tempReal = 0;
       double prevMA = 0;

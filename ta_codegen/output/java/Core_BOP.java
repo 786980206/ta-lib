@@ -36,15 +36,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode bopLogic( int startIdx,
-                            int endIdx,
-                            double inOpen[],
-                            double inHigh[],
-                            double inLow[],
-                            double inClose[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode bopUnguarded( int startIdx,
+                                int endIdx,
+                                double inOpen[],
+                                double inHigh[],
+                                double inLow[],
+                                double inClose[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -94,15 +94,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode bopLogic( int startIdx,
-                            int endIdx,
-                            float inOpen[],
-                            float inHigh[],
-                            float inLow[],
-                            float inClose[],
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode bopUnguarded( int startIdx,
+                                int endIdx,
+                                float inOpen[],
+                                float inHigh[],
+                                float inLow[],
+                                float inClose[],
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

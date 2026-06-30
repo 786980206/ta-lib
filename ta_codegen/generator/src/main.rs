@@ -346,6 +346,37 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
             &root.join("src/ta_common/ta_retcode.c"),
         );
     }
+
+    // Take over gen_code's Java role: generate the shipped Java library files into
+    // java/src/com/tictactec/ta/lib/ (the Rust/.NET bindings have no canonical home
+    // and stay under ta_codegen/output/, but Java — like C — is a shipped product).
+    if backends_to_run.contains(&"java") {
+        let java_pkg = root.join("java/src/com/tictactec/ta/lib");
+        // FuncUnstId.java depends only on enums.yaml — always safe to regenerate.
+        backends::java_enums::generate(&enums, &java_pkg.join("FuncUnstId.java"));
+        // Core.java's GENCODE section and CoreAnnotated.java splice ALL indicators
+        // into a single file, so only regenerate on a full (unfiltered) run — a
+        // --func subset would drop every other indicator's methods.
+        if func_filter.is_none() {
+            backends::java_shipped::generate_core(
+                &generated_funcs,
+                &enums,
+                &registry,
+                &helper_registry,
+                &java_pkg.join("Core.java"),
+            );
+            backends::java_shipped::generate_annotated(
+                &generated_funcs,
+                &enums,
+                &java_pkg.join("CoreAnnotated.java"),
+            );
+        } else {
+            println!(
+                "  (skipping shipped Core.java/CoreAnnotated.java — needs a full \
+                 generate without --func)"
+            );
+        }
+    }
 }
 
 /// Load all YAML function definitions (no C source parsing, no filter).

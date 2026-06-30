@@ -1,13 +1,13 @@
 /* Generated */
-   public int cdl3blackcrowsLookback( )
+   public int cdl3BlackCrowsLookback( )
    {
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       return (ShadowVeryShort_avgPeriod+3) ;
 
    }
-   public RetCode cdl3blackcrows( int startIdx,
+   public RetCode cdl3BlackCrows( int startIdx,
                                   int endIdx,
                                   double inOpen[],
                                   double inHigh[],
@@ -23,16 +23,16 @@
       int totIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdl3blackcrowsLookback();
+      lookbackTotal = cdl3BlackCrowsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -70,15 +70,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3blackcrowsLogic( int startIdx,
-                                       int endIdx,
-                                       double inOpen[],
-                                       double inHigh[],
-                                       double inLow[],
-                                       double inClose[],
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       int outInteger[] )
+   public RetCode cdl3BlackCrowsUnguarded( int startIdx,
+                                           int endIdx,
+                                           double inOpen[],
+                                           double inHigh[],
+                                           double inLow[],
+                                           double inClose[],
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           int outInteger[] )
    {
       double[] ShadowVeryShortPeriodTotal = new double[3];
       int i = 0;
@@ -86,10 +86,10 @@
       int totIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdl3blackcrowsLookback();
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdl3BlackCrowsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -127,7 +127,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3blackcrows( int startIdx,
+   public RetCode cdl3BlackCrows( int startIdx,
                                   int endIdx,
                                   float inOpen[],
                                   float inHigh[],
@@ -143,16 +143,16 @@
       int totIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdl3blackcrowsLookback();
+      lookbackTotal = cdl3BlackCrowsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -190,15 +190,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3blackcrowsLogic( int startIdx,
-                                       int endIdx,
-                                       float inOpen[],
-                                       float inHigh[],
-                                       float inLow[],
-                                       float inClose[],
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       int outInteger[] )
+   public RetCode cdl3BlackCrowsUnguarded( int startIdx,
+                                           int endIdx,
+                                           float inOpen[],
+                                           float inHigh[],
+                                           float inLow[],
+                                           float inClose[],
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           int outInteger[] )
    {
       double[] ShadowVeryShortPeriodTotal = new double[3];
       int i = 0;
@@ -206,10 +206,10 @@
       int totIdx = 0;
       int ShadowVeryShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdl3blackcrowsLookback();
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdl3BlackCrowsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

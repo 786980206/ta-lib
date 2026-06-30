@@ -1,16 +1,16 @@
 /* Generated */
-   public int cdllonglineLookback( )
+   public int cdlLongLineLookback( )
    {
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      int ShadowShort_rangeType = this.candleSettings.shadowShort.rangeType;
-      int ShadowShort_avgPeriod = this.candleSettings.shadowShort.avgPeriod;
-      double ShadowShort_factor = this.candleSettings.shadowShort.factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      int ShadowShort_rangeType = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].rangeType.ordinal();
+      int ShadowShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].avgPeriod;
+      double ShadowShort_factor = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].factor;
       return Math.max(BodyLong_avgPeriod, ShadowShort_avgPeriod) ;
 
    }
-   public RetCode cdllongline( int startIdx,
+   public RetCode cdlLongLine( int startIdx,
                                int endIdx,
                                double inOpen[],
                                double inHigh[],
@@ -27,19 +27,19 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      int ShadowShort_rangeType = this.candleSettings.shadowShort.rangeType;
-      int ShadowShort_avgPeriod = this.candleSettings.shadowShort.avgPeriod;
-      double ShadowShort_factor = this.candleSettings.shadowShort.factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      int ShadowShort_rangeType = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].rangeType.ordinal();
+      int ShadowShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].avgPeriod;
+      double ShadowShort_factor = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdllonglineLookback();
+      lookbackTotal = cdlLongLineLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -79,15 +79,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdllonglineLogic( int startIdx,
-                                    int endIdx,
-                                    double inOpen[],
-                                    double inHigh[],
-                                    double inLow[],
-                                    double inClose[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode cdlLongLineUnguarded( int startIdx,
+                                        int endIdx,
+                                        double inOpen[],
+                                        double inHigh[],
+                                        double inLow[],
+                                        double inClose[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       double BodyPeriodTotal = 0;
       double ShadowPeriodTotal = 0;
@@ -96,13 +96,13 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      int ShadowShort_rangeType = this.candleSettings.shadowShort.rangeType;
-      int ShadowShort_avgPeriod = this.candleSettings.shadowShort.avgPeriod;
-      double ShadowShort_factor = this.candleSettings.shadowShort.factor;
-      lookbackTotal = cdllonglineLookback();
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      int ShadowShort_rangeType = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].rangeType.ordinal();
+      int ShadowShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].avgPeriod;
+      double ShadowShort_factor = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].factor;
+      lookbackTotal = cdlLongLineLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -142,7 +142,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdllongline( int startIdx,
+   public RetCode cdlLongLine( int startIdx,
                                int endIdx,
                                float inOpen[],
                                float inHigh[],
@@ -159,19 +159,19 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      int ShadowShort_rangeType = this.candleSettings.shadowShort.rangeType;
-      int ShadowShort_avgPeriod = this.candleSettings.shadowShort.avgPeriod;
-      double ShadowShort_factor = this.candleSettings.shadowShort.factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      int ShadowShort_rangeType = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].rangeType.ordinal();
+      int ShadowShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].avgPeriod;
+      double ShadowShort_factor = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdllonglineLookback();
+      lookbackTotal = cdlLongLineLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -211,15 +211,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdllonglineLogic( int startIdx,
-                                    int endIdx,
-                                    float inOpen[],
-                                    float inHigh[],
-                                    float inLow[],
-                                    float inClose[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode cdlLongLineUnguarded( int startIdx,
+                                        int endIdx,
+                                        float inOpen[],
+                                        float inHigh[],
+                                        float inLow[],
+                                        float inClose[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       double BodyPeriodTotal = 0;
       double ShadowPeriodTotal = 0;
@@ -228,13 +228,13 @@
       int BodyTrailingIdx = 0;
       int ShadowTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      int ShadowShort_rangeType = this.candleSettings.shadowShort.rangeType;
-      int ShadowShort_avgPeriod = this.candleSettings.shadowShort.avgPeriod;
-      double ShadowShort_factor = this.candleSettings.shadowShort.factor;
-      lookbackTotal = cdllonglineLookback();
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      int ShadowShort_rangeType = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].rangeType.ordinal();
+      int ShadowShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].avgPeriod;
+      double ShadowShort_factor = this.candleSettings[CandleSettingType.ShadowShort.ordinal()].factor;
+      lookbackTotal = cdlLongLineLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

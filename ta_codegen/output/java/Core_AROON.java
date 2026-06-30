@@ -89,15 +89,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode aroonLogic( int startIdx,
-                              int endIdx,
-                              double inHigh[],
-                              double inLow[],
-                              int optInTimePeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outAroonDown[],
-                              double outAroonUp[] )
+   public RetCode aroonUnguarded( int startIdx,
+                                  int endIdx,
+                                  double inHigh[],
+                                  double inLow[],
+                                  int optInTimePeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outAroonDown[],
+                                  double outAroonUp[] )
    {
       double lowest = 0;
       double highest = 0;
@@ -253,15 +253,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode aroonLogic( int startIdx,
-                              int endIdx,
-                              float inHigh[],
-                              float inLow[],
-                              int optInTimePeriod,
-                              MInteger outBegIdx,
-                              MInteger outNBElement,
-                              double outAroonDown[],
-                              double outAroonUp[] )
+   public RetCode aroonUnguarded( int startIdx,
+                                  int endIdx,
+                                  float inHigh[],
+                                  float inLow[],
+                                  int optInTimePeriod,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outAroonDown[],
+                                  double outAroonUp[] )
    {
       double lowest = 0;
       double highest = 0;

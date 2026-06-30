@@ -1,10 +1,10 @@
 /* Generated */
-   public int linearregAngleLookback( int optInTimePeriod )
+   public int linearRegAngleLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode linearregAngle( int startIdx,
+   public RetCode linearRegAngle( int startIdx,
                                   int endIdx,
                                   double inReal[],
                                   int optInTimePeriod,
@@ -29,7 +29,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = linearregAngleLookback(optInTimePeriod);
+      lookbackTotal = linearRegAngleLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -59,13 +59,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearregAngleLogic( int startIdx,
-                                       int endIdx,
-                                       double inReal[],
-                                       int optInTimePeriod,
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       double outReal[] )
+   public RetCode linearRegAngleUnguarded( int startIdx,
+                                           int endIdx,
+                                           double inReal[],
+                                           int optInTimePeriod,
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           double outReal[] )
    {
       int outIdx = 0;
       int today = 0;
@@ -78,7 +78,7 @@
       double m = 0;
       int i = 0;
       double tempValue1 = 0;
-      lookbackTotal = linearregAngleLookback(optInTimePeriod);
+      lookbackTotal = linearRegAngleLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -108,7 +108,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearregAngle( int startIdx,
+   public RetCode linearRegAngle( int startIdx,
                                   int endIdx,
                                   float inReal[],
                                   int optInTimePeriod,
@@ -133,7 +133,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = linearregAngleLookback(optInTimePeriod);
+      lookbackTotal = linearRegAngleLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -163,13 +163,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearregAngleLogic( int startIdx,
-                                       int endIdx,
-                                       float inReal[],
-                                       int optInTimePeriod,
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       double outReal[] )
+   public RetCode linearRegAngleUnguarded( int startIdx,
+                                           int endIdx,
+                                           float inReal[],
+                                           int optInTimePeriod,
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           double outReal[] )
    {
       int outIdx = 0;
       int today = 0;
@@ -182,7 +182,7 @@
       double m = 0;
       int i = 0;
       double tempValue1 = 0;
-      lookbackTotal = linearregAngleLookback(optInTimePeriod);
+      lookbackTotal = linearRegAngleLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

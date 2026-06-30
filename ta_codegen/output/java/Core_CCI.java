@@ -80,15 +80,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cciLogic( int startIdx,
-                            int endIdx,
-                            double inHigh[],
-                            double inLow[],
-                            double inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode cciUnguarded( int startIdx,
+                                int endIdx,
+                                double inHigh[],
+                                double inLow[],
+                                double inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double tempReal = 0;
       double tempReal2 = 0;
@@ -226,15 +226,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cciLogic( int startIdx,
-                            int endIdx,
-                            float inHigh[],
-                            float inLow[],
-                            float inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode cciUnguarded( int startIdx,
+                                int endIdx,
+                                float inHigh[],
+                                float inLow[],
+                                float inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double tempReal = 0;
       double tempReal2 = 0;

@@ -70,13 +70,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode wmaLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode wmaUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int inIdx = 0;
       int outIdx = 0;
@@ -196,13 +196,13 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode wmaLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode wmaUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       int inIdx = 0;
       int outIdx = 0;

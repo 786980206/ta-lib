@@ -1,10 +1,10 @@
 /* Generated */
-   public int avgdevLookback( int optInTimePeriod )
+   public int avgDevLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode avgdev( int startIdx,
+   public RetCode avgDev( int startIdx,
                           int endIdx,
                           double inReal[],
                           int optInTimePeriod,
@@ -52,13 +52,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode avgdevLogic( int startIdx,
-                               int endIdx,
-                               double inReal[],
-                               int optInTimePeriod,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode avgDevUnguarded( int startIdx,
+                                   int endIdx,
+                                   double inReal[],
+                                   int optInTimePeriod,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       int today = 0;
       int outIdx = 0;
@@ -94,7 +94,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode avgdev( int startIdx,
+   public RetCode avgDev( int startIdx,
                           int endIdx,
                           float inReal[],
                           int optInTimePeriod,
@@ -142,13 +142,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode avgdevLogic( int startIdx,
-                               int endIdx,
-                               float inReal[],
-                               int optInTimePeriod,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode avgDevUnguarded( int startIdx,
+                                   int endIdx,
+                                   float inReal[],
+                                   int optInTimePeriod,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       int today = 0;
       int outIdx = 0;

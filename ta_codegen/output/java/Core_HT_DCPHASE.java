@@ -1,10 +1,10 @@
 /* Generated */
-   public int htDcphaseLookback( )
+   public int htDcPhaseLookback( )
    {
       return (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]) ;
 
    }
-   public RetCode htDcphase( int startIdx,
+   public RetCode htDcPhase( int startIdx,
                              int endIdx,
                              double inReal[],
                              MInteger outBegIdx,
@@ -346,12 +346,12 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htDcphaseLogic( int startIdx,
-                                  int endIdx,
-                                  double inReal[],
-                                  MInteger outBegIdx,
-                                  MInteger outNBElement,
-                                  double outReal[] )
+   public RetCode htDcPhaseUnguarded( int startIdx,
+                                      int endIdx,
+                                      double inReal[],
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
       int outIdx = 0;
       int i = 0;
@@ -682,7 +682,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htDcphase( int startIdx,
+   public RetCode htDcPhase( int startIdx,
                              int endIdx,
                              float inReal[],
                              MInteger outBegIdx,
@@ -1024,12 +1024,12 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode htDcphaseLogic( int startIdx,
-                                  int endIdx,
-                                  float inReal[],
-                                  MInteger outBegIdx,
-                                  MInteger outNBElement,
-                                  double outReal[] )
+   public RetCode htDcPhaseUnguarded( int startIdx,
+                                      int endIdx,
+                                      float inReal[],
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
       int outIdx = 0;
       int i = 0;

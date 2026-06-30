@@ -1,5 +1,5 @@
 /* Generated */
-   public int maLookback( int optInTimePeriod, MAType optInMAType )
+   public int movingAverageLookback( int optInTimePeriod, MAType optInMAType )
    {
       int retValue;
       if( (optInTimePeriod<=1) ) {
@@ -41,14 +41,14 @@
       return retValue ;
 
    }
-   public RetCode ma( int startIdx,
-                      int endIdx,
-                      double inReal[],
-                      int optInTimePeriod,
-                      MAType optInMAType,
-                      MInteger outBegIdx,
-                      MInteger outNBElement,
-                      double outReal[] )
+   public RetCode movingAverage( int startIdx,
+                                 int endIdx,
+                                 double inReal[],
+                                 int optInTimePeriod,
+                                 MAType optInMAType,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double[] dummyBuffer;
       RetCode retCode;
@@ -73,32 +73,32 @@
       switch( optInMAType )
       {
       case MAType.Sma:
-         retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Ema:
-         retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Wma:
-         retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Dema:
-         retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Tema:
-         retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Trima:
-         retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Kama:
-         retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-         retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+         retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:
-         retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+         retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:
          retCode = RetCode.BadParam;
@@ -106,14 +106,14 @@
       }
       return retCode ;
    }
-   public RetCode maLogic( int startIdx,
-                           int endIdx,
-                           double inReal[],
-                           int optInTimePeriod,
-                           MAType optInMAType,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode movingAverageUnguarded( int startIdx,
+                                          int endIdx,
+                                          double inReal[],
+                                          int optInTimePeriod,
+                                          MAType optInMAType,
+                                          MInteger outBegIdx,
+                                          MInteger outNBElement,
+                                          double outReal[] )
    {
       double[] dummyBuffer;
       RetCode retCode;
@@ -132,32 +132,32 @@
       switch( optInMAType )
       {
       case MAType.Sma:
-         retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Ema:
-         retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Wma:
-         retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Dema:
-         retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Tema:
-         retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Trima:
-         retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Kama:
-         retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-         retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+         retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:
-         retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+         retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:
          retCode = RetCode.BadParam;
@@ -165,14 +165,14 @@
       }
       return retCode ;
    }
-   public RetCode ma( int startIdx,
-                      int endIdx,
-                      float inReal[],
-                      int optInTimePeriod,
-                      MAType optInMAType,
-                      MInteger outBegIdx,
-                      MInteger outNBElement,
-                      double outReal[] )
+   public RetCode movingAverage( int startIdx,
+                                 int endIdx,
+                                 float inReal[],
+                                 int optInTimePeriod,
+                                 MAType optInMAType,
+                                 MInteger outBegIdx,
+                                 MInteger outNBElement,
+                                 double outReal[] )
    {
       double[] dummyBuffer;
       RetCode retCode;
@@ -197,32 +197,32 @@
       switch( optInMAType )
       {
       case MAType.Sma:
-         retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Ema:
-         retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Wma:
-         retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Dema:
-         retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Tema:
-         retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Trima:
-         retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Kama:
-         retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-         retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+         retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:
-         retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+         retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:
          retCode = RetCode.BadParam;
@@ -230,14 +230,14 @@
       }
       return retCode ;
    }
-   public RetCode maLogic( int startIdx,
-                           int endIdx,
-                           float inReal[],
-                           int optInTimePeriod,
-                           MAType optInMAType,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode movingAverageUnguarded( int startIdx,
+                                          int endIdx,
+                                          float inReal[],
+                                          int optInTimePeriod,
+                                          MAType optInMAType,
+                                          MInteger outBegIdx,
+                                          MInteger outNBElement,
+                                          double outReal[] )
    {
       double[] dummyBuffer;
       RetCode retCode;
@@ -256,32 +256,32 @@
       switch( optInMAType )
       {
       case MAType.Sma:
-         retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Ema:
-         retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Wma:
-         retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Dema:
-         retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Tema:
-         retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Trima:
-         retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Kama:
-         retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-         retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+         retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:
-         retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+         retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:
          retCode = RetCode.BadParam;

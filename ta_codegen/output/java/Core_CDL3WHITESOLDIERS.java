@@ -1,22 +1,22 @@
 /* Generated */
-   public int cdl3whitesoldiersLookback( )
+   public int cdl3WhiteSoldiersLookback( )
    {
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int Far_rangeType = this.candleSettings.far.rangeType;
-      int Far_avgPeriod = this.candleSettings.far.avgPeriod;
-      double Far_factor = this.candleSettings.far.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int Far_rangeType = this.candleSettings[CandleSettingType.Far.ordinal()].rangeType.ordinal();
+      int Far_avgPeriod = this.candleSettings[CandleSettingType.Far.ordinal()].avgPeriod;
+      double Far_factor = this.candleSettings[CandleSettingType.Far.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       return (Math.max(Math.max(ShadowVeryShort_avgPeriod, BodyShort_avgPeriod), Math.max(Far_avgPeriod, Near_avgPeriod))+2) ;
 
    }
-   public RetCode cdl3whitesoldiers( int startIdx,
+   public RetCode cdl3WhiteSoldiers( int startIdx,
                                      int endIdx,
                                      double inOpen[],
                                      double inHigh[],
@@ -38,25 +38,25 @@
       int FarTrailingIdx = 0;
       int BodyShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int Far_rangeType = this.candleSettings.far.rangeType;
-      int Far_avgPeriod = this.candleSettings.far.avgPeriod;
-      double Far_factor = this.candleSettings.far.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int Far_rangeType = this.candleSettings[CandleSettingType.Far.ordinal()].rangeType.ordinal();
+      int Far_avgPeriod = this.candleSettings[CandleSettingType.Far.ordinal()].avgPeriod;
+      double Far_factor = this.candleSettings[CandleSettingType.Far.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdl3whitesoldiersLookback();
+      lookbackTotal = cdl3WhiteSoldiersLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -129,15 +129,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3whitesoldiersLogic( int startIdx,
-                                          int endIdx,
-                                          double inOpen[],
-                                          double inHigh[],
-                                          double inLow[],
-                                          double inClose[],
-                                          MInteger outBegIdx,
-                                          MInteger outNBElement,
-                                          int outInteger[] )
+   public RetCode cdl3WhiteSoldiersUnguarded( int startIdx,
+                                              int endIdx,
+                                              double inOpen[],
+                                              double inHigh[],
+                                              double inLow[],
+                                              double inClose[],
+                                              MInteger outBegIdx,
+                                              MInteger outNBElement,
+                                              int outInteger[] )
    {
       double[] ShadowVeryShortPeriodTotal = new double[3];
       double[] NearPeriodTotal = new double[3];
@@ -151,19 +151,19 @@
       int FarTrailingIdx = 0;
       int BodyShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int Far_rangeType = this.candleSettings.far.rangeType;
-      int Far_avgPeriod = this.candleSettings.far.avgPeriod;
-      double Far_factor = this.candleSettings.far.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdl3whitesoldiersLookback();
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int Far_rangeType = this.candleSettings[CandleSettingType.Far.ordinal()].rangeType.ordinal();
+      int Far_avgPeriod = this.candleSettings[CandleSettingType.Far.ordinal()].avgPeriod;
+      double Far_factor = this.candleSettings[CandleSettingType.Far.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdl3WhiteSoldiersLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -236,7 +236,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3whitesoldiers( int startIdx,
+   public RetCode cdl3WhiteSoldiers( int startIdx,
                                      int endIdx,
                                      float inOpen[],
                                      float inHigh[],
@@ -258,25 +258,25 @@
       int FarTrailingIdx = 0;
       int BodyShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int Far_rangeType = this.candleSettings.far.rangeType;
-      int Far_avgPeriod = this.candleSettings.far.avgPeriod;
-      double Far_factor = this.candleSettings.far.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int Far_rangeType = this.candleSettings[CandleSettingType.Far.ordinal()].rangeType.ordinal();
+      int Far_avgPeriod = this.candleSettings[CandleSettingType.Far.ordinal()].avgPeriod;
+      double Far_factor = this.candleSettings[CandleSettingType.Far.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdl3whitesoldiersLookback();
+      lookbackTotal = cdl3WhiteSoldiersLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -349,15 +349,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3whitesoldiersLogic( int startIdx,
-                                          int endIdx,
-                                          float inOpen[],
-                                          float inHigh[],
-                                          float inLow[],
-                                          float inClose[],
-                                          MInteger outBegIdx,
-                                          MInteger outNBElement,
-                                          int outInteger[] )
+   public RetCode cdl3WhiteSoldiersUnguarded( int startIdx,
+                                              int endIdx,
+                                              float inOpen[],
+                                              float inHigh[],
+                                              float inLow[],
+                                              float inClose[],
+                                              MInteger outBegIdx,
+                                              MInteger outNBElement,
+                                              int outInteger[] )
    {
       double[] ShadowVeryShortPeriodTotal = new double[3];
       double[] NearPeriodTotal = new double[3];
@@ -371,19 +371,19 @@
       int FarTrailingIdx = 0;
       int BodyShortTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyShort_rangeType = this.candleSettings.bodyShort.rangeType;
-      int BodyShort_avgPeriod = this.candleSettings.bodyShort.avgPeriod;
-      double BodyShort_factor = this.candleSettings.bodyShort.factor;
-      int Far_rangeType = this.candleSettings.far.rangeType;
-      int Far_avgPeriod = this.candleSettings.far.avgPeriod;
-      double Far_factor = this.candleSettings.far.factor;
-      int Near_rangeType = this.candleSettings.near.rangeType;
-      int Near_avgPeriod = this.candleSettings.near.avgPeriod;
-      double Near_factor = this.candleSettings.near.factor;
-      int ShadowVeryShort_rangeType = this.candleSettings.shadowVeryShort.rangeType;
-      int ShadowVeryShort_avgPeriod = this.candleSettings.shadowVeryShort.avgPeriod;
-      double ShadowVeryShort_factor = this.candleSettings.shadowVeryShort.factor;
-      lookbackTotal = cdl3whitesoldiersLookback();
+      int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
+      int BodyShort_avgPeriod = this.candleSettings[CandleSettingType.BodyShort.ordinal()].avgPeriod;
+      double BodyShort_factor = this.candleSettings[CandleSettingType.BodyShort.ordinal()].factor;
+      int Far_rangeType = this.candleSettings[CandleSettingType.Far.ordinal()].rangeType.ordinal();
+      int Far_avgPeriod = this.candleSettings[CandleSettingType.Far.ordinal()].avgPeriod;
+      double Far_factor = this.candleSettings[CandleSettingType.Far.ordinal()].factor;
+      int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
+      int Near_avgPeriod = this.candleSettings[CandleSettingType.Near.ordinal()].avgPeriod;
+      double Near_factor = this.candleSettings[CandleSettingType.Near.ordinal()].factor;
+      int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
+      int ShadowVeryShort_avgPeriod = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].avgPeriod;
+      double ShadowVeryShort_factor = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].factor;
+      lookbackTotal = cdl3WhiteSoldiersLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

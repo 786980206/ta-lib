@@ -92,14 +92,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode correlLogic( int startIdx,
-                               int endIdx,
-                               double inReal0[],
-                               double inReal1[],
-                               int optInTimePeriod,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode correlUnguarded( int startIdx,
+                                   int endIdx,
+                                   double inReal0[],
+                                   double inReal1[],
+                                   int optInTimePeriod,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       double sumXY = 0;
       double sumX = 0;
@@ -262,14 +262,14 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode correlLogic( int startIdx,
-                               int endIdx,
-                               float inReal0[],
-                               float inReal1[],
-                               int optInTimePeriod,
-                               MInteger outBegIdx,
-                               MInteger outNBElement,
-                               double outReal[] )
+   public RetCode correlUnguarded( int startIdx,
+                                   int endIdx,
+                                   float inReal0[],
+                                   float inReal1[],
+                                   int optInTimePeriod,
+                                   MInteger outBegIdx,
+                                   MInteger outNBElement,
+                                   double outReal[] )
    {
       double sumXY = 0;
       double sumX = 0;

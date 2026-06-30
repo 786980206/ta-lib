@@ -65,13 +65,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode maxLogic( int startIdx,
-                            int endIdx,
-                            double inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode maxUnguarded( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double highest = 0;
       double tmp = 0;
@@ -181,13 +181,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode maxLogic( int startIdx,
-                            int endIdx,
-                            float inReal[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode maxUnguarded( int startIdx,
+                                int endIdx,
+                                float inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
       double highest = 0;
       double tmp = 0;

@@ -182,15 +182,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode dxLogic( int startIdx,
-                           int endIdx,
-                           double inHigh[],
-                           double inLow[],
-                           double inClose[],
-                           int optInTimePeriod,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode dxUnguarded( int startIdx,
+                               int endIdx,
+                               double inHigh[],
+                               double inLow[],
+                               double inClose[],
+                               int optInTimePeriod,
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
       int today = 0;
       int lookbackTotal = 0;
@@ -524,15 +524,15 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode dxLogic( int startIdx,
-                           int endIdx,
-                           float inHigh[],
-                           float inLow[],
-                           float inClose[],
-                           int optInTimePeriod,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode dxUnguarded( int startIdx,
+                               int endIdx,
+                               float inHigh[],
+                               float inLow[],
+                               float inClose[],
+                               int optInTimePeriod,
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
       int today = 0;
       int lookbackTotal = 0;

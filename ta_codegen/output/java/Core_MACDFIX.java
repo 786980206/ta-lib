@@ -1,10 +1,10 @@
 /* Generated */
-   public int macdfixLookback( int optInSignalPeriod )
+   public int macdFixLookback( int optInSignalPeriod )
    {
       return (emaLookback(26)+emaLookback(optInSignalPeriod)) ;
 
    }
-   public RetCode macdfix( int startIdx,
+   public RetCode macdFix( int startIdx,
                            int endIdx,
                            double inReal[],
                            int optInSignalPeriod,
@@ -20,21 +20,21 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+      return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
    }
-   public RetCode macdfixLogic( int startIdx,
-                                int endIdx,
-                                double inReal[],
-                                int optInSignalPeriod,
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outMACD[],
-                                double outMACDSignal[],
-                                double outMACDHist[] )
+   public RetCode macdFixUnguarded( int startIdx,
+                                    int endIdx,
+                                    double inReal[],
+                                    int optInSignalPeriod,
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    double outMACD[],
+                                    double outMACDSignal[],
+                                    double outMACDHist[] )
    {
-      return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+      return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
    }
-   public RetCode macdfix( int startIdx,
+   public RetCode macdFix( int startIdx,
                            int endIdx,
                            float inReal[],
                            int optInSignalPeriod,
@@ -50,17 +50,17 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+      return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
    }
-   public RetCode macdfixLogic( int startIdx,
-                                int endIdx,
-                                float inReal[],
-                                int optInSignalPeriod,
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outMACD[],
-                                double outMACDSignal[],
-                                double outMACDHist[] )
+   public RetCode macdFixUnguarded( int startIdx,
+                                    int endIdx,
+                                    float inReal[],
+                                    int optInSignalPeriod,
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    double outMACD[],
+                                    double outMACDSignal[],
+                                    double outMACDHist[] )
    {
-      return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+      return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
    }

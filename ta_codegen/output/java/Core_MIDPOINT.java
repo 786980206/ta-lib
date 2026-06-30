@@ -1,10 +1,10 @@
 /* Generated */
-   public int midpointLookback( int optInTimePeriod )
+   public int midPointLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode midpoint( int startIdx,
+   public RetCode midPoint( int startIdx,
                             int endIdx,
                             double inReal[],
                             int optInTimePeriod,
@@ -56,13 +56,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode midpointLogic( int startIdx,
-                                 int endIdx,
-                                 double inReal[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode midPointUnguarded( int startIdx,
+                                     int endIdx,
+                                     double inReal[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       double lowest = 0;
       double highest = 0;
@@ -102,7 +102,7 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode midpoint( int startIdx,
+   public RetCode midPoint( int startIdx,
                             int endIdx,
                             float inReal[],
                             int optInTimePeriod,
@@ -154,13 +154,13 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode midpointLogic( int startIdx,
-                                 int endIdx,
-                                 float inReal[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode midPointUnguarded( int startIdx,
+                                     int endIdx,
+                                     float inReal[],
+                                     int optInTimePeriod,
+                                     MInteger outBegIdx,
+                                     MInteger outNBElement,
+                                     double outReal[] )
    {
       double lowest = 0;
       double highest = 0;

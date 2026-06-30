@@ -7,6 +7,8 @@ pub mod expr_walk;
 pub mod func_api_xml;
 pub mod func_list;
 pub mod java;
+pub mod java_enums;
+pub mod java_shipped;
 pub mod makefile_am;
 pub mod retcode;
 pub mod rust_abstract;

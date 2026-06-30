@@ -1,16 +1,16 @@
 /* Generated */
-   public int cdlharamicrossLookback( )
+   public int cdlHaramiCrossLookback( )
    {
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
       return (Math.max(BodyDoji_avgPeriod, BodyLong_avgPeriod)+1) ;
 
    }
-   public RetCode cdlharamicross( int startIdx,
+   public RetCode cdlHaramiCross( int startIdx,
                                   int endIdx,
                                   double inOpen[],
                                   double inHigh[],
@@ -27,19 +27,19 @@
       int BodyDojiTrailingIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlharamicrossLookback();
+      lookbackTotal = cdlHaramiCrossLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -90,15 +90,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlharamicrossLogic( int startIdx,
-                                       int endIdx,
-                                       double inOpen[],
-                                       double inHigh[],
-                                       double inLow[],
-                                       double inClose[],
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       int outInteger[] )
+   public RetCode cdlHaramiCrossUnguarded( int startIdx,
+                                           int endIdx,
+                                           double inOpen[],
+                                           double inHigh[],
+                                           double inLow[],
+                                           double inClose[],
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           int outInteger[] )
    {
       double BodyDojiPeriodTotal = 0;
       double BodyLongPeriodTotal = 0;
@@ -107,13 +107,13 @@
       int BodyDojiTrailingIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      lookbackTotal = cdlharamicrossLookback();
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      lookbackTotal = cdlHaramiCrossLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -164,7 +164,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlharamicross( int startIdx,
+   public RetCode cdlHaramiCross( int startIdx,
                                   int endIdx,
                                   float inOpen[],
                                   float inHigh[],
@@ -181,19 +181,19 @@
       int BodyDojiTrailingIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdlharamicrossLookback();
+      lookbackTotal = cdlHaramiCrossLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -244,15 +244,15 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdlharamicrossLogic( int startIdx,
-                                       int endIdx,
-                                       float inOpen[],
-                                       float inHigh[],
-                                       float inLow[],
-                                       float inClose[],
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       int outInteger[] )
+   public RetCode cdlHaramiCrossUnguarded( int startIdx,
+                                           int endIdx,
+                                           float inOpen[],
+                                           float inHigh[],
+                                           float inLow[],
+                                           float inClose[],
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           int outInteger[] )
    {
       double BodyDojiPeriodTotal = 0;
       double BodyLongPeriodTotal = 0;
@@ -261,13 +261,13 @@
       int BodyDojiTrailingIdx = 0;
       int BodyLongTrailingIdx = 0;
       int lookbackTotal = 0;
-      int BodyDoji_rangeType = this.candleSettings.bodyDoji.rangeType;
-      int BodyDoji_avgPeriod = this.candleSettings.bodyDoji.avgPeriod;
-      double BodyDoji_factor = this.candleSettings.bodyDoji.factor;
-      int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
-      int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
-      double BodyLong_factor = this.candleSettings.bodyLong.factor;
-      lookbackTotal = cdlharamicrossLookback();
+      int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
+      int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
+      double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
+      int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
+      int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
+      double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
+      lookbackTotal = cdlHaramiCrossLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

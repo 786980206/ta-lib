@@ -1,10 +1,10 @@
 /* Generated */
-   public int cdl3outsideLookback( )
+   public int cdl3OutsideLookback( )
    {
       return 3 ;
 
    }
-   public RetCode cdl3outside( int startIdx,
+   public RetCode cdl3Outside( int startIdx,
                                int endIdx,
                                double inOpen[],
                                double inHigh[],
@@ -23,7 +23,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdl3outsideLookback();
+      lookbackTotal = cdl3OutsideLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -46,20 +46,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3outsideLogic( int startIdx,
-                                    int endIdx,
-                                    double inOpen[],
-                                    double inHigh[],
-                                    double inLow[],
-                                    double inClose[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode cdl3OutsideUnguarded( int startIdx,
+                                        int endIdx,
+                                        double inOpen[],
+                                        double inHigh[],
+                                        double inLow[],
+                                        double inClose[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = cdl3outsideLookback();
+      lookbackTotal = cdl3OutsideLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -82,7 +82,7 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3outside( int startIdx,
+   public RetCode cdl3Outside( int startIdx,
                                int endIdx,
                                float inOpen[],
                                float inHigh[],
@@ -101,7 +101,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = cdl3outsideLookback();
+      lookbackTotal = cdl3OutsideLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -124,20 +124,20 @@
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
-   public RetCode cdl3outsideLogic( int startIdx,
-                                    int endIdx,
-                                    float inOpen[],
-                                    float inHigh[],
-                                    float inLow[],
-                                    float inClose[],
-                                    MInteger outBegIdx,
-                                    MInteger outNBElement,
-                                    int outInteger[] )
+   public RetCode cdl3OutsideUnguarded( int startIdx,
+                                        int endIdx,
+                                        float inOpen[],
+                                        float inHigh[],
+                                        float inLow[],
+                                        float inClose[],
+                                        MInteger outBegIdx,
+                                        MInteger outNBElement,
+                                        int outInteger[] )
    {
       int i = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = cdl3outsideLookback();
+      lookbackTotal = cdl3OutsideLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
