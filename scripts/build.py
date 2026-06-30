@@ -2,15 +2,17 @@
 
 # Developer build helper for TA-Lib.
 #
-# Wraps CMake so you can build and test from any directory within the repo.
+# The C library + C tools build with CMake (this wraps it); the Rust ta_codegen
+# tool and the JSON-RPC servers build with cargo directly. The C build systems
+# (CMake/autotools) never invoke cargo — building ta_codegen and the dev tools is
+# this script's job.
 #
 # Usage:
-#   scripts/build.py                Build library + all tools
-#   scripts/build.py ta_regtest     Build the regression test runner
-#   scripts/build.py gen_code       Build the legacy C code generator
-#   scripts/build.py ta_codegen     Build the Rust codegen tool
-#   scripts/build.py generate       Generate per-function source for all backends
-#   scripts/build.py servers        Generate + compile JSON-RPC language servers
+#   scripts/build.py                Build library + all C tools (CMake)
+#   scripts/build.py ta_regtest     Build the regression test runner (CMake)
+#   scripts/build.py ta_codegen     Build the Rust codegen tool (cargo)
+#   scripts/build.py generate       Generate per-function source for all backends (cargo)
+#   scripts/build.py servers        Generate + compile JSON-RPC language servers (cargo)
 #   scripts/build.py test           C reference regression tests
 #   scripts/build.py regtest        Full cross-language regression tests
 #   scripts/build.py regtest-only   Codegen verification only (skip C tests)
@@ -85,17 +87,18 @@ def cmake_build(build_dir: str, target: str = None, jobs: int = DEFAULT_JOBS):
 def show_help():
     print("""TA-Lib Build Targets
 
-  Building:
-    (default)           Build library + all tools
+  Building (C, via CMake):
+    (default)           Build library + all C tools
     ta_regtest          Build the regression test runner
-    gen_code            Build the legacy C code generator
+
+  Building (Rust ta_codegen, via cargo — CMake never invokes cargo):
     ta_codegen          Build the Rust codegen tool
     generate            Generate per-function source for all backends
     servers             Generate all source + compile JSON-RPC language servers
 
   Testing:
     test                C reference regression tests
-    regtest             Full pipeline: servers + C tests + codegen verification
+    regtest             Full pipeline: servers (cargo) + C tests + codegen verification
     regtest-only        Codegen verification only (skip C tests)
 
   Other:
@@ -108,14 +111,26 @@ def show_help():
     --cmake-args="..."  Extra arguments passed to cmake configure
 """)
 
-# Each target maps to cmake target(s). Use only the final dependency target
-# when earlier targets are already wired as CMake dependencies.
+def run_codegen(root_dir: str, *cargo_args: str):
+    """Run a cargo command in the ta_codegen generator crate.
+
+    This is how ta_codegen (Rust) is built/run — directly via cargo, never through
+    CMake. Keeps the C build systems free of any Rust/cargo dependency.
+    """
+    codegen_dir = os.path.join(root_dir, "ta_codegen", "generator")
+    subprocess.run(['cargo', *cargo_args], check=True, cwd=codegen_dir)
+
+def build_servers(root_dir: str):
+    """Generate the JSON-RPC language servers and compile them (cargo)."""
+    run_codegen(root_dir, 'run', '--release', '--', 'generate-servers')
+    run_codegen(root_dir, 'run', '--release', '--', 'build')
+
+# Rust targets run cargo directly (no CMake).
+CARGO_TARGETS = {'ta_codegen', 'generate', 'servers'}
+
+# C targets map to a cmake target.
 SIMPLE_TARGETS = {
     'ta_regtest':  'ensure_ta_regtest_in_bin',
-    'gen_code':    'ensure_gen_code_in_bin',
-    'ta_codegen':  'ta_codegen_bin',
-    'generate':    'ta_codegen_generate',
-    'servers':     'ta_codegen_servers',
     'test':        'test',
     'regtest':     'regtest',
     'regtest-only':'regtest-only',
@@ -125,7 +140,6 @@ SIMPLE_TARGETS = {
 TARGET_PREREQS = {
     'all':          PREREQS_BUILD_BASIC,
     'ta_regtest':   PREREQS_BUILD_BASIC,
-    'gen_code':     PREREQS_BUILD_BASIC,
     'ta_codegen':   PREREQS_BUILD_CODEGEN,
     'generate':     PREREQS_BUILD_CODEGEN,
     'servers':      PREREQS_BUILD_SERVERS,
@@ -168,7 +182,23 @@ def main():
 
     check_prerequisites(TARGET_PREREQS.get(args.target, PREREQS_BUILD_BASIC))
 
+    # Rust ta_codegen targets build with cargo directly — no CMake involved.
+    if args.target in CARGO_TARGETS:
+        if args.target == 'ta_codegen':
+            run_codegen(root_dir, 'build', '--release')
+        elif args.target == 'generate':
+            run_codegen(root_dir, 'run', '--release', '--', 'generate')
+        else:  # servers
+            build_servers(root_dir)
+        return
+
     ensure_configured(root_dir, build_dir, args.build_type, args.cmake_args)
+
+    # The cross-language tests run the C ta_regtest binary against the language
+    # servers, so build the servers (cargo) first — the CMake regtest target no
+    # longer does it.
+    if args.target in ('regtest', 'regtest-only'):
+        build_servers(root_dir)
 
     if args.target == 'all':
         cmake_build(build_dir, jobs=args.jobs)

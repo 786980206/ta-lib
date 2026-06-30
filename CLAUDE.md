@@ -2,15 +2,28 @@
 
 ## Architecture Overview
 
-All indicator code is **generated**. Two generators exist:
+All indicator code is **generated** by a single generator, **`ta_codegen`**
+(`ta_codegen/generator/`, Rust): it parses `ta_codegen/input/` → IR → renders
+per-backend (C, Java, .NET, Rust). The C backend is generated **in place** into
+`src/ta_func` / `src/ta_abstract` (the shipped library); the Rust/Java/.NET bindings
+live under `ta_codegen/output/`. It also generates the JSON-RPC test servers, the bench
+binary, `include/ta_func_unguarded.h`, the `include/ta_defs.h` FuncUnstId enum, the
+shipped Java (`java/.../Core.java`, `CoreAnnotated.java`, `FuncUnstId.java`), and owns the
+build-system source lists (CMake `LIB_SOURCES`, `src/ta_func/Makefile.am`,
+`ta_func_list.txt`).
 
-| Tool | Language | Role |
-|------|----------|------|
-| `ta_codegen` (`ta_codegen/generator/`, Rust) | The current generator. Parses `ta_codegen/input/` → IR → renders per-backend (C, Java, .NET, Rust) into `ta_codegen/output/`. Also generates the JSON-RPC test servers, the bench binary, `include/ta_func_unguarded.h`, and owns build-system source lists (CMake `LIB_SOURCES`, `Makefile.am`, `ta_func_list.txt`). |
-| `gen_code` (`src/tools/gen_code/`, C) | The legacy generator, restored to its v0.6.4 role: regenerates the reference C library's GENCODE sections, Java bindings, and .NET wrappers (`ENABLE_JAVA`, `ENABLE_DOTNET`). It does **no** Rust generation. |
+> The legacy C generator `gen_code` was **removed** in the canonical cutover (Stage 7);
+> `ta_codegen` is the only generator.
 
-The reference C library (`src/ta_func/`) is the correctness baseline that all
-`ta_codegen` backends are verified against by `ta_regtest`.
+**Build separation (important):** the C build systems (CMake + autotools) build **only
+C** — the library + the C tools (`ta_regtest`, `ta_bench`). `ta_codegen` is Rust and is
+built/run with cargo via the developer script `scripts/build.py` (`ta_codegen` /
+`generate` / `servers`); **CMake never invokes cargo**, so a C-only setup needs no Rust
+toolchain.
+
+The correctness baseline that all `ta_codegen` backends are verified against is the
+frozen pre-cutover reference (the `reference-pre-cutover` tag, served as `ta_ref_serve`)
+plus the hardcoded `ta_regtest` expected values.
 
 See `ta_codegen/generator/CLAUDE.md` for ta_codegen internals and
 `src/tools/ta_regtest/CLAUDE.md` for the test-runner spec.
@@ -36,19 +49,16 @@ next `generate`.
 
 ```bash
 # Build (from any directory in the repo; binaries land in bin/)
-scripts/build.py                # Library + all tools
-scripts/build.py ta_regtest     # Just the test runner
-scripts/build.py gen_code       # Legacy C generator
-scripts/build.py ta_codegen     # Rust codegen tool
-scripts/build.py servers        # Generate + compile JSON-RPC language servers
+scripts/build.py                # C library + all C tools (CMake)
+scripts/build.py ta_regtest     # Just the C test runner (CMake)
+scripts/build.py ta_codegen     # Rust codegen tool (cargo)
+scripts/build.py generate       # Regenerate per-function source for all backends (cargo)
+scripts/build.py servers        # Generate + compile JSON-RPC language servers (cargo)
 
 # Test
 scripts/build.py test           # C reference tests only (quick)
-scripts/build.py regtest        # Full pipeline: servers + C tests + cross-language verification
+scripts/build.py regtest        # Full pipeline: servers (cargo) + C tests + cross-language verification
 scripts/build.py regtest-only   # Codegen verification only (skip C reference tests)
-
-# Run gen_code (must run from bin directory)
-cd bin && ../cmake-build/bin/gen_code
 
 # ta_codegen (run from ta_codegen/generator/)
 cargo run -- generate                            # Generate indicator code for all backends
@@ -176,19 +186,18 @@ use `--function=NAME --iters=500` for ground truth.
 
 ```
 ta-lib/
-├── bin/                      # Built executables (gen_code, ta_regtest, ta_bench, servers)
+├── bin/                      # Built executables (ta_regtest, ta_bench, ta_codegen, servers)
 ├── cmake-build/              # CMake build directory
 ├── ta_codegen/input/             # SOURCE OF TRUTH: per-indicator C logic + YAML metadata
 │   ├── <name>/<name>.c       # Indicator logic
 │   ├── helpers/              # Shared helper functions
 │   └── types/                # Enums, RetCode, CandleSettings, etc. (YAML)
-├── ta_codegen/output/        # Generated code per language (c, java, dotnet, rust)
+├── ta_codegen/output/        # Generated bindings per language (java, dotnet, rust) + codegen artifacts
 │   └── rust/                 # Standalone Rust crate
 ├── ta_codegen/generator/         # The Rust code generator (see its CLAUDE.md)
 ├── src/
-│   ├── ta_func/              # Reference C library (GENCODE sections via gen_code)
+│   ├── ta_func/              # The shipped C library, generated in place by ta_codegen
 │   └── tools/
-│       ├── gen_code/         # Legacy generator (Java/.NET/reference C)
 │       └── ta_regtest/       # Universal test runner (see its CLAUDE.md)
 └── scripts/                  # build.py, regtest.py, sync.py, package.py, ...
 ```

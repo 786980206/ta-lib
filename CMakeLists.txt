@@ -14,7 +14,7 @@ set(PROJECT_VERSION "${TA_LIB_VERSION_MAJOR}.${TA_LIB_VERSION_MINOR}.${TA_LIB_VE
 set(CMAKE_C_STANDARD 11)
 
 # Option to build development tools (enabled by default)
-option(BUILD_DEV_TOOLS "Build development tools (gen_code, ta_regtest)" ON)
+option(BUILD_DEV_TOOLS "Build development tools (ta_regtest, ta_bench)" ON)
 message(STATUS "BUILD_DEV_TOOLS: ${BUILD_DEV_TOOLS}")
 
 # Default to Release config
@@ -460,51 +460,6 @@ if(UNIX)
 endif()
 
 if(BUILD_DEV_TOOLS)
-	############
-	# gen_code #
-	############
-	set(GEN_CODE_SOURCES
-		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/gen_code/gen_code.c"
-	)
-
-	# gen_code links the full library (indicators + abstract + common), compiled here
-	# with -DTA_GEN_CODE — mirroring the autotools gen_code (libta_func +
-	# libta_abstract_gc + libta_common). Since the cutover, the abstract introspection
-	# sources (ta_group_idx.c, ta_func_api.c, frames/ta_frame.c) and the indicators live
-	# in the ta_codegen-generated LIB_SOURCES block, so COMMON_SOURCES + IDL_SOURCES
-	# alone no longer resolve TA_PerGroupSize/TA_PerGroupFuncDef or the TA_* functions
-	# referenced by ta_frame.c. (Only ta_abstract carries TA_GEN_CODE guards, so
-	# compiling common/func with -DTA_GEN_CODE is a no-op. gen_code is removed in cutover
-	# Stage 7, taking this with it.)
-	list(APPEND GEN_CODE_SOURCES ${LIB_SOURCES})
-
-	add_executable(gen_code ${GEN_CODE_SOURCES})
-
-	target_compile_definitions(gen_code PRIVATE TA_GEN_CODE)
-
-	# The indicator sources need libm (acos/asin/fmax/...); autotools links $(LIBM).
-	if(NOT WIN32)
-		target_link_libraries(gen_code m)
-	endif()
-
-	set_target_properties(gen_code PROPERTIES
-		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
-	)
-
-	install(TARGETS gen_code
-		RUNTIME DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-	)
-
-	# Add post-build to always check to copy gen_code to ta-lib/bin directory
-	# This is to "save the day" for a user that would delete the bin content.
-	add_custom_target(ensure_gen_code_in_bin ALL
-		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"$<TARGET_FILE:gen_code>"
-		"${CMAKE_CURRENT_SOURCE_DIR}/bin/$<TARGET_FILE_NAME:gen_code>"
-		DEPENDS gen_code
-	)
-
 	##############
 	# ta_regtest #
 	##############
@@ -628,49 +583,14 @@ if(BUILD_DEV_TOOLS)
 	)
 endif()
 
-# --- ta_codegen build target ---
-# Build the Rust ta_codegen binary and copy to bin/
-set(TA_CODEGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ta_codegen/generator")
-set(TA_CODEGEN_BIN "${TA_CODEGEN_DIR}/target/release/ta_codegen")
-
-add_custom_command(
-    OUTPUT ${TA_CODEGEN_BIN}
-    COMMAND cargo build --release --manifest-path ${TA_CODEGEN_DIR}/Cargo.toml
-    WORKING_DIRECTORY ${TA_CODEGEN_DIR}
-    COMMENT "Building ta_codegen"
-)
-add_custom_target(ta_codegen_bin DEPENDS ${TA_CODEGEN_BIN})
-
-# Copy ta_codegen to bin/ directory
-add_custom_command(TARGET ta_codegen_bin POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${TA_CODEGEN_BIN}
-        "${CMAKE_CURRENT_SOURCE_DIR}/bin/ta_codegen"
-)
-
-# Generate per-function source files for all backends
-add_custom_target(ta_codegen_generate
-    COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
-            cargo run --release -- generate
-    DEPENDS ta_codegen_bin
-    COMMENT "Generating per-function source files for all backends"
-)
-
-# Generate and build multi-language JSON-RPC servers
-# Depends on ta_codegen_generate because servers #include per-function source files
-add_custom_target(ta_codegen_servers
-    COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
-            cargo run --release -- generate-servers
-    COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
-            cargo run --release -- build
-    DEPENDS ta_codegen_generate
-    COMMENT "Generating and building codegen language servers"
-)
-
-# --- Convenience test targets ---
+# --- Convenience test targets (run the C ta_regtest binary) ---
 # make test           - C reference tests only
-# make regtest        - Full pipeline: servers + C tests + codegen verification
-# make regtest-only   - Servers + codegen verification (skip C tests)
+# make regtest        - cross-language codegen verification (C, Java, .NET, Rust)
+# make regtest-only   - codegen verification only (skip C reference tests)
+#
+# These run the already-built C ta_regtest binary; building ta_codegen and the
+# language servers is the developer build script's job (scripts/build.py — run
+# `scripts/build.py servers` first). CMake itself never invokes cargo.
 #
 # Pass extra args: cmake --build . --target regtest -- REGTEST_ARGS="--function=SMA"
 
@@ -683,11 +603,12 @@ if(BUILD_DEV_TOOLS)
 		COMMENT "Running C reference regression tests"
 	)
 
-	# Full pipeline: generate servers + build + C tests + codegen verification
+	# Cross-language codegen verification (requires the servers to be pre-built
+	# via `scripts/build.py servers`).
 	add_custom_target(regtest
 		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/bin"
 			./ta_regtest --codegen --language=c,java,dotnet,rust
-		DEPENDS ensure_ta_regtest_in_bin ta_codegen_servers
+		DEPENDS ensure_ta_regtest_in_bin
 		COMMENT "Running cross-language regression tests (C, Java, .NET, Rust)"
 	)
 
@@ -695,7 +616,7 @@ if(BUILD_DEV_TOOLS)
 	add_custom_target(regtest-only
 		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/bin"
 			./ta_regtest --codegen-only --language=c,java,dotnet,rust
-		DEPENDS ensure_ta_regtest_in_bin ta_codegen_servers
+		DEPENDS ensure_ta_regtest_in_bin
 		COMMENT "Running codegen-only regression tests (skip C reference)"
 	)
 endif()

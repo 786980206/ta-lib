@@ -261,7 +261,6 @@ def get_src_generated_files() -> list:
         'src/ta_abstract/frames/*.c',
         'src/ta_abstract/frames/*.h',
         'src/ta_common/ta_retcode.c',
-        'src/ta_abstract/ta_java_defs.h',
     ]
 
 def get_all_generated_files() -> list:
@@ -274,9 +273,6 @@ def get_all_generated_files() -> list:
     TA-Lib maintainers should update this list everytime a new file is generated (or not).
     """
     return [
-        'dotnet/src/Core/TA-Lib-Core.vcproj',
-        'dotnet/src/Core/TA-Lib-Core.h',
-        'ide/msvc/lib_proj/ta_func/ta_func.dsp',
         'java/src/**',
     ]  + get_src_generated_files()
 
