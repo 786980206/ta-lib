@@ -1,6 +1,17 @@
 # Canonical Cutover Runbook — making `ta_codegen` output the shipped library
 
-**Status:** IN PROGRESS — **generate-into-`src` (option B)**. DONE: Stage 0 (tag), 1
+**Status:** ✅ **CUTOVER COMPLETE (2026-06-30) — gen_code is removed; ta_codegen is the single
+generator; the C build (CMake + autotools) is C-only.** #91 (Java) + #92 (packaging) merged to `dev`;
+**Stage 7 done directly on `dev`** (commit `5a0d7a48`): deleted `src/tools/gen_code/` + templates +
+`ta_java_defs.h` + the dead .NET/MSVC IDE surface; removed gen_code from CMake/autotools (incl. the
+`-DTA_GEN_CODE` `libta_abstract_gc` variant + `gen_rust` dist); **moved all Rust/ta_codegen building
+out of CMake into `scripts/build.py` (cargo-direct) — CMake never invokes cargo.** Verified: C-only
+CMake build (0 cargo, gen_code absent) + autotools build; `regtest.py` exit 0 + `--codegen` 161/0 all
+4 langs + absolute oracle + bench; ABI gate green; cargo test 445 + clippy clean; regen deterministic.
+Remaining: only optional polish (drop the dead `gen_code_pass` digest field; Stage 8 retire the
+reference tag, much later). · **History below.**
+
+**Status (historical):** IN PROGRESS — **generate-into-`src` (option B)**. DONE: Stage 0 (tag), 1
 (reference-as-server #7), 2 (ABI gate #2), **Stage 4-B** (C indicators → `src/ta_func`),
 **Stage 5-B / #3** (the `ta_abstract` layer → `src/ta_abstract`), and **Stage 5-C** (the last two
 gen_code C-side scalar generators — `include/ta_defs.h` FuncUnstId enum + `src/ta_common/ta_retcode.c`
@@ -403,7 +414,11 @@ committed gen_code output (the cleanest possible oracle: regenerate → `git dif
 - **Checkpoint:** built tarball builds (CMake + autotools) and `trader`'s `src/ta_func/*.c` glob resolves.
 - **Rollback:** revert the `package.py` edits.
 
-### Stage 7 — Remove gen_code
+### Stage 7 — Remove gen_code  ✅ DONE 2026-06-30 (commit `5a0d7a48` on `dev`)
+Also made the C build C-only: removed the `ta_codegen_bin/generate/servers` cargo targets from CMake
+(CMake never invokes cargo); `scripts/build.py` now builds ta_codegen via cargo directly. See the
+status header at the top for the full summary + verification.
+
 - **Do:** with `ta_codegen` now writing `src/ta_func`/`src/ta_abstract` directly, delete
   `src/tools/gen_code/`, `src/ta_abstract/templates/`, `ta_java_defs.h`, and the dead .NET/MSVC
   surface. Update `CLAUDE.md` to the single-generator architecture.
