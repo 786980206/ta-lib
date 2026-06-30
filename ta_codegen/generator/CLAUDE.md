@@ -37,7 +37,7 @@ include/ta_func.h        (generated public header)
 | `ir` | Intermediate representation (`FuncDef`, `ParamType`, `Statement`, `Expr`, etc.) |
 | `extractor` | Extracts indicator definitions from C source files → YAML |
 | `backends/c.rs` | Generates C indicator implementations (guarded + unguarded variants) |
-| `backends/rust_lang.rs` | Generates Rust indicator implementations with `<T: TaFloat>` generics |
+| `backends/rust_lang.rs` | Generates Rust indicator implementations (concrete `f64`, guarded + unguarded variants) |
 | `backends/java.rs` | Generates Java Core class methods |
 | `backends/dotnet.rs` | Generates .NET P/Invoke wrappers |
 | `backends/ta_abstract_c.rs` | Generates `ta_abstract` introspection layer (tables, frames, group index, runtime API) |
@@ -73,7 +73,7 @@ cd ta_codegen/generator && cargo test            # Run all 445+ tests
 cd ta_codegen/generator && cargo clippy          # Strict pedantic lints enabled
 ```
 
-Tests are in `tests/backend_suite.rs` and `tests/integration_test.rs` — they verify IR-to-backend rendering, expression types, generic signatures, and function variants across all backends.
+Tests are in `tests/backend_suite.rs` and `tests/integration_test.rs` — they verify IR-to-backend rendering, expression types, function signatures, and function variants across all backends.
 
 ## Cross-Language Testing Architecture
 
@@ -149,18 +149,27 @@ JSON-RPC over stdin/stdout.
 
 ## Rust Backend Details
 
-### Generic Type System
+### Concrete `f64` API (no generics)
 
-All generated Rust indicator functions use `<T: TaFloat>` — a sealed trait implemented for f32 and f64. No `_s` suffix convention.
+Generated Rust indicators are methods on the `Core` struct using concrete
+`f64` slices (`&[f64]` / `&mut [f64]`), `usize` indices, and `i32` optional
+params. There is **no** generic `<T: TaFloat>` system and no `f32`/`_s`
+variants — an earlier sealed-trait generics experiment was removed; the backend
+is concrete-`f64` only.
 
-### 4 Function Variants Per Indicator
+### Function Variants Per Indicator
 
-| Variant | Safety | Purpose |
-|---------|--------|---------|
-| `fn sma<T: TaFloat>(...)` | Safe | Public API with parameter validation |
-| `fn sma_unguarded<T: TaFloat>(...)` | Safe | Cross-indicator calls (skip validation) |
-| `unsafe fn sma_unchecked<T: TaFloat>(...)` | Unsafe | Performance (get_unchecked indexing) |
-| `unsafe fn sma_unguarded_unchecked<T: TaFloat>(...)` | Unsafe | Internal hot paths |
+| Variant | Purpose |
+|---------|---------|
+| `fn xxx_lookback(...) -> usize` | Lookback (first valid output index) |
+| `fn xxx(...)` | Guarded public API: validates params, pre-computes optimization values, delegates |
+| `fn xxx_unguarded(...)` | Cross-indicator calls: no range checks, `get_unchecked` indexing inside an `unsafe` block |
+
+Cross-indicator calls always use `_unguarded` to avoid double-validation.
+Functions with extra internal params (e.g. EMA's `k` factor) get an additional
+`fn xxx_private(...)` exposing them; the guarded/unguarded variants pre-compute
+the params and delegate to it. There are **no** `_unchecked` /
+`_unguarded_unchecked` variants.
 
 ### Known Code Quality Issues (non-blocking)
 
