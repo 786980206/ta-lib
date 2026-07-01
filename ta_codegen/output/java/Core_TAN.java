@@ -1,4 +1,17 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int tanLookback( )
    {
       return 0 ;

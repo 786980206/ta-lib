@@ -1340,6 +1340,64 @@ fn rust_forc_emits_range_iteration_when_possible() {
     );
 }
 
+/// Regression: an inline-commented `&&`-chain whose operand is a parenthesized
+/// `||` group must keep that group parenthesized in the multi-line Rust render,
+/// or precedence changes (`a && (b||c)` would become `(a&&b)||c`). CDLHIKKAKE hit
+/// this and panicked in the Rust server.
+#[test]
+fn rust_inline_condition_parenthesizes_or_operand() {
+    use ta_codegen_lib::backends::rust_lang::{render_statement, RustRenderCtx};
+    use ta_codegen_lib::ir::*;
+
+    let cmp = |v: &str| {
+        Expr::BinOp(
+            Box::new(Expr::Var(v.into())),
+            BinOp::Greater,
+            Box::new(Expr::IntLiteral(0)),
+        )
+    };
+    let or_bc = Expr::BinOp(Box::new(cmp("b")), BinOp::Or, Box::new(cmp("c")));
+    let condition = Expr::BinOp(Box::new(cmp("a")), BinOp::And, Box::new(or_bc));
+    let stmt = Statement::If {
+        condition,
+        then_body: vec![],
+        else_body: vec![],
+        // Comments on both operands force the multi-line rendering path.
+        cond_comments: vec![Some(vec!["one".into()]), Some(vec!["two".into()])],
+    };
+
+    let ctx = RustRenderCtx::for_lookback();
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    let rendered = render_statement(
+        &stmt,
+        0,
+        &ctx,
+        &[],
+        &std::collections::HashMap::new(),
+        &[],
+        &[],
+        &enums,
+        &registry,
+        &helpers,
+        &inline_counter,
+    );
+
+    // Strip comments and whitespace, then confirm the `||` group is parenthesized.
+    let code: String = rendered
+        .lines()
+        .map(|l| l.split("//").next().unwrap_or(""))
+        .collect::<Vec<_>>()
+        .join("");
+    let flat: String = code.chars().filter(|c| !c.is_whitespace()).collect();
+    assert!(
+        flat.contains("(b>0||c>0)"),
+        "the `||` operand must stay parenthesized in the multi-line render: {rendered}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // 15. HT_TRENDMODE: verify Hilbert transform macros parse and generate
 // ---------------------------------------------------------------------------
@@ -1527,6 +1585,7 @@ fn backends_render_max_min_fmax_fmin_abs() {
         private_extra_params: vec![],
         private_param_init: vec![],
         has_explicit_private: false,
+        header_comments: vec![],
     };
 
     let enums = std::collections::HashMap::new();
@@ -2028,6 +2087,7 @@ fn make_func_with_helper_call(
         private_extra_params: vec![],
         private_param_init: vec![],
         has_explicit_private: false,
+        header_comments: vec![],
     }
 }
 
@@ -2176,6 +2236,7 @@ fn inlining_counter_avoids_name_collisions() {
         private_extra_params: vec![],
         private_param_init: vec![],
         has_explicit_private: false,
+        header_comments: vec![],
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -3751,6 +3812,7 @@ fn rust_if_with_alloc_err_return_is_suppressed() {
             value: Some(ir::Expr::Var("ALLOC_ERR".to_string())),
         }],
         else_body: vec![],
+        cond_comments: vec![],
     };
     let rendered = render_rust_stmt(&stmt);
     assert!(
@@ -3784,7 +3846,9 @@ fn rust_if_else_chain_renders() {
                 compound: false,
             }],
             else_body: vec![],
+            cond_comments: vec![],
         }],
+        cond_comments: vec![],
     };
     let rendered = render_rust_stmt(&stmt);
     assert!(
@@ -3836,6 +3900,7 @@ fn rust_lookback_param_minus() {
         private_extra_params: vec![],
         private_param_init: vec![],
         has_explicit_private: false,
+        header_comments: vec![],
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -3881,6 +3946,7 @@ fn rust_lookback_none() {
         private_extra_params: vec![],
         private_param_init: vec![],
         has_explicit_private: false,
+        header_comments: vec![],
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -4084,6 +4150,7 @@ fn rust_lookback_code_renders_var_types_correctly() {
         private_extra_params: vec![],
         private_param_init: vec![],
         has_explicit_private: false,
+        header_comments: vec![],
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -5462,6 +5529,7 @@ fn java_single_precision_eq_comparison_optimization() {
             compound: false,
         }],
         else_body: vec![],
+        cond_comments: vec![],
     };
 
     let rendered = backends::java::render_statement(
@@ -5834,6 +5902,7 @@ fn c_if_else_rendering() {
             value: ir::Expr::IntLiteral(0),
             compound: false,
         }],
+        cond_comments: vec![],
     };
     let rendered = render_c_stmt(&stmt);
     assert!(
@@ -5864,6 +5933,7 @@ fn java_if_else_rendering() {
             value: ir::Expr::IntLiteral(0),
             compound: false,
         }],
+        cond_comments: vec![],
     };
     let rendered = render_java_stmt(&stmt);
     assert!(
@@ -5905,7 +5975,9 @@ fn java_if_else_if_chain() {
                 compound: false,
             }],
             else_body: vec![],
+            cond_comments: vec![],
         }],
+        cond_comments: vec![],
     };
     let rendered = render_java_stmt(&stmt);
     // Should chain as "} else if(" not "} else {\n  if("

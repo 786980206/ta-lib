@@ -1,3 +1,19 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *
+ */
+
 int midprice_lookback(int           optInTimePeriod)
 {
     return (optInTimePeriod-1);

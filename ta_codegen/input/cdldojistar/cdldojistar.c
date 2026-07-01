@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100204 AC   Creation
+ *
+ */
+
 int cdldojistar_lookback(void)
 {
     return max( BodyDoji_avgPeriod, BodyLong_avgPeriod ) + 1;

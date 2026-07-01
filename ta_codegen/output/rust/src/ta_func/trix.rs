@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  020605 AA   Fix #1117656. NULL pointer assignement.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -103,12 +119,14 @@ impl Core {
         let mut rocLookback: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         let mut nbElementToOutput: usize = 0_usize;
+        // Adjust the startIdx to account for the lookback.
         emaLookback = self.ema_lookback(optInTimePeriod);
         rocLookback = self.rocr_lookback(1);
         totalLookback = emaLookback * 3 + rocLookback;
         if startIdx < totalLookback {
             startIdx = totalLookback;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
@@ -116,30 +134,45 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
+        // Allocate a temporary buffer for performing
+        // the calculation.
         tempBuffer = vec![0.0_f64; (nbElementToOutput * 1) as usize];
+        // Calculate the first EMA
         retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        // Verify for failure or if not enough data after
+        // calculating the EMA.
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= 1;
+        // Make this variable zero base from now on.
+        // Calculate the second EMA
         nbElementToOutput -= emaLookback;
         retCode = self.ema_unguarded(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        // Verify for failure or if not enough data after
+        // calculating the EMA.
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
+        // Calculate the third EMA
         nbElementToOutput -= emaLookback;
         retCode = self.ema_unguarded(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        // Verify for failure or if not enough data after
+        // calculating the EMA.
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
+        // Calculate the 1-day Rate-Of-Change
         nbElementToOutput -= emaLookback;
         retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
+        // Verify for failure or if not enough data after
+        // calculating the rate-of-change.
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;

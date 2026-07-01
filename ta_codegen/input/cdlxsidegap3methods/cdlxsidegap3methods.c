@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011605 AC   Creation
+ *
+ */
+
 int cdlxsidegap3methods_lookback(void)
 {
     return 2;

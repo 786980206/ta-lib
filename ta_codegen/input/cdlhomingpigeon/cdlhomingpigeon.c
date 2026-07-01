@@ -1,3 +1,17 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  032005 AC   Creation
+ *
+ */
 int cdlhomingpigeon_lookback(void)
 {
     return max( BodyShort_avgPeriod, BodyLong_avgPeriod ) + 1;

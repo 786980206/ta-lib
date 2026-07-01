@@ -1,3 +1,21 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  101902 JV   Speed optimization of the algorithm
+ *  102202 MF   Speed optimize a bit further
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *
+ */
+
 int max_lookback(int           optInTimePeriod)
 {
     return (optInTimePeriod-1);

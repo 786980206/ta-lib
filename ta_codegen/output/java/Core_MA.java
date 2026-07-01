@@ -1,4 +1,23 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  022203 MF   Add MAMA
+ *  040503 MF   Add T3
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  111603 MF   Allow period of 1. Just copy input into output.
+ *  060907 MF   Use TA_SMA/TA_EMA instead of internal implementation.
+ */
+
    public int movingAverageLookback( int optInTimePeriod, MAType optInMAType )
    {
       int retValue;
@@ -70,6 +89,7 @@
          outBegIdx.value = startIdx;
          return RetCode.Success ;
       }
+      /* Simply forward the job to the corresponding TA function. */
       switch( optInMAType )
       {
       case MAType.Sma:
@@ -94,6 +114,9 @@
          retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
+         /* The optInTimePeriod is ignored and the FAMA output of the MAMA
+          * is ignored.
+          */
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
          retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;

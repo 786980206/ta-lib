@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120904 AC   Creation
+ *
+ */
+
 int cdldarkcloudcover_lookback(double        optInPenetration)
 {
     (void)optInPenetration;

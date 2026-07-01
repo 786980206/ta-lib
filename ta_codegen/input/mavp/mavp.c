@@ -1,3 +1,16 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  021807 MF     Initial Version
+ */
+
 int mavp_lookback(int           optInMinPeriod,                                             int           optInMaxPeriod,                                             TA_MAType     optInMAType)
 {
     return ma_lookback(optInMaxPeriod, optInMAType);

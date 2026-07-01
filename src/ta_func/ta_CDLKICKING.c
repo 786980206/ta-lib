@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010705 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLKICKING_Lookback( void )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -93,17 +107,26 @@ TA_LIB_API TA_RetCode TA_CDLKICKING( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLKICKING_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    ShadowVeryShortPeriodTotal[1] = 0;
    ShadowVeryShortPeriodTotal[0] = 0;
    ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
@@ -125,16 +148,34 @@ TA_LIB_API TA_RetCode TA_CDLKICKING( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: marubozu
+    * - second candle: opposite color marubozu
+    * - gap between the two candles: upside gap if black then white, downside gap if white then black
+    * The meaning of "long body" and "very short shadow" is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish
+    */
    outIdx = 0;
    do
    {
-      if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[1],(i-1))))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))))&&(fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[0],i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) )
+      if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* opposite candles */
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[1],(i-1))) && /* 1st marubozu */
+          ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))) &&
+          (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))) &&
+          (fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[0],i)) && /* 2nd marubozu */
+          ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)) &&
+          (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)) &&
+          ((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0)))) ) /* gap */
       {
          outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       for( totIdx = 1; (totIdx>=0); totIdx -= 1 )
       {
          BodyLongPeriodTotal[totIdx] = (BodyLongPeriodTotal[totIdx]+(TA_CANDLERANGE(BodyLong,(i-totIdx))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-totIdx))));
@@ -144,6 +185,7 @@ TA_LIB_API TA_RetCode TA_CDLKICKING( int    startIdx,
       ShadowVeryShortTrailingIdx += 1;
       BodyLongTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

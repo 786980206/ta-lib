@@ -1,3 +1,17 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MW       Michael Williamson
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  122006 MW   Initial Version
+ */
+
 int beta_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod;

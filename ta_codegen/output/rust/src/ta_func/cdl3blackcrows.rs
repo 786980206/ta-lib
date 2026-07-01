@@ -39,6 +39,20 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103004 AC   Creation
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -103,15 +117,22 @@ impl Core {
         let ShadowVeryShort_avgPeriod: i32 = self.candle_settings.shadow_very_short.avg_period;
         #[allow(non_snake_case)]
         let ShadowVeryShort_factor: f64 = self.candle_settings.shadow_very_short.factor;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.cdl3blackcrows_lookback();
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         ShadowVeryShortPeriodTotal[2] = 0.0;
         ShadowVeryShortPeriodTotal[1] = 0.0;
         ShadowVeryShortPeriodTotal[0] = 0.0;
@@ -169,15 +190,41 @@ impl Core {
             i += 1;
         }
         i = startIdx;
+        // Proceed with the calculation for the requested range.
+        // Must have:
+        // - three consecutive and declining black candlesticks
+        // - each candle must have no or very short lower shadow
+        // - each candle after the first must open within the prior candle's real body
+        // - the first candle's close should be under the prior white candle's high
+        // The meaning of "very short" is specified with TA_SetCandleSettings
+        // outInteger is negative (-1 to -100): three black crows is always bearish;
+        // the user should consider that 3 black crows is significant when it appears after a mature advance or at high levels,
+        // while this function does not consider it
         outIdx = 0;
         loop {
-            if (if inClose[i - 3] >= inOpen[i - 3] { 1 } else { 0 - 1 }) == 1 && ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inOpen[i - 1] < inOpen[i - 2] && inOpen[i - 1] > inClose[i - 2] && inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] && inHigh[i - 3] > inClose[i - 2] && inClose[i - 2] > inClose[i - 1] && inClose[i - 1] > inClose[i] && ((if inClose[i - 2] >= inOpen[i - 2] { inOpen[i - 2] } else { inClose[i - 2] }) - inLow[i - 2]) < ((ShadowVeryShort_factor) * (if (ShadowVeryShort_avgPeriod) != 0 { (ShadowVeryShortPeriodTotal[2]) / (ShadowVeryShort_avgPeriod as f64) } else { match ShadowVeryShort_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => (inHigh[i - 2]) - (inLow[i - 2]), _ => (inHigh[i - 2]) - (inLow[i - 2]) - ((inClose[i - 2]) - (inOpen[i - 2])).abs() } }) / (if (ShadowVeryShort_rangeType) == 2 { 2.0 } else { 1.0 })) && ((if inClose[i - 1] >= inOpen[i - 1] { inOpen[i - 1] } else { inClose[i - 1] }) - inLow[i - 1]) < ((ShadowVeryShort_factor) * (if (ShadowVeryShort_avgPeriod) != 0 { (ShadowVeryShortPeriodTotal[1]) / (ShadowVeryShort_avgPeriod as f64) } else { match ShadowVeryShort_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (ShadowVeryShort_rangeType) == 2 { 2.0 } else { 1.0 })) && ((if inClose[i] >= inOpen[i] { inOpen[i] } else { inClose[i] }) - inLow[i]) < ((ShadowVeryShort_factor) * (if (ShadowVeryShort_avgPeriod) != 0 { (ShadowVeryShortPeriodTotal[0]) / (ShadowVeryShort_avgPeriod as f64) } else { match ShadowVeryShort_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => (inHigh[i]) - (inLow[i]), _ => (inHigh[i]) - (inLow[i]) - ((inClose[i]) - (inOpen[i])).abs() } }) / (if (ShadowVeryShort_rangeType) == 2 { 2.0 } else { 1.0 })) {
+            if (if inClose[i - 3] >= inOpen[i - 3] { 1 } else { 0 - 1 }) == 1 &&      // white
+               ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && // 1st black
+               ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && // 2nd black
+               ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && // 3rd black
+               inOpen[i - 1] < inOpen[i - 2] &&
+               inOpen[i - 1] > inClose[i - 2] &&                                      // 2nd black opens within 1st black's rb
+               inOpen[i] < inOpen[i - 1] &&
+               inOpen[i] > inClose[i - 1] &&                                          // 3rd black opens within 2nd black's rb
+               inHigh[i - 3] > inClose[i - 2] &&                                      // 1st black closes under prior candle's high
+               inClose[i - 2] > inClose[i - 1] &&                                     // three declining
+               inClose[i - 1] > inClose[i] &&                                         // three declining
+               ((if inClose[i - 2] >= inOpen[i - 2] { inOpen[i - 2] } else { inClose[i - 2] }) - inLow[i - 2]) < ((ShadowVeryShort_factor) * (if (ShadowVeryShort_avgPeriod) != 0 { (ShadowVeryShortPeriodTotal[2]) / (ShadowVeryShort_avgPeriod as f64) } else { match ShadowVeryShort_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => (inHigh[i - 2]) - (inLow[i - 2]), _ => (inHigh[i - 2]) - (inLow[i - 2]) - ((inClose[i - 2]) - (inOpen[i - 2])).abs() } }) / (if (ShadowVeryShort_rangeType) == 2 { 2.0 } else { 1.0 })) && // very short lower shadow
+               ((if inClose[i - 1] >= inOpen[i - 1] { inOpen[i - 1] } else { inClose[i - 1] }) - inLow[i - 1]) < ((ShadowVeryShort_factor) * (if (ShadowVeryShort_avgPeriod) != 0 { (ShadowVeryShortPeriodTotal[1]) / (ShadowVeryShort_avgPeriod as f64) } else { match ShadowVeryShort_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (ShadowVeryShort_rangeType) == 2 { 2.0 } else { 1.0 })) && // very short lower shadow
+               ((if inClose[i] >= inOpen[i] { inOpen[i] } else { inClose[i] }) - inLow[i]) < ((ShadowVeryShort_factor) * (if (ShadowVeryShort_avgPeriod) != 0 { (ShadowVeryShortPeriodTotal[0]) / (ShadowVeryShort_avgPeriod as f64) } else { match ShadowVeryShort_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => (inHigh[i]) - (inLow[i]), _ => (inHigh[i]) - (inLow[i]) - ((inClose[i]) - (inOpen[i])).abs() } }) / (if (ShadowVeryShort_rangeType) == 2 { 2.0 } else { 1.0 })) // very short lower shadow
+            {
                 outInteger[outIdx] = (0 - 100) as i32;
                 outIdx += 1;
             } else {
                 outInteger[outIdx] = 0;
                 outIdx += 1;
             }
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             // for( totIdx = 2; totIdx >= 0; totIdx -= 1 )
             totIdx = 2;
             loop {
@@ -219,6 +266,7 @@ impl Core {
             ShadowVeryShortTrailingIdx += 1;
             if !(i <= endIdx) { break; }
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

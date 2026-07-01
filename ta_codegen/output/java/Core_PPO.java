@@ -1,6 +1,23 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  020605 AA   Fix #1117666 Lookback bug.
+ */
+
    public int ppoLookback( int optInFastPeriod, int optInSlowPeriod, MAType optInMAType )
    {
+      /* Lookback is driven by the slowest MA. */
       return movingAverageLookback(Math.max(optInSlowPeriod, optInFastPeriod), optInMAType) ;
 
    }
@@ -30,17 +47,25 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Allocate an intermediate buffer. */
       tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+      /* Make sure slow is really slower than
+       * the fast period! if not, swap...
+       */
       if( (optInSlowPeriod<optInFastPeriod) ) {
+         /* swap */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
+      /* Calculate the fast MA into the tempBuffer. */
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
+         /* Calculate the slow MA into the output. */
          retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
+            /* Calculate ((fast MA)-(slow MA))/(slow MA) in the output. */
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                tempReal = outReal[i];
                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {

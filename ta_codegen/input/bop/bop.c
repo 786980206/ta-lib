@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112605 MF   Initial coding.
+ *
+ */
+
 int bop_lookback(void)
 {
     return 0;

@@ -1,3 +1,16 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090812 AB     Initial Version
+ */
+
 int avgdev_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod-1;

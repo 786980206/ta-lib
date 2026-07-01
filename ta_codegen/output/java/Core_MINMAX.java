@@ -1,4 +1,17 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120906 AC   Creation
+ */
+
    public int minMaxLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -30,15 +43,27 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -85,6 +110,9 @@
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;

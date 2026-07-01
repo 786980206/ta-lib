@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100204 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLDOJISTAR_Lookback( void )
 {
    int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
@@ -92,17 +106,26 @@ TA_LIB_API TA_RetCode TA_CDLDOJISTAR( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLDOJISTAR_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyDojiPeriodTotal = 0;
    BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
@@ -119,22 +142,39 @@ TA_LIB_API TA_RetCode TA_CDLDOJISTAR( int    startIdx,
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
    }
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long real body
+    * - second candle: star (open gapping up in an uptrend or down in a downtrend) with a doji
+    * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+    * it's defined bullish when the long candle is white and the star gaps up, bearish when the long candle
+    * is black and the star gaps down; the user should consider that a doji star is bullish when it appears
+    * in an uptrend and it's bearish when it appears in a downtrend, so to determine the bullishness or
+    * bearishness of the pattern the trend must be analyzed
+    */
    outIdx = 0;
    do
    {
-      if( (((fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1)))&&(fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))))) )
+      if( (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) && /* 1st: long real body */
+          (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) && /* 2nd: doji */
+          ((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0)))) ) /* that gaps up if 1st is white or down if 1st is black */
       {
          outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
       BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyDojiTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

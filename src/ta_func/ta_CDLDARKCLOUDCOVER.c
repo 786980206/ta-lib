@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120904 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLDARKCLOUDCOVER_Lookback( double optInPenetration )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -89,17 +103,26 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLDARKCLOUDCOVER_Lookback(optInPenetration);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
    i = BodyLongTrailingIdx;
@@ -109,20 +132,40 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long white candle
+    * - second candle: black candle that opens above previous day high and closes within previous day real body;
+    * Greg Morris wants the close to be below the midpoint of the previous real body
+    * The meaning of "long" is specified with TA_SetCandleSettings, the penetration of the first real body is specified
+    * with optInPenetration
+    * outInteger is negative (-1 to -100): dark cloud cover is always bearish
+    * the user should consider that a dark cloud cover is significant when it appears in an uptrend, while
+    * this function does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inHigh[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<(inClose[(i-1)]-(fabs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration)))) )
+      if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 1st: white */
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) && /* long */
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&     /* 2nd: black */
+          (inOpen[i]>inHigh[(i-1)]) &&                                /* open above prior high */
+          (inClose[i]>inOpen[(i-1)]) &&                               /* close within prior body */
+          (inClose[i]<(inClose[(i-1)]-(fabs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration))) )
       {
          outInteger[outIdx++] = (0-100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-1)));
       i += 1;
       BodyLongTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

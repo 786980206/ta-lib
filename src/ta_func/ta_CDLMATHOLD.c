@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022005 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLMATHOLD_Lookback( double optInPenetration )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -97,17 +111,26 @@ TA_LIB_API TA_RetCode TA_CDLMATHOLD( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLMATHOLD_Lookback(optInPenetration);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyPeriodTotal[4] = 0;
    BodyPeriodTotal[3] = 0;
    BodyPeriodTotal[2] = 0;
@@ -130,16 +153,49 @@ TA_LIB_API TA_RetCode TA_CDLMATHOLD( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long white candle
+    * - upside gap between the first and the second bodies
+    * - second candle: small black candle
+    * - third and fourth candles: falling small real body candlesticks (commonly black) that hold within the long
+    *   white candle's body and are higher than the reaction days of the rising three methods
+    * - fifth candle: white candle that opens above the previous small candle's close and closes higher than the
+    *   high of the highest reaction day
+    * The meaning of "short" and "long" is specified with TA_SetCandleSettings;
+    * "hold within" means "a part of the real body must be within";
+    * optInPenetration is the maximum percentage of the first white body the reaction days can penetrate (it is
+    * to specify how much the reaction days should be "higher than the reaction days of the rising three methods")
+    * outInteger is positive (1 to 100): mat hold is always bullish
+    */
    outIdx = 0;
    do
    {
-      if( (((((((((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(((fmin(inOpen[(i-3)],inClose[(i-3)])>fmax(inOpen[(i-4)],inClose[(i-4)]))) ? (1) : (0)))&&(fmin(inOpen[(i-2)],inClose[(i-2)])<inClose[(i-4)]))&&(fmin(inOpen[(i-1)],inClose[(i-1)])<inClose[(i-4)]))&&(fmin(inOpen[(i-2)],inClose[(i-2)])>(inClose[(i-4)]-(fabs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(fmin(inOpen[(i-1)],inClose[(i-1)])>(inClose[(i-4)]-(fabs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(fmax(inClose[(i-2)],inOpen[(i-2)])<inOpen[(i-3)]))&&(fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>fmax(fmax(inHigh[(i-3)],inHigh[(i-2)]),inHigh[(i-1)])))&&(fabs((inClose[(i-4)]-inOpen[(i-4)]))>TA_CANDLEAVERAGE(BodyLong,BodyPeriodTotal[4],(i-4))))&&(fabs((inClose[(i-3)]-inOpen[(i-3)]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal[3],(i-3))))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal[2],(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal[1],(i-1)))) )
+      if( ((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1) &&           /* white, black, 2 black or white, white */
+          ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)) &&
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&
+          (((fmin(inOpen[(i-3)],inClose[(i-3)])>fmax(inOpen[(i-4)],inClose[(i-4)]))) ? (1) : (0)) && /* upside gap 1st to 2nd */
+          (fmin(inOpen[(i-2)],inClose[(i-2)])<inClose[(i-4)]) &&                /* 3rd to 4th hold within 1st: a part of the real body must be within 1st real body */
+          (fmin(inOpen[(i-1)],inClose[(i-1)])<inClose[(i-4)]) &&
+          (fmin(inOpen[(i-2)],inClose[(i-2)])>(inClose[(i-4)]-(fabs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))) && /* reaction days penetrate first body less than optInPenetration percent */
+          (fmin(inOpen[(i-1)],inClose[(i-1)])>(inClose[(i-4)]-(fabs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))) &&
+          (fmax(inClose[(i-2)],inOpen[(i-2)])<inOpen[(i-3)]) &&                 /* 2nd to 4th are falling */
+          (fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)])) &&
+          (inOpen[i]>inClose[(i-1)]) &&                                         /* 5th opens above the prior close */
+          (inClose[i]>fmax(fmax(inHigh[(i-3)],inHigh[(i-2)]),inHigh[(i-1)])) && /* 5th closes above the highest high of the reaction days */
+          (fabs((inClose[(i-4)]-inOpen[(i-4)]))>TA_CANDLEAVERAGE(BodyLong,BodyPeriodTotal[4],(i-4))) && /* 1st long, then 3 small */
+          (fabs((inClose[(i-3)]-inOpen[(i-3)]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal[3],(i-3))) &&
+          (fabs((inClose[(i-2)]-inOpen[(i-2)]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal[2],(i-2))) &&
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal[1],(i-1))) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyPeriodTotal[4] = (BodyPeriodTotal[4]+(TA_CANDLERANGE(BodyLong,(i-4))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-4))));
       for( totIdx = 3; (totIdx>=1); totIdx -= 1 )
       {
@@ -149,6 +205,7 @@ TA_LIB_API TA_RetCode TA_CDLMATHOLD( int    startIdx,
       BodyShortTrailingIdx += 1;
       BodyLongTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

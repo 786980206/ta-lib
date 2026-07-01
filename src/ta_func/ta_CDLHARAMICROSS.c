@@ -41,6 +41,22 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102404 AC   Creation
+ *  040309 AC   Increased flexibility to allow real bodies matching
+ *              on one end (Greg Morris - "Candlestick charting explained")
+ */
+
 TA_LIB_API int TA_CDLHARAMICROSS_Lookback( void )
 {
    int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
@@ -92,17 +108,26 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLHARAMICROSS_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyDojiPeriodTotal = 0;
    BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
@@ -120,18 +145,32 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long white (black) real body
+    * - second candle: doji totally engulfed by the first
+    * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+    * the user should consider that a harami cross is significant when it appears in a downtrend if bullish or
+    * in an uptrend when bearish, while this function does not consider the trend
+    */
    outIdx = 0;
    do
    {
       if( (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) )
       {
+         /* 1st: long */
          if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) )
          {
-            if( ((fmax(inClose[i],inOpen[i])<fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+            /* 2nd: doji */
+            if( (fmax(inClose[i],inOpen[i])<fmax(inClose[(i-1)],inOpen[(i-1)])) && /* 2nd is engulfed by 1st */
+                (fmin(inClose[i],inOpen[i])>fmin(inClose[(i-1)],inOpen[(i-1)])) )
             {
                outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
-            } else if( ((fmax(inClose[i],inOpen[i])<=fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>=fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+            } else if( (fmax(inClose[i],inOpen[i])<=fmax(inClose[(i-1)],inOpen[(i-1)])) && /* 2nd is engulfed by 1st */
+                (fmin(inClose[i],inOpen[i])>=fmin(inClose[(i-1)],inOpen[(i-1)])) )  /* (one end of real body can match; */
             {
+               /* engulfing guaranteed by "long" and "doji") */
                outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
             } else 
             {
@@ -145,12 +184,16 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
       BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyDojiTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

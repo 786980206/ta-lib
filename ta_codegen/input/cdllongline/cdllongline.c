@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  071704 AC   Creation
+ *
+ */
+
 int cdllongline_lookback(void)
 {
     return max( BodyLong_avgPeriod, ShadowShort_avgPeriod );

@@ -39,6 +39,20 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -88,19 +102,38 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.cdl3outside_lookback();
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         i = startIdx;
+        // Proceed with the calculation for the requested range.
+        // Must have:
+        // - first: black (white) real body
+        // - second: white (black) real body that engulfs the prior real body
+        // - third: candle that closes higher (lower) than the second candle
+        // outInteger is positive (1 to 100) for the three outside up or negative (-1 to -100) for the three outside down;
+        // the user should consider that a three outside up must appear in a downtrend and three outside down must appear
+        // in an uptrend, while this function does not consider it
         outIdx = 0;
         loop {
             if (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) == 1 && ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] && inClose[i] > inClose[i - 1] || ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == 1 && inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] && inClose[i] < inClose[i - 1] {
+                // white engulfs black
+                // third candle higher
+                // black engulfs white
+                // third candle lower
                 outInteger[outIdx] = ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) * 100) as i32;
                 outIdx += 1;
             } else {
@@ -110,6 +143,7 @@ impl Core {
             i += 1;
             if !(i <= endIdx) { break; }
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

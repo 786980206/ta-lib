@@ -39,6 +39,20 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121204 AC   Creation
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -116,15 +130,22 @@ impl Core {
         let Equal_avgPeriod: i32 = self.candle_settings.equal.avg_period;
         #[allow(non_snake_case)]
         let Equal_factor: f64 = self.candle_settings.equal.factor;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.cdlthrusting_lookback();
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         EqualPeriodTotal = 0.0;
         EqualTrailingIdx = startIdx - (Equal_avgPeriod) as usize;
         BodyLongPeriodTotal = 0.0;
@@ -170,15 +191,33 @@ impl Core {
             i += 1;
         }
         i = startIdx;
+        // Proceed with the calculation for the requested range.
+        // Must have:
+        // - first candle: long black candle
+        // - second candle: white candle with open below previous day low and close into previous day body under the midpoint;
+        // to differentiate it from in-neck the close should not be equal to the black candle's close
+        // The meaning of "equal" is specified with TA_SetCandleSettings
+        // outInteger is negative (-1 to -100): thrusting pattern is always bearish
+        // the user should consider that the thrusting pattern is significant when it appears in a downtrend and it could be
+        // even bullish "when coming in an uptrend or occurring twice within several days" (Steve Nison says), while this
+        // function does not consider the trend
         outIdx = 0;
         loop {
-            if ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (inClose[i - 1] - inOpen[i - 1]).abs() > ((BodyLong_factor) * (if (BodyLong_avgPeriod) != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { match BodyLong_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (BodyLong_rangeType) == 2 { 2.0 } else { 1.0 })) && (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 1 && inOpen[i] < inLow[i - 1] && inClose[i] > inClose[i - 1] + ((Equal_factor) * (if (Equal_avgPeriod) != 0 { (EqualPeriodTotal) / (Equal_avgPeriod as f64) } else { match Equal_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (Equal_rangeType) == 2 { 2.0 } else { 1.0 })) && inClose[i] <= ((inClose[i - 1] - inOpen[i - 1]).abs() as f64).mul_add(0.5, inClose[i - 1]) {
+            if ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && // 1st: black
+               (inClose[i - 1] - inOpen[i - 1]).abs() > ((BodyLong_factor) * (if (BodyLong_avgPeriod) != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { match BodyLong_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (BodyLong_rangeType) == 2 { 2.0 } else { 1.0 })) && // long
+               (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 1 && // 2nd: white
+               inOpen[i] < inLow[i - 1] &&                               // open below prior low
+               inClose[i] > inClose[i - 1] + ((Equal_factor) * (if (Equal_avgPeriod) != 0 { (EqualPeriodTotal) / (Equal_avgPeriod as f64) } else { match Equal_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (Equal_rangeType) == 2 { 2.0 } else { 1.0 })) && // close into prior body
+               inClose[i] <= ((inClose[i - 1] - inOpen[i - 1]).abs() as f64).mul_add(0.5, inClose[i - 1]) // under the midpoint
+            {
                 outInteger[outIdx] = (0 - 100) as i32;
                 outIdx += 1;
             } else {
                 outInteger[outIdx] = 0;
                 outIdx += 1;
             }
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             let mut _candlerange_2: f64;
             match Equal_rangeType {
                 0 => {
@@ -246,6 +285,7 @@ impl Core {
             BodyLongTrailingIdx += 1;
             if !(i <= endIdx) { break; }
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

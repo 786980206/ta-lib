@@ -39,6 +39,20 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -116,15 +130,22 @@ impl Core {
         let BodyShort_avgPeriod: i32 = self.candle_settings.body_short.avg_period;
         #[allow(non_snake_case)]
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.cdl3inside_lookback();
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         BodyLongPeriodTotal = 0.0;
         BodyShortPeriodTotal = 0.0;
         BodyLongTrailingIdx = startIdx - 2 - (BodyLong_avgPeriod) as usize;
@@ -170,15 +191,31 @@ impl Core {
             i += 1;
         }
         i = startIdx;
+        // Proceed with the calculation for the requested range.
+        // Must have:
+        // - first candle: long white (black) real body
+        // - second candle: short real body totally engulfed by the first
+        // - third candle: black (white) candle that closes lower (higher) than the first candle's open
+        // The meaning of "short" and "long" is specified with TA_SetCandleSettings
+        // outInteger is positive (1 to 100) for the three inside up or negative (-1 to -100) for the three inside down;
+        // the user should consider that a three inside up is significant when it appears in a downtrend and a three inside
+        // down is significant when it appears in an uptrend, while this function does not consider the trend
         outIdx = 0;
         loop {
-            if (inClose[i - 1]).max(inOpen[i - 1]) < (inClose[i - 2]).max(inOpen[i - 2]) && (inClose[i - 1]).min(inOpen[i - 1]) > (inClose[i - 2]).min(inOpen[i - 2]) && ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == 1 && ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inClose[i] < inOpen[i - 2] || ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 1 && inClose[i] > inOpen[i - 2]) && (inClose[i - 2] - inOpen[i - 2]).abs() > ((BodyLong_factor) * (if (BodyLong_avgPeriod) != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { match BodyLong_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => (inHigh[i - 2]) - (inLow[i - 2]), _ => (inHigh[i - 2]) - (inLow[i - 2]) - ((inClose[i - 2]) - (inOpen[i - 2])).abs() } }) / (if (BodyLong_rangeType) == 2 { 2.0 } else { 1.0 })) && (inClose[i - 1] - inOpen[i - 1]).abs() <= ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyShortPeriodTotal) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) {
+            if (inClose[i - 1]).max(inOpen[i - 1]) < (inClose[i - 2]).max(inOpen[i - 2]) && // engulfed by 1st
+               (inClose[i - 1]).min(inOpen[i - 1]) > (inClose[i - 2]).min(inOpen[i - 2]) &&
+               ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == 1 && ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inClose[i] < inOpen[i - 2] || ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 1 && inClose[i] > inOpen[i - 2]) && // 3rd: opposite to 1st and closing out
+               (inClose[i - 2] - inOpen[i - 2]).abs() > ((BodyLong_factor) * (if (BodyLong_avgPeriod) != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { match BodyLong_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => (inHigh[i - 2]) - (inLow[i - 2]), _ => (inHigh[i - 2]) - (inLow[i - 2]) - ((inClose[i - 2]) - (inOpen[i - 2])).abs() } }) / (if (BodyLong_rangeType) == 2 { 2.0 } else { 1.0 })) && // 1st: long
+               (inClose[i - 1] - inOpen[i - 1]).abs() <= ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyShortPeriodTotal) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) // 2nd: short
+            {
                 outInteger[outIdx] = ((0 - (if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) * 100) as i32;
                 outIdx += 1;
             } else {
                 outInteger[outIdx] = 0;
                 outIdx += 1;
             }
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             let mut _candlerange_2: f64;
             match BodyLong_rangeType {
                 0 => {
@@ -246,6 +283,7 @@ impl Core {
             BodyShortTrailingIdx += 1;
             if !(i <= endIdx) { break; }
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

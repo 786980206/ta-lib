@@ -1,4 +1,19 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int midPointLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -26,15 +41,34 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Find the highest and lowest value of a timeserie
+       * over the period.
+       *      MIDPOINT = (Highest Value + Lowest Value)/2
+       *
+       * See MIDPRICE if the input is a price bar with a
+       * high and low timeserie.
+       */
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -52,6 +86,9 @@
          outReal[outIdx++] = ((highest+lowest)/2.0);
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;

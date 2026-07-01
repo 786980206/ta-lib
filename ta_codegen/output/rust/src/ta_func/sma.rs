@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -99,15 +114,22 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = (optInTimePeriod - 1) as usize;
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Do the MA calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         periodTotal = 0.0;
         trailingIdx = startIdx - lookbackTotal;
         i = trailingIdx;
@@ -117,6 +139,9 @@ impl Core {
                 i = i + 1;
             }
         }
+        // Proceed with the calculation for the requested range.
+        // Note that this algorithm allows the inReal and
+        // outReal to be the same buffer.
         outIdx = 0;
         while i <= endIdx {
             periodTotal += (inReal[i]) as f64;
@@ -127,6 +152,7 @@ impl Core {
             outReal[outIdx] = tempReal / ((optInTimePeriod) as f64);
             outIdx = outIdx + 1;
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

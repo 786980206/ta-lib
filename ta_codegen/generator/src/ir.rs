@@ -24,6 +24,11 @@ pub struct FuncDef {
     pub private_param_init: Vec<(String, Expr)>,
     /// True when the C source explicitly defines foo_private().
     pub has_explicit_private: bool,
+    /// File-level comment blocks that preceded the first function in the input
+    /// `.c` (e.g. the `List of contributors` / `Change history` block). Emitted
+    /// verbatim after the generated banner, before the function definitions.
+    /// Each entry is one comment block, itself a list of content lines.
+    pub header_comments: Vec<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -165,6 +170,13 @@ pub enum Statement {
         condition: Expr,
         then_body: Vec<Statement>,
         else_body: Vec<Statement>,
+        /// Per-operand trailing comments for a top-level `&&`-chain condition,
+        /// indexed to match the flattened left-assoc operand order. Empty unless
+        /// the source annotated the conditions inline (e.g. CDL patterns:
+        /// `TA_CANDLECOLOR(i-3)==1 && // white`). When non-empty and the condition
+        /// is not candle-split, backends render the condition multi-line with each
+        /// operand's comment inline. Purely cosmetic — never affects behavior.
+        cond_comments: Vec<Option<Vec<String>>>,
     },
     Return {
         value: Option<Expr>,
@@ -194,6 +206,12 @@ pub enum Statement {
     Expr(Expr),
     /// Circular FIFO buffer op (`CIRCBUF_*`). Lowered per-backend (see [`CircBuf`]).
     CircBuf(CircBuf),
+    /// A source comment carried verbatim from the input `.c`, rendered
+    /// positionally immediately before the statement it preceded. Each entry is
+    /// one content line (comment delimiters and leading `*` prefixes stripped);
+    /// backends re-wrap it in their own comment syntax. Emits no executable code
+    /// and never affects behavior — it is trivia threaded through for fidelity.
+    Comment(Vec<String>),
 }
 
 #[derive(Debug, Clone, PartialEq)]

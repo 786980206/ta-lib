@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  RM       Robert Meier
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120307 RM     Initial Version
+ *  120907 MF     Handling of a few limit cases
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -112,19 +127,29 @@ impl Core {
         let mut bufferSize: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.sma_lookback(optInTimePeriod);
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Buffer will contains also the lookback required for SMA
+        // to satisfy the caller requested startIdx/endIdx.
         outputSize = endIdx - startIdx + 1;
         bufferSize = outputSize + lookbackTotal;
         tempBuffer1 = vec![0.0_f64; (bufferSize * 1) as usize];
         tempBuffer2 = vec![0.0_f64; (bufferSize * 1) as usize];
+        // Calculate the upper/lower band at the same time (no SMA yet).
+        // Must start calculation back enough to cover the lookback
+        // required later for the SMA.
         // for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
         j = 0;
         i = startIdx - lookbackTotal;
@@ -141,18 +166,21 @@ impl Core {
             i += 1;
             j += 1;
         }
+        // Calculate the middle band, which is a moving average of the close.
         retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
         if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
+        // Now let's take the SMA for the upper band.
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
         if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
+        // Now let's take the SMA for the lower band.
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
         if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;

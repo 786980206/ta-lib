@@ -1,3 +1,20 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  023003 MF   Initial Coding of MAMA.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *
+ */
+
 int mama_lookback(double        optInFastLimit,                                             double        optInSlowLimit)
 {
     /* The two parameters are not a factor to determine

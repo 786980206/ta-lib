@@ -1,4 +1,19 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int smaLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -24,15 +39,24 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = ((int)(optInTimePeriod-1));
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the MA calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       periodTotal = 0.0;
       trailingIdx = (startIdx-lookbackTotal);
       i = trailingIdx;
@@ -42,6 +66,10 @@
             i = (i+1);
          }
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the inReal and
+       * outReal to be the same buffer.
+       */
       outIdx = 0;
       while( (i<=endIdx) ) {
          periodTotal += ((double)inReal[i]);
@@ -52,6 +80,7 @@
          outReal[outIdx] = (tempReal/((double)optInTimePeriod));
          outIdx = (outIdx+1);
       }
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;

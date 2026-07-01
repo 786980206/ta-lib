@@ -1,3 +1,23 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  PP       Peter Pudaite
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY    Description
+ *  -------------------------------------------------------------------
+ *  120802 MF    Template creation.
+ *  091503 PP    Reworked TA_SAR to allow customisation of more SAR params.
+ *  092103 MF    Some changes related on first round of tests
+ *  092303 PP    Minor bug fixes.
+ *  122104 MF,CF Fix#1089506 for out-of-bound access to ep_temp.
+ *
+ */
+
 int sarext_lookback(double        optInStartValue,                                               double        optInOffsetOnReverse,                                               double        optInAccelerationInitLong,                                               double        optInAccelerationLong,                                               double        optInAccelerationMaxLong,                                               double        optInAccelerationInitShort,                                               double        optInAccelerationShort,                                               double        optInAccelerationMaxShort)
 {
     (void)optInStartValue;

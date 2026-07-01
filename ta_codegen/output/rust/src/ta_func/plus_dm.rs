@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  010802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  122104 MF,CF  Fix#1089506 for when optInTimePeriod is 1.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -109,21 +125,92 @@ impl Core {
         let mut diffP: f64 = 0.0_f64;
         let mut diffM: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
+        //
+        // The DM1 (one period) is base on the largest part of
+        // today's range that is outside of yesterdays range.
+        //
+        // The following 7 cases explain how the +DM and -DM are
+        // calculated on one period:
+        //
+        // Case 1:                       Case 2:
+        //    C|                        A|
+        //     |                         | C|
+        //     | +DM1 = (C-A)           B|  | +DM1 = 0
+        //     | -DM1 = 0                   | -DM1 = (B-D)
+        // A|  |                           D|
+        //  | D|
+        // B|
+        //
+        // Case 3:                       Case 4:
+        //    C|                           C|
+        //     |                        A|  |
+        //     | +DM1 = (C-A)            |  | +DM1 = 0
+        //     | -DM1 = 0               B|  | -DM1 = (B-D)
+        // A|  |                            |
+        //  |  |                           D|
+        // B|  |
+        //    D|
+        //
+        // Case 5:                      Case 6:
+        // A|                           A| C|
+        //  | C| +DM1 = 0                |  |  +DM1 = 0
+        //  |  | -DM1 = 0                |  |  -DM1 = 0
+        //  | D|                         |  |
+        // B|                           B| D|
+        //
+        //
+        // Case 7:
+        //
+        //    C|
+        // A|  |
+        //  |  | +DM=0
+        // B|  | -DM=0
+        //    D|
+        //
+        // In case 3 and 4, the rule is that the smallest delta between
+        // (C-A) and (B-D) determine which of +DM or -DM is zero.
+        //
+        // In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are
+        // zero.
+        //
+        // The rules remain the same when A=B and C=D (when the highs
+        // equal the lows).
+        //
+        // When calculating the DM over a period > 1, the one-period DM
+        // for the desired period are initialy sum. In other word,
+        // for a +DM14, sum the +DM1 for the first 14 days (that's
+        // 13 values because there is no DM for the first day!)
+        // Subsequent DM are calculated using the Wilder's
+        // smoothing approach:
+        //
+        //                                    Previous +DM14
+        //  Today's +DM14 = Previous +DM14 -  -------------- + Today's +DM1
+        //                                         14
+        //
+        // Reference:
+        //    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
         if optInTimePeriod > 1 {
             lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::PlusDM as usize] - 1) as usize;
         } else {
             lookbackTotal = 1;
         }
+        // Adjust startIdx to account for the lookback period.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Indicate where the next output should be put
+        // in the outReal.
         outIdx = 0;
+        // Trap the case where no smoothing is needed.
         if optInTimePeriod <= 1 {
+            // No smoothing needed. Just do a simple DM1
+            // for each price bar.
             (*outBegIdx) = startIdx;
             today = startIdx - 1;
             prevHigh = inHigh[today];
@@ -132,11 +219,14 @@ impl Core {
                 today += 1;
                 tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
+                // Plus Delta
                 prevHigh = tempReal;
                 tempReal = inLow[today];
                 diffM = prevLow - tempReal;
+                // Minus Delta
                 prevLow = tempReal;
                 if diffP > 0_f64 && diffP > diffM {
+                    // Case 1 and 3: +DM=diffP,-DM=0
                     outReal[outIdx] = diffP;
                     outIdx += 1;
                 } else {
@@ -147,6 +237,7 @@ impl Core {
             (*outNBElement) = outIdx;
             return RetCode::Success;
         }
+        // Process the initial DM
         (*outBegIdx) = startIdx;
         prevPlusDM = 0.0;
         today = startIdx - lookbackTotal;
@@ -157,42 +248,57 @@ impl Core {
             today += 1;
             tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
+            // Plus Delta
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = prevLow - tempReal;
+            // Minus Delta
             prevLow = tempReal;
             if diffP > 0_f64 && diffP > diffM {
+                // Case 1 and 3: +DM=diffP,-DM=0
                 prevPlusDM += diffP;
             }
         }
+        // Process subsequent DM
+        // Skip the unstable period.
         i = (self.unstable_period[FuncUnstId::PlusDM as usize]) as usize;
         while { let _v = i; i -= 1; _v } != 0 {
             today += 1;
             tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
+            // Plus Delta
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = prevLow - tempReal;
+            // Minus Delta
             prevLow = tempReal;
             if diffP > 0_f64 && diffP > diffM {
+                // Case 1 and 3: +DM=diffP,-DM=0
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64) + diffP;
             } else {
+                // Case 2,4,5 and 7
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64);
             }
         }
+        // Now start to write the output in
+        // the caller provided outReal.
         outReal[0] = prevPlusDM;
         outIdx = 1;
         while today < endIdx {
             today += 1;
             tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
+            // Plus Delta
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = prevLow - tempReal;
+            // Minus Delta
             prevLow = tempReal;
             if diffP > 0_f64 && diffP > diffM {
+                // Case 1 and 3: +DM=diffP,-DM=0
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64) + diffP;
             } else {
+                // Case 2,4,5 and 7
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64);
             }
             outReal[outIdx] = prevPlusDM;

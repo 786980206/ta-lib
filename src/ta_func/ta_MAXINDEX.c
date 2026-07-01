@@ -41,6 +41,19 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120806 AC   Creation (equal to MAX but outputs index)
+ */
+
 TA_LIB_API int TA_MAXINDEX_Lookback( int optInTimePeriod )
 {
    return (optInTimePeriod-1);
@@ -77,17 +90,29 @@ TA_LIB_API TA_RetCode TA_MAXINDEX( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to identify at least one output over the specified
+    * period.
+    */
    nbInitialElementNeeded = (optInTimePeriod-1);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<nbInitialElementNeeded) )
    {
       startIdx = nbInitialElementNeeded;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Proceed with the calculation for the requested range.
+    * Note that this algorithm allows the input and
+    * output to be the same buffer.
+    */
    outIdx = 0;
    today = startIdx;
    trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -119,6 +144,9 @@ TA_LIB_API TA_RetCode TA_MAXINDEX( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
+   /* Keep the outBegIdx relative to the
+    * caller input before returning.
+    */
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;

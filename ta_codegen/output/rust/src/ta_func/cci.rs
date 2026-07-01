@@ -39,6 +39,24 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  031202 MF   Template creation.
+ *  052603 MF   Port to managed C++. Change to use CIRCBUF macros.
+ *  061704 MF   Lower limit for period to 2, and correct algorithm
+ *              to avoid cummulative error when value are close to
+ *              the floating point epsilon.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -108,19 +126,31 @@ impl Core {
         let mut circBuffer: Vec<f64> = Vec::new();
         let mut circBuffer_Idx: usize = 0;
         let mut maxIdx_circBuffer: usize = 29;
+        // This ptr will points on a circular buffer of
+        // at least "optInTimePeriod" element.
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = (optInTimePeriod - 1) as usize;
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Allocate a circular buffer equal to the requested
+        // period.
         if optInTimePeriod < 1 { return RetCode::AllocErr; }
         circBuffer = vec![0.0_f64; (optInTimePeriod) as usize];
         maxIdx_circBuffer = ((optInTimePeriod) as usize) - 1;
         circBuffer_Idx = 0;
+        // Do the MA calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        // Fill up the circular buffer at the same time.
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
             while i < startIdx {
@@ -130,10 +160,14 @@ impl Core {
                 if circBuffer_Idx > maxIdx_circBuffer { circBuffer_Idx = 0; }
             }
         }
+        // Proceed with the calculation for the requested range.
+        // Note that this algorithm allows the inReal and
+        // outReal to be the same buffer.
         outIdx = 0;
         loop {
             lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3_f64;
             circBuffer[circBuffer_Idx] = lastValue;
+            // Calculate the average for the whole period.
             theAverage = 0.0;
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
@@ -142,6 +176,8 @@ impl Core {
                 j += 1;
             }
             theAverage /= ((optInTimePeriod) as f64);
+            // Do the summation of the ABS(TypePrice-average)
+            // for the whole period.
             tempReal2 = 0.0;
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
@@ -149,6 +185,7 @@ impl Core {
                 tempReal2 += (circBuffer[j] - theAverage).abs();
                 j += 1;
             }
+            // And finally, the CCI...
             tempReal = lastValue - theAverage;
             if tempReal != 0.0 && tempReal2 != 0.0 {
                 outReal[outIdx] = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
@@ -157,13 +194,16 @@ impl Core {
                 outReal[outIdx] = 0.0;
                 outIdx += 1;
             }
+            // Move forward the circular buffer indexes.
             circBuffer_Idx += 1;
             if circBuffer_Idx > maxIdx_circBuffer { circBuffer_Idx = 0; }
             i += 1;
             if !(i <= endIdx) { break; }
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
+        // Free the circular buffer if it was dynamically allocated.
         return RetCode::Success;
     }
     #[inline]

@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  122605 AC   Creation
+ *
+ */
+
 int cdlhikkakemod_lookback(void)
 {
     return max( 1, Near_avgPeriod ) + 5;

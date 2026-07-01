@@ -41,8 +41,26 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  100502 JV   Speed optimization of the algorithm
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  090404 MF   Fix #978056. Trap sqrt with negative zero values.
+ */
+
 TA_LIB_API int TA_STDDEV_Lookback( int optInTimePeriod, double optInNbDev )
 {
+   /* Lookback is driven by the variance. */
    return TA_VAR_Lookback(optInTimePeriod,optInNbDev);
 }
 
@@ -75,11 +93,17 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Calculate the variance. */
    retCode = TA_VAR_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
    if( (retCode!=TA_SUCCESS) )
    {
       return retCode;
    }
+   /* Calculate the square root of each variance, this
+    * is the standard deviation.
+    *
+    * Multiply also by the ratio specified.
+    */
    if( (optInNbDev!=1.0) )
    {
       for( i = 0; (i<((int)*outNBElement)); i += 1 )

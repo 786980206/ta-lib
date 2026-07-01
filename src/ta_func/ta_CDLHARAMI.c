@@ -41,6 +41,22 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102404 AC   Creation
+ *  040309 AC   Increased flexibility to allow real bodies matching
+ *              on one end (Greg Morris - "Candlestick charting explained")
+ */
+
 TA_LIB_API int TA_CDLHARAMI_Lookback( void )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -92,17 +108,26 @@ TA_LIB_API TA_RetCode TA_CDLHARAMI( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLHARAMI_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyShortPeriodTotal = 0;
    BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
@@ -120,16 +145,35 @@ TA_LIB_API TA_RetCode TA_CDLHARAMI( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long white (black) real body
+    * - second candle: short real body totally engulfed by the first
+    * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish:
+    * - 100 is returned when the first candle's real body begins before and ends after the second candle's real body
+    * - 80 is returned when the two real bodies match on one end (Greg Morris contemplate this case in his book
+    *   "Candlestick charting explained")
+    * The user should consider that a harami is significant when it appears in a downtrend if bullish or
+    * in an uptrend when bearish, while this function does not consider the trend
+    */
    outIdx = 0;
    do
    {
       if( (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) )
       {
+         /* 1st: long */
          if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)) )
          {
+            /* 2nd: short */
+            /* 2nd is engulfed by 1st */
             if( ((fmax(inClose[i],inOpen[i])<fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>fmin(inClose[(i-1)],inOpen[(i-1)]))) )
             {
                outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
+               /* 2nd is engulfed by 1st
+                * (one end of real body can match;
+                * engulfing guaranteed by "long" and "short")
+                */
             } else if( ((fmax(inClose[i],inOpen[i])<=fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>=fmin(inClose[(i-1)],inOpen[(i-1)]))) )
             {
                outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
@@ -145,12 +189,16 @@ TA_LIB_API TA_RetCode TA_CDLHARAMI( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
       BodyShortPeriodTotal += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx));
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

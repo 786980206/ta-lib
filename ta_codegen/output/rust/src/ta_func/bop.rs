@@ -39,6 +39,20 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112605 MF   Initial coding.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -88,6 +102,7 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
+        // BOP = (Close - Open)/(High - Low)
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
             tempReal = inHigh[i] - inLow[i];

@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120804 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLSTALLEDPATTERN_Lookback( void )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -109,17 +123,26 @@ TA_LIB_API TA_RetCode TA_CDLSTALLEDPATTERN( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLSTALLEDPATTERN_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal[2] = 0;
    BodyLongPeriodTotal[1] = 0;
    BodyLongPeriodTotal[0] = 0;
@@ -159,16 +182,43 @@ TA_LIB_API TA_RetCode TA_CDLSTALLEDPATTERN( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - three white candlesticks with consecutively higher closes
+    * - first candle: long white
+    * - second candle: long white with no or very short upper shadow opening within or near the previous white real body
+    * and closing higher than the prior candle
+    * - third candle: small white that gaps away or "rides on the shoulder" of the prior long real body (= it's at
+    * the upper end of the prior real body)
+    * The meanings of "long", "very short", "short", "near" are specified with TA_SetCandleSettings;
+    * outInteger is negative (-1 to -100): stalled pattern is always bearish;
+    * the user should consider that stalled pattern is significant when it appears in uptrend, while this function
+    * does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[2],(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[1],(i-1))))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,(i-1))))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal[2],(i-2)))))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)))&&(inOpen[i]>=((inClose[(i-1)]-fabs((inClose[i]-inOpen[i])))-TA_CANDLEAVERAGE(Near,NearPeriodTotal[1],(i-1))))) )
+      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) && /* 1st white */
+          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 2nd white */
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&         /* 3rd white */
+          (inClose[i]>inClose[(i-1)]) &&
+          (inClose[(i-1)]>inClose[(i-2)]) &&                          /* consecutive higher closes */
+          (fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[2],(i-2))) && /* 1st: long real body */
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal[1],(i-1))) && /* 2nd: long real body */
+          ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,(i-1))) && /* very short upper shadow */
+          (inOpen[(i-1)]>inOpen[(i-2)]) &&                            /* opens within/near 1st real body */
+          (inOpen[(i-1)]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal[2],(i-2)))) &&
+          (fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)) && /* 3rd: small real body */
+          (inOpen[i]>=((inClose[(i-1)]-fabs((inClose[i]-inOpen[i])))-TA_CANDLEAVERAGE(Near,NearPeriodTotal[1],(i-1)))) ) /* rides on the shoulder of 2nd real body */
       {
          outInteger[outIdx++] = (0-100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       for( totIdx = 2; (totIdx>=1); totIdx -= 1 )
       {
          BodyLongPeriodTotal[totIdx] = (BodyLongPeriodTotal[totIdx]+(TA_CANDLERANGE(BodyLong,(i-totIdx))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-totIdx))));
@@ -182,6 +232,7 @@ TA_LIB_API TA_RetCode TA_CDLSTALLEDPATTERN( int    startIdx,
       ShadowVeryShortTrailingIdx += 1;
       NearTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

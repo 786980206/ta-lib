@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010605 AC   Creation
+ *
+ */
+
 int cdlmarubozu_lookback(void)
 {
     return max( BodyLong_avgPeriod, ShadowVeryShort_avgPeriod );

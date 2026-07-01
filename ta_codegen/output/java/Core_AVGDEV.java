@@ -1,4 +1,17 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090812 AB     Initial Version
+ */
+
    public int avgDevLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -26,11 +39,13 @@
          startIdx = lookback;
       }
       today = startIdx;
+      /* Make sure there is still something to evaluate. */
       if( (today>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Process the initial DM and TR */
       outBegIdx.value = today;
       outIdx = 0;
       while( (today<=endIdx) ) {

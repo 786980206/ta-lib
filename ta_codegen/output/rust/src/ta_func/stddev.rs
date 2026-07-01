@@ -39,6 +39,23 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  100502 JV   Speed optimization of the algorithm
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  090404 MF   Fix #978056. Trap sqrt with negative zero values.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -62,6 +79,7 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
+        // Lookback is driven by the variance.
         return self.var_lookback(optInTimePeriod, optInNbDev);
     }
     /// Standard Deviation
@@ -99,10 +117,15 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         let mut tempReal: f64 = 0.0_f64;
+        // Calculate the variance.
         retCode = self.var_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
         if retCode != RetCode::Success {
             return retCode;
         }
+        // Calculate the square root of each variance, this
+        // is the standard deviation.
+        //
+        // Multiply also by the ratio specified.
         if optInNbDev != 1.0 {
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;

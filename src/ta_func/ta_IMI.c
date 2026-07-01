@@ -41,6 +41,19 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  181012 AB    Initial Version
+ */
+
 TA_LIB_API int TA_IMI_Lookback( int optInTimePeriod )
 {
    return ((optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_IMI,Imi))-1);
@@ -80,6 +93,7 @@ TA_LIB_API TA_RetCode TA_IMI( int    startIdx,
    {
       startIdx = lookback;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;

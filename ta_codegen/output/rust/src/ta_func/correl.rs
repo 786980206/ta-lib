@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  101003 MF   Initial Coding
+ *  062804 MF   Resolve div by zero bug on limit case.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -109,10 +125,13 @@ impl Core {
         let mut today: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
+        // Move up the start index if there is not
+        // enough initial data.
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -120,6 +139,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         trailingIdx = startIdx - lookbackTotal;
+        // Calculate the initial values.
         sumY2 = 0.0;
         sumX2 = sumY2;
         sumY = sumX2;
@@ -135,6 +155,9 @@ impl Core {
             sumY2 += y * y;
         }
         today = (startIdx as usize) + 1;
+        // Write the first output.
+        // Save first the trailing values since the input
+        // and output might be the same array,
         trailingX = inReal0[trailingIdx];
         trailingY = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
         tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));
@@ -143,13 +166,16 @@ impl Core {
         } else {
             outReal[0] = 0.0;
         }
+        // Tight loop to do subsequent values.
         outIdx = 1;
         while today <= endIdx {
+            // Remove trailing values
             sumX -= trailingX;
             sumX2 -= trailingX * trailingX;
             sumXY -= trailingX * trailingY;
             sumY -= trailingY;
             sumY2 -= trailingY * trailingY;
+            // Add new values
             x = inReal0[today];
             sumX += x;
             sumX2 += x * x;
@@ -157,6 +183,9 @@ impl Core {
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
+            // Output new coefficient.
+            // Save first the trailing values since the input
+            // and output might be the same array,
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
             tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));

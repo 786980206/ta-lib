@@ -39,6 +39,24 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  062704 MF   Fix limit case to avoid divid by zero (or by
+ *              a value close to zero induce by the imprecision
+ *              of floating points).
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -108,17 +126,25 @@ impl Core {
         let mut trailingValue: f64 = 0.0_f64;
         constMax = 2.0 / (30.0 + 1.0);
         constDiff = 2.0 / (2.0 + 1.0) - constMax;
+        // Default return values
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize]) as usize;
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Initialize the variables by going through
+        // the lookback period.
         sumROC1 = 0.0;
         today = startIdx - lookbackTotal;
         trailingIdx = today;
@@ -128,52 +154,87 @@ impl Core {
             tempReal -= inReal[today];
             sumROC1 += (tempReal).abs();
         }
+        // At this point sumROC1 represent the
+        // summation of the 1-day price difference
+        // over the (optInTimePeriod-1)
+        // Calculate the first KAMA
+        // The yesterday price is used here as the previous KAMA.
         prevKAMA = inReal[today - 1];
         tempReal = inReal[today];
         tempReal2 = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
         periodROC = tempReal - tempReal2;
+        // Save the trailing value. Do this because inReal
+        // and outReal can be pointers to the same buffer.
         trailingValue = tempReal2;
+        // Calculate the efficiency ratio
         if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
             tempReal = 1.0;
         } else {
             tempReal = (periodROC / sumROC1).abs();
         }
+        // Calculate the smoothing constant
         tempReal = (tempReal as f64).mul_add(constDiff, constMax);
         tempReal *= tempReal;
+        // Calculate the KAMA like an EMA, using the
+        // smoothing constant as the adaptive factor.
         prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA as f64).mul_add(tempReal, prevKAMA);
+        // 'today' keep track of where the processing is within the
+        // input.
+        // Skip the unstable period. Do the whole processing
+        // needed for KAMA, but do not write it in the output.
         while today <= startIdx {
             tempReal = inReal[today];
             tempReal2 = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
             periodROC = tempReal - tempReal2;
+            // Adjust sumROC1:
+            //  - Remove trailing ROC1
+            //  - Add new ROC1
             sumROC1 -= (trailingValue - tempReal2).abs();
             sumROC1 += (tempReal - inReal[today - 1]).abs();
+            // Save the trailing value. Do this because inReal
+            // and outReal can be pointers to the same buffer.
             trailingValue = tempReal2;
+            // Calculate the efficiency ratio
             if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
                 tempReal = 1.0;
             } else {
                 tempReal = (periodROC / sumROC1).abs();
             }
+            // Calculate the smoothing constant
             tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
+            // Calculate the KAMA like an EMA, using the
+            // smoothing constant as the adaptive factor.
             prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA as f64).mul_add(tempReal, prevKAMA);
         }
+        // Write the first value.
         outReal[0] = prevKAMA;
         outIdx = 1;
         (*outBegIdx) = today - 1;
+        // Do the KAMA calculation for the requested range.
         while today <= endIdx {
             tempReal = inReal[today];
             tempReal2 = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
             periodROC = tempReal - tempReal2;
+            // Adjust sumROC1:
+            //  - Remove trailing ROC1
+            //  - Add new ROC1
             sumROC1 -= (trailingValue - tempReal2).abs();
             sumROC1 += (tempReal - inReal[today - 1]).abs();
+            // Save the trailing value. Do this because inReal
+            // and outReal can be pointers to the same buffer.
             trailingValue = tempReal2;
+            // Calculate the efficiency ratio
             if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
                 tempReal = 1.0;
             } else {
                 tempReal = (periodROC / sumROC1).abs();
             }
+            // Calculate the smoothing constant
             tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
+            // Calculate the KAMA like an EMA, using the
+            // smoothing constant as the adaptive factor.
             prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA as f64).mul_add(tempReal, prevKAMA);
             outReal[outIdx] = prevKAMA;
             outIdx += 1;

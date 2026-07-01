@@ -1,3 +1,23 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel
+ *  MIF      Mirek Fontan (mira@fontan.cz)
+ *  GC       guycom@users.sourceforge.net
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  082303 MF   Fix #792298. Remove rounding. Bug reported by AM.
+ *  062704 MF   Fix #965557. Div by zero bug reported by MIF.
+ *  082206 MF   Fix #1544555. Div by zero bug reported by GC.
+ */
+
 int adx_lookback(int           optInTimePeriod)
 {
     return (2 * optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;

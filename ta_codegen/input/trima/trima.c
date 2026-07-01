@@ -1,3 +1,21 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  CR       Chris (crokusek@hotmail.com)
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010503 MF   Initial Coding
+ *  031703 MF   Fix #701060. Correct logic when using a range with
+ *              startIdx/endIdx. Thanks to Chris for reporting this.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *
+ */
+
 int trima_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod-1;

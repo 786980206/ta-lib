@@ -41,8 +41,25 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ */
+
 TA_LIB_API int TA_TYPPRICE_Lookback( void )
 {
+   /* This function have no lookback needed. */
    return 0;
 }
 
@@ -72,6 +89,7 @@ TA_LIB_API TA_RetCode TA_TYPPRICE( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Typical price = (High + Low + Close ) / 3 */
    outIdx = 0;
    for( i = startIdx; (i<=endIdx); i += 1 )
    {

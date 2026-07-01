@@ -1,3 +1,20 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JPP      JP Pienaar (j.pienaar@mci.co.za)
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  080403 JPP  Fix #767653 for logic when swapping periods.
+ *
+ */
+
 int macd_lookback(int           optInFastPeriod,                                             int           optInSlowPeriod,                                             int           optInSignalPeriod)
 {
     int tempInteger;
@@ -82,6 +99,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     if( optInSlowPeriod == 0 )
     {
     optInSlowPeriod = 26;
+    /* Fix 26 */
     slowK = 0.075;
     useFixedK = 1;
     }
@@ -93,6 +111,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     if( optInFastPeriod == 0 )
     {
     optInFastPeriod = 12;
+    /* Fix 12 */
     fastK = 0.15;
     useFixedK = 1;
     }

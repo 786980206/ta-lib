@@ -41,8 +41,44 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  023003 MF   Initial Coding of MAMA.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 TA_LIB_API int TA_MAMA_Lookback( double optInFastLimit, double optInSlowLimit )
 {
+   /* The two parameters are not a factor to determine
+    * the lookback, but are still requested for
+    * consistency with all other Lookback functions.
+    */
+   /* Lookback is a fix amount + the unstable period.
+    *
+    *
+    * The fix lookback is 32 and is establish as follow:
+    *
+    *         12 price bar to be compatible with the implementation
+    *            of TradeStation found in John Ehlers book.
+    *          6 price bars for the Detrender
+    *          6 price bars for Q1
+    *          3 price bars for jI
+    *          3 price bars for jQ
+    *          1 price bar for Re/Im
+    *          1 price bar for the Delta Phase
+    *        -------
+    *         32 Total
+    */
    return (32+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MAMA,Mama));
 }
 
@@ -139,12 +175,22 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
+   /* Variable used for the price smoother (a weighted moving average). */
+   /* Variables used for the Hilbert Transormation */
+   /* Constant */
    rad2Deg = (180.0/(4.0*atan(1)));
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = (32+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MAMA,Mama));
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
@@ -152,8 +198,16 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
+   /* Initialize the price smoother, which is simply a weighted
+    * moving average of the price.
+    * To understand this algorithm, I strongly suggest to understand
+    * first how TA_WMA is done.
+    */
    trailingWMAIdx = (startIdx-lookbackTotal);
    today = trailingWMAIdx;
+   /* Initialization is same as WMA, except loop is unrolled
+    * for speed optimization.
+    */
    tempReal = inReal[today++];
    periodWMASub = tempReal;
    periodWMASum = tempReal;
@@ -164,6 +218,9 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
    periodWMASub += tempReal;
    periodWMASum += (tempReal*3.0);
    trailingWMAValue = 0.0;
+   /* Subsequent WMA value are evaluated by using
+    * the DO_PRICE_WMA macro.
+    */
    i = 9;
    do
    {
@@ -175,6 +232,14 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
       smoothedValue = (periodWMASum*0.1);
       periodWMASum -= periodWMASub;
    } while( (--i!=0) );
+   /* Initialize the circular buffers used by the hilbert
+    * transform logic.
+    * A buffer is used for odd day and another for even days.
+    * This minimize the number of memory access and floating point
+    * operations needed (note also that by using static circular buffer,
+    * no large dynamic memory allocation is needed for storing
+    * intermediate calculation!).
+    */
    hilbertIdx = 0;
    detrender_Odd[0] = 0.0;
    detrender_Odd[1] = 0.0;
@@ -233,6 +298,13 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
    prevPhase = 0.0;
+   /* The code is speed optimized and is most likely very
+    * hard to follow if you do not already know well the
+    * original algorithm.
+    * To understadn better, it is strongly suggested to look
+    * first at the Excel implementation in "test_MAMA.xls" included
+    * in this package.
+    */
    while( (today<=endIdx) )
    {
       adjustedPrevPeriod = ((0.075*period)+0.54);
@@ -245,6 +317,7 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
       periodWMASum -= periodWMASub;
       if( ((today%2)==0) )
       {
+         /* Do the Hilbert Transforms for even price bar */
          hilbertTempReal = (a*smoothedValue);
          detrender = (0-detrender_Even[hilbertIdx]);
          detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -287,8 +360,15 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
          }
          Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
          I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+         /* The variable I1 is the detrender delayed for
+          * 3 price bars.
+          *
+          * Save the current detrender value for being
+          * used by the "odd" logic later.
+          */
          I1ForOddPrev3 = I1ForOddPrev2;
          I1ForOddPrev2 = detrender;
+         /* Put Alpha in tempReal2 */
          if( (I1ForEvenPrev3!=0.0) )
          {
             tempReal2 = (atan((Q1/I1ForEvenPrev3))*rad2Deg);
@@ -298,6 +378,7 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
          }
       } else 
       {
+         /* Do the Hilbert Transforms for odd price bar */
          hilbertTempReal = (a*smoothedValue);
          detrender = (0-detrender_Odd[hilbertIdx]);
          detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -336,8 +417,15 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
          jQ *= adjustedPrevPeriod;
          Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
          I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+         /* The varaiable I1 is the detrender delayed for
+          * 3 price bars.
+          *
+          * Save the current detrender value for being
+          * used by the "odd" logic later.
+          */
          I1ForEvenPrev3 = I1ForEvenPrev2;
          I1ForEvenPrev2 = detrender;
+         /* Put Alpha in tempReal2 */
          if( (I1ForOddPrev3!=0.0) )
          {
             tempReal2 = (atan((Q1/I1ForOddPrev3))*rad2Deg);
@@ -346,12 +434,14 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
             tempReal2 = 0.0;
          }
       }
+      /* Put Delta Phase into tempReal */
       tempReal = (prevPhase-tempReal2);
       prevPhase = tempReal2;
       if( (tempReal<1.0) )
       {
          tempReal = 1.0;
       }
+      /* Put Alpha into tempReal */
       if( (tempReal>1.0) )
       {
          tempReal = (optInFastLimit/tempReal);
@@ -363,6 +453,7 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
       {
          tempReal = optInFastLimit;
       }
+      /* Calculate MAMA, FAMA */
       mama = ((tempReal*todayValue)+((1-tempReal)*mama));
       tempReal *= 0.5;
       fama = ((tempReal*mama)+((1-tempReal)*fama));
@@ -371,6 +462,7 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
          outMAMA[outIdx] = mama;
          outFAMA[outIdx++] = fama;
       }
+      /* Adjust the period for next price bar */
       Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
       Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
       prevQ2 = Q2;
@@ -398,8 +490,10 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
          period = 50;
       }
       period = ((0.2*period)+(0.8*tempReal));
+      /* Ooof... let's do the next price bar now! */
       today += 1;
    }
+   /* Default return values */
    *outNBElement= outIdx;
    return TA_SUCCESS;
 }

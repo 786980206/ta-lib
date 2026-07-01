@@ -41,11 +41,29 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 TA_LIB_API int TA_STOCH_Lookback( int optInFastK_Period, int optInSlowK_Period, TA_MAType optInSlowK_MAType, int optInSlowD_Period, TA_MAType optInSlowD_MAType )
 {
    int retValue;
+   /* Account for the initial data needed for Fast-K. */
    retValue = (optInFastK_Period-1);
+   /* Add the smoothing being done for %K slow */
    retValue += TA_MA_Lookback(optInSlowK_Period,optInSlowK_MAType);
+   /* Add the smoothing being done for %D slow. */
    retValue += TA_MA_Lookback(optInSlowD_Period,optInSlowD_MAType);
    return retValue;
 }
@@ -115,21 +133,74 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
    if( !outSlowD )
       return TA_BAD_PARAM;
 
+   /* With stochastic, there is a total of 4 different lines that
+    * are defined: FASTK, FASTD, SLOWK and SLOWD.
+    *
+    * The D is the signal line usually drawn over its
+    * corresponding K function.
+    *
+    *                    (Today's Close - LowestLow)
+    *  FASTK(Kperiod) =  --------------------------- * 100
+    *                     (HighestHigh - LowestLow)
+    *
+    *  FASTD(FastDperiod, MA type) = MA Smoothed FASTK over FastDperiod
+    *
+    *  SLOWK(SlowKperiod, MA type) = MA Smoothed FASTK over SlowKperiod
+    *
+    *  SLOWD(SlowDperiod, MA Type) = MA Smoothed SLOWK over SlowDperiod
+    *
+    * The HighestHigh and LowestLow are the extreme values among the
+    * last 'Kperiod'.
+    *
+    * SLOWK and FASTD are equivalent when using the same period.
+    *
+    * The following shows how these four lines are made available in TA-LIB:
+    *
+    *  TA_STOCH  : Returns the SLOWK and SLOWD
+    *  TA_STOCHF : Returns the FASTK and FASTD
+    *
+    * The TA_STOCH function correspond to the more widely implemented version
+    * found in many software/charting package. The TA_STOCHF is more rarely
+    * used because its higher volatility cause often whipsaws.
+    */
+   /* Identify the lookback needed. */
    lookbackK = (optInFastK_Period-1);
    lookbackKSlow = TA_MA_Lookback(optInSlowK_Period,optInSlowK_MAType);
    lookbackDSlow = TA_MA_Lookback(optInSlowD_Period,optInSlowD_MAType);
    lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
+      /* Succeed... but no data in the output. */
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the K calculation:
+    *
+    *    Kt = 100 x ((Ct-Lt)/(Ht-Lt))
+    *
+    * Kt is today stochastic
+    * Ct is today closing price.
+    * Lt is the lowest price of the last K Period (including today)
+    * Ht is the highest price of the last K Period (including today)
+    */
+   /* Proceed with the calculation for the requested range.
+    * Note that this algorithm allows the input and
+    * output to be the same buffer.
+    */
    outIdx = 0;
+   /* Calculate just enough K for ending up with the caller
+    * requested range. (The range of k must consider all
+    * the lookback involve with the smoothing).
+    */
    trailingIdx = (startIdx-lookbackTotal);
    today = (trailingIdx+lookbackK);
    highestIdx = (0-1);
@@ -137,6 +208,12 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
    lowest = 0.0;
    highest = lowest;
    diff = highest;
+   /* Allocate a temporary buffer large enough to
+    * store the K.
+    *
+    * If the output is the same as the input, great
+    * we just save ourself one memory allocation.
+    */
    bufferIsAllocated = 0;
    if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) )
    {
@@ -149,8 +226,10 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
       bufferIsAllocated = 1;
       tempBuffer = malloc((((endIdx-today)+1)*sizeof(double)));
    }
+   /* Do the K calculation */
    while( (today<=endIdx) )
    {
+      /* Set the lowest low */
       tmp = inLow[today];
       if( (lowestIdx<trailingIdx) )
       {
@@ -173,6 +252,7 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
          lowest = tmp;
          diff = ((highest-lowest)/100.0);
       }
+      /* Set the highest high */
       tmp = inHigh[today];
       if( (highestIdx<trailingIdx) )
       {
@@ -195,6 +275,7 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
          highest = tmp;
          diff = ((highest-lowest)/100.0);
       }
+      /* Calculate stochastic. */
       if( (diff!=0.0) )
       {
          tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
@@ -205,6 +286,11 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
+   /* Un-smoothed K calculation completed. This K calculation is not returned
+    * to the caller. It is always smoothed and then return.
+    * Some documentation will refer to the smoothed version as being
+    * "K-Slow", but often this end up to be shorten to "K".
+    */
    retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
@@ -212,22 +298,36 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
       {
          free(tempBuffer);
       }
+      /* Something wrong happen? No further data? */
       *outBegIdx= 0;
       *outNBElement= 0;
       return retCode;
    }
+   /* Calculate the %D which is simply a moving average of
+    * the already smoothed %K.
+    */
    retCode = TA_MA_Unguarded(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   /* Copy tempBuffer into the caller buffer.
+    * (Calculation could not be done directly in the
+    *  caller buffer because more input data then the
+    *  requested range was needed for doing %D).
+    */
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
+   /* Don't need K anymore, free it if it was allocated here. */
    if( bufferIsAllocated )
    {
       free(tempBuffer);
    }
    if( (retCode!=TA_SUCCESS) )
    {
+      /* Something wrong happen while processing %D? */
       *outBegIdx= 0;
       *outNBElement= 0;
       return retCode;
    }
+   /* Note: Keep the outBegIdx relative to the
+    *       caller input before returning.
+    */
    *outBegIdx= startIdx;
    return TA_SUCCESS;
 }

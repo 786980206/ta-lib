@@ -41,6 +41,19 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  021807 MF     Initial Version
+ */
+
 TA_LIB_API int TA_MAVP_Lookback( int optInMinPeriod, int optInMaxPeriod, TA_MAType optInMAType )
 {
    return TA_MA_Lookback(optInMaxPeriod,optInMAType);
@@ -91,17 +104,25 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_MA_Lookback(optInMaxPeriod,optInMAType);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Calculate exact output size */
    if( (lookbackTotal>startIdx) )
    {
       tempInt = lookbackTotal;
@@ -111,13 +132,18 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
    }
    if( (tempInt>endIdx) )
    {
+      /* No output */
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    outputSize = ((endIdx-tempInt)+1);
+   /* Allocate intermediate local buffer. */
    localOutputArray = malloc((outputSize*sizeof(double)));
    localPeriodArray = malloc((outputSize*sizeof(int)));
+   /* Copy caller array of period into local buffer.
+    * At the same time, truncate to min/max.
+    */
    for( i = 0; (i<outputSize); i += 1 )
    {
       tempInt = ((int)inPeriods[(startIdx+i)]);
@@ -130,11 +156,24 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
       }
       localPeriodArray[i] = tempInt;
    }
+   /* Process each element of the input.
+    * For each possible period value, the MA is calculated
+    * only once.
+    * The outReal is then fill up for all element with
+    * the same period.
+    * A local flag (value 0) is set in localPeriodArray
+    * to avoid doing a second time the same calculation.
+    */
    for( i = 0; (i<outputSize); i += 1 )
    {
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
+         /* TODO: This portion of the function can be slightly speed
+          *       optimized by making the function without unstable period
+          *       start their calculation at 'startIdx+i' instead of startIdx.
+          */
+         /* Calculation of the MA required. */
          retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
@@ -150,6 +189,7 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
             if( (localPeriodArray[j]==curPeriod) )
             {
                localPeriodArray[j] = 0;
+               /* Flag to avoid recalculation */
                outReal[j] = localOutputArray[j];
             }
          }
@@ -157,6 +197,7 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
    }
    free(localOutputArray);
    free(localPeriodArray);
+   /* Done. Inform the caller of the success. */
    *outBegIdx= startIdx;
    *outNBElement= outputSize;
    return TA_SUCCESS;

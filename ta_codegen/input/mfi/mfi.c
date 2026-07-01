@@ -1,3 +1,21 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  BT       BobTrader (TADoc.org forum user).
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF    Template creation.
+ *  052603 MF    Adapt code to compile with .NET Managed C++
+ *  062704 MF    Prevent divide by zero.
+ *  121705 MF    Java port related changes.
+ *  060907 MF,BT Fix #1727704. MFI logic bug when no price movement
+ */
+
 int mfi_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MFI);
@@ -10,7 +28,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     int lookbackTotal, outIdx, i, today;
 
     typedef struct { double positive; double negative; } MoneyFlow;
-    CIRCBUF_PROLOG_CLASS( mflow, MoneyFlow, 50 );
+    CIRCBUF_PROLOG_CLASS( mflow, MoneyFlow, 50 ); /* Id, Type, Static Size */
 
     CIRCBUF_INIT_CLASS( mflow, MoneyFlow, optInTimePeriod );
 

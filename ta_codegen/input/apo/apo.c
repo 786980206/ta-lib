@@ -1,3 +1,20 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  062804 MF   Resolve div by zero bug on limit case.
+ *  020605 AA   Fix #1117666 Lookback & out-of-bound bug.
+ */
+
 int apo_lookback(int           optInFastPeriod,                                            int           optInSlowPeriod,                                            TA_MAType     optInMAType)
 {
     /* The slow MA is the key factor determining the lookback period. */

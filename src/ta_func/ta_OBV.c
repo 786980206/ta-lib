@@ -41,8 +41,26 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  110206 AC   Change volume and open interest to double
+ */
+
 TA_LIB_API int TA_OBV_Lookback( void )
 {
+   /* This function have no lookback needed. */
    return 0;
 }
 

@@ -1,3 +1,16 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  082507 MF     Initial Version
+ */
+
 int sin_lookback(void)
 {
     return 0;

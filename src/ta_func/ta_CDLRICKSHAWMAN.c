@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLRICKSHAWMAN_Lookback( void )
 {
    int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
@@ -100,17 +114,26 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLRICKSHAWMAN_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyDojiPeriodTotal = 0;
    BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
    ShadowLongPeriodTotal = 0;
@@ -135,16 +158,31 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
       NearPeriodTotal += TA_CANDLERANGE(Near,i);
       i += 1;
    }
+   /* Proceed with the calculation for the requested range.
+    *
+    * Must have:
+    * - doji body
+    * - two long shadows
+    * - body near the midpoint of the high-low range
+    * The meaning of "doji" and "near" is specified with TA_SetCandleSettings
+    * outInteger is always positive (1 to 100) but this does not mean it is bullish: rickshaw man shows uncertainty
+    */
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((fmin(inOpen[i],inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))&&(fmax(inOpen[i],inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,i))))) )
+      if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) && /* doji */
+          (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)) && /* long shadow */
+          ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)) && /* long shadow */
+          ((fmin(inOpen[i],inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))&&(fmax(inOpen[i],inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))) ) /* body near midpoint */
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
       ShadowLongPeriodTotal += (TA_CANDLERANGE(ShadowLong,i)-TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx));
       NearPeriodTotal += (TA_CANDLERANGE(Near,i)-TA_CANDLERANGE(Near,NearTrailingIdx));
@@ -153,6 +191,7 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
       ShadowLongTrailingIdx += 1;
       NearTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

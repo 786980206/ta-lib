@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103004 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLSHOOTINGSTAR_Lookback( void )
 {
    int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
@@ -100,17 +114,26 @@ TA_LIB_API TA_RetCode TA_CDLSHOOTINGSTAR( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLSHOOTINGSTAR_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyPeriodTotal = 0;
    BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
    ShadowLongPeriodTotal = 0;
@@ -135,16 +158,33 @@ TA_LIB_API TA_RetCode TA_CDLSHOOTINGSTAR( int    startIdx,
       ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i);
       i += 1;
    }
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - small real body
+    * - long upper shadow
+    * - no, or very short, lower shadow
+    * - gap up from prior real body
+    * The meaning of "short", "very short" and "long" is specified with TA_SetCandleSettings;
+    * outInteger is negative (-1 to -100): shooting star is always bearish;
+    * the user should consider that a shooting star must appear in an uptrend, while this function does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( ((((((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i))) )
+      if( (((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0)) && /* gap up */
+          (fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i)) && /* small rb */
+          ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)) && /* long upper shadow */
+          (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)) )
       {
+         /* very short lower shadow */
          outInteger[outIdx++] = (0-100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyPeriodTotal += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,BodyTrailingIdx));
       ShadowLongPeriodTotal += (TA_CANDLERANGE(ShadowLong,i)-TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx));
       ShadowVeryShortPeriodTotal += (TA_CANDLERANGE(ShadowVeryShort,i)-TA_CANDLERANGE(ShadowVeryShort,ShadowVeryShortTrailingIdx));
@@ -153,6 +193,7 @@ TA_LIB_API TA_RetCode TA_CDLSHOOTINGSTAR( int    startIdx,
       ShadowLongTrailingIdx += 1;
       ShadowVeryShortTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

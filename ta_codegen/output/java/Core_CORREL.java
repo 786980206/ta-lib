@@ -1,4 +1,20 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  101003 MF   Initial Coding
+ *  062804 MF   Resolve div by zero bug on limit case.
+ */
+
    public int correlLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -33,10 +49,14 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -44,6 +64,7 @@
       }
       outBegIdx.value = startIdx;
       trailingIdx = (startIdx-lookbackTotal);
+      /* Calculate the initial values. */
       sumY2 = 0.0;
       sumX2 = sumY2;
       sumY = sumX2;
@@ -58,6 +79,10 @@
          sumY += y;
          sumY2 += (y*y);
       }
+      /* Write the first output.
+       * Save first the trailing values since the input
+       * and output might be the same array,
+       */
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
@@ -66,13 +91,16 @@
       } else {
          outReal[0] = 0.0;
       }
+      /* Tight loop to do subsequent values. */
       outIdx = 1;
       while( (today<=endIdx) ) {
+         /* Remove trailing values */
          sumX -= trailingX;
          sumX2 -= (trailingX*trailingX);
          sumXY -= (trailingX*trailingY);
          sumY -= trailingY;
          sumY2 -= (trailingY*trailingY);
+         /* Add new values */
          x = inReal0[today];
          sumX += x;
          sumX2 += (x*x);
@@ -80,6 +108,10 @@
          sumXY += (x*y);
          sumY += y;
          sumY2 += (y*y);
+         /* Output new coefficient.
+          * Save first the trailing values since the input
+          * and output might be the same array,
+          */
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
          tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));

@@ -39,6 +39,19 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  060306 MF     Initial Version
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -61,6 +74,12 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
+        // The ATR lookback is the sum of:
+        //    1 + (optInTimePeriod - 1)
+        //
+        // Where 1 is for the True Range, and
+        // (optInTimePeriod-1) is for the simple
+        // moving average.
         return (optInTimePeriod + self.unstable_period[FuncUnstId::Natr as usize]) as usize;
     }
     /// Normalized Average True Range
@@ -107,35 +126,74 @@ impl Core {
         let mut prevATR: f64 = 0.0_f64;
         let mut tempValue: f64 = 0.0_f64;
         let mut tempBuffer: Vec<f64> = Vec::new();
+        // This function is very similar as ATR, except
+        // it is being normalized as follow:
+        //
+        //    NATR = (ATR(period) / Close) * 100
+        //
+        //
+        // Normalization make the ATR function more relevant
+        // in the folllowing scenario:
+        //    - Long term analysis where the price changes drastically.
+        //    - Cross-market or cross-security ATR comparison.
+        //
+        // More Info:
+        //      Technical Analysis of Stock & Commodities (TASC)
+        //      May 2006 by John Forman
+        // Average True Range is the greatest of the following:
+        //
+        //  val1 = distance from today's high to today's low.
+        //  val2 = distance from yesterday's close to today's high.
+        //  val3 = distance from yesterday's close to today's low.
+        //
+        // These value are averaged for the specified period using
+        // Wilder method. This method have an unstable period comparable
+        // to an Exponential Moving Average (EMA).
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
+        // Adjust startIdx to account for the lookback period.
         lookbackTotal = self.natr_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             return RetCode::Success;
         }
+        // Trap the case where no smoothing is needed.
         if optInTimePeriod <= 1 {
+            // No smoothing needed. Just do a TRANGE.
             return self.trange_unguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
         }
+        // Allocate an intermediate buffer for TRANGE.
         tempBuffer = vec![0.0_f64; ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
+        // Do TRANGE in the intermediate buffer.
         retCode = self.trange_unguarded(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
         if retCode != RetCode::Success {
             return retCode;
         }
+        // First value of the ATR is a simple Average of
+        // the TRANGE output for the specified period.
         retCode = self.sma_unguarded((optInTimePeriod - 1) as usize, (optInTimePeriod - 1) as usize, &tempBuffer, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, std::slice::from_mut(&mut prevATR));
         if retCode != RetCode::Success {
             return retCode;
         }
+        // Subsequent value are smoothed using the
+        // previous ATR value (Wilder's approach).
+        //  1) Multiply the previous ATR by 'period-1'.
+        //  2) Add today TR value.
+        //  3) Divide by 'period'.
         today = (optInTimePeriod) as usize;
         outIdx = (self.unstable_period[FuncUnstId::Natr as usize]) as usize;
+        // Skip the unstable period.
         while outIdx != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);
             prevATR += tempBuffer[{ let _v = today; today += 1; _v }];
             prevATR /= ((optInTimePeriod) as f64);
             outIdx -= 1;
         }
+        // Now start to write the final ATR in the caller
+        // provided outReal.
         outIdx = 1;
         tempValue = inClose[today];
         if !((tempValue).abs() < 1e-14) {
@@ -143,6 +201,7 @@ impl Core {
         } else {
             outReal[0] = 0.0;
         }
+        // Now do the number of requested ATR.
         nbATR = endIdx - startIdx + 1;
         while { nbATR -= 1; nbATR } != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);

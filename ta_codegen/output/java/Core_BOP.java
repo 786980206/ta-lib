@@ -1,4 +1,18 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112605 MF   Initial coding.
+ */
+
    public int bopLookback( )
    {
       return 0 ;
@@ -23,6 +37,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* BOP = (Close - Open)/(High - Low) */
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          tempReal = (inHigh[i]-inLow[i]);

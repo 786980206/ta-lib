@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -75,11 +90,13 @@ impl Core {
         }
         let mut tempInteger: usize = 0_usize;
         let mut lookbackLargest: usize = 0_usize;
+        // Find the MA with the largest lookback
         lookbackLargest = self.ma_lookback(optInFastPeriod, optInFastMAType);
         tempInteger = self.ma_lookback(optInSlowPeriod, optInSlowMAType);
         if tempInteger > lookbackLargest {
             lookbackLargest = tempInteger;
         }
+        // Add to the largest MA lookback the signal line lookback
         return (lookbackLargest + self.ma_lookback(optInSignalPeriod, optInSignalMAType)) as usize;
     }
     /// MACD with controllable MA type
@@ -146,32 +163,48 @@ impl Core {
         let mut lookbackLargest: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut tempMAType: usize = 0_usize;
+        // Make sure slow is really slower than
+        // the fast period! if not, swap...
         if optInSlowPeriod < optInFastPeriod {
+            // swap period
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
+            // swap type
             tempMAType = (optInSlowMAType) as usize;
             optInSlowMAType = optInFastMAType;
             optInFastMAType = (tempMAType) as i32;
         }
+        // Find the MA with the largest lookback
         lookbackLargest = self.ma_lookback(optInFastPeriod, optInFastMAType);
         tempInteger = self.ma_lookback(optInSlowPeriod, optInSlowMAType);
         if tempInteger > lookbackLargest {
             lookbackLargest = tempInteger;
         }
+        // Add the lookback needed for the signal line
         lookbackSignal = self.ma_lookback(optInSignalPeriod, optInSignalMAType);
         lookbackTotal = lookbackSignal + lookbackLargest;
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Allocate intermediate buffer for fast/slow MA.
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
         fastMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         slowMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
+        // Calculate the slow MA.
+        //
+        // Move back the startIdx to get enough data
+        // for the signal period. That way, once the
+        // signal calculation is done, all the output
+        // will start at the requested 'startIdx'.
         tempInteger = startIdx - lookbackSignal;
         retCode = self.ma_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, &mut outBegIdx1, &mut outNbElement1, &mut slowMABuffer[..]);
         if retCode != RetCode::Success {
@@ -179,41 +212,48 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
+        // Calculate the fast MA.
         retCode = self.ma_unguarded(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, &mut outBegIdx2, &mut outNbElement2, &mut fastMABuffer[..]);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
+        // Parano tests. Will be removed eventually.
         if outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 || outNbElement1 != endIdx - startIdx + 1 + lookbackSignal {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::BadParam;
         }
+        // Calculate (fast MA) - (slow MA).
         // for( i = 0; i < outNbElement1; i += 1 )
         i = 0;
         while i < outNbElement1 {
             fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
             i += 1;
         }
+        // Copy the result into the output for the caller.
         {
             let _n = ((endIdx - startIdx + 1) * 1) as usize;
             let _di = (0) as usize;
             let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastMABuffer[_si.._si + _n]);
         };
+        // Calculate the signal/trigger line.
         retCode = self.ma_unguarded(0, outNbElement1 - 1, &fastMABuffer, optInSignalPeriod, optInSignalMAType, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
+        // Calculate the histogram.
         // for( i = 0; i < outNbElement2; i += 1 )
         i = 0;
         while i < outNbElement2 {
             outMACDHist[i] = ((outMACD[i] - outMACDSignal[i]) as f64);
             i += 1;
         }
+        // All done! Indicate the output limits and return success.
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
         return RetCode::Success;

@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022005 AC   Creation
+ *
+ */
+
 int cdlunique3river_lookback(void)
 {
     return max( BodyShort_avgPeriod, BodyLong_avgPeriod ) + 2;

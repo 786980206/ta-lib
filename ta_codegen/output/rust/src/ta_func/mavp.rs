@@ -39,6 +39,19 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  021807 MF     Initial Version
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -120,28 +133,38 @@ impl Core {
         let mut localBegIdx: usize = 0_usize;
         let mut localNbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.ma_lookback(optInMaxPeriod, optInMAType);
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Calculate exact output size
         if lookbackTotal > startIdx {
             tempInt = lookbackTotal;
         } else {
             tempInt = startIdx;
         }
         if tempInt > endIdx {
+            // No output
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
         outputSize = endIdx - tempInt + 1;
+        // Allocate intermediate local buffer.
         localOutputArray = vec![0.0_f64; (outputSize * 1) as usize];
         localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
+        // Copy caller array of period into local buffer.
+        // At the same time, truncate to min/max.
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
@@ -154,11 +177,22 @@ impl Core {
             localPeriodArray[i] = (tempInt) as i32;
             i += 1;
         }
+        // Process each element of the input.
+        // For each possible period value, the MA is calculated
+        // only once.
+        // The outReal is then fill up for all element with
+        // the same period.
+        // A local flag (value 0) is set in localPeriodArray
+        // to avoid doing a second time the same calculation.
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
             curPeriod = (localPeriodArray[i]) as usize;
             if curPeriod != 0 {
+                // TODO: This portion of the function can be slightly speed
+                //       optimized by making the function without unstable period
+                //       start their calculation at 'startIdx+i' instead of startIdx.
+                // Calculation of the MA required.
                 retCode = self.ma_unguarded(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
                 if retCode != RetCode::Success {
                     (*outBegIdx) = 0;
@@ -171,6 +205,7 @@ impl Core {
                 while j < outputSize {
                     if (localPeriodArray[j]) as usize == curPeriod {
                         localPeriodArray[j] = 0;
+                        // Flag to avoid recalculation
                         outReal[j] = ((localOutputArray[j]) as f64);
                     }
                     j += 1;
@@ -178,6 +213,7 @@ impl Core {
             }
             i += 1;
         }
+        // Done. Inform the caller of the success.
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
         return RetCode::Success;

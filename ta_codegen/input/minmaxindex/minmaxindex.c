@@ -1,3 +1,17 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120906 AC   Creation (equal to MINMAX but outputs index)
+ *
+ */
+
 int minmaxindex_lookback(int           optInTimePeriod)
 {
     return (optInTimePeriod-1);

@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103104 AC   Creation
+ *
+ */
+
 int cdlidentical3crows_lookback(void)
 {
     return max( ShadowVeryShort_avgPeriod, Equal_avgPeriod

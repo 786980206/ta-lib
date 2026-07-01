@@ -1,4 +1,22 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  031202 MF   Template creation.
+ *  052603 MF   Port to managed C++. Change to use CIRCBUF macros.
+ *  061704 MF   Lower limit for period to 2, and correct algorithm
+ *              to avoid cummulative error when value are close to
+ *              the floating point epsilon.
+ */
+
    public int cciLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -31,19 +49,36 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* This ptr will points on a circular buffer of
+       * at least "optInTimePeriod" element.
+       */
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Allocate a circular buffer equal to the requested
+       * period.
+       */
       if( optInTimePeriod < 1 ) return RetCode.AllocErr;
       circBuffer = new double[optInTimePeriod];
       maxIdx_circBuffer = (optInTimePeriod)-1;
       circBuffer_Idx = 0;
+      /* Do the MA calculation using tight loops. */
+      /* Add-up the initial period, except for the last value.
+       * Fill up the circular buffer at the same time.
+       */
       i = (startIdx-lookbackTotal);
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
@@ -53,31 +88,43 @@
             if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          }
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the inReal and
+       * outReal to be the same buffer.
+       */
       outIdx = 0;
       do {
          lastValue = (((inHigh[i]+inLow[i])+inClose[i])/3);
          circBuffer[circBuffer_Idx] = lastValue;
+         /* Calculate the average for the whole period. */
          theAverage = 0;
          for( j = 0; (j<optInTimePeriod); j += 1 ) {
             theAverage += circBuffer[j];
          }
          theAverage /= optInTimePeriod;
+         /* Do the summation of the ABS(TypePrice-average)
+          * for the whole period.
+          */
          tempReal2 = 0;
          for( j = 0; (j<optInTimePeriod); j += 1 ) {
             tempReal2 += Math.abs((circBuffer[j]-theAverage));
          }
+         /* And finally, the CCI... */
          tempReal = (lastValue-theAverage);
          if( ((tempReal!=0.0)&&(tempReal2!=0.0)) ) {
             outReal[outIdx++] = (tempReal/(0.015*(tempReal2/optInTimePeriod)));
          } else {
             outReal[outIdx++] = 0.0;
          }
+         /* Move forward the circular buffer indexes. */
          circBuffer_Idx++;
          if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          i += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
+      /* Free the circular buffer if it was dynamically allocated. */
       return RetCode.Success ;
    }
    public RetCode cciUnguarded( int startIdx,

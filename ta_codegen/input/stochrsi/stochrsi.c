@@ -1,3 +1,21 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  PP       Peter Pudaite
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  101103 PP   Initial creation of code.
+ *  112603 MF   Add independent control to the RSI period.
+ *  020605 AA   Fix #1117656. NULL pointer assignement.
+ */
+
 int stochrsi_lookback(int           optInTimePeriod,                                                 int           optInFastK_Period,                                                 int           optInFastD_Period,                                                 TA_MAType     optInFastD_MAType)
 {
     int retValue;

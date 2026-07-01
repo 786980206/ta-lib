@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102304 AC   Creation
+ *
+ */
+
 int cdlhangingman_lookback(void)
 {
     return max( max( max( BodyShort_avgPeriod, ShadowLong_avgPeriod ),

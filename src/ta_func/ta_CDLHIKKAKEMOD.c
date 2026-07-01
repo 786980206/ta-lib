@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  122605 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLHIKKAKEMOD_Lookback( void )
 {
    int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
@@ -86,17 +100,26 @@ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLHIKKAKEMOD_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    NearPeriodTotal = 0;
    NearTrailingIdx = ((startIdx-3)-Near_avgPeriod);
    i = NearTrailingIdx;
@@ -110,11 +133,17 @@ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD( int    startIdx,
    i = (startIdx-3);
    while( (i<startIdx) )
    {
-      if( (((((inHigh[(i-2)]<inHigh[(i-3)])&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2)))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2))))))) )
+      /* copy here the pattern recognition code below */
+      if( (inHigh[(i-2)]<inHigh[(i-3)]) &&
+          (inLow[(i-2)]>inLow[(i-3)]) &&   /* 2nd: lower high and higher low than 1st */
+          (inHigh[(i-1)]<inHigh[(i-2)]) &&
+          (inLow[(i-1)]>inLow[(i-2)]) &&   /* 3rd: lower high and higher low than 2nd */
+          ((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2)))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2)))))) ) /* (bull) 4th: lower high and lower low (bull) 2nd: close near the low (bear) 4th: higher high and higher low (bull) 2nd: close near the top */
       {
          patternResult = (100*(((inHigh[i]<inHigh[(i-1)])) ? (1) : ((0-1))));
          patternIdx = i;
-      } else if( ((i<=(patternIdx+3))&&(((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)])))) )
+      } else if( (i<=(patternIdx+3)) &&
+          (((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)]))) ) /* search for confirmation if modified hikkake was no more than 3 bars ago close higher than the high of 3rd close lower than the low of 3rd */
       {
          patternIdx = 0;
       }
@@ -123,15 +152,36 @@ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle
+    * - second candle: candle with range less than first candle and close near the bottom (near the top)
+    * - third candle: lower high and higher low than 2nd
+    * - fourth candle: lower high and lower low (higher high and higher low) than 3rd
+    * outInteger[hikkake bar] is positive (1 to 100) or negative (-1 to -100) meaning bullish or bearish hikkake
+    * Confirmation could come in the next 3 days with:
+    * - a day that closes higher than the high (lower than the low) of the 3rd candle
+    * outInteger[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
+    * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported (the new hikkake
+    * overwrites the confirmation of the old hikkake);
+    * the user should consider that modified hikkake is a reversal pattern, while hikkake could be both a reversal
+    * or a continuation pattern, so bullish (bearish) modified hikkake is significant when appearing in a downtrend
+    * (uptrend)
+    */
    outIdx = 0;
    do
    {
-      if( (((((inHigh[(i-2)]<inHigh[(i-3)])&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2)))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2))))))) )
+      if( (inHigh[(i-2)]<inHigh[(i-3)]) &&
+          (inLow[(i-2)]>inLow[(i-3)]) &&   /* 2nd: lower high and higher low than 1st */
+          (inHigh[(i-1)]<inHigh[(i-2)]) &&
+          (inLow[(i-1)]>inLow[(i-2)]) &&   /* 3rd: lower high and higher low than 2nd */
+          ((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2)))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-2)))))) ) /* (bull) 4th: lower high and lower low (bull) 2nd: close near the low (bear) 4th: higher high and higher low (bull) 2nd: close near the top */
       {
          patternResult = (100*(((inHigh[i]<inHigh[(i-1)])) ? (1) : ((0-1))));
          patternIdx = i;
          outInteger[outIdx++] = patternResult;
-      } else if( ((i<=(patternIdx+3))&&(((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)])))) )
+      } else if( (i<=(patternIdx+3)) &&
+          (((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)]))) ) /* search for confirmation if modified hikkake was no more than 3 bars ago close higher than the high of 3rd close lower than the low of 3rd */
       {
          outInteger[outIdx++] = (patternResult+(100*(((patternResult>0)) ? (1) : ((0-1)))));
          patternIdx = 0;
@@ -143,6 +193,7 @@ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD( int    startIdx,
       NearTrailingIdx += 1;
       i += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

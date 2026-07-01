@@ -106,6 +106,7 @@ fn collect_address_of_vars_stmt(stmt: &Statement, vars: &mut HashSet<String>) {
             condition,
             then_body,
             else_body,
+            ..
         } => {
             scan_expr_for_address_of(condition, vars);
             collect_address_of_vars_stmts(then_body, vars);
@@ -154,7 +155,8 @@ fn collect_address_of_vars_stmt(stmt: &Statement, vars: &mut HashSet<String>) {
         | Statement::Return { value: None }
         | Statement::Break
         | Statement::Continue
-        | Statement::CircBuf(_) => {}
+        | Statement::CircBuf(_)
+        | Statement::Comment(_) => {}
     }
 }
 
@@ -295,6 +297,11 @@ pub fn generate(
 ) -> String {
     let mut out = String::new();
     out.push_str("/* Generated */\n");
+    // File-level comments carried from the input .c (e.g. contributors/history).
+    for block in &func.header_comments {
+        out.push_str(&super::stmt_walk::block_comment(block, 0));
+        out.push('\n');
+    }
     out.push_str(&gen_lookback(func, enums, registry, helpers));
     if func.has_explicit_private {
         out.push_str(&gen_private(func, enums, registry, helpers)); // Private method (double)
@@ -534,6 +541,18 @@ fn gen_func_inner(
         &func.private_body
     } else {
         &func.body
+    };
+
+    // Carry source comments only in the double-precision implementation (guarded
+    // `xxx` and, for explicit-private functions, `xxxPrivate`). Strip them from
+    // every single-precision copy and the double logic/unguarded duplicate.
+    let keep_comments = !single_precision && (name_override.is_some() || !logic);
+    let body_stripped;
+    let body: &[Statement] = if keep_comments {
+        body
+    } else {
+        body_stripped = super::stmt_walk::strip_comments(body);
+        &body_stripped
     };
 
     // Pre-scan for variables used in AddressOf contexts (need MInteger wrapping)
@@ -812,7 +831,47 @@ struct JavaStmt<'a> {
     helpers: &'a HelperRegistry,
 }
 
+impl JavaStmt<'_> {
+    /// Shared `if` tail (then-body + else branch with `} else if` collapse) used
+    /// by both the flat and multi-line-condition rendering paths.
+    fn render_if_tail(&self, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = String::new();
+        for s in then_body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        if else_body.is_empty() {
+            out.push_str(&format!("{pad}}}\n"));
+        } else {
+            let code_start = else_body
+                .iter()
+                .position(|s| !matches!(s, Statement::Comment(_)))
+                .unwrap_or(else_body.len());
+            let is_else_if = else_body.len() - code_start == 1
+                && matches!(else_body.get(code_start), Some(Statement::If { .. }));
+            if is_else_if {
+                for c in &else_body[..code_start] {
+                    out.push_str(&self.walk_stmt(c, indent));
+                }
+                out.push_str(&format!("{pad}}} else "));
+                out.push_str(self.walk_stmt(&else_body[code_start], indent).trim_start());
+                return out;
+            }
+            out.push_str(&format!("{pad}}} else {{\n"));
+            for s in else_body {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}}}\n"));
+        }
+        out
+    }
+}
+
 impl StatementEmitter for JavaStmt<'_> {
+    fn comment(&self, lines: &[String], indent: usize) -> String {
+        super::stmt_walk::block_comment(lines, indent)
+    }
+
     fn circ_buf(&self, op: &CircBuf, indent: usize) -> String {
         let pad = " ".repeat(indent);
         match op {
@@ -1040,7 +1099,7 @@ impl StatementEmitter for JavaStmt<'_> {
     }
 
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
-    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], cond_comments: &[Option<Vec<String>>], indent: usize) -> String {
         let pad = " ".repeat(indent);
         // Skip post-allocation null-check blocks (dead code in Java — `new` never returns null)
         if contains_alloc_err_return(then_body) {
@@ -1058,14 +1117,45 @@ impl StatementEmitter for JavaStmt<'_> {
                     condition: *right.clone(),
                     then_body: then_body.to_vec(),
                     else_body: else_body.to_vec(),
+                    cond_comments: Vec::new(),
                 };
                 let outer_if = Statement::If {
                     condition: *left.clone(),
                     then_body: vec![inner_if],
                     else_body: else_body.to_vec(),
+                    cond_comments: Vec::new(),
                 };
                 return self.walk_stmt(&outer_if, indent);
             }
+        }
+        // Inline per-operand comments: render the `&&`-chain multi-line (same
+        // tokens as the flat form, plus the comments).
+        if !cond_comments.is_empty()
+            && super::stmt_walk::flatten_and(condition).len() == cond_comments.len()
+        {
+            let mut hoisted = Vec::new();
+            let mut cnt = self.ctx.inline_counter.get();
+            let new_condition = hoist_block_helpers(
+                condition, self.helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
+            );
+            self.ctx.inline_counter.set(cnt);
+            let op_strs: Vec<String> = super::stmt_walk::flatten_and(&new_condition)
+                .iter()
+                .map(|o| {
+                    let s = render_expr(o, self.ctx, self.registry, self.helpers);
+                    if is_boolean_expr(o) { s } else { format!("({s}) != 0") }
+                })
+                .collect();
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+            );
+            out.push_str(&format!("{pad}if( "));
+            out.push_str(&super::stmt_walk::render_and_operands(
+                &op_strs, cond_comments, &" ".repeat(indent + 4), " )", true,
+            ));
+            out.push_str(&format!("{pad}{{\n"));
+            out.push_str(&self.render_if_tail(then_body, else_body, indent));
+            return out;
         }
         // Hoist multi-statement helpers from the condition expression
         let mut hoisted = Vec::new();
@@ -1084,26 +1174,7 @@ impl StatementEmitter for JavaStmt<'_> {
             format!("({cond_str}) != 0")
         };
         out.push_str(&format!("{pad}if( {cond_java} ) {{\n"));
-        for s in then_body {
-            out.push_str(&self.walk_stmt(s, indent + 3));
-        }
-        if else_body.is_empty() {
-            out.push_str(&format!("{pad}}}\n"));
-        } else {
-            out.push_str(&format!("{pad}}} else "));
-            if else_body.len() == 1 {
-                if let Statement::If { .. } = &else_body[0] {
-                    let if_str = self.walk_stmt(&else_body[0], indent);
-                    out.push_str(if_str.trim_start());
-                    return out;
-                }
-            }
-            out.push_str("{\n");
-            for s in else_body {
-                out.push_str(&self.walk_stmt(s, indent + 3));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-        }
+        out.push_str(&self.render_if_tail(then_body, else_body, indent));
         out
     }
 

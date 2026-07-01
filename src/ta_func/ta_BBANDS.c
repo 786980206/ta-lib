@@ -41,8 +41,26 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  010503 MF   Fix to always use SMA for the STDDEV (Thanks to JV).
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 TA_LIB_API int TA_BBANDS_Lookback( int optInTimePeriod, double optInNbDevUp, double optInNbDevDn, TA_MAType optInMAType )
 {
+   /* The lookback is driven by the middle band moving average. */
    return TA_MA_Lookback(optInTimePeriod,optInMAType);
 }
 
@@ -90,6 +108,14 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
    if( !outRealLowerBand )
       return TA_BAD_PARAM;
 
+   /* Identify TWO temporary buffer among the outputs.
+    *
+    * These temporary buffers allows to perform the
+    * calculation without any memory allocation.
+    *
+    * Whenever possible, make the tempBuffer1 be the
+    * middle band output. This will save one copy operation.
+    */
    if( (inReal==outRealUpperBand) )
    {
       tempBuffer1 = outRealMiddleBand;
@@ -107,18 +133,30 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
    }
+   /* Check that the caller is not doing tricky things.
+    * (like using the input buffer in two output!)
+    */
    if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) )
    {
       return TA_BAD_PARAM;
    }
+   /* Calculate the middle band, which is a moving average.
+    * The other two bands will simply add/substract the
+    * standard deviation from this middle band.
+    */
    retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       *outNBElement= 0;
       return retCode;
    }
+   /* Calculate the standard deviation into tempBuffer2. */
    if( (optInMAType==TA_MAType_SMA) )
    {
+      /* A small speed optimization by re-using the
+       * already calculated SMA.
+       */
+      /* Inline stddev_using_precalc_ma */
       double _tempReal;
       double _periodTotal2;
       double _meanValue2;
@@ -156,6 +194,7 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
       }
    } else 
    {
+      /* Calculate the Standard Deviation */
       retCode = TA_STDDEV_Unguarded(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
       if( (retCode!=TA_SUCCESS) )
       {
@@ -163,14 +202,25 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
          return retCode;
       }
    }
+   /* Copy the MA calculation into the middle band ouput, unless
+    * the calculation was done into it already!
+    */
    if( (tempBuffer1!=outRealMiddleBand) )
    {
       memcpy(outRealMiddleBand,tempBuffer1,(*outNBElement*sizeof(double)));
    }
+   /* Now do a tight loop to calculate the upper/lower band at
+    * the same time.
+    *
+    * All the following 5 loops are doing the same, except there
+    * is an attempt to speed optimize by eliminating uneeded
+    * multiplication.
+    */
    if( (optInNbDevUp==optInNbDevDn) )
    {
       if( (optInNbDevUp==1.0) )
       {
+         /* No standard deviation multiplier needed. */
          for( i = 0; (i<((int)*outNBElement)); i += 1 )
          {
             tempReal = tempBuffer2[i];
@@ -180,6 +230,7 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
          }
       } else 
       {
+         /* Upper/lower band use the same standard deviation multiplier. */
          for( i = 0; (i<((int)*outNBElement)); i += 1 )
          {
             tempReal = (tempBuffer2[i]*optInNbDevUp);
@@ -190,6 +241,7 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
       }
    } else if( (optInNbDevUp==1.0) )
    {
+      /* Only lower band has a standard deviation multiplier. */
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = tempBuffer2[i];
@@ -199,6 +251,7 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
       }
    } else if( (optInNbDevDn==1.0) )
    {
+      /* Only upper band has a standard deviation multiplier. */
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = tempBuffer2[i];
@@ -208,6 +261,7 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
       }
    } else 
    {
+      /* Upper/lower band have distinctive standard deviation multiplier. */
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = tempBuffer2[i];

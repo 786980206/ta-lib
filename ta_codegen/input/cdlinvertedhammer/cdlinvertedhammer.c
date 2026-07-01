@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103004 AC   Creation
+ *
+ */
+
 int cdlinvertedhammer_lookback(void)
 {
     return max( max( BodyShort_avgPeriod, ShadowLong_avgPeriod ),

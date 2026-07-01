@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102304 AC   Creation
+ *
+ */
+
 int cdlabandonedbaby_lookback(double        optInPenetration)
 {
     (void)optInPenetration;

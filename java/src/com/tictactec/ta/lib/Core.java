@@ -190,6 +190,21 @@ public class Core {
    
    /**** START GENCODE SECTION 1 - DO NOT DELETE THIS LINE ****/
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  RM       Robert Meier
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120307 RM     Initial Version
+ *  120907 MF     Handling of a few limit cases
+ */
+
    public int accbandsLookback( int optInTimePeriod )
    {
       return smaLookback(optInTimePeriod) ;
@@ -224,19 +239,33 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = smaLookback(optInTimePeriod);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Buffer will contains also the lookback required for SMA
+       * to satisfy the caller requested startIdx/endIdx.
+       */
       outputSize = ((endIdx-startIdx)+1);
       bufferSize = (outputSize+lookbackTotal);
       tempBuffer1 = new double[(int)((bufferSize*1))];
       tempBuffer2 = new double[(int)((bufferSize*1))];
+      /* Calculate the upper/lower band at the same time (no SMA yet).
+       * Must start calculation back enough to cover the lookback
+       * required later for the SMA.
+       */
       for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
          tempReal = (inHigh[i]+inLow[i]);
          if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
@@ -248,18 +277,21 @@ public class Core {
             tempBuffer2[j] = inLow[i];
          }
       }
+      /* Calculate the middle band, which is a moving average of the close. */
       retCode = smaUnguarded(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Now let's take the SMA for the upper band. */
       retCode = smaUnguarded(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Now let's take the SMA for the lower band. */
       retCode = smaUnguarded(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
@@ -484,6 +516,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int acosLookback( )
    {
       return 0 ;
@@ -566,8 +611,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JD       jdoyle
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  111705 MF,JD  Fix#1359452 for handling properly start/end range.
+ */
+
    public int adLookback( )
    {
+      /* This function have no lookback needed. */
       return 0 ;
 
    }
@@ -595,6 +657,21 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Note: Results from this function might vary slightly
+       *       from Metastock outputs. The reason being that
+       *       Metastock use float instead of double and this
+       *       cause a different floating-point precision to
+       *       be used.
+       *
+       *       For most function, this is not an apparent difference
+       *       but for function using large cummulative values (like
+       *       this AD function), minor imprecision adds up and becomes
+       *       significative.
+       *
+       *       For better precision, TA-Lib use double in all its
+       *       its calculations.
+       */
+      /* Default return values */
       nbBar = ((endIdx-startIdx)+1);
       outNBElement.value = nbBar;
       outBegIdx.value = startIdx;
@@ -736,6 +813,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int addLookback( )
    {
       return 0 ;
@@ -822,14 +912,31 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int adOscLookback( int optInFastPeriod, int optInSlowPeriod )
    {
       int slowestPeriod;
+      /* Use the slowest EMA period to evaluate the total lookback. */
       if( (optInFastPeriod<optInSlowPeriod) ) {
          slowestPeriod = optInSlowPeriod;
       } else {
          slowestPeriod = optInFastPeriod;
       }
+      /* Adjust startIdx to account for the lookback period. */
       return emaLookback(slowestPeriod) ;
 
    }
@@ -866,15 +973,43 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Implementation Note:
+       *     The fastEMA varaible is not neceseraly the
+       *     fastest EMA.
+       *     In the same way, slowEMA is not neceseraly the
+       *     slowest EMA.
+       *
+       *     The ADOSC is always the (fastEMA - slowEMA) regardless
+       *     of the period specified. In other word:
+       *
+       *     ADOSC(3,10) = EMA(3,AD) - EMA(10,AD)
+       *
+       *        while
+       *
+       *     ADOSC(10,3) = EMA(10,AD)- EMA(3,AD)
+       *
+       *     In the first case the EMA(3) is truly a faster EMA,
+       *     while in the second case, the EMA(10) is still call
+       *     fastEMA in the algorithm, even if it is in fact slower.
+       *
+       *     This gives more flexibility to the user if they want to
+       *     experiment with unusual parameter settings.
+       */
+      /* Identify the slowest period.
+       * This infomration is used soleley to bootstrap
+       * the algorithm (skip the lookback period).
+       */
       if( (optInFastPeriod<optInSlowPeriod) ) {
          slowestPeriod = optInSlowPeriod;
       } else {
          slowestPeriod = optInFastPeriod;
       }
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = emaLookback(slowestPeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -882,11 +1017,22 @@ public class Core {
       }
       outBegIdx.value = startIdx;
       today = (startIdx-lookbackTotal);
+      /* The following variables are used to
+       * calculate the "ad".
+       */
       ad = 0.0;
+      /* Constants for EMA */
       fastk = (2.0/(((double)optInFastPeriod)+1.0));
       one_minus_fastk = (1.0-fastk);
       slowk = (2.0/(((double)optInSlowPeriod)+1.0));
       one_minus_slowk = (1.0-slowk);
+      /* Initialize the two EMA
+       *
+       * Use the same range of initialization inputs for
+       * both EMA and simply seed with the first A/D value.
+       *
+       * Note: Metastock do the same.
+       */
       high = inHigh[today];
       low = inLow[today];
       tmp = (high-low);
@@ -897,6 +1043,7 @@ public class Core {
       today += 1;
       fastEMA = ad;
       slowEMA = ad;
+      /* Initialize the EMA and skip the unstable period. */
       while( (today<startIdx) ) {
          high = inHigh[today];
          low = inLow[today];
@@ -909,6 +1056,7 @@ public class Core {
          fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
          slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
       }
+      /* Perform the calculation for the requested range */
       outIdx = 0;
       while( (today<=endIdx) ) {
          high = inHigh[today];
@@ -1194,6 +1342,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel
+ *  MIF      Mirek Fontan (mira@fontan.cz)
+ *  GC       guycom@users.sourceforge.net
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  082303 MF   Fix #792298. Remove rounding. Bug reported by AM.
+ *  062704 MF   Fix #965557. Div by zero bug reported by MIF.
+ *  082206 MF   Fix #1544555. Div by zero bug reported by GC.
+ */
+
    public int adxLookback( int optInTimePeriod )
    {
       return (((2*optInTimePeriod)+this.unstablePeriod[FuncUnstId.Adx.ordinal()])-1) ;
@@ -1233,16 +1401,135 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /*
+       * The DM1 (one period) is base on the largest part of
+       * today's range that is outside of yesterdays range.
+       *
+       * The following 7 cases explain how the +DM and -DM are
+       * calculated on one period:
+       *
+       * Case 1:                       Case 2:
+       *    C|                        A|
+       *     |                         | C|
+       *     | +DM1 = (C-A)           B|  | +DM1 = 0
+       *     | -DM1 = 0                   | -DM1 = (B-D)
+       * A|  |                           D|
+       *  | D|
+       * B|
+       *
+       * Case 3:                       Case 4:
+       *    C|                           C|
+       *     |                        A|  |
+       *     | +DM1 = (C-A)            |  | +DM1 = 0
+       *     | -DM1 = 0               B|  | -DM1 = (B-D)
+       * A|  |                            |
+       *  |  |                           D|
+       * B|  |
+       *    D|
+       *
+       * Case 5:                      Case 6:
+       * A|                           A| C|
+       *  | C| +DM1 = 0                |  |  +DM1 = 0
+       *  |  | -DM1 = 0                |  |  -DM1 = 0
+       *  | D|                         |  |
+       * B|                           B| D|
+       *
+       *
+       * Case 7:
+       *
+       *    C|
+       * A|  |
+       *  |  | +DM=0
+       * B|  | -DM=0
+       *    D|
+       *
+       * In case 3 and 4, the rule is that the smallest delta between
+       * (C-A) and (B-D) determine which of +DM or -DM is zero.
+       *
+       * In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are
+       * zero.
+       *
+       * The rules remain the same when A=B and C=D (when the highs
+       * equal the lows).
+       *
+       * When calculating the DM over a period > 1, the one-period DM
+       * for the desired period are initialy sum. In other word,
+       * for a -DM14, sum the -DM1 for the first 14 days (that's
+       * 13 values because there is no DM for the first day!)
+       * Subsequent DM are calculated using the Wilder's
+       * smoothing approach:
+       *
+       *                                    Previous -DM14
+       *  Today's -DM14 = Previous -DM14 -  -------------- + Today's -DM1
+       *                                         14
+       *
+       * (Same thing for +DM14)
+       *
+       * Calculation of a -DI14 is as follow:
+       *
+       *               -DM14
+       *     -DI14 =  --------
+       *                TR14
+       *
+       * (Same thing for +DI14)
+       *
+       * Calculation of the TR14 is:
+       *
+       *                                   Previous TR14
+       *    Today's TR14 = Previous TR14 - -------------- + Today's TR1
+       *                                         14
+       *
+       *    The first TR14 is the summation of the first 14 TR1. See the
+       *    TA_TRANGE function on how to calculate the true range.
+       *
+       * Calculation of the DX14 is:
+       *
+       *    diffDI = ABS( (-DI14) - (+DI14) )
+       *    sumDI  = (-DI14) + (+DI14)
+       *
+       *    DX14 = 100 * (diffDI / sumDI)
+       *
+       * Calculation of the first ADX:
+       *
+       *    ADX14 = SUM of the first 14 DX
+       *
+       * Calculation of subsequent ADX:
+       *
+       *            ((Previous ADX14)*(14-1))+ Today's DX
+       *    ADX14 = -------------------------------------
+       *                             14
+       *
+       * Reference:
+       *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+       */
+      /* Original implementation from Wilder's book was doing some integer
+       * rounding in its calculations.
+       *
+       * This was understandable in the context that at the time the book
+       * was written, most user were doing the calculation by hand.
+       *
+       * For a computer, rounding is unnecessary (and even problematic when inputs
+       * are close to 1).
+       *
+       * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
+       * you can comment out the following #undef/#define and rebuild the library.
+       */
       lookbackTotal = (((2*optInTimePeriod)+this.unstablePeriod[FuncUnstId.Adx.ordinal()])-1);
+      /* Adjust startIdx to account for the lookback period. */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Indicate where the next output should be put
+       * in the outReal.
+       */
       outIdx = 0;
+      /* Process the initial DM and TR */
       today = startIdx;
       outBegIdx.value = today;
       prevMinusDM = 0.0;
@@ -1254,16 +1541,21 @@ public class Core {
       prevClose = inClose[today];
       i = (optInTimePeriod-1);
       while( (i-->0) ) {
+         /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          } else if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
          double _true_range_0;
@@ -1281,23 +1573,30 @@ public class Core {
          prevTR += tempReal;
          prevClose = inClose[today];
       }
+      /* Add up all the initial DX. */
       sumDX = 0.0;
       i = optInTimePeriod;
       while( (i-->0) ) {
+         /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          prevMinusDM -= (prevMinusDM/optInTimePeriod);
          prevPlusDM -= (prevPlusDM/optInTimePeriod);
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          } else if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
+         /* Calculate the prevTR */
          double _true_range_1;
          double range_1 = (prevHigh-prevLow);
          double tmp_1 = Math.abs((prevHigh-prevClose));
@@ -1312,32 +1611,42 @@ public class Core {
          tempReal = _true_range_1;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
+         /* Calculate the DX. The value is rounded (see Wilder book). */
          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
+            /* This loop is just to accumulate the initial DX */
             tempReal = (minusDI+plusDI);
             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
             }
          }
       }
+      /* Calculate the first ADX */
       prevADX = (sumDX/optInTimePeriod);
+      /* Skip the unstable period */
       i = this.unstablePeriod[FuncUnstId.Adx.ordinal()];
       while( (i-->0) ) {
+         /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          prevMinusDM -= (prevMinusDM/optInTimePeriod);
          prevPlusDM -= (prevPlusDM/optInTimePeriod);
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          } else if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
+         /* Calculate the prevTR */
          double _true_range_2;
          double range_2 = (prevHigh-prevLow);
          double tmp_2 = Math.abs((prevHigh-prevClose));
@@ -1353,32 +1662,42 @@ public class Core {
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
+            /* Calculate the DX. The value is rounded (see Wilder book). */
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+               /* Calculate the ADX */
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
          }
       }
+      /* Output the first ADX */
       outReal[0] = prevADX;
       outIdx = 1;
+      /* Calculate and output subsequent ADX */
       while( (today<endIdx) ) {
+         /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          prevMinusDM -= (prevMinusDM/optInTimePeriod);
          prevPlusDM -= (prevPlusDM/optInTimePeriod);
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          } else if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
+         /* Calculate the prevTR */
          double _true_range_3;
          double range_3 = (prevHigh-prevLow);
          double tmp_3 = Math.abs((prevHigh-prevClose));
@@ -1394,14 +1713,17 @@ public class Core {
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
+            /* Calculate the DX. The value is rounded (see Wilder book). */
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+               /* Calculate the ADX */
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
          }
+         /* Output the ADX */
          outReal[outIdx++] = prevADX;
       }
       outNBElement.value = outIdx;
@@ -2020,6 +2342,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  082303 MF   Fix #792298. Remove rounding. Bug reported by AM.
+ */
+
    public int adxrLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
@@ -2052,10 +2390,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Original implementation from Wilder's book was doing some integer
+       * rounding in its calculations.
+       *
+       * This was understandable in the context that at the time the book
+       * was written, most user were doing the calculation by hand.
+       *
+       * For a computer, rounding is unnecessary (and even problematic when inputs
+       * are close to 1).
+       *
+       * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
+       * you can comment out the following #undef/#define and rebuild the library.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       * Always one price bar gets consumed.
+       */
       adxrLookback = adxrLookback(optInTimePeriod);
       if( (startIdx<adxrLookback) ) {
          startIdx = adxrLookback;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -2210,8 +2565,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  062804 MF   Resolve div by zero bug on limit case.
+ *  020605 AA   Fix #1117666 Lookback & out-of-bound bug.
+ */
+
    public int apoLookback( int optInFastPeriod, int optInSlowPeriod, MAType optInMAType )
    {
+      /* The slow MA is the key factor determining the lookback period. */
       return movingAverageLookback(Math.max(optInSlowPeriod, optInFastPeriod), optInMAType) ;
 
    }
@@ -2240,17 +2613,25 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Allocate an intermediate buffer. */
       tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+      /* Make sure slow is really slower than
+       * the fast period! if not, swap...
+       */
       if( (optInSlowPeriod<optInFastPeriod) ) {
+         /* swap */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
+      /* Calculate the fast MA into the tempBuffer. */
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
+         /* Calculate the slow MA into the output. */
          retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
+            /* Calculate (fast MA)-(slow MA) in the output. */
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                outReal[i] = (tempBuffer[j]-outReal[i]);
             }
@@ -2384,6 +2765,22 @@ public class Core {
       return retCode ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel <michel@pacbell.net>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  050703 MF   Fix algorithm base on Adrian Michel bug report #748163
+ */
+
    public int aroonLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -2415,14 +2812,28 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* This function is using a speed optimized algorithm
+       * for the min/max logic.
+       *
+       * You might want to first look at how TA_MIN/TA_MAX works
+       * and this function will become easier to understand.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-optInTimePeriod);
@@ -2432,6 +2843,7 @@ public class Core {
       highest = 0.0;
       factor = (((double)100.0)/((double)optInTimePeriod));
       while( (today<=endIdx) ) {
+         /* Keep track of the lowestIdx */
          tmp = inLow[today];
          if( (lowestIdx<trailingIdx) ) {
             lowestIdx = trailingIdx;
@@ -2448,6 +2860,7 @@ public class Core {
             lowestIdx = today;
             lowest = tmp;
          }
+         /* Keep track of the highestIdx */
          tmp = inHigh[today];
          if( (highestIdx<trailingIdx) ) {
             highestIdx = trailingIdx;
@@ -2464,12 +2877,18 @@ public class Core {
             highestIdx = today;
             highest = tmp;
          }
+         /* Note: Do not forget that input and output buffer can be the same,
+          *       so writing to the output is the last thing being done here.
+          */
          outAroonUp[outIdx] = (factor*(optInTimePeriod-(today-highestIdx)));
          outAroonDown[outIdx] = (factor*(optInTimePeriod-(today-lowestIdx)));
          outIdx += 1;
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -2718,6 +3137,23 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel <michel@pacbell.net>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  050703 MF   Fix algorithm base on Adrian Michel bug report #748163
+ */
+
    public int aroonOscLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -2749,14 +3185,34 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* This code is almost identical to the TA_AROON function
+       * except that instead of outputing ArroonUp and AroonDown
+       * individually, an oscillator is build from both.
+       *
+       *  AroonOsc = AroonUp- AroonDown;
+       */
+      /* This function is using a speed optimized algorithm
+       * for the min/max logic.
+       *
+       * You might want to first look at how TA_MIN/TA_MAX works
+       * and this function will become easier to understand.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-optInTimePeriod);
@@ -2766,6 +3222,7 @@ public class Core {
       highest = 0.0;
       factor = (((double)100.0)/((double)optInTimePeriod));
       while( (today<=endIdx) ) {
+         /* Keep track of the lowestIdx */
          tmp = inLow[today];
          if( (lowestIdx<trailingIdx) ) {
             lowestIdx = trailingIdx;
@@ -2782,6 +3239,7 @@ public class Core {
             lowestIdx = today;
             lowest = tmp;
          }
+         /* Keep track of the highestIdx */
          tmp = inHigh[today];
          if( (highestIdx<trailingIdx) ) {
             highestIdx = trailingIdx;
@@ -2798,12 +3256,26 @@ public class Core {
             highestIdx = today;
             highest = tmp;
          }
+         /* The oscillator is the following:
+          *  AroonUp   = factor*(optInTimePeriod-(today-highestIdx));
+          *  AroonDown = factor*(optInTimePeriod-(today-lowestIdx));
+          *  AroonOsc  = AroonUp-AroonDown;
+          *
+          * An arithmetic simplification give us:
+          *  Aroon = factor*(highestIdx-lowestIdx)
+          */
          aroon = (factor*(highestIdx-lowestIdx));
+         /* Note: Do not forget that input and output buffer can be the same,
+          *       so writing to the output is the last thing being done here.
+          */
          outReal[outIdx] = aroon;
          outIdx += 1;
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -3052,6 +3524,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int asinLookback( )
    {
       return 0 ;
@@ -3134,6 +3619,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int atanLookback( )
    {
       return 0 ;
@@ -3154,6 +3652,7 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Default return values */
       for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
          outReal[outIdx] = Math.atan(inReal[i]);
       }
@@ -3216,8 +3715,30 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int atrLookback( int optInTimePeriod )
    {
+      /* The ATR lookback is the sum of:
+       *    1 + (optInTimePeriod - 1)
+       *
+       * Where 1 is for the True Range, and
+       * (optInTimePeriod-1) is for the simple
+       * moving average.
+       */
       return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Atr.ordinal()]) ;
 
    }
@@ -3246,37 +3767,67 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Average True Range is the greatest of the following:
+       *
+       *  val1 = distance from today's high to today's low.
+       *  val2 = distance from yesterday's close to today's high.
+       *  val3 = distance from yesterday's close to today's low.
+       *
+       * These value are averaged for the specified period using
+       * Wilder method. This method have an unstable period comparable
+       * to and Exponential Moving Average (EMA).
+       */
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = atrLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
+      /* Trap the case where no smoothing is needed. */
       if( (optInTimePeriod<=1) ) {
+         /* No smoothing needed. Just do a TRANGE. */
          return trueRangeUnguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
       }
+      /* Allocate an intermediate buffer for TRANGE. */
       tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
+      /* Do TRANGE in the intermediate buffer. */
       retCode = trueRangeUnguarded(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
+      /* First value of the ATR is a simple Average of
+       * the TRANGE output for the specified period.
+       */
       retCode = smaUnguarded((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
+      /* Subsequent value are smoothed using the
+       * previous ATR value (Wilder's approach).
+       *  1) Multiply the previous ATR by 'period-1'.
+       *  2) Add today TR value.
+       *  3) Divide by 'period'.
+       */
       today = optInTimePeriod;
       outIdx = this.unstablePeriod[FuncUnstId.Atr.ordinal()];
+      /* Skip the unstable period. */
       while( (outIdx!=0) ) {
          prevATR[0] *= (optInTimePeriod-1);
          prevATR[0] += tempBuffer[today++];
          prevATR[0] /= optInTimePeriod;
          outIdx -= 1;
       }
+      /* Now start to write the final ATR in the caller
+       * provided outReal.
+       */
       outIdx = 1;
       outReal[0] = prevATR[0];
+      /* Now do the number of requested ATR. */
       nbATR = ((endIdx-startIdx)+1);
       while( (--nbATR!=0) ) {
          prevATR[0] *= (optInTimePeriod-1);
@@ -3478,6 +4029,19 @@ public class Core {
       return retCode ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090812 AB     Initial Version
+ */
+
    public int avgDevLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -3505,11 +4069,13 @@ public class Core {
          startIdx = lookback;
       }
       today = startIdx;
+      /* Make sure there is still something to evaluate. */
       if( (today>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Process the initial DM and TR */
       outBegIdx.value = today;
       outIdx = 0;
       while( (today<=endIdx) ) {
@@ -3664,8 +4230,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ */
+
    public int avgPriceLookback( )
    {
+      /* This function have no lookback needed. */
       return 0 ;
 
    }
@@ -3687,6 +4270,7 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Average price = (High + Low + Open + Close) / 4 */
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
@@ -3762,8 +4346,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  010503 MF   Fix to always use SMA for the STDDEV (Thanks to JV).
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int bbandsLookback( int optInTimePeriod, double optInNbDevUp, double optInNbDevDn, MAType optInMAType )
    {
+      /* The lookback is driven by the middle band moving average. */
       return movingAverageLookback(optInTimePeriod, optInMAType) ;
 
    }
@@ -3792,6 +4394,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify TWO temporary buffer among the outputs.
+       *
+       * These temporary buffers allows to perform the
+       * calculation without any memory allocation.
+       *
+       * Whenever possible, make the tempBuffer1 be the
+       * middle band output. This will save one copy operation.
+       */
       if( (inReal==outRealUpperBand) ) {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealLowerBand;
@@ -3805,15 +4415,27 @@ public class Core {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealUpperBand;
       }
+      /* Check that the caller is not doing tricky things.
+       * (like using the input buffer in two output!)
+       */
       if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
          return RetCode.BadParam ;
       }
+      /* Calculate the middle band, which is a moving average.
+       * The other two bands will simply add/substract the
+       * standard deviation from this middle band.
+       */
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Calculate the standard deviation into tempBuffer2. */
       if( (optInMAType==MAType.Sma) ) {
+         /* A small speed optimization by re-using the
+          * already calculated SMA.
+          */
+         /* Inline stddev_using_precalc_ma */
          double _tempReal;
          double _periodTotal2;
          double _meanValue2;
@@ -3846,17 +4468,29 @@ public class Core {
             }
          }
       } else {
+         /* Calculate the Standard Deviation */
          retCode = stdDevUnguarded(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
          if( (retCode!=RetCode.Success) ) {
             outNBElement.value = 0;
             return retCode ;
          }
       }
+      /* Copy the MA calculation into the middle band ouput, unless
+       * the calculation was done into it already!
+       */
       if( (tempBuffer1!=outRealMiddleBand) ) {
          System.arraycopy(tempBuffer1, 0, outRealMiddleBand, 0, (outNBElement.value*1));
       }
+      /* Now do a tight loop to calculate the upper/lower band at
+       * the same time.
+       *
+       * All the following 5 loops are doing the same, except there
+       * is an attempt to speed optimize by eliminating uneeded
+       * multiplication.
+       */
       if( (optInNbDevUp==optInNbDevDn) ) {
          if( (optInNbDevUp==1.0) ) {
+            /* No standard deviation multiplier needed. */
             for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                tempReal = tempBuffer2[i];
                tempReal2 = outRealMiddleBand[i];
@@ -3864,6 +4498,7 @@ public class Core {
                outRealLowerBand[i] = (tempReal2-tempReal);
             }
          } else {
+            /* Upper/lower band use the same standard deviation multiplier. */
             for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                tempReal = (tempBuffer2[i]*optInNbDevUp);
                tempReal2 = outRealMiddleBand[i];
@@ -3872,6 +4507,7 @@ public class Core {
             }
          }
       } else if( (optInNbDevUp==1.0) ) {
+         /* Only lower band has a standard deviation multiplier. */
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
@@ -3879,6 +4515,7 @@ public class Core {
             outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
          }
       } else if( (optInNbDevDn==1.0) ) {
+         /* Only upper band has a standard deviation multiplier. */
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
@@ -3886,6 +4523,7 @@ public class Core {
             outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
          }
       } else {
+         /* Upper/lower band have distinctive standard deviation multiplier. */
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
@@ -4268,6 +4906,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MW       Michael Williamson
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  122006 MW   Initial Version
+ */
+
    public int betaLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -4314,20 +4966,52 @@ public class Core {
       trailing_last_price_y = 0.0;
       tmp_real = 0.0;
       n = 0.0;
+      /* sum of x * x */
+      /* sum of x * y */
+      /* sum of x */
+      /* sum of y */
+      /* the last price read from inReal0 */
+      /* the last price read from inReal1 */
+      /* same as last_price_x except used to remove elements from the trailing summation */
+      /* same as last_price_y except used to remove elements from the trailing summation */
+      /* temporary variable */
+      /* the 'x' value, which is the last change between values in inReal0 */
+      /* the 'y' value, which is the last change between values in inReal1 */
+      /* DESCRIPTION OF ALGORITHM:
+       *   The Beta 'algorithm' is a measure of a stocks volatility vs from index. The stock prices
+       *   are given in inReal0 and the index prices are give in inReal1. The size of these vectors
+       *   should be equal. The algorithm is to calculate the change between prices in both vectors
+       *   and then 'plot' these changes are points in the Euclidean plane. The x value of the point
+       *   is market return and the y value is the security return. The beta value is the slope of a
+       *   linear regression through these points. A beta of 1 is simple the line y=x, so the stock
+       *   varies percisely with the market. A beta of less than one means the stock varies less than
+       *   the market and a beta of more than one means the stock varies more than market. A related
+       *   value is the Alpha value (see TA_ALPHA) which is the Y-intercept of the same linear regression.
+       */
+      /* Validate the calculation method type and
+       * identify the minimum number of input
+       * consume before the first value is output..
+       */
       nbInitialElementNeeded = optInTimePeriod;
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Consume first input. */
       trailingIdx = (startIdx-nbInitialElementNeeded);
       trailing_last_price_x = inReal0[trailingIdx];
       last_price_x = trailing_last_price_x;
       trailing_last_price_y = inReal1[trailingIdx];
       last_price_y = trailing_last_price_y;
+      /* Process remaining of lookback until ready to output the first value. */
       i = ++trailingIdx;
       while( (i<startIdx) ) {
          tmp_real = inReal0[i];
@@ -4350,6 +5034,7 @@ public class Core {
          S_y += y;
       }
       outIdx = 0;
+      /* First output always start at index zero */
       n = ((double)optInTimePeriod);
       do {
          tmp_real = inReal0[i];
@@ -4370,6 +5055,9 @@ public class Core {
          S_xy += (x*y);
          S_x += x;
          S_y += y;
+         /* Always read the trailing before writing the output because the input and output
+          * buffer can be the same.
+          */
          tmp_real = inReal0[trailingIdx];
          if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
@@ -4384,17 +5072,20 @@ public class Core {
             y = 0.0;
          }
          trailing_last_price_y = tmp_real;
+         /* Write the output */
          tmp_real = ((n*S_xx)-(S_x*S_x));
          if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
             outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
          } else {
             outReal[outIdx++] = 0.0;
          }
+         /* Remove the calculation starting with the trailingIdx. */
          S_xx -= (x*x);
          S_xy -= (x*y);
          S_x -= x;
          S_y -= y;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -4766,6 +5457,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112605 MF   Initial coding.
+ */
+
    public int bopLookback( )
    {
       return 0 ;
@@ -4790,6 +5495,7 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* BOP = (Close - Open)/(High - Low) */
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          tempReal = (inHigh[i]-inLow[i]);
@@ -4888,6 +5594,24 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  031202 MF   Template creation.
+ *  052603 MF   Port to managed C++. Change to use CIRCBUF macros.
+ *  061704 MF   Lower limit for period to 2, and correct algorithm
+ *              to avoid cummulative error when value are close to
+ *              the floating point epsilon.
+ */
+
    public int cciLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -4920,19 +5644,36 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* This ptr will points on a circular buffer of
+       * at least "optInTimePeriod" element.
+       */
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Allocate a circular buffer equal to the requested
+       * period.
+       */
       if( optInTimePeriod < 1 ) return RetCode.AllocErr;
       circBuffer = new double[optInTimePeriod];
       maxIdx_circBuffer = (optInTimePeriod)-1;
       circBuffer_Idx = 0;
+      /* Do the MA calculation using tight loops. */
+      /* Add-up the initial period, except for the last value.
+       * Fill up the circular buffer at the same time.
+       */
       i = (startIdx-lookbackTotal);
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
@@ -4942,31 +5683,43 @@ public class Core {
             if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          }
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the inReal and
+       * outReal to be the same buffer.
+       */
       outIdx = 0;
       do {
          lastValue = (((inHigh[i]+inLow[i])+inClose[i])/3);
          circBuffer[circBuffer_Idx] = lastValue;
+         /* Calculate the average for the whole period. */
          theAverage = 0;
          for( j = 0; (j<optInTimePeriod); j += 1 ) {
             theAverage += circBuffer[j];
          }
          theAverage /= optInTimePeriod;
+         /* Do the summation of the ABS(TypePrice-average)
+          * for the whole period.
+          */
          tempReal2 = 0;
          for( j = 0; (j<optInTimePeriod); j += 1 ) {
             tempReal2 += Math.abs((circBuffer[j]-theAverage));
          }
+         /* And finally, the CCI... */
          tempReal = (lastValue-theAverage);
          if( ((tempReal!=0.0)&&(tempReal2!=0.0)) ) {
             outReal[outIdx++] = (tempReal/(0.015*(tempReal2/optInTimePeriod)));
          } else {
             outReal[outIdx++] = 0.0;
          }
+         /* Move forward the circular buffer indexes. */
          circBuffer_Idx++;
          if( circBuffer_Idx > maxIdx_circBuffer ) { circBuffer_Idx = 0; }
          i += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
+      /* Free the circular buffer if it was dynamically allocated. */
       return RetCode.Success ;
    }
    public RetCode cciUnguarded( int startIdx,
@@ -5186,6 +5939,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
    public int cdl2CrowsLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -5218,15 +5985,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdl2CrowsLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
       i = BodyLongTrailingIdx;
@@ -5235,17 +6011,41 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white candle
+       * - second candle: black real body
+       * - gap between the first and the second candle's real bodies
+       * - third candle: black candle that opens within the second real body and closes within the first real body
+       * The meaning of "long" is specified with TA_SetCandleSettings
+       * outInteger is negative (-1 to -100): two crows is always bearish;
+       * the user should consider that two crows is significant when it appears in an uptrend, while this function
+       * does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) &&     /* 1st: white */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd: black */
+             ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* gapping up */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 3rd: black */
+             (inOpen[i]<inOpen[(i-1)]) &&
+             (inOpen[i]>inClose[(i-1)]) &&                                   /* opening within 2nd rb */
+             (inClose[i]>inOpen[(i-2)]) &&
+             (inClose[i]<inClose[(i-2)]) )                                   /* closing within 1st rb */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -5407,6 +6207,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103004 AC   Creation
+ */
+
    public int cdl3BlackCrowsLookback( )
    {
       int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
@@ -5440,15 +6254,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdl3BlackCrowsLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal[2] = 0;
       ShadowVeryShortPeriodTotal[1] = 0;
       ShadowVeryShortPeriodTotal[0] = 0;
@@ -5461,19 +6284,48 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - three consecutive and declining black candlesticks
+       * - each candle must have no or very short lower shadow
+       * - each candle after the first must open within the prior candle's real body
+       * - the first candle's close should be under the prior white candle's high
+       * The meaning of "very short" is specified with TA_SetCandleSettings
+       * outInteger is negative (-1 to -100): three black crows is always bearish;
+       * the user should consider that 3 black crows is significant when it appears after a mature advance or at high levels,
+       * while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[(i-1)]<inOpen[(i-2)]))&&(inOpen[(i-1)]>inClose[(i-2)]))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inHigh[(i-3)]>inClose[(i-2)]))&&(inClose[(i-2)]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[i]))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==1) &&     /* white */
+             ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 1st black */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 3rd black */
+             (inOpen[(i-1)]<inOpen[(i-2)]) &&
+             (inOpen[(i-1)]>inClose[(i-2)]) &&                               /* 2nd black opens within 1st black's rb */
+             (inOpen[i]<inOpen[(i-1)]) &&
+             (inOpen[i]>inClose[(i-1)]) &&                                   /* 3rd black opens within 2nd black's rb */
+             (inHigh[(i-3)]>inClose[(i-2)]) &&                               /* 1st black closes under prior candle's high */
+             (inClose[(i-2)]>inClose[(i-1)]) &&                              /* three declining */
+             (inClose[(i-1)]>inClose[i]) &&                                  /* three declining */
+             (((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short lower shadow */
+             (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short lower shadow */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* very short lower shadow */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
             ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) - Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : 0.0)))));
          }
          i += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -5656,6 +6508,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
    public int cdl3InsideLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -5696,15 +6562,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdl3InsideLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
       BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
@@ -5720,19 +6595,38 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white (black) real body
+       * - second candle: short real body totally engulfed by the first
+       * - third candle: black (white) candle that closes lower (higher) than the first candle's open
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) for the three inside up or negative (-1 to -100) for the three inside down;
+       * the user should consider that a three inside up is significant when it appears in a downtrend and a three inside
+       * down is significant when it appears in an uptrend, while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( (((((Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)]))&&(Math.min(inClose[(i-1)], inOpen[(i-1)])>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)]))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( (Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])) && /* engulfed by 1st */
+             (Math.min(inClose[(i-1)], inOpen[(i-1)])>Math.min(inClose[(i-2)], inOpen[(i-2)])) &&
+             (((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)]))) && /* 3rd: opposite to 1st and closing out */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* 2nd: short */
+         {
             outInteger[outIdx++] = ((0-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1))))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -5936,6 +6830,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
    public int cdl3LineStrikeLookback( )
    {
       int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
@@ -5969,15 +6877,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdl3LineStrikeLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       NearPeriodTotal[3] = 0;
       NearPeriodTotal[2] = 0;
       NearTrailingIdx = (startIdx-Near_avgPeriod);
@@ -5988,19 +6905,42 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - three white soldiers (three black crows): three white (black) candlesticks with consecutively higher (lower) closes,
+       * each opening within or near the previous real body
+       * - fourth candle: black (white) candle that opens above (below) prior candle's close and closes below (above)
+       * the first candle's open
+       * The meaning of "near" is specified with TA_SetCandleSettings;
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * the user should consider that 3-line strike is significant when it appears in a trend in the same direction of
+       * the first three candles, while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1))))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))))&&(inOpen[(i-2)]>=(Math.min(inOpen[(i-3)], inClose[(i-3)])-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[3] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((Near_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((Near_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[(i-2)]<=(Math.max(inOpen[(i-3)], inClose[(i-3)])+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[3] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((Near_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((Near_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[(i-1)]>=(Math.min(inOpen[(i-2)], inClose[(i-2)])-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[(i-1)]<=(Math.max(inOpen[(i-2)], inClose[(i-2)])+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inClose[(i-1)]>inClose[(i-2)]))&&(inClose[(i-2)]>inClose[(i-3)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]<inOpen[(i-3)]))||((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inClose[(i-1)]<inClose[(i-2)]))&&(inClose[(i-2)]<inClose[(i-3)]))&&(inOpen[i]<inClose[(i-1)]))&&(inClose[i]>inOpen[(i-3)])))) ) {
+         if( ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))) && /* three with same color */
+             ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))) &&
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))) && /* 4th opposite color */
+             (inOpen[(i-2)]>=(Math.min(inOpen[(i-3)], inClose[(i-3)])-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[3] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((Near_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((Near_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) && /* 2nd opens within/near 1st rb */
+             (inOpen[(i-2)]<=(Math.max(inOpen[(i-3)], inClose[(i-3)])+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[3] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((Near_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((Near_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (inOpen[(i-1)]>=(Math.min(inOpen[(i-2)], inClose[(i-2)])-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) && /* 3rd opens within/near 2nd rb */
+             (inOpen[(i-1)]<=(Math.max(inOpen[(i-2)], inClose[(i-2)])+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inClose[(i-1)]>inClose[(i-2)]))&&(inClose[(i-2)]>inClose[(i-3)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]<inOpen[(i-3)]))||((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inClose[(i-1)]<inClose[(i-2)]))&&(inClose[(i-2)]<inClose[(i-3)]))&&(inOpen[i]<inClose[(i-1)]))&&(inClose[i]>inOpen[(i-3)]))) ) /* if three white consecutive higher closes 4th opens above prior close 4th closes below 1st open if three black consecutive lower closes 4th opens below prior close 4th closes above 1st open */
+         {
             outInteger[outIdx++] = ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 3; (totIdx>=2); totIdx -= 1 ) {
             NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(((Near_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((Near_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((Near_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((Near_rangeType == 0) ? (Math.abs(inClose[(NearTrailingIdx-totIdx)] - inOpen[(NearTrailingIdx-totIdx)])) : ((Near_rangeType == 1) ? (inHigh[(NearTrailingIdx-totIdx)] - inLow[(NearTrailingIdx-totIdx)]) : ((Near_rangeType == 2) ? ((inHigh[(NearTrailingIdx-totIdx)] - inLow[(NearTrailingIdx-totIdx)]) - Math.abs(inClose[(NearTrailingIdx-totIdx)] - inOpen[(NearTrailingIdx-totIdx)])) : 0.0)))));
          }
          i += 1;
          NearTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -6177,6 +7117,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
    public int cdl3OutsideLookback( )
    {
       return 3 ;
@@ -6201,25 +7155,48 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdl3OutsideLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first: black (white) real body
+       * - second: white (black) real body that engulfs the prior real body
+       * - third: candle that closes higher (lower) than the second candle
+       * outInteger is positive (1 to 100) for the three outside up or negative (-1 to -100) for the three outside down;
+       * the user should consider that a three outside up must appear in a downtrend and three outside down must appear
+       * in an uptrend, while this function does not consider it
+       */
       outIdx = 0;
       do {
          if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(inClose[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<inClose[(i-2)]))&&(inClose[i]>inClose[(i-1)]))||((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(inOpen[(i-1)]>inClose[(i-2)]))&&(inClose[(i-1)]<inOpen[(i-2)]))&&(inClose[i]<inClose[(i-1)]))) ) {
+            /* white engulfs black */
+            /* third candle higher */
+            /* black engulfs white */
+            /* third candle lower */
             outInteger[outIdx++] = ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -6339,6 +7316,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022705 AC   Creation
+ */
+
    public int cdl3StarsInSouthLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -6396,15 +7387,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdl3StarsInSouthLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
       ShadowLongPeriodTotal = 0;
@@ -6436,13 +7436,43 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black candle with long lower shadow
+       * - second candle: smaller black candle that opens higher than prior close but within prior candle's range
+       *   and trades lower than prior close but not lower than prior low and closes off of its low (it has a shadow)
+       * - third candle: small black marubozu (or candle with very short shadows) engulfed by prior candle's range
+       * The meanings of "long body", "short body", "very short shadow" are specified with TA_SetCandleSettings;
+       * outInteger is positive (1 to 100): 3 stars in the south is always bullish;
+       * the user should consider that 3 stars in the south is significant when it appears in downtrend, while this function
+       * does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))))&&(inOpen[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inHigh[(i-2)]))&&(inLow[(i-1)]<inClose[(i-2)]))&&(inLow[(i-1)]>=inLow[(i-2)]))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(inLow[i]>inLow[(i-1)]))&&(inHigh[i]<inHigh[(i-1)])) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 1st black */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 3rd black */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))) && /* with long lower shadow */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))) && /* 2nd: smaller candle */
+             (inOpen[(i-1)]>inClose[(i-2)]) &&
+             (inOpen[(i-1)]<=inHigh[(i-2)]) &&                               /* that opens higher but within 1st range */
+             (inLow[(i-1)]<inClose[(i-2)]) &&                                /* and trades lower than 1st close */
+             (inLow[(i-1)]>=inLow[(i-2)]) &&                                 /* but not lower than 1st low */
+             (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* and has a lower shadow */
+             (Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 3rd: small marubozu */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (inLow[i]>inLow[(i-1)]) &&
+             (inHigh[i]<inHigh[(i-1)]) )                                     /* engulfed by prior candle's range */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-2)] - inOpen[(BodyLongTrailingIdx-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-2)] - inLow[(BodyLongTrailingIdx-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-2)] - inLow[(BodyLongTrailingIdx-2)]) - Math.abs(inClose[(BodyLongTrailingIdx-2)] - inOpen[(BodyLongTrailingIdx-2)])) : 0.0))));
          ShadowLongPeriodTotal += (((ShadowLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((ShadowLong_rangeType == 0) ? (Math.abs(inClose[(ShadowLongTrailingIdx-2)] - inOpen[(ShadowLongTrailingIdx-2)])) : ((ShadowLong_rangeType == 1) ? (inHigh[(ShadowLongTrailingIdx-2)] - inLow[(ShadowLongTrailingIdx-2)]) : ((ShadowLong_rangeType == 2) ? ((inHigh[(ShadowLongTrailingIdx-2)] - inLow[(ShadowLongTrailingIdx-2)]) - Math.abs(inClose[(ShadowLongTrailingIdx-2)] - inOpen[(ShadowLongTrailingIdx-2)])) : 0.0))));
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
@@ -6455,6 +7485,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -6757,6 +7788,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120404 AC   Creation
+ */
+
    public int cdl3WhiteSoldiersLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -6814,15 +7859,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdl3WhiteSoldiersLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal[2] = 0;
       ShadowVeryShortPeriodTotal[1] = 0;
       ShadowVeryShortPeriodTotal[0] = 0;
@@ -6862,13 +7916,44 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - three white candlesticks with consecutively higher closes
+       * - Greg Morris wants them to be long, Steve Nison doesn't; anyway they should not be short
+       * - each candle opens within or near the previous white real body
+       * - each candle must have no or very short upper shadow
+       * - to differentiate this pattern from advance block, each candle must not be far shorter than the prior candle
+       * The meanings of "not short", "very short shadow", "far" and "near" are specified with TA_SetCandleSettings;
+       * here the 3 candles must be not short, if you want them to be long use TA_SetCandleSettings on BodyShort;
+       * outInteger is positive (1 to 100): advancing 3 white soldiers is always bullish;
+       * the user should consider that 3 white soldiers is significant when it appears in downtrend, while this function
+       * does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[i]>inOpen[(i-1)]))&&(inOpen[i]<=(inClose[(i-1)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[2] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Far_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Far_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0)))))))&&(Math.abs((inClose[i]-inOpen[i]))>(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[1] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Far_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Far_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0)))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) && /* 1st white */
+             ((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* very short upper shadow 2nd white */
+             ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&         /* very short upper shadow 3rd white */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (inClose[i]>inClose[(i-1)]) &&                              /* very short upper shadow */
+             (inClose[(i-1)]>inClose[(i-2)]) &&                          /* consecutive higher closes */
+             (inOpen[(i-1)]>inOpen[(i-2)]) &&                            /* 2nd opens within/near 1st real body */
+             (inOpen[(i-1)]<=(inClose[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (inOpen[i]>inOpen[(i-1)]) &&                                /* 3rd opens within/near 2nd real body */
+             (inOpen[i]<=(inClose[(i-1)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[2] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Far_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Far_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (Math.abs((inClose[i]-inOpen[i]))>(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[1] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Far_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Far_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0)))))) && /* 2nd not far shorter than 1st */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* 3rd not far shorter than 2nd not short real body */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
             ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) - Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : 0.0)))));
          }
@@ -6883,6 +7968,7 @@ public class Core {
          FarTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -7215,6 +8301,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102304 AC   Creation
+ */
+
    public int cdlAbandonedBabyLookback( double optInPenetration )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -7264,15 +8364,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlAbandonedBabyLookback(optInPenetration);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyDojiPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
@@ -7295,13 +8404,35 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white (black) real body
+       * - second candle: doji
+       * - third candle: black (white) real body that moves well within the first candle's real body
+       * - upside (downside) gap between the first candle and the doji (the shadows of the two candles don't touch)
+       * - downside (upside) gap between the doji and the third candle (the shadows of the two candles don't touch)
+       * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+       * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+       * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+       * it to be relatively long
+       * outInteger is positive (1 to 100) when it's an abandoned baby bottom or negative (-1 to -100) when it's
+       * an abandoned baby top; the user should consider that an abandoned baby is significant when it appears in
+       * an uptrend or downtrend, while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inLow[(i-1)]>inHigh[(i-2)]))&&(inHigh[i]<inLow[(i-1)]))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inHigh[(i-1)]<inLow[(i-2)]))&&(inLow[i]>inHigh[(i-1)])))) ) {
+         if( (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: doji */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 3rd: longer than short */
+             (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inLow[(i-1)]>inHigh[(i-2)]))&&(inHigh[i]<inLow[(i-1)]))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inHigh[(i-1)]<inLow[(i-2)]))&&(inLow[i]>inHigh[(i-1)]))) ) /* 1st white 3rd black 3rd closes well within 1st rb upside gap between 1st and 2nd downside gap between 2nd and 3rd 1st black 3rd white 3rd closes well within 1st rb downside gap between 1st and 2nd upside gap between 2nd and 3rd */
+         {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
@@ -7310,6 +8441,7 @@ public class Core {
          BodyDojiTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -7558,6 +8690,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120404 AC   Creation
+ */
+
    public int cdlAdvanceBlockLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -7623,15 +8769,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlAdvanceBlockLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowShortPeriodTotal[2] = 0;
       ShadowShortPeriodTotal[1] = 0;
       ShadowShortPeriodTotal[0] = 0;
@@ -7680,13 +8835,40 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - three white candlesticks with consecutively higher closes
+       * - each candle opens within or near the previous white real body
+       * - first candle: long white with no or very short upper shadow (a short shadow is accepted too for more flexibility)
+       * - second and third candles, or only third candle, show signs of weakening: progressively smaller white real bodies
+       * and/or relatively long upper shadows; see below for specific conditions
+       * The meanings of "long body", "short shadow", "far" and "near" are specified with TA_SetCandleSettings;
+       * outInteger is negative (-1 to -100): advance block is always bearish;
+       * the user should consider that advance block is significant when it appears in uptrend, while this function
+       * does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[i]>inOpen[(i-1)]))&&(inOpen[i]<=(inClose[(i-1)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowShortPeriodTotal[2] / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[2] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Far_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Far_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))||(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[1] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Far_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Far_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0)))))))||(((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))))&&(((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowShortPeriodTotal[0] / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0)))))||((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowShortPeriodTotal[1] / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0))))))))||((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal[0] / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0)))))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) && /* 1st white */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 2nd white */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&         /* 3rd white */
+             (inClose[i]>inClose[(i-1)]) &&
+             (inClose[(i-1)]>inClose[(i-2)]) &&                          /* consecutive higher closes */
+             (inOpen[(i-1)]>inOpen[(i-2)]) &&                            /* 2nd opens within/near 1st real body */
+             (inOpen[(i-1)]<=(inClose[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (inOpen[i]>inOpen[(i-1)]) &&                                /* 3rd opens within/near 2nd real body */
+             (inOpen[i]<=(inClose[(i-1)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long real body */
+             ((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowShortPeriodTotal[2] / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (((((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[2] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Far_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Far_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))||(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-((Far_factor * (((Far_avgPeriod != 0) ? (FarPeriodTotal[1] / Far_avgPeriod) : ((Far_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Far_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Far_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Far_rangeType == 2) ? 2.0 : 1.0)))))))||(((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))))&&(((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowShortPeriodTotal[0] / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0)))))||((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowShortPeriodTotal[1] / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0))))))))||((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal[0] / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))) ) /* 1st: short upper shadow ( 2 far smaller than 1 && 3 not longer than 2 ) advance blocked with the 2nd, 3rd must not carry on the advance 3 far smaller than 2 advance blocked with the 3rd ( 3 smaller than 2 && 2 smaller than 1 && (3 or 2 not short upper shadow) ) advance blocked with progressively smaller real bodies and some upper shadows ( 3 smaller than 2 && 3 long upper shadow ) advance blocked with 3rd candle's long upper shadow and smaller body */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
             ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(((ShadowShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((ShadowShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((ShadowShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((ShadowShort_rangeType == 0) ? (Math.abs(inClose[(ShadowShortTrailingIdx-totIdx)] - inOpen[(ShadowShortTrailingIdx-totIdx)])) : ((ShadowShort_rangeType == 1) ? (inHigh[(ShadowShortTrailingIdx-totIdx)] - inLow[(ShadowShortTrailingIdx-totIdx)]) : ((ShadowShort_rangeType == 2) ? ((inHigh[(ShadowShortTrailingIdx-totIdx)] - inLow[(ShadowShortTrailingIdx-totIdx)]) - Math.abs(inClose[(ShadowShortTrailingIdx-totIdx)] - inOpen[(ShadowShortTrailingIdx-totIdx)])) : 0.0)))));
          }
@@ -7705,6 +8887,7 @@ public class Core {
          FarTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -8091,6 +9274,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010605 AC   Creation
+ */
+
    public int cdlBeltHoldLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -8131,15 +9328,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlBeltHoldLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
       ShadowVeryShortPeriodTotal = 0;
@@ -8154,19 +9360,32 @@ public class Core {
          ShadowVeryShortPeriodTotal += ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - long white (black) real body
+       * - no or very short lower (upper) shadow
+       * The meaning of "long" and "very short" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when white (bullish), negative (-1 to -100) when black (bearish)
+       */
       outIdx = 0;
       do {
-         if( ((Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0)))))&&((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))))) ) {
+         if( (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long body */
+             ((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))) ) /* white body and very short lower shadow black body and very short upper shadow */
+         {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -8367,6 +9586,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlBreakawayLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -8399,15 +9632,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlBreakawayLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
       i = BodyLongTrailingIdx;
@@ -8416,17 +9658,38 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black (white)
+       * - second candle: black (white) day whose body gaps down (up)
+       * - third candle: black or white day with lower (higher) high and lower (higher) low than prior candle's
+       * - fourth candle: black (white) day with lower (higher) high and lower (higher) low than prior candle's
+       * - fifth candle: white (black) day that closes inside the gap, erasing the prior 3 days
+       * The meaning of "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * the user should consider that breakaway is significant in a trend opposite to the last candle, while this
+       * function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
+         if( ((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))) && /* 1st, 2nd, 4th same color, 5th opposite */
+             ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))) &&
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) &&
+             (Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st long */
+             ((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)]))) ) /* when 1st is black: 2nd gaps down 3rd has lower high and low than 2nd 4th has lower high and low than 3rd 5th closes inside the gap when 1st is white: 2nd gaps up 3rd has higher high and low than 2nd 4th has higher high and low than 3rd 5th closes inside the gap */
+         {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-4)] - inOpen[(BodyLongTrailingIdx-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-4)] - inLow[(BodyLongTrailingIdx-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-4)] - inLow[(BodyLongTrailingIdx-4)]) - Math.abs(inClose[(BodyLongTrailingIdx-4)] - inOpen[(BodyLongTrailingIdx-4)])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -8588,6 +9851,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022005 AC   Creation
+ */
+
    public int cdlClosingMarubozuLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -8628,15 +9905,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlClosingMarubozuLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
       ShadowVeryShortPeriodTotal = 0;
@@ -8651,19 +9937,32 @@ public class Core {
          ShadowVeryShortPeriodTotal += ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - long white (black) real body
+       * - no or very short upper (lower) shadow
+       * The meaning of "long" and "very short" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when white (bullish), negative (-1 to -100) when black (bearish)
+       */
       outIdx = 0;
       do {
-         if( ((Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0)))))&&((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))))) ) {
+         if( (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long body */
+             ((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))) ) /* white body and very short lower shadow black body and very short upper shadow */
+         {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -8864,6 +10163,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022705 AC   Creation
+ */
+
    public int cdlConcealBabysWallLookback( )
    {
       int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
@@ -8897,15 +10210,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlConcealBabysWallLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal[3] = 0;
       ShadowVeryShortPeriodTotal[2] = 0;
       ShadowVeryShortPeriodTotal[1] = 0;
@@ -8918,19 +10240,47 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: black marubozu (very short shadows)
+       * - second candle: black marubozu (very short shadows)
+       * - third candle: black candle that opens gapping down but has an upper shadow that extends into the prior body
+       * - fourth candle: black candle that completely engulfs the third candle, including the shadows
+       * The meanings of "very short shadow" are specified with TA_SetCandleSettings;
+       * outInteger is positive (1 to 100): concealing baby swallow is always bullish;
+       * the user should consider that concealing baby swallow is significant when it appears in downtrend, while
+       * this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[3] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[3] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
+         if( ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)) && /* 1st black */
+             ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd black */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 3rd black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 4th black */
+             (((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[3] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: marubozu */
+             ((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[3] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: marubozu */
+             ((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* 3rd: opens gapping down */
+             ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* and HAS an upper shadow */
+             (inHigh[(i-1)]>inClose[(i-2)]) &&                               /* that extends into the prior body */
+             (inHigh[i]>inHigh[(i-1)]) &&
+             (inLow[i]<inLow[(i-1)]) )                                       /* 4th: engulfs the 3rd including the shadows */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 3; (totIdx>=1); totIdx -= 1 ) {
             ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) - Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : 0.0)))));
          }
          i += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -9113,6 +10463,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010605 AC   Creation
+ */
+
    public int cdlCounterAttackLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -9154,15 +10518,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlCounterAttackLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       EqualPeriodTotal = 0;
       EqualTrailingIdx = (startIdx-Equal_avgPeriod);
       BodyLongPeriodTotal[1] = 0;
@@ -9180,13 +10553,29 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black (white)
+       * - second candle: long white (black) with close equal to the prior close
+       * The meaning of "equal" and "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * the user should consider that counterattack is significant in a trend, while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(inClose[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inClose[i]>=(inClose[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* opposite candles */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st long */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd long */
+             (inClose[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* equal closes */
+             (inClose[i]>=(inClose[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) )
+         {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) - Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : 0.0))));
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
             BodyLongPeriodTotal[totIdx] = (BodyLongPeriodTotal[totIdx]+(((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) - Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : 0.0)))));
@@ -9195,6 +10584,7 @@ public class Core {
          EqualTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -9413,6 +10803,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120904 AC   Creation
+ */
+
    public int cdlDarkCloudCoverLookback( double optInPenetration )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -9446,15 +10850,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlDarkCloudCoverLookback(optInPenetration);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
       i = BodyLongTrailingIdx;
@@ -9463,17 +10876,38 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white candle
+       * - second candle: black candle that opens above previous day high and closes within previous day real body;
+       * Greg Morris wants the close to be below the midpoint of the previous real body
+       * The meaning of "long" is specified with TA_SetCandleSettings, the penetration of the first real body is specified
+       * with optInPenetration
+       * outInteger is negative (-1 to -100): dark cloud cover is always bearish
+       * the user should consider that a dark cloud cover is significant when it appears in an uptrend, while
+       * this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inHigh[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<(inClose[(i-1)]-(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration)))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 1st: white */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&     /* 2nd: black */
+             (inOpen[i]>inHigh[(i-1)]) &&                                /* open above prior high */
+             (inClose[i]>inOpen[(i-1)]) &&                               /* close within prior body */
+             (inClose[i]<(inClose[(i-1)]-(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration))) )
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) - Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -9638,6 +11072,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlDojiLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -9670,15 +11118,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlDojiLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyDojiPeriodTotal = 0;
       BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
       i = BodyDojiTrailingIdx;
@@ -9686,6 +11143,14 @@ public class Core {
          BodyDojiPeriodTotal += ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       *
+       * Must have:
+       * - open quite equal to close
+       * How much can be the maximum distance between open and close is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100) but this does not mean it is bullish: doji shows uncertainty and it is
+       * neither bullish nor bearish when considered alone
+       */
       outIdx = 0;
       do {
          if( (Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) ) {
@@ -9693,10 +11158,14 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          i += 1;
          BodyDojiTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -9855,6 +11324,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100204 AC   Creation
+ */
+
    public int cdlDojiStarLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -9895,15 +11378,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlDojiStarLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyDojiPeriodTotal = 0;
       BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
@@ -9918,19 +11410,37 @@ public class Core {
          BodyDojiPeriodTotal += ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long real body
+       * - second candle: star (open gapping up in an uptrend or down in a downtrend) with a doji
+       * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * it's defined bullish when the long candle is white and the star gaps up, bearish when the long candle
+       * is black and the star gaps down; the user should consider that a doji star is bullish when it appears
+       * in an uptrend and it's bearish when it appears in a downtrend, so to determine the bullishness or
+       * bearishness of the pattern the trend must be analyzed
+       */
       outIdx = 0;
       do {
-         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0)))))&&(Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
+         if( (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long real body */
+             (Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: doji */
+             ((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)])))) ) /* that gaps up if 1st is white or down if 1st is black */
+         {
             outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          BodyDojiTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -10131,6 +11641,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlDragonflyDojiLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -10171,15 +11695,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlDragonflyDojiLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyDojiPeriodTotal = 0;
       BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
       ShadowVeryShortPeriodTotal = 0;
@@ -10194,6 +11727,16 @@ public class Core {
          ShadowVeryShortPeriodTotal += ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       *
+       * Must have:
+       * - doji body
+       * - open and close at the high of the day = no or very short upper shadow
+       * - lower shadow (to distinguish from other dojis, here lower shadow should not be very short)
+       * The meaning of "doji" and "very short" is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100) but this does not mean it is bullish: dragonfly doji must be considered
+       * relatively to the trend
+       */
       outIdx = 0;
       do {
          if( (((Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0)))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -10201,12 +11744,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyDojiTrailingIdx += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -10407,6 +11954,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102404 AC   Creation
+ *  040309 AC   Increased flexibility to allow real bodies matching
+ *              on one end (Greg Morris - "Candlestick charting explained")
+ */
+
    public int cdlEngulfingLookback( )
    {
       return 2 ;
@@ -10431,19 +11994,41 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlEngulfingLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first: black (white) real body
+       * - second: white (black) real body that engulfs the prior real body
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish:
+       * - 100 is returned when the second candle's real body begins before and ends after the first candle's real body
+       * - 80 is returned when the two real bodies match on one end (Greg Morris contemplate this case in his book
+       *   "Candlestick charting explained")
+       * The user should consider that an engulfing must appear in a downtrend if bullish or in an uptrend if bearish,
+       * while this function does not consider it
+       */
       outIdx = 0;
       do {
          if( (((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((inClose[i]>=inOpen[(i-1)])&&(inOpen[i]<inClose[(i-1)]))||((inClose[i]>inOpen[(i-1)])&&(inOpen[i]<=inClose[(i-1)]))))||((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&(((inOpen[i]>=inClose[(i-1)])&&(inClose[i]<inOpen[(i-1)]))||((inOpen[i]>inClose[(i-1)])&&(inClose[i]<=inOpen[(i-1)]))))) ) {
+            /* white engulfs black */
+            /* black engulfs white */
             if( ((inOpen[i]!=inClose[(i-1)])&&(inClose[i]!=inOpen[(i-1)])) ) {
                outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
             } else {
@@ -10454,6 +12039,7 @@ public class Core {
          }
          i += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -10585,6 +12171,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100304 AC   Creation
+ */
+
    public int cdlEveningDojiStarLookback( double optInPenetration )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -10634,15 +12234,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlEveningDojiStarLookback(optInPenetration);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyDojiPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
@@ -10665,13 +12274,36 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white real body
+       * - second candle: doji gapping up
+       * - third candle: black real body that moves well within the first candle's real body
+       * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+       * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+       * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+       * it to be relatively long
+       * outInteger is negative (-1 to -100): evening star is always bearish;
+       * the user should consider that an evening star is significant when it appears in an uptrend,
+       * while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) && /* white */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&     /* black real body */
+             ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* gapping up */
+             (inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))) && /* closing well within 1st rb */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: doji */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* 3rd: longer than short */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
@@ -10680,6 +12312,7 @@ public class Core {
          BodyDojiTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -10928,6 +12561,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100304 AC   Creation
+ */
+
    public int cdlEveningStarLookback( double optInPenetration )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -10970,15 +12617,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlEveningStarLookback(optInPenetration);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
       BodyShortPeriodTotal2 = 0;
@@ -10996,13 +12652,36 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white real body
+       * - second candle: star (short real body gapping up)
+       * - third candle: black real body that moves well within the first candle's real body
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+       * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+       * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+       * it to be relatively long
+       * outInteger is negative (-1 to -100): evening star is always bearish;
+       * the user should consider that an evening star is significant when it appears in an uptrend,
+       * while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal2 / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) && /* white */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&     /* black real body */
+             ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* gapping up */
+             (inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))) && /* closing well within 1st rb */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: short */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal2 / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* 3rd: longer than short */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal2 += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[(BodyShortTrailingIdx+1)] - inOpen[(BodyShortTrailingIdx+1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(BodyShortTrailingIdx+1)] - inLow[(BodyShortTrailingIdx+1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(BodyShortTrailingIdx+1)] - inLow[(BodyShortTrailingIdx+1)]) - Math.abs(inClose[(BodyShortTrailingIdx+1)] - inOpen[(BodyShortTrailingIdx+1)])) : 0.0))));
@@ -11010,6 +12689,7 @@ public class Core {
          BodyLongTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -11228,6 +12908,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  020605 AC   Creation
+ */
+
    public int cdlGapSideSideWhiteLookback( )
    {
       int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
@@ -11268,15 +12962,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlGapSideSideWhiteLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       NearPeriodTotal = 0;
       EqualPeriodTotal = 0;
       NearTrailingIdx = (startIdx-Near_avgPeriod);
@@ -11292,19 +12995,42 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - upside or downside gap (between the bodies)
+       * - first candle after the window: white candlestick
+       * - second candle after the window: white candlestick with similar size (near the same) and about the same
+       *   open (equal) of the previous candle
+       * - the second candle does not close the window
+       * The meaning of "near" and "equal" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) or negative (-1 to -100): the user should consider that upside
+       * or downside gap side-by-side white lines is significant when it appears in a trend, while this function
+       * does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[i]>=(inOpen[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[i]<=(inOpen[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( (((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)])))) && /* upside or downside gap between the 1st candle and both the next 2 candles */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 2nd: white */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&         /* 3rd: white */
+             (Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) && /* same size 2 and 3 */
+             (Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (inOpen[i]>=(inOpen[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* same open 2 and 3 */
+             (inOpen[i]<=(inOpen[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) )
+         {
             outInteger[outIdx++] = (((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (100) : ((0-100)));
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          NearPeriodTotal += (((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Near_rangeType == 0) ? (Math.abs(inClose[(NearTrailingIdx-1)] - inOpen[(NearTrailingIdx-1)])) : ((Near_rangeType == 1) ? (inHigh[(NearTrailingIdx-1)] - inLow[(NearTrailingIdx-1)]) : ((Near_rangeType == 2) ? ((inHigh[(NearTrailingIdx-1)] - inLow[(NearTrailingIdx-1)]) - Math.abs(inClose[(NearTrailingIdx-1)] - inOpen[(NearTrailingIdx-1)])) : 0.0))));
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) - Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : 0.0))));
          i += 1;
          NearTrailingIdx += 1;
          EqualTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -11508,6 +13234,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlGravestoneDojiLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -11548,15 +13288,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlGravestoneDojiLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyDojiPeriodTotal = 0;
       BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
       ShadowVeryShortPeriodTotal = 0;
@@ -11571,6 +13320,16 @@ public class Core {
          ShadowVeryShortPeriodTotal += ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       *
+       * Must have:
+       * - doji body
+       * - open and close at the low of the day = no or very short lower shadow
+       * - upper shadow (to distinguish from other dojis, here upper shadow should not be very short)
+       * The meaning of "doji" and "very short" is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100) but this does not mean it is bullish: gravestone doji must be considered
+       * relatively to the trend
+       */
       outIdx = 0;
       do {
          if( (((Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0)))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -11578,12 +13337,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyDojiTrailingIdx += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -11784,6 +13547,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102304 AC   Creation
+ */
+
    public int cdlHammerLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -11840,15 +13617,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHammerLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
       ShadowLongPeriodTotal = 0;
@@ -11878,13 +13664,30 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - small real body
+       * - long lower shadow
+       * - no, or very short, upper shadow
+       * - body below or near the lows of the previous candle
+       * The meaning of "short", "long" and "near the lows" is specified with TA_SetCandleSettings;
+       * outInteger is positive (1 to 100): hammer is always bullish;
+       * the user should consider that a hammer must appear in a downtrend, while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.min(inClose[i], inOpen[i])<=(inLow[(i-1)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( (Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* small rb */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long lower shadow */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short upper shadow */
+             (Math.min(inClose[i], inOpen[i])<=(inLow[(i-1)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) ) /* rb near the prior candle's lows */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          ShadowLongPeriodTotal += (((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowLong_rangeType == 0) ? (Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : ((ShadowLong_rangeType == 1) ? (inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) : ((ShadowLong_rangeType == 2) ? ((inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) - Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
@@ -11895,6 +13698,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          NearTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -12182,6 +13986,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102304 AC   Creation
+ */
+
    public int cdlHangingManLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -12238,15 +14056,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHangingManLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
       ShadowLongPeriodTotal = 0;
@@ -12276,13 +14103,30 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - small real body
+       * - long lower shadow
+       * - no, or very short, upper shadow
+       * - body above or near the highs of the previous candle
+       * The meaning of "short", "long" and "near the highs" is specified with TA_SetCandleSettings;
+       * outInteger is negative (-1 to -100): hanging man is always bearish;
+       * the user should consider that a hanging man must appear in an uptrend, while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.min(inClose[i], inOpen[i])>=(inHigh[(i-1)]-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( (Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* small rb */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long lower shadow */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short upper shadow */
+             (Math.min(inClose[i], inOpen[i])>=(inHigh[(i-1)]-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) ) /* rb near the prior candle's highs */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          ShadowLongPeriodTotal += (((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowLong_rangeType == 0) ? (Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : ((ShadowLong_rangeType == 1) ? (inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) : ((ShadowLong_rangeType == 2) ? ((inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) - Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
@@ -12293,6 +14137,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          NearTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -12580,6 +14425,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102404 AC   Creation
+ *  040309 AC   Increased flexibility to allow real bodies matching
+ *              on one end (Greg Morris - "Candlestick charting explained")
+ */
+
    public int cdlHaramiLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -12620,15 +14481,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHaramiLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
       BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
@@ -12644,12 +14514,31 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white (black) real body
+       * - second candle: short real body totally engulfed by the first
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish:
+       * - 100 is returned when the first candle's real body begins before and ends after the second candle's real body
+       * - 80 is returned when the two real bodies match on one end (Greg Morris contemplate this case in his book
+       *   "Candlestick charting explained")
+       * The user should consider that a harami is significant when it appears in a downtrend if bullish or
+       * in an uptrend when bearish, while this function does not consider the trend
+       */
       outIdx = 0;
       do {
          if( (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) ) {
+            /* 1st: long */
             if( (Math.abs((inClose[i]-inOpen[i]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) {
+               /* 2nd: short */
+               /* 2nd is engulfed by 1st */
                if( ((Math.max(inClose[i], inOpen[i])<Math.max(inClose[(i-1)], inOpen[(i-1)]))&&(Math.min(inClose[i], inOpen[i])>Math.min(inClose[(i-1)], inOpen[(i-1)]))) ) {
                   outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
+                  /* 2nd is engulfed by 1st
+                   * (one end of real body can match;
+                   * engulfing guaranteed by "long" and "short")
+                   */
                } else if( ((Math.max(inClose[i], inOpen[i])<=Math.max(inClose[(i-1)], inOpen[(i-1)]))&&(Math.min(inClose[i], inOpen[i])>=Math.min(inClose[(i-1)], inOpen[(i-1)]))) ) {
                   outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
                } else {
@@ -12661,12 +14550,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -12900,6 +14793,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102404 AC   Creation
+ *  040309 AC   Increased flexibility to allow real bodies matching
+ *              on one end (Greg Morris - "Candlestick charting explained")
+ */
+
    public int cdlHaramiCrossLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -12940,15 +14849,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHaramiCrossLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyDojiPeriodTotal = 0;
       BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
@@ -12964,13 +14882,29 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white (black) real body
+       * - second candle: doji totally engulfed by the first
+       * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * the user should consider that a harami cross is significant when it appears in a downtrend if bullish or
+       * in an uptrend when bearish, while this function does not consider the trend
+       */
       outIdx = 0;
       do {
          if( (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) ) {
+            /* 1st: long */
             if( (Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) ) {
-               if( ((Math.max(inClose[i], inOpen[i])<Math.max(inClose[(i-1)], inOpen[(i-1)]))&&(Math.min(inClose[i], inOpen[i])>Math.min(inClose[(i-1)], inOpen[(i-1)]))) ) {
+               /* 2nd: doji */
+               if( (Math.max(inClose[i], inOpen[i])<Math.max(inClose[(i-1)], inOpen[(i-1)])) && /* 2nd is engulfed by 1st */
+                   (Math.min(inClose[i], inOpen[i])>Math.min(inClose[(i-1)], inOpen[(i-1)])) )
+               {
                   outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
-               } else if( ((Math.max(inClose[i], inOpen[i])<=Math.max(inClose[(i-1)], inOpen[(i-1)]))&&(Math.min(inClose[i], inOpen[i])>=Math.min(inClose[(i-1)], inOpen[(i-1)]))) ) {
+               } else if( (Math.max(inClose[i], inOpen[i])<=Math.max(inClose[(i-1)], inOpen[(i-1)])) && /* 2nd is engulfed by 1st */
+                   (Math.min(inClose[i], inOpen[i])>=Math.min(inClose[(i-1)], inOpen[(i-1)])) ) /* (one end of real body can match; */
+               {
+                  /* engulfing guaranteed by "long" and "doji") */
                   outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
                } else {
                   outInteger[outIdx++] = 0;
@@ -12981,12 +14915,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          BodyDojiTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -13220,6 +15158,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  072404 AC   Creation
+ */
+
    public int cdlHignWaveLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -13260,15 +15212,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHignWaveLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
       ShadowPeriodTotal = 0;
@@ -13283,6 +15244,14 @@ public class Core {
          ShadowPeriodTotal += ((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - short real body
+       * - very long upper and lower shadow
+       * The meaning of "short" and "very long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when white or negative (-1 to -100) when black;
+       * it does not mean bullish or bearish
+       */
       outIdx = 0;
       do {
          if( (((Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowVeryLong_factor * (((ShadowVeryLong_avgPeriod != 0) ? (ShadowPeriodTotal / ShadowVeryLong_avgPeriod) : ((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryLong_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowVeryLong_factor * (((ShadowVeryLong_avgPeriod != 0) ? (ShadowPeriodTotal / ShadowVeryLong_avgPeriod) : ((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryLong_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -13290,12 +15259,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          ShadowPeriodTotal += (((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[ShadowTrailingIdx] - inOpen[ShadowTrailingIdx])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[ShadowTrailingIdx] - inLow[ShadowTrailingIdx]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[ShadowTrailingIdx] - inLow[ShadowTrailingIdx]) - Math.abs(inClose[ShadowTrailingIdx] - inOpen[ShadowTrailingIdx])) : 0.0))));
          i += 1;
          BodyTrailingIdx += 1;
          ShadowTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -13496,6 +15469,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120305 AC   Creation
+ */
+
    public int cdlHikkakeLookback( )
    {
       return 5 ;
@@ -13522,35 +15509,66 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHikkakeLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       patternIdx = 0;
       patternResult = 0;
       i = (startIdx-3);
       while( (i<startIdx) ) {
-         if( (((inHigh[(i-1)]<inHigh[(i-2)])&&(inLow[(i-1)]>inLow[(i-2)]))&&(((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))||((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)])))) ) {
+         /* copy here the pattern recognition code below */
+         if( (inHigh[(i-1)]<inHigh[(i-2)]) &&
+             (inLow[(i-1)]>inLow[(i-2)]) &&   /* 1st + 2nd: lower high and higher low */
+             (((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))||((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))) ) /* (bull) 3rd: lower high and lower low (bear) 3rd: higher high and higher low */
+         {
             patternResult = (100*(((inHigh[i]<inHigh[(i-1)])) ? (1) : ((0-1))));
             patternIdx = i;
-         } else if( ((i<=(patternIdx+3))&&(((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)])))) ) {
+         } else if( (i<=(patternIdx+3)) &&
+             (((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)]))) ) /* search for confirmation if hikkake was no more than 3 bars ago close higher than the high of 2nd close lower than the low of 2nd */
+         {
             patternIdx = 0;
          }
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first and second candle: inside bar (2nd has lower high and higher low than 1st)
+       * - third candle: lower high and lower low than 2nd (higher high and higher low than 2nd)
+       * outInteger[hikkakebar] is positive (1 to 100) or negative (-1 to -100) meaning bullish or bearish hikkake
+       * Confirmation could come in the next 3 days with:
+       * - a day that closes higher than the high (lower than the low) of the 2nd candle
+       * outInteger[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
+       * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported (the new hikkake
+       * overwrites the confirmation of the old hikkake)
+       */
       outIdx = 0;
       do {
-         if( (((inHigh[(i-1)]<inHigh[(i-2)])&&(inLow[(i-1)]>inLow[(i-2)]))&&(((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))||((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)])))) ) {
+         if( (inHigh[(i-1)]<inHigh[(i-2)]) &&
+             (inLow[(i-1)]>inLow[(i-2)]) &&   /* 1st + 2nd: lower high and higher low */
+             (((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))||((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))) ) /* (bull) 3rd: lower high and lower low (bear) 3rd: higher high and higher low */
+         {
             patternResult = (100*(((inHigh[i]<inHigh[(i-1)])) ? (1) : ((0-1))));
             patternIdx = i;
             outInteger[outIdx++] = patternResult;
-         } else if( ((i<=(patternIdx+3))&&(((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)])))) ) {
+         } else if( (i<=(patternIdx+3)) &&
+             (((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)]))) ) /* search for confirmation if hikkake was no more than 3 bars ago close higher than the high of 2nd close lower than the low of 2nd */
+         {
             outInteger[outIdx++] = (patternResult+(100*(((patternResult>0)) ? (1) : ((0-1)))));
             patternIdx = 0;
          } else {
@@ -13558,6 +15576,7 @@ public class Core {
          }
          i += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -13734,6 +15753,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  122605 AC   Creation
+ */
+
    public int cdlHikkakeModLookback( )
    {
       int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
@@ -13768,15 +15801,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHikkakeModLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       NearPeriodTotal = 0;
       NearTrailingIdx = ((startIdx-3)-Near_avgPeriod);
       i = NearTrailingIdx;
@@ -13788,10 +15830,18 @@ public class Core {
       patternResult = 0;
       i = (startIdx-3);
       while( (i<startIdx) ) {
-         if( (((((inHigh[(i-2)]<inHigh[(i-3)])&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))))) ) {
+         /* copy here the pattern recognition code below */
+         if( (inHigh[(i-2)]<inHigh[(i-3)]) &&
+             (inLow[(i-2)]>inLow[(i-3)]) &&   /* 2nd: lower high and higher low than 1st */
+             (inHigh[(i-1)]<inHigh[(i-2)]) &&
+             (inLow[(i-1)]>inLow[(i-2)]) &&   /* 3rd: lower high and higher low than 2nd */
+             ((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))) ) /* (bull) 4th: lower high and lower low (bull) 2nd: close near the low (bear) 4th: higher high and higher low (bull) 2nd: close near the top */
+         {
             patternResult = (100*(((inHigh[i]<inHigh[(i-1)])) ? (1) : ((0-1))));
             patternIdx = i;
-         } else if( ((i<=(patternIdx+3))&&(((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)])))) ) {
+         } else if( (i<=(patternIdx+3)) &&
+             (((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)]))) ) /* search for confirmation if modified hikkake was no more than 3 bars ago close higher than the high of 3rd close lower than the low of 3rd */
+         {
             patternIdx = 0;
          }
          NearPeriodTotal += (((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((Near_rangeType == 0) ? (Math.abs(inClose[(NearTrailingIdx-2)] - inOpen[(NearTrailingIdx-2)])) : ((Near_rangeType == 1) ? (inHigh[(NearTrailingIdx-2)] - inLow[(NearTrailingIdx-2)]) : ((Near_rangeType == 2) ? ((inHigh[(NearTrailingIdx-2)] - inLow[(NearTrailingIdx-2)]) - Math.abs(inClose[(NearTrailingIdx-2)] - inOpen[(NearTrailingIdx-2)])) : 0.0))));
@@ -13799,13 +15849,36 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle
+       * - second candle: candle with range less than first candle and close near the bottom (near the top)
+       * - third candle: lower high and higher low than 2nd
+       * - fourth candle: lower high and lower low (higher high and higher low) than 3rd
+       * outInteger[hikkake bar] is positive (1 to 100) or negative (-1 to -100) meaning bullish or bearish hikkake
+       * Confirmation could come in the next 3 days with:
+       * - a day that closes higher than the high (lower than the low) of the 3rd candle
+       * outInteger[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
+       * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported (the new hikkake
+       * overwrites the confirmation of the old hikkake);
+       * the user should consider that modified hikkake is a reversal pattern, while hikkake could be both a reversal
+       * or a continuation pattern, so bullish (bearish) modified hikkake is significant when appearing in a downtrend
+       * (uptrend)
+       */
       outIdx = 0;
       do {
-         if( (((((inHigh[(i-2)]<inHigh[(i-3)])&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))))) ) {
+         if( (inHigh[(i-2)]<inHigh[(i-3)]) &&
+             (inLow[(i-2)]>inLow[(i-3)]) &&   /* 2nd: lower high and higher low than 1st */
+             (inHigh[(i-1)]<inHigh[(i-2)]) &&
+             (inLow[(i-1)]>inLow[(i-2)]) &&   /* 3rd: lower high and higher low than 2nd */
+             ((((inHigh[i]<inHigh[(i-1)])&&(inLow[i]<inLow[(i-1)]))&&(inClose[(i-2)]<=(inLow[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))||(((inHigh[i]>inHigh[(i-1)])&&(inLow[i]>inLow[(i-1)]))&&(inClose[(i-2)]>=(inHigh[(i-2)]-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))) ) /* (bull) 4th: lower high and lower low (bull) 2nd: close near the low (bear) 4th: higher high and higher low (bull) 2nd: close near the top */
+         {
             patternResult = (100*(((inHigh[i]<inHigh[(i-1)])) ? (1) : ((0-1))));
             patternIdx = i;
             outInteger[outIdx++] = patternResult;
-         } else if( ((i<=(patternIdx+3))&&(((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)])))) ) {
+         } else if( (i<=(patternIdx+3)) &&
+             (((patternResult>0)&&(inClose[i]>inHigh[(patternIdx-1)]))||((patternResult<0)&&(inClose[i]<inLow[(patternIdx-1)]))) ) /* search for confirmation if modified hikkake was no more than 3 bars ago close higher than the high of 3rd close lower than the low of 3rd */
+         {
             outInteger[outIdx++] = (patternResult+(100*(((patternResult>0)) ? (1) : ((0-1)))));
             patternIdx = 0;
          } else {
@@ -13815,6 +15888,7 @@ public class Core {
          NearTrailingIdx += 1;
          i += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -14039,6 +16113,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  032005 AC   Creation
+ */
+
    public int cdlHomingPigeonLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -14079,15 +16167,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlHomingPigeonLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
@@ -14103,19 +16200,38 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black candle
+       * - second candle: short black real body completely inside the previous day's body
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100): homing pigeon is always bullish;
+       * the user should consider that homing pigeon is significant when it appears in a downtrend,
+       * while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(inOpen[i]<inOpen[(i-1)]))&&(inClose[i]>inClose[(i-1)])) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 1st black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 2nd black */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st long */
+             (Math.abs((inClose[i]-inOpen[i]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd short */
+             (inOpen[i]<inOpen[(i-1)]) &&                                    /* 2nd engulfed by 1st */
+             (inClose[i]>inClose[(i-1)]) )
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) - Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -14319,6 +16435,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103104 AC   Creation
+ */
+
    public int cdlIdentical3CrowsLookback( )
    {
       int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
@@ -14360,15 +16490,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlIdentical3CrowsLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal[2] = 0;
       ShadowVeryShortPeriodTotal[1] = 0;
       ShadowVeryShortPeriodTotal[0] = 0;
@@ -14391,13 +16530,39 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - three consecutive and declining black candlesticks
+       * - each candle must have no or very short lower shadow
+       * - each candle after the first must open at or very close to the prior candle's close
+       * The meaning of "very short" is specified with TA_SetCandleSettings;
+       * the meaning of "very close" is specified with TA_SetCandleSettings (Equal);
+       * outInteger is negative (-1 to -100): identical three crows is always bearish;
+       * the user should consider that identical 3 crows is significant when it appears after a mature advance or at high levels,
+       * while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(inClose[(i-2)]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[i]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[2] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[(i-1)]>=(inClose[(i-2)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[2] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[1] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[i]>=(inClose[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[1] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 1st black */
+             (((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[2] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short lower shadow */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd black */
+             (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short lower shadow */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 3rd black */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short lower shadow */
+             (inClose[(i-2)]>inClose[(i-1)]) &&                              /* three declining */
+             (inClose[(i-1)]>inClose[i]) &&
+             (inOpen[(i-1)]<=(inClose[(i-2)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[2] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* 2nd black opens very close to 1st close */
+             (inOpen[(i-1)]>=(inClose[(i-2)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[2] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (inOpen[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[1] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* 3rd black opens very close to 2nd close */
+             (inOpen[i]>=(inClose[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal[1] / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) )
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
             ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) - Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : 0.0)))));
          }
@@ -14408,6 +16573,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          EqualTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -14647,6 +16813,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
    public int cdlInNeckLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -14687,15 +16867,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlInNeckLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       EqualPeriodTotal = 0;
       EqualTrailingIdx = (startIdx-Equal_avgPeriod);
       BodyLongPeriodTotal = 0;
@@ -14711,19 +16900,38 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black candle
+       * - second candle: white candle with open below previous day low and close slightly into previous day body
+       * The meaning of "equal" is specified with TA_SetCandleSettings
+       * outInteger is negative (-1 to -100): in-neck is always bearish
+       * the user should consider that in-neck is significant when it appears in a downtrend, while this function
+       * does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inLow[(i-1)]))&&(inClose[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inClose[i]>=inClose[(i-1)])) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 1st: black */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* 2nd: white */
+             (inOpen[i]<inLow[(i-1)]) &&                                     /* open below prior low */
+             (inClose[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* close slightly into prior body */
+             (inClose[i]>=inClose[(i-1)]) )
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) - Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : 0.0))));
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) - Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : 0.0))));
          i += 1;
          EqualTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -14927,6 +17135,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103004 AC   Creation
+ */
+
    public int cdlInvertedHammerLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -14975,15 +17197,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlInvertedHammerLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
       ShadowLongPeriodTotal = 0;
@@ -15005,13 +17236,31 @@ public class Core {
          ShadowVeryShortPeriodTotal += ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - small real body
+       * - long upper shadow
+       * - no, or very short, lower shadow
+       * - gap down
+       * The meaning of "short", "very short" and "long" is specified with TA_SetCandleSettings;
+       * outInteger is positive (1 to 100): inverted hammer is always bullish;
+       * the user should consider that an inverted hammer must appear in a downtrend, while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))&&(Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) != 0 && /* gap down */
+             (Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* small rb */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long upper shadow */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) )
+         {
+            /* very short lower shadow */
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          ShadowLongPeriodTotal += (((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowLong_rangeType == 0) ? (Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : ((ShadowLong_rangeType == 1) ? (inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) : ((ShadowLong_rangeType == 2) ? ((inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) - Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
@@ -15020,6 +17269,7 @@ public class Core {
          ShadowLongTrailingIdx += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -15262,6 +17512,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010705 AC   Creation
+ */
+
    public int cdlKickingLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -15303,15 +17567,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlKickingLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal[1] = 0;
       ShadowVeryShortPeriodTotal[0] = 0;
       ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
@@ -15331,13 +17604,32 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: marubozu
+       * - second candle: opposite color marubozu
+       * - gap between the two candles: upside gap if black then white, downside gap if white then black
+       * The meaning of "long body" and "very short shadow" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish
+       */
       outIdx = 0;
       do {
-         if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* opposite candles */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st marubozu */
+             ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd marubozu */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             ((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)]))) ) /* gap */
+         {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
             BodyLongPeriodTotal[totIdx] = (BodyLongPeriodTotal[totIdx]+(((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) - Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : 0.0)))));
             ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) - Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : 0.0)))));
@@ -15346,6 +17638,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -15570,6 +17863,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlKickingByLengthLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -15611,15 +17918,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlKickingByLengthLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal[1] = 0;
       ShadowVeryShortPeriodTotal[0] = 0;
       ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
@@ -15639,13 +17955,33 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: marubozu
+       * - second candle: opposite color marubozu
+       * - gap between the two candles: upside gap if black then white, downside gap if white then black
+       * The meaning of "long body" and "very short shadow" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish; the longer of the two
+       * marubozu determines the bullishness or bearishness of this pattern
+       */
       outIdx = 0;
       do {
-         if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* opposite candles */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st marubozu */
+             ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[1] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd marubozu */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal[0] / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             ((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)]))) ) /* gap */
+         {
             outInteger[outIdx++] = ((((inClose[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))]>=inOpen[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
             BodyLongPeriodTotal[totIdx] = (BodyLongPeriodTotal[totIdx]+(((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) - Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : 0.0)))));
             ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(ShadowVeryShortTrailingIdx-totIdx)] - inLow[(ShadowVeryShortTrailingIdx-totIdx)]) - Math.abs(inClose[(ShadowVeryShortTrailingIdx-totIdx)] - inOpen[(ShadowVeryShortTrailingIdx-totIdx)])) : 0.0)))));
@@ -15654,6 +17990,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -15878,6 +18215,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  032005 AC   Creation
+ *  041305 MF   Minor modification for a compiler warning
+ */
+
    public int cdlLadderBottomLookback( )
    {
       int ShadowVeryShort_rangeType = this.candleSettings[CandleSettingType.ShadowVeryShort.ordinal()].rangeType.ordinal();
@@ -15910,15 +18262,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlLadderBottomLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal = 0;
       ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
       i = ShadowVeryShortTrailingIdx;
@@ -15927,17 +18288,43 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - three black candlesticks with consecutively lower opens and closes
+       * - fourth candle: black candle with an upper shadow (it's supposed to be not very short)
+       * - fifth candle: white candle that opens above prior candle's body and closes above prior candle's high
+       * The meaning of "very short" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100): ladder bottom is always bullish;
+       * the user should consider that ladder bottom is significant when it appears in a downtrend,
+       * while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[(i-4)]>inOpen[(i-3)]))&&(inOpen[(i-3)]>inOpen[(i-2)]))&&(inClose[(i-4)]>inClose[(i-3)]))&&(inClose[(i-3)]>inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]>inHigh[(i-1)])) ) {
+         if( ((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1)) &&
+             ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)) &&
+             ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 3 black candlesticks */
+             (inOpen[(i-4)]>inOpen[(i-3)]) &&
+             (inOpen[(i-3)]>inOpen[(i-2)]) &&                                /* with consecutively lower opens */
+             (inClose[(i-4)]>inClose[(i-3)]) &&
+             (inClose[(i-3)]>inClose[(i-2)]) &&                              /* and closes */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 4th: black with an upper shadow */
+             ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* 5th: white */
+             (inOpen[i]>inOpen[(i-1)]) &&                                    /* that opens above prior candle's body */
+             (inClose[i]>inHigh[(i-1)]) )                                    /* and closes above prior candle's high */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(ShadowVeryShortTrailingIdx-1)] - inOpen[(ShadowVeryShortTrailingIdx-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(ShadowVeryShortTrailingIdx-1)] - inLow[(ShadowVeryShortTrailingIdx-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(ShadowVeryShortTrailingIdx-1)] - inLow[(ShadowVeryShortTrailingIdx-1)]) - Math.abs(inClose[(ShadowVeryShortTrailingIdx-1)] - inOpen[(ShadowVeryShortTrailingIdx-1)])) : 0.0))));
          i += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -16099,6 +18486,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlLongLeggedDojiLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -16139,15 +18540,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlLongLeggedDojiLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyDojiPeriodTotal = 0;
       BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
       ShadowLongPeriodTotal = 0;
@@ -16162,6 +18572,14 @@ public class Core {
          ShadowLongPeriodTotal += ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       *
+       * Must have:
+       * - doji body
+       * - one or two long shadows
+       * The meaning of "doji" is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100) but this does not mean it is bullish: long legged doji shows uncertainty
+       */
       outIdx = 0;
       do {
          if( ((Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0)))))&&((((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0)))))||((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))) ) {
@@ -16169,12 +18587,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          ShadowLongPeriodTotal += (((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowLong_rangeType == 0) ? (Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : ((ShadowLong_rangeType == 1) ? (inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) : ((ShadowLong_rangeType == 2) ? ((inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) - Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : 0.0))));
          i += 1;
          BodyDojiTrailingIdx += 1;
          ShadowLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -16375,6 +18797,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  071704 AC   Creation
+ */
+
    public int cdlLongLineLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -16415,15 +18851,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlLongLineLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyLong_avgPeriod);
       ShadowPeriodTotal = 0;
@@ -16438,6 +18883,13 @@ public class Core {
          ShadowPeriodTotal += ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - long real body
+       * - short upper and lower shadow
+       * The meaning of "long" and "short" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when white (bullish), negative (-1 to -100) when black (bearish)
+       */
       outIdx = 0;
       do {
          if( (((Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0)))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowPeriodTotal / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowPeriodTotal / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -16445,12 +18897,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          ShadowPeriodTotal += (((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowShort_rangeType == 0) ? (Math.abs(inClose[ShadowTrailingIdx] - inOpen[ShadowTrailingIdx])) : ((ShadowShort_rangeType == 1) ? (inHigh[ShadowTrailingIdx] - inLow[ShadowTrailingIdx]) : ((ShadowShort_rangeType == 2) ? ((inHigh[ShadowTrailingIdx] - inLow[ShadowTrailingIdx]) - Math.abs(inClose[ShadowTrailingIdx] - inOpen[ShadowTrailingIdx])) : 0.0))));
          i += 1;
          BodyTrailingIdx += 1;
          ShadowTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -16651,6 +19107,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010605 AC   Creation
+ */
+
    public int cdlMarubozuLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -16691,15 +19161,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlMarubozuLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
       ShadowVeryShortPeriodTotal = 0;
@@ -16714,6 +19193,13 @@ public class Core {
          ShadowVeryShortPeriodTotal += ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - long real body
+       * - no or very short upper and lower shadow
+       * The meaning of "long" and "very short" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when white (bullish), negative (-1 to -100) when black (bearish)
+       */
       outIdx = 0;
       do {
          if( (((Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0)))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -16721,12 +19207,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -16927,6 +19417,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  032605 AC   Creation
+ */
+
    public int cdlMatchingLowLookback( )
    {
       int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
@@ -16959,15 +19463,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlMatchingLowLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       EqualPeriodTotal = 0;
       EqualTrailingIdx = (startIdx-Equal_avgPeriod);
       i = EqualTrailingIdx;
@@ -16976,17 +19489,32 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: black candle
+       * - second candle: black candle with the close equal to the previous close
+       * The meaning of "equal" is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100): matching low is always bullish;
+       */
       outIdx = 0;
       do {
-         if( (((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inClose[i]>=(inClose[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* first black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* second black */
+             (inClose[i]<=(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* 1st and 2nd same close */
+             (inClose[i]>=(inClose[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) )
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) - Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : 0.0))));
          i += 1;
          EqualTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -17148,6 +19676,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022005 AC   Creation
+ */
+
    public int cdlMatHoldLookback( double optInPenetration )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -17189,15 +19731,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlMatHoldLookback(optInPenetration);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal[4] = 0;
       BodyPeriodTotal[3] = 0;
       BodyPeriodTotal[2] = 0;
@@ -17218,13 +19769,47 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white candle
+       * - upside gap between the first and the second bodies
+       * - second candle: small black candle
+       * - third and fourth candles: falling small real body candlesticks (commonly black) that hold within the long
+       *   white candle's body and are higher than the reaction days of the rising three methods
+       * - fifth candle: white candle that opens above the previous small candle's close and closes higher than the
+       *   high of the highest reaction day
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings;
+       * "hold within" means "a part of the real body must be within";
+       * optInPenetration is the maximum percentage of the first white body the reaction days can penetrate (it is
+       * to specify how much the reaction days should be "higher than the reaction days of the rising three methods")
+       * outInteger is positive (1 to 100): mat hold is always bullish
+       */
       outIdx = 0;
       do {
-         if( (((((((((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)])))&&(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyPeriodTotal[4] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[3] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[2] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[1] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1) &&     /* white, black, 2 black or white, white */
+             ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)) &&
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&
+             ((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) != 0 && /* upside gap 1st to 2nd */
+             (Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]) &&     /* 3rd to 4th hold within 1st: a part of the real body must be within 1st real body */
+             (Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]) &&
+             (Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))) && /* reaction days penetrate first body less than optInPenetration percent */
+             (Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))) &&
+             (Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]) &&      /* 2nd to 4th are falling */
+             (Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])) &&
+             (inOpen[i]>inClose[(i-1)]) &&                                   /* 5th opens above the prior close */
+             (inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)])) && /* 5th closes above the highest high of the reaction days */
+             (Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyPeriodTotal[4] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st long, then 3 small */
+             (Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[3] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[2] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[1] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) )
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal[4] = (BodyPeriodTotal[4]+(((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-4)] - inOpen[(BodyLongTrailingIdx-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-4)] - inLow[(BodyLongTrailingIdx-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-4)] - inLow[(BodyLongTrailingIdx-4)]) - Math.abs(inClose[(BodyLongTrailingIdx-4)] - inOpen[(BodyLongTrailingIdx-4)])) : 0.0)))));
          for( totIdx = 3; (totIdx>=1); totIdx -= 1 ) {
             BodyPeriodTotal[totIdx] = (BodyPeriodTotal[totIdx]+(((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[(BodyShortTrailingIdx-totIdx)] - inOpen[(BodyShortTrailingIdx-totIdx)])) : ((BodyShort_rangeType == 1) ? (inHigh[(BodyShortTrailingIdx-totIdx)] - inLow[(BodyShortTrailingIdx-totIdx)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(BodyShortTrailingIdx-totIdx)] - inLow[(BodyShortTrailingIdx-totIdx)]) - Math.abs(inClose[(BodyShortTrailingIdx-totIdx)] - inOpen[(BodyShortTrailingIdx-totIdx)])) : 0.0)))));
@@ -17233,6 +19818,7 @@ public class Core {
          BodyShortTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -17460,6 +20046,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100304 AC   Creation
+ */
+
    public int cdlMorningDojiStarLookback( double optInPenetration )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -17509,15 +20109,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlMorningDojiStarLookback(optInPenetration);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyDojiPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
@@ -17540,13 +20149,36 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black real body
+       * - second candle: doji gapping down
+       * - third candle: white real body that moves well within the first candle's real body
+       * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+       * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+       * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+       * it to be relatively long
+       * outInteger is positive (1 to 100): morning doji star is always bullish;
+       * the user should consider that a morning star is significant when it appears in a downtrend,
+       * while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* white real body */
+             ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* gapping down */
+             (inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))) && /* closing well within 1st rb */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: doji */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* 3rd: longer than short */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
@@ -17555,6 +20187,7 @@ public class Core {
          BodyDojiTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -17803,6 +20436,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100304 AC   Creation
+ */
+
    public int cdlMorningStarLookback( double optInPenetration )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -17845,15 +20492,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlMorningStarLookback(optInPenetration);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
       BodyShortPeriodTotal2 = 0;
@@ -17871,13 +20527,36 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black real body
+       * - second candle: star (Short real body gapping down)
+       * - third candle: white real body that moves well within the first candle's real body
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+       * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+       * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+       * it to be relatively long
+       * outInteger is positive (1 to 100): morning star is always bullish;
+       * the user should consider that a morning star is significant when it appears in a downtrend,
+       * while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal2 / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* white real body */
+             ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* gapping down */
+             (inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))) && /* closing well within 1st rb */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: short */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal2 / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* 3rd: longer than short */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal2 += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[(BodyShortTrailingIdx+1)] - inOpen[(BodyShortTrailingIdx+1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(BodyShortTrailingIdx+1)] - inLow[(BodyShortTrailingIdx+1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(BodyShortTrailingIdx+1)] - inLow[(BodyShortTrailingIdx+1)]) - Math.abs(inClose[(BodyShortTrailingIdx+1)] - inOpen[(BodyShortTrailingIdx+1)])) : 0.0))));
@@ -17885,6 +20564,7 @@ public class Core {
          BodyLongTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -18103,6 +20783,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121104 AC   Creation
+ */
+
    public int cdlOnNeckLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -18143,15 +20837,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlOnNeckLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       EqualPeriodTotal = 0;
       EqualTrailingIdx = (startIdx-Equal_avgPeriod);
       BodyLongPeriodTotal = 0;
@@ -18167,19 +20870,38 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black candle
+       * - second candle: white candle with open below previous day low and close equal to previous day low
+       * The meaning of "equal" is specified with TA_SetCandleSettings
+       * outInteger is negative (-1 to -100): on-neck is always bearish
+       * the user should consider that on-neck is significant when it appears in a downtrend, while this function
+       * does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inLow[(i-1)]))&&(inClose[i]<=(inLow[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inClose[i]>=(inLow[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 1st: black */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* 2nd: white */
+             (inOpen[i]<inLow[(i-1)]) &&                                     /* open below prior low */
+             (inClose[i]<=(inLow[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* close equal to prior low */
+             (inClose[i]>=(inLow[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) )
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) - Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : 0.0))));
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) - Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : 0.0))));
          i += 1;
          EqualTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -18383,6 +21105,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120904 AC   Creation
+ */
+
    public int cdlPiercingLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -18416,15 +21152,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlPiercingLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal[1] = 0;
       BodyLongPeriodTotal[0] = 0;
       BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
@@ -18435,19 +21180,40 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black candle
+       * - second candle: long white candle with open below previous day low and close at least at 50% of previous day
+       * real body
+       * The meaning of "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100): piercing pattern is always bullish
+       * the user should consider that a piercing pattern is significant when it appears in a downtrend, while
+       * this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(inOpen[i]<inLow[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>(inClose[(i-1)]+(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))*0.5)))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 1st: black */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* 2nd: white */
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             (inOpen[i]<inLow[(i-1)]) &&                                     /* open below prior low */
+             (inClose[i]<inOpen[(i-1)]) &&                                   /* close within prior body */
+             (inClose[i]>(inClose[(i-1)]+(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))*0.5))) ) /* above midpoint */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
             BodyLongPeriodTotal[totIdx] = (BodyLongPeriodTotal[totIdx]+(((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) - Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : 0.0)))));
          }
          i += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -18624,6 +21390,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlRickshawManLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -18672,15 +21452,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlRickshawManLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyDojiPeriodTotal = 0;
       BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
       ShadowLongPeriodTotal = 0;
@@ -18702,13 +21491,29 @@ public class Core {
          NearPeriodTotal += ((Near_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((Near_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((Near_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       *
+       * Must have:
+       * - doji body
+       * - two long shadows
+       * - body near the midpoint of the high-low range
+       * The meaning of "doji" and "near" is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100) but this does not mean it is bullish: rickshaw man shows uncertainty
+       */
       outIdx = 0;
       do {
-         if( ((((Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0)))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))&&((Math.min(inOpen[i], inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((Near_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((Near_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.max(inOpen[i], inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((Near_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((Near_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))) ) {
+         if( (Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) && /* doji */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long shadow */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long shadow */
+             ((Math.min(inOpen[i], inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((Near_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((Near_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.max(inOpen[i], inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((Near_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((Near_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))) ) /* body near midpoint */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          ShadowLongPeriodTotal += (((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowLong_rangeType == 0) ? (Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : ((ShadowLong_rangeType == 1) ? (inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) : ((ShadowLong_rangeType == 2) ? ((inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) - Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : 0.0))));
          NearPeriodTotal += (((Near_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((Near_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((Near_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((Near_rangeType == 0) ? (Math.abs(inClose[NearTrailingIdx] - inOpen[NearTrailingIdx])) : ((Near_rangeType == 1) ? (inHigh[NearTrailingIdx] - inLow[NearTrailingIdx]) : ((Near_rangeType == 2) ? ((inHigh[NearTrailingIdx] - inLow[NearTrailingIdx]) - Math.abs(inClose[NearTrailingIdx] - inOpen[NearTrailingIdx])) : 0.0))));
@@ -18717,6 +21522,7 @@ public class Core {
          ShadowLongTrailingIdx += 1;
          NearTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -18959,6 +21765,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  020605 AC   Creation
+ */
+
    public int cdlRiseFall3MethodsLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -18999,15 +21819,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlRiseFall3MethodsLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal[4] = 0;
       BodyPeriodTotal[3] = 0;
       BodyPeriodTotal[2] = 0;
@@ -19029,13 +21858,46 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long white (black) candlestick
+       * - then: group of falling (rising) small real body candlesticks (commonly black (white)) that hold within
+       *   the prior long candle's range: ideally they should be three but two or more than three are ok too
+       * - final candle: long white (black) candle that opens above (below) the previous small candle's close
+       *   and closes above (below) the first long candle's close
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings; here only patterns with 3 small candles
+       * are considered;
+       * outInteger is positive (1 to 100) or negative (-1 to -100)
+       */
       outIdx = 0;
       do {
-         if( ((((((((((((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(Math.min(inOpen[(i-3)], inClose[(i-3)])<inHigh[(i-4)]))&&(Math.max(inOpen[(i-3)], inClose[(i-3)])>inLow[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inHigh[(i-4)]))&&(Math.max(inOpen[(i-2)], inClose[(i-2)])>inLow[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inHigh[(i-4)]))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])>inLow[(i-4)]))&&((inClose[(i-2)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))<(inClose[(i-3)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))))&&((inClose[(i-1)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))<(inClose[(i-2)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))))&&((inOpen[i]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))>(inClose[(i-1)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))))&&((inClose[i]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))>(inClose[(i-4)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))))&&(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyPeriodTotal[4] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[3] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[2] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[1] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1))))) && /* white, 3 black, white  ||  black, 3 white, black */
+             ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))) &&
+             ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))) &&
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) &&
+             (Math.min(inOpen[(i-3)], inClose[(i-3)])<inHigh[(i-4)]) && /* 2nd to 4th hold within 1st: a part of the real body must be within 1st range */
+             (Math.max(inOpen[(i-3)], inClose[(i-3)])>inLow[(i-4)]) &&
+             (Math.min(inOpen[(i-2)], inClose[(i-2)])<inHigh[(i-4)]) &&
+             (Math.max(inOpen[(i-2)], inClose[(i-2)])>inLow[(i-4)]) &&
+             (Math.min(inOpen[(i-1)], inClose[(i-1)])<inHigh[(i-4)]) &&
+             (Math.max(inOpen[(i-1)], inClose[(i-1)])>inLow[(i-4)]) &&
+             ((inClose[(i-2)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))<(inClose[(i-3)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))) && /* 2nd to 4th are falling (rising) */
+             ((inClose[(i-1)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))<(inClose[(i-2)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))) &&
+             ((inOpen[i]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))>(inClose[(i-1)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))) && /* 5th opens above (below) the prior close */
+             ((inClose[i]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))>(inClose[(i-4)]*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))))) && /* 5th closes above (below) the 1st close */
+             (Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyPeriodTotal[4] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st long, then 3 small, 5th long */
+             (Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[3] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-3)] - inLow[(i-3)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-3)] - inLow[(i-3)]) - Math.abs(inClose[(i-3)] - inOpen[(i-3)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[2] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal[1] / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) &&
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyPeriodTotal[0] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) )
+         {
             outInteger[outIdx++] = (100*(((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1))));
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal[4] = (BodyPeriodTotal[4]+(((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-4)] - inLow[(i-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-4)] - inLow[(i-4)]) - Math.abs(inClose[(i-4)] - inOpen[(i-4)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-4)] - inOpen[(BodyLongTrailingIdx-4)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-4)] - inLow[(BodyLongTrailingIdx-4)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-4)] - inLow[(BodyLongTrailingIdx-4)]) - Math.abs(inClose[(BodyLongTrailingIdx-4)] - inOpen[(BodyLongTrailingIdx-4)])) : 0.0)))));
          for( totIdx = 3; (totIdx>=1); totIdx -= 1 ) {
             BodyPeriodTotal[totIdx] = (BodyPeriodTotal[totIdx]+(((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[(BodyShortTrailingIdx-totIdx)] - inOpen[(BodyShortTrailingIdx-totIdx)])) : ((BodyShort_rangeType == 1) ? (inHigh[(BodyShortTrailingIdx-totIdx)] - inLow[(BodyShortTrailingIdx-totIdx)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(BodyShortTrailingIdx-totIdx)] - inLow[(BodyShortTrailingIdx-totIdx)]) - Math.abs(inClose[(BodyShortTrailingIdx-totIdx)] - inOpen[(BodyShortTrailingIdx-totIdx)])) : 0.0)))));
@@ -19045,6 +21907,7 @@ public class Core {
          BodyShortTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -19275,6 +22138,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlSeperatingLinesLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -19323,15 +22200,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlSeperatingLinesLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       ShadowVeryShortPeriodTotal = 0;
       ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
       BodyLongPeriodTotal = 0;
@@ -19354,13 +22240,30 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: black (white) candle
+       * - second candle: bullish (bearish) belt hold with the same open as the prior candle
+       * The meaning of "long body" and "very short shadow" of the belt hold is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * the user should consider that separating lines is significant when coming in a trend and the belt hold has
+       * the same direction of the trend, while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(inOpen[i]<=(inOpen[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inOpen[i]>=(inOpen[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* opposite candles */
+             (inOpen[i]<=(inOpen[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* same open */
+             (inOpen[i]>=(inOpen[(i-1)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (Math.abs((inClose[i]-inOpen[i]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* belt hold: long body */
+             ((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))) ) /* with no lower shadow if bullish with no upper shadow if bearish */
+         {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) - Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : 0.0))));
@@ -19369,6 +22272,7 @@ public class Core {
          BodyLongTrailingIdx += 1;
          EqualTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -19614,6 +22518,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103004 AC   Creation
+ */
+
    public int cdlShootingStarLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -19662,15 +22580,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlShootingStarLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
       ShadowLongPeriodTotal = 0;
@@ -19692,13 +22619,31 @@ public class Core {
          ShadowVeryShortPeriodTotal += ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - small real body
+       * - long upper shadow
+       * - no, or very short, lower shadow
+       * - gap up from prior real body
+       * The meaning of "short", "very short" and "long" is specified with TA_SetCandleSettings;
+       * outInteger is negative (-1 to -100): shooting star is always bearish;
+       * the user should consider that a shooting star must appear in an uptrend, while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))&&(Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) != 0 && /* gap up */
+             (Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* small rb */
+             ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>((ShadowLong_factor * (((ShadowLong_avgPeriod != 0) ? (ShadowLongPeriodTotal / ShadowLong_avgPeriod) : ((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long upper shadow */
+             (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) )
+         {
+            /* very short lower shadow */
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          ShadowLongPeriodTotal += (((ShadowLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowLong_rangeType == 0) ? (Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : ((ShadowLong_rangeType == 1) ? (inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) : ((ShadowLong_rangeType == 2) ? ((inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx]) - Math.abs(inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
@@ -19707,6 +22652,7 @@ public class Core {
          ShadowLongTrailingIdx += 1;
          ShadowVeryShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -19949,6 +22895,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  072404 AC   Creation
+ */
+
    public int cdlShortLineLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -19989,15 +22949,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlShortLineLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
       ShadowPeriodTotal = 0;
@@ -20012,6 +22981,14 @@ public class Core {
          ShadowPeriodTotal += ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - short real body
+       * - short upper and lower shadow
+       * The meaning of "short" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when white, negative (-1 to -100) when black;
+       * it does not mean bullish or bearish
+       */
       outIdx = 0;
       do {
          if( (((Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowPeriodTotal / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<((ShadowShort_factor * (((ShadowShort_avgPeriod != 0) ? (ShadowPeriodTotal / ShadowShort_avgPeriod) : ((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -20019,12 +22996,16 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          ShadowPeriodTotal += (((ShadowShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowShort_rangeType == 0) ? (Math.abs(inClose[ShadowTrailingIdx] - inOpen[ShadowTrailingIdx])) : ((ShadowShort_rangeType == 1) ? (inHigh[ShadowTrailingIdx] - inLow[ShadowTrailingIdx]) : ((ShadowShort_rangeType == 2) ? ((inHigh[ShadowTrailingIdx] - inLow[ShadowTrailingIdx]) - Math.abs(inClose[ShadowTrailingIdx] - inOpen[ShadowTrailingIdx])) : 0.0))));
          i += 1;
          BodyTrailingIdx += 1;
          ShadowTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -20225,6 +23206,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  071804 AC   Creation
+ */
+
    public int cdlSpinningTopLookback( )
    {
       int BodyShort_rangeType = this.candleSettings[CandleSettingType.BodyShort.ordinal()].rangeType.ordinal();
@@ -20257,15 +23252,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlSpinningTopLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = (startIdx-BodyShort_avgPeriod);
       i = BodyTrailingIdx;
@@ -20273,6 +23277,14 @@ public class Core {
          BodyPeriodTotal += ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - small real body
+       * - shadows longer than the real body
+       * The meaning of "short" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when white or negative (-1 to -100) when black;
+       * it does not mean bullish or bearish
+       */
       outIdx = 0;
       do {
          if( ((((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i])))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i]))))&&(Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -20280,10 +23292,14 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          i += 1;
          BodyTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -20442,6 +23458,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120804 AC   Creation
+ */
+
    public int cdlStalledPatternLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -20499,15 +23529,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlStalledPatternLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal[2] = 0;
       BodyLongPeriodTotal[1] = 0;
       BodyLongPeriodTotal[0] = 0;
@@ -20543,13 +23582,41 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - three white candlesticks with consecutively higher closes
+       * - first candle: long white
+       * - second candle: long white with no or very short upper shadow opening within or near the previous white real body
+       * and closing higher than the prior candle
+       * - third candle: small white that gaps away or "rides on the shoulder" of the prior long real body (= it's at
+       * the upper end of the prior real body)
+       * The meanings of "long", "very short", "short", "near" are specified with TA_SetCandleSettings;
+       * outInteger is negative (-1 to -100): stalled pattern is always bearish;
+       * the user should consider that stalled pattern is significant when it appears in uptrend, while this function
+       * does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[2] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))))&&(Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(inOpen[i]>=((inClose[(i-1)]-Math.abs((inClose[i]-inOpen[i])))-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) && /* 1st white */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 2nd white */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&         /* 3rd white */
+             (inClose[i]>inClose[(i-1)]) &&
+             (inClose[(i-1)]>inClose[(i-2)]) &&                          /* consecutive higher closes */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[2] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long real body */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal[1] / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: long real body */
+             ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))) && /* very short upper shadow */
+             (inOpen[(i-1)]>inOpen[(i-2)]) &&                            /* opens within/near 1st real body */
+             (inOpen[(i-1)]<=(inClose[(i-2)]+((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[2] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Near_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Near_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) &&
+             (Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* 3rd: small real body */
+             (inOpen[i]>=((inClose[(i-1)]-Math.abs((inClose[i]-inOpen[i])))-((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal[1] / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0)))))) ) /* rides on the shoulder of 2nd real body */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          for( totIdx = 2; (totIdx>=1); totIdx -= 1 ) {
             BodyLongPeriodTotal[totIdx] = (BodyLongPeriodTotal[totIdx]+(((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-totIdx)] - inLow[(BodyLongTrailingIdx-totIdx)]) - Math.abs(inClose[(BodyLongTrailingIdx-totIdx)] - inOpen[(BodyLongTrailingIdx-totIdx)])) : 0.0)))));
             NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(((Near_rangeType == 0) ? (Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : ((Near_rangeType == 1) ? (inHigh[(i-totIdx)] - inLow[(i-totIdx)]) : ((Near_rangeType == 2) ? ((inHigh[(i-totIdx)] - inLow[(i-totIdx)]) - Math.abs(inClose[(i-totIdx)] - inOpen[(i-totIdx)])) : 0.0)))-((Near_rangeType == 0) ? (Math.abs(inClose[(NearTrailingIdx-totIdx)] - inOpen[(NearTrailingIdx-totIdx)])) : ((Near_rangeType == 1) ? (inHigh[(NearTrailingIdx-totIdx)] - inLow[(NearTrailingIdx-totIdx)]) : ((Near_rangeType == 2) ? ((inHigh[(NearTrailingIdx-totIdx)] - inLow[(NearTrailingIdx-totIdx)]) - Math.abs(inClose[(NearTrailingIdx-totIdx)] - inOpen[(NearTrailingIdx-totIdx)])) : 0.0)))));
@@ -20562,6 +23629,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          NearTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -20876,6 +23944,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  032005 AC   Creation
+ */
+
    public int cdlStickSandwichLookback( )
    {
       int Equal_rangeType = this.candleSettings[CandleSettingType.Equal.ordinal()].rangeType.ordinal();
@@ -20908,15 +23990,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlStickSandwichLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       EqualPeriodTotal = 0;
       EqualTrailingIdx = (startIdx-Equal_avgPeriod);
       i = EqualTrailingIdx;
@@ -20925,17 +24016,37 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: black candle
+       * - second candle: white candle that trades only above the prior close (low > prior close)
+       * - third candle: black candle with the close equal to the first candle's close
+       * The meaning of "equal" is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100): stick sandwich is always bullish;
+       * the user should consider that stick sandwich is significant when coming in a downtrend,
+       * while this function does not consider it
+       */
       outIdx = 0;
       do {
-         if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inClose[i]>=(inClose[(i-2)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* first black */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) &&     /* second white */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* third black */
+             (inLow[(i-1)]>inClose[(i-2)]) &&                                /* 2nd low > prior close */
+             (inClose[i]<=(inClose[(i-2)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* 1st and 3rd same close */
+             (inClose[i]>=(inClose[(i-2)]-((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) )
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((Equal_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-2)] - inOpen[(EqualTrailingIdx-2)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-2)] - inLow[(EqualTrailingIdx-2)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-2)] - inLow[(EqualTrailingIdx-2)]) - Math.abs(inClose[(EqualTrailingIdx-2)] - inOpen[(EqualTrailingIdx-2)])) : 0.0))));
          i += 1;
          EqualTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -21097,6 +24208,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
    public int cdlTakuriLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -21145,15 +24270,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlTakuriLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyDojiPeriodTotal = 0;
       BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
       ShadowVeryShortPeriodTotal = 0;
@@ -21175,6 +24309,16 @@ public class Core {
          ShadowVeryLongPeriodTotal += ((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       *
+       * Must have:
+       * - doji body
+       * - open and close at the high of the day = no or very short upper shadow
+       * - very long lower shadow
+       * The meaning of "doji", "very short" and "very long" is specified with TA_SetCandleSettings
+       * outInteger is always positive (1 to 100) but this does not mean it is bullish: takuri must be considered
+       * relatively to the trend
+       */
       outIdx = 0;
       do {
          if( (((Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyDojiPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0)))))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<((ShadowVeryShort_factor * (((ShadowVeryShort_avgPeriod != 0) ? (ShadowVeryShortPeriodTotal / ShadowVeryShort_avgPeriod) : ((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryShort_rangeType == 2) ? 2.0 : 1.0))))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>((ShadowVeryLong_factor * (((ShadowVeryLong_avgPeriod != 0) ? (ShadowVeryLongPeriodTotal / ShadowVeryLong_avgPeriod) : ((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((ShadowVeryLong_rangeType == 2) ? 2.0 : 1.0)))))) ) {
@@ -21182,6 +24326,9 @@ public class Core {
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyDojiPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx]) - Math.abs(inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx])) : 0.0))));
          ShadowVeryShortPeriodTotal += (((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryShort_rangeType == 0) ? (Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : ((ShadowVeryShort_rangeType == 1) ? (inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) : ((ShadowVeryShort_rangeType == 2) ? ((inHigh[ShadowVeryShortTrailingIdx] - inLow[ShadowVeryShortTrailingIdx]) - Math.abs(inClose[ShadowVeryShortTrailingIdx] - inOpen[ShadowVeryShortTrailingIdx])) : 0.0))));
          ShadowVeryLongPeriodTotal += (((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((ShadowVeryLong_rangeType == 0) ? (Math.abs(inClose[ShadowVeryLongTrailingIdx] - inOpen[ShadowVeryLongTrailingIdx])) : ((ShadowVeryLong_rangeType == 1) ? (inHigh[ShadowVeryLongTrailingIdx] - inLow[ShadowVeryLongTrailingIdx]) : ((ShadowVeryLong_rangeType == 2) ? ((inHigh[ShadowVeryLongTrailingIdx] - inLow[ShadowVeryLongTrailingIdx]) - Math.abs(inClose[ShadowVeryLongTrailingIdx] - inOpen[ShadowVeryLongTrailingIdx])) : 0.0))));
@@ -21190,6 +24337,7 @@ public class Core {
          ShadowVeryShortTrailingIdx += 1;
          ShadowVeryLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -21432,6 +24580,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011605 AC   Creation
+ */
+
    public int cdlTasukiGapLookback( )
    {
       int Near_rangeType = this.candleSettings[CandleSettingType.Near.ordinal()].rangeType.ordinal();
@@ -21464,15 +24626,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlTasukiGapLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       NearPeriodTotal = 0;
       NearTrailingIdx = (startIdx-Near_avgPeriod);
       i = NearTrailingIdx;
@@ -21481,17 +24652,47 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - upside (downside) gap
+       * - first candle after the window: white (black) candlestick
+       * - second candle: black (white) candlestick that opens within the previous real body and closes under (above)
+       *   the previous real body inside the gap
+       * - the size of two real bodies should be near the same
+       * The meaning of "near" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * the user should consider that tasuki gap is significant when it appears in a trend, while this function does
+       * not consider it
+       */
       outIdx = 0;
       do {
          if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))||((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<((Near_factor * (((Near_avgPeriod != 0) ? (NearPeriodTotal / Near_avgPeriod) : ((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Near_rangeType == 2) ? 2.0 : 1.0))))))) ) {
+            /* upside gap */
+            /* 1st: white */
+            /* 2nd: black */
+            /* that opens within the white rb */
+            /* and closes under the white rb */
+            /* inside the gap */
+            /* size of 2 rb near the same */
+            /* downside gap */
+            /* 1st: black */
+            /* 2nd: white */
+            /* that opens within the black rb */
+            /* and closes above the black rb */
+            /* inside the gap */
+            /* size of 2 rb near the same */
             outInteger[outIdx++] = ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          NearPeriodTotal += (((Near_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Near_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Near_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Near_rangeType == 0) ? (Math.abs(inClose[(NearTrailingIdx-1)] - inOpen[(NearTrailingIdx-1)])) : ((Near_rangeType == 1) ? (inHigh[(NearTrailingIdx-1)] - inLow[(NearTrailingIdx-1)]) : ((Near_rangeType == 2) ? ((inHigh[(NearTrailingIdx-1)] - inLow[(NearTrailingIdx-1)]) - Math.abs(inClose[(NearTrailingIdx-1)] - inOpen[(NearTrailingIdx-1)])) : 0.0))));
          i += 1;
          NearTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -21653,6 +24854,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121204 AC   Creation
+ */
+
    public int cdlThrustingLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -21693,15 +24908,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlThrustingLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       EqualPeriodTotal = 0;
       EqualTrailingIdx = (startIdx-Equal_avgPeriod);
       BodyLongPeriodTotal = 0;
@@ -21717,19 +24941,40 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black candle
+       * - second candle: white candle with open below previous day low and close into previous day body under the midpoint;
+       * to differentiate it from in-neck the close should not be equal to the black candle's close
+       * The meaning of "equal" is specified with TA_SetCandleSettings
+       * outInteger is negative (-1 to -100): thrusting pattern is always bearish
+       * the user should consider that the thrusting pattern is significant when it appears in a downtrend and it could be
+       * even bullish "when coming in an uptrend or occurring twice within several days" (Steve Nison says), while this
+       * function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inLow[(i-1)]))&&(inClose[i]>(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))))&&(inClose[i]<=(inClose[(i-1)]+(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))*0.5)))) ) {
+         if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 1st: black */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* 2nd: white */
+             (inOpen[i]<inLow[(i-1)]) &&                                     /* open below prior low */
+             (inClose[i]>(inClose[(i-1)]+((Equal_factor * (((Equal_avgPeriod != 0) ? (EqualPeriodTotal / Equal_avgPeriod) : ((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((Equal_rangeType == 2) ? 2.0 : 1.0)))))) && /* close into prior body */
+             (inClose[i]<=(inClose[(i-1)]+(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))*0.5))) ) /* under the midpoint */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          EqualPeriodTotal += (((Equal_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((Equal_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((Equal_rangeType == 0) ? (Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : ((Equal_rangeType == 1) ? (inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) : ((Equal_rangeType == 2) ? ((inHigh[(EqualTrailingIdx-1)] - inLow[(EqualTrailingIdx-1)]) - Math.abs(inClose[(EqualTrailingIdx-1)] - inOpen[(EqualTrailingIdx-1)])) : 0.0))));
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : ((BodyLong_rangeType == 1) ? (inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(BodyLongTrailingIdx-1)] - inLow[(BodyLongTrailingIdx-1)]) - Math.abs(inClose[(BodyLongTrailingIdx-1)] - inOpen[(BodyLongTrailingIdx-1)])) : 0.0))));
          i += 1;
          EqualTrailingIdx += 1;
          BodyLongTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -21933,6 +25178,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *  CSB      Christopher Barnhouse
+ *
+ * Change history:
+ *
+ *  MMDDYY BY      Description
+ *  -------------------------------------------------------------------
+ *  100204 AC      Creation
+ *  051005 CSB,AC  Fix #1199526 for out-of-bound write in output.
+ */
+
    public int cdlTristarLookback( )
    {
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
@@ -21965,15 +25225,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlTristarLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyPeriodTotal = 0;
       BodyTrailingIdx = ((startIdx-2)-BodyDoji_avgPeriod);
       i = BodyTrailingIdx;
@@ -21981,25 +25250,44 @@ public class Core {
          BodyPeriodTotal += ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyDoji_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyDoji_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)));
          i += 1;
       }
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - 3 consecutive doji days
+       * - the second doji is a star
+       * The meaning of "doji" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish
+       */
       i = startIdx;
       outIdx = 0;
       do {
-         if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: doji */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) && /* 2nd: doji */
+             (Math.abs((inClose[i]-inOpen[i]))<=((BodyDoji_factor * (((BodyDoji_avgPeriod != 0) ? (BodyPeriodTotal / BodyDoji_avgPeriod) : ((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyDoji_rangeType == 2) ? 2.0 : 1.0))))) )
+         {
+            /* 3rd: doji */
             outInteger[outIdx] = 0;
-            if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* 2nd gaps up */
+                (Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)])) ) /* 3rd is not higher than 2nd */
+            {
                outInteger[outIdx] = (0-100);
             }
-            if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* 2nd gaps down */
+                (Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)])) ) /* 3rd is not lower than 2nd */
+            {
                outInteger[outIdx] = 100;
             }
             outIdx += 1;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyPeriodTotal += (((BodyDoji_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyDoji_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyDoji_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyDoji_rangeType == 0) ? (Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : ((BodyDoji_rangeType == 1) ? (inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) : ((BodyDoji_rangeType == 2) ? ((inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx]) - Math.abs(inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx])) : 0.0))));
          i += 1;
          BodyTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -22182,6 +25470,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022005 AC   Creation
+ */
+
    public int cdlUnique3RiverLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -22222,15 +25524,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlUnique3RiverLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
       BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
@@ -22246,19 +25557,42 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: long black candle
+       * - second candle: black harami candle with a lower low than the first candle's low
+       * - third candle: small white candle with open not lower than the second candle's low, better if its open and
+       *   close are under the second candle's close
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+       * outInteger is positive (1 to 100): unique 3 river is always bullish and should appear in a downtrend
+       * to be significant, while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0)))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* black */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd: black */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* white */
+             (inClose[(i-1)]>inClose[(i-2)]) &&
+             (inOpen[(i-1)]<=inOpen[(i-2)]) &&                               /* harami */
+             (inLow[(i-1)]<inLow[(i-2)]) &&                                  /* lower low */
+             (inOpen[i]>inLow[(i-1)]) &&                                     /* open not lower */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* 1st: long */
+             (Math.abs((inClose[i]-inOpen[i]))<((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) ) /* 3rd: short */
+         {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[i] - inOpen[i])) : ((BodyShort_rangeType == 1) ? (inHigh[i] - inLow[i]) : ((BodyShort_rangeType == 2) ? ((inHigh[i] - inLow[i]) - Math.abs(inClose[i] - inOpen[i])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -22462,6 +25796,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  110104 AC   Creation
+ */
+
    public int cdlUpsideGap2CrowsLookback( )
    {
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
@@ -22502,15 +25850,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlUpsideGap2CrowsLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       BodyLongPeriodTotal = 0;
       BodyShortPeriodTotal = 0;
       BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
@@ -22526,19 +25883,44 @@ public class Core {
          i += 1;
       }
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: white candle, usually long
+       * - second candle: small black real body
+       * - gap between the first and the second candle's real bodies
+       * - third candle: black candle with a real body that engulfs the preceding candle
+       *   and closes above the white candle's close
+       * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+       * outInteger is negative (-1 to -100): upside gap two crows is always bearish;
+       * the user should consider that an upside gap two crows is significant when it appears in an uptrend,
+       * while this function does not consider the trend
+       */
       outIdx = 0;
       do {
-         if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) &&     /* 1st: white */
+             (Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>((BodyLong_factor * (((BodyLong_avgPeriod != 0) ? (BodyLongPeriodTotal / BodyLong_avgPeriod) : ((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))) / ((BodyLong_rangeType == 2) ? 2.0 : 1.0))))) && /* long */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd: black */
+             (Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=((BodyShort_factor * (((BodyShort_avgPeriod != 0) ? (BodyShortPeriodTotal / BodyShort_avgPeriod) : ((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))) / ((BodyShort_rangeType == 2) ? 2.0 : 1.0))))) && /* short */
+             ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) != 0 && /* gapping up */
+             ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 3rd: black */
+             (inOpen[i]>inOpen[(i-1)]) &&
+             (inClose[i]<inClose[(i-1)]) &&                                  /* 3rd: engulfing prior rb */
+             (inClose[i]>inClose[(i-2)]) )                                   /* closing above 1st */
+         {
             outInteger[outIdx++] = (0-100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          BodyLongPeriodTotal += (((BodyLong_rangeType == 0) ? (Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : ((BodyLong_rangeType == 1) ? (inHigh[(i-2)] - inLow[(i-2)]) : ((BodyLong_rangeType == 2) ? ((inHigh[(i-2)] - inLow[(i-2)]) - Math.abs(inClose[(i-2)] - inOpen[(i-2)])) : 0.0)))-((BodyLong_rangeType == 0) ? (Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : ((BodyLong_rangeType == 1) ? (inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) : ((BodyLong_rangeType == 2) ? ((inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx]) - Math.abs(inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx])) : 0.0))));
          BodyShortPeriodTotal += (((BodyShort_rangeType == 0) ? (Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : ((BodyShort_rangeType == 1) ? (inHigh[(i-1)] - inLow[(i-1)]) : ((BodyShort_rangeType == 2) ? ((inHigh[(i-1)] - inLow[(i-1)]) - Math.abs(inClose[(i-1)] - inOpen[(i-1)])) : 0.0)))-((BodyShort_rangeType == 0) ? (Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : ((BodyShort_rangeType == 1) ? (inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) : ((BodyShort_rangeType == 2) ? ((inHigh[BodyShortTrailingIdx] - inLow[BodyShortTrailingIdx]) - Math.abs(inClose[BodyShortTrailingIdx] - inOpen[BodyShortTrailingIdx])) : 0.0))));
          i += 1;
          BodyLongTrailingIdx += 1;
          BodyShortTrailingIdx += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -22742,6 +26124,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011605 AC   Creation
+ */
+
    public int cdlXSideGap3MethodsLookback( )
    {
       return 2 ;
@@ -22766,25 +26162,55 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = cdlXSideGap3MethodsLookback();
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       i = startIdx;
+      /* Proceed with the calculation for the requested range.
+       * Must have:
+       * - first candle: white (black) candle
+       * - second candle: white (black) candle
+       * - upside (downside) gap between the first and the second real bodies
+       * - third candle: black (white) candle that opens within the second real body and closes within the first real body
+       * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+       * the user should consider that up/downside gap 3 methods is significant when it appears in a trend, while this
+       * function does not consider it
+       */
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
+         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))) && /* 1st and 2nd of same color */
+             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* 3rd opposite color */
+             (inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])) &&  /* 3rd opens within 2nd rb */
+             (inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])) &&
+             (inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])) && /* 3rd closes within 1st rb */
+             (inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])) &&
+             ((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))) ) /* when 1st is white upside gap when 1st is black downside gap */
+         {
             outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
          }
+         /* add the current range and subtract the first range: this is done after the pattern recognition
+          * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+          */
          i += 1;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -22904,6 +26330,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int ceilLookback( )
    {
       return 0 ;
@@ -22986,6 +26425,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  BT       Barry Tsung
+ *
+ * Change history:
+ *
+ *  MMDDYY BY      Description
+ *  -------------------------------------------------------------------
+ *  112605 MF      Initial version.
+ *  021806 MF,BT   Fix #1434450 reported by BT.
+ */
+
    public int cmoLookback( int optInTimePeriod )
    {
       int retValue;
@@ -23023,16 +26477,33 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* CMO calculation is mostly identical to RSI.
+       *
+       * The only difference is in the last step of calculation:
+       *
+       *   RSI = gain / (gain+loss)
+       *   CMO = (gain-loss) / (gain+loss)
+       *
+       * See the RSI function for potentially some more info
+       * on this algo.
+       */
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = cmoLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
+      /* Trap special case where the period is '1'.
+       * In that case, just copy the input into the
+       * output for the requested range (as-is !)
+       */
       if( (optInTimePeriod==1) ) {
          outBegIdx.value = startIdx;
          i = ((endIdx-startIdx)+1);
@@ -23040,11 +26511,32 @@ public class Core {
          System.arraycopy(inReal, startIdx, outReal, 0, (i*1));
          return RetCode.Success ;
       }
+      /* Accumulate Wilder's "Average Gain" and "Average Loss"
+       * among the initial period.
+       */
       today = (startIdx-lookbackTotal);
       prevValue = inReal[today];
       unstablePeriod = this.unstablePeriod[FuncUnstId.Cmo.ordinal()];
+      /* If there is no unstable period,
+       * calculate the 'additional' initial
+       * price bar who is particuliar to
+       * metastock.
+       * If there is an unstable period,
+       * no need to calculate since this
+       * first value will be surely skip.
+       */
       if( ((unstablePeriod==0)&&(this.compatibility==Compatibility.Metastock)) ) {
+         /* Preserve prevValue because it may get
+          * overwritten by the output.
+          * (because output ptr could be the same as input ptr).
+          */
          savePrevValue = prevValue;
+         /* No unstable period, so must calculate first output
+          * particular to Metastock.
+          * (Metastock re-use the first price bar, so there
+          *  is no loss/gain at first. Beats me why they
+          *  are doing all this).
+          */
          prevGain = 0.0;
          prevLoss = 0.0;
          for( i = optInTimePeriod; (i>0); i -= 1 ) {
@@ -23061,19 +26553,25 @@ public class Core {
          tempValue2 = (prevGain/optInTimePeriod);
          tempValue3 = (tempValue2-tempValue1);
          tempValue4 = (tempValue1+tempValue2);
+         /* Write the output. */
          if( !(((-0.00000000000001 < tempValue4) && (tempValue4 < 0.00000000000001))) ) {
             outReal[outIdx++] = (100*(tempValue3/tempValue4));
          } else {
             outReal[outIdx++] = 0.0;
          }
+         /* Are we done? */
          if( (today>endIdx) ) {
             outBegIdx.value = startIdx;
             outNBElement.value = outIdx;
             return RetCode.Success ;
          }
+         /* Start over for the next price bar. */
          today -= optInTimePeriod;
          prevValue = savePrevValue;
       }
+      /* Remaining of the processing is identical
+       * for both Classic calculation and Metastock.
+       */
       prevGain = 0.0;
       prevLoss = 0.0;
       today += 1;
@@ -23087,8 +26585,22 @@ public class Core {
             prevGain += tempValue2;
          }
       }
+      /* Subsequent prevLoss and prevGain are smoothed
+       * using the previous values (Wilder's approach).
+       *  1) Multiply the previous by 'period-1'.
+       *  2) Add today value.
+       *  3) Divide by 'period'.
+       */
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
+      /* Often documentation present the RSI calculation as follow:
+       *    RSI = 100 - (100 / 1 + (prevGain/prevLoss))
+       *
+       * The following is equivalent:
+       *    RSI = 100 * (prevGain/(prevGain+prevLoss))
+       *
+       * The second equation is used here for speed optimization.
+       */
       if( (today>startIdx) ) {
          tempValue1 = (prevGain+prevLoss);
          if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
@@ -23097,6 +26609,9 @@ public class Core {
             outReal[outIdx++] = 0.0;
          }
       } else {
+         /* Skip the unstable period. Do the processing
+          * but do not write it in the output.
+          */
          while( (today<startIdx) ) {
             tempValue1 = inReal[today];
             tempValue2 = (tempValue1-prevValue);
@@ -23113,6 +26628,9 @@ public class Core {
             today += 1;
          }
       }
+      /* Unstable period skipped... now continue
+       * processing if needed.
+       */
       while( (today<=endIdx) ) {
          tempValue1 = inReal[today++];
          tempValue2 = (tempValue1-prevValue);
@@ -23549,6 +27067,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  101003 MF   Initial Coding
+ *  062804 MF   Resolve div by zero bug on limit case.
+ */
+
    public int correlLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -23583,10 +27117,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -23594,6 +27132,7 @@ public class Core {
       }
       outBegIdx.value = startIdx;
       trailingIdx = (startIdx-lookbackTotal);
+      /* Calculate the initial values. */
       sumY2 = 0.0;
       sumX2 = sumY2;
       sumY = sumX2;
@@ -23608,6 +27147,10 @@ public class Core {
          sumY += y;
          sumY2 += (y*y);
       }
+      /* Write the first output.
+       * Save first the trailing values since the input
+       * and output might be the same array,
+       */
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
@@ -23616,13 +27159,16 @@ public class Core {
       } else {
          outReal[0] = 0.0;
       }
+      /* Tight loop to do subsequent values. */
       outIdx = 1;
       while( (today<=endIdx) ) {
+         /* Remove trailing values */
          sumX -= trailingX;
          sumX2 -= (trailingX*trailingX);
          sumXY -= (trailingX*trailingY);
          sumY -= trailingY;
          sumY2 -= (trailingY*trailingY);
+         /* Add new values */
          x = inReal0[today];
          sumX += x;
          sumX2 += (x*x);
@@ -23630,6 +27176,10 @@ public class Core {
          sumXY += (x*y);
          sumY += y;
          sumY2 += (y*y);
+         /* Output new coefficient.
+          * Save first the trailing values since the input
+          * and output might be the same array,
+          */
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
          tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
@@ -23895,6 +27445,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int cosLookback( )
    {
       return 0 ;
@@ -23977,6 +27540,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int coshLookback( )
    {
       return 0 ;
@@ -24059,8 +27635,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010102 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int demaLookback( int optInTimePeriod )
    {
+      /* Get lookback for one EMA.
+       * Multiply by two (because double smoothing).
+       */
       return (emaLookback(optInTimePeriod)*2) ;
 
    }
@@ -24090,35 +27684,77 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* For an explanation of this function, please read
+       *
+       * Stocks & Commodities V. 12:1 (11-19):
+       *   Smoothing Data With Faster Moving Averages
+       * Stocks & Commodities V. 12:2 (72-80):
+       *   Smoothing Data With Less Lag
+       *
+       * Both magazine articles written by Patrick G. Mulloy
+       *
+       * Essentially, a DEMA of time serie 't' is:
+       *   EMA2 = EMA(EMA(t,period),period)
+       *   DEMA = 2*EMA(t,period)- EMA2
+       *
+       * DEMA offers a moving average with less lags then the
+       * traditional EMA.
+       *
+       * Do not confuse a DEMA with the EMA2. Both are called
+       * "Double EMA" in the litterature, but EMA2 is a simple
+       * EMA of an EMA, while DEMA is a compostie of a single
+       * EMA with EMA2.
+       *
+       * TEMA is very similar (and from the same author).
+       */
+      /* Will change only on success. */
       outNBElement.value = 0;
       outBegIdx.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackEMA = emaLookback(optInTimePeriod);
       lookbackTotal = (lookbackEMA*2);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
+      /* Allocate a temporary buffer for the firstEMA.
+       *
+       * When possible, re-use the outputBuffer for temp
+       * calculation.
+       */
       if( (inReal==outReal) ) {
          firstEMA = outReal;
       } else {
          tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
          firstEMA = new double[(int)((tempInt*1))];
       }
+      /* Calculate the first EMA */
       retCode = emaUnguarded((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      /* Verify for failure or if not enough data after
+       * calculating the first EMA.
+       */
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          if( (firstEMA!=outReal) ) {
          }
          return retCode ;
       }
+      /* Allocate a temporary buffer for storing the EMA of the EMA. */
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
       retCode = emaUnguarded(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      /* Return empty output on failure or if not enough data after
+       * calculating the second EMA.
+       */
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          if( (firstEMA!=outReal) ) {
          }
          return retCode ;
       }
+      /* Iterate through the second EMA and write the DEMA into
+       * the output.
+       */
       firstEMAIdx = secondEMABegIdx.value;
       outIdx = 0;
       while( (outIdx<secondEMANbElement.value) ) {
@@ -24127,6 +27763,9 @@ public class Core {
       }
       if( (firstEMA!=outReal) ) {
       }
+      /* Succeed. Indicate where the output starts relative to
+       * the caller input.
+       */
       outBegIdx.value = (firstEMABegIdx.value+secondEMABegIdx.value);
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -24321,6 +27960,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int divLookback( )
    {
       return 0 ;
@@ -24407,6 +28059,24 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel
+ *  MIF      Mirek Fontan (mira@fontan.cz)
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  082303 MF   Fix #792298. Remove rounding. Bug reported by AM.
+ *  062704 MF   Fix #965557. Div by zero bug reported by MIF.
+ */
+
    public int dxLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
@@ -24448,20 +28118,125 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /*
+       * The DM1 (one period) is base on the largest part of
+       * today's range that is outside of yesterdays range.
+       *
+       * The following 7 cases explain how the +DM and -DM are
+       * calculated on one period:
+       *
+       * Case 1:                       Case 2:
+       *    C|                        A|
+       *     |                         | C|
+       *     | +DM1 = (C-A)           B|  | +DM1 = 0
+       *     | -DM1 = 0                   | -DM1 = (B-D)
+       * A|  |                           D|
+       *  | D|
+       * B|
+       *
+       * Case 3:                       Case 4:
+       *    C|                           C|
+       *     |                        A|  |
+       *     | +DM1 = (C-A)            |  | +DM1 = 0
+       *     | -DM1 = 0               B|  | -DM1 = (B-D)
+       * A|  |                            |
+       *  |  |                           D|
+       * B|  |
+       *    D|
+       *
+       * Case 5:                      Case 6:
+       * A|                           A| C|
+       *  | C| +DM1 = 0                |  |  +DM1 = 0
+       *  |  | -DM1 = 0                |  |  -DM1 = 0
+       *  | D|                         |  |
+       * B|                           B| D|
+       *
+       *
+       * Case 7:
+       *
+       *    C|
+       * A|  |
+       *  |  | +DM=0
+       * B|  | -DM=0
+       *    D|
+       *
+       * In case 3 and 4, the rule is that the smallest delta between
+       * (C-A) and (B-D) determine which of +DM or -DM is zero.
+       *
+       * In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are
+       * zero.
+       *
+       * The rules remain the same when A=B and C=D (when the highs
+       * equal the lows).
+       *
+       * When calculating the DM over a period > 1, the one-period DM
+       * for the desired period are initialy sum. In other word,
+       * for a -DM14, sum the -DM1 for the first 14 days (that's
+       * 13 values because there is no DM for the first day!)
+       * Subsequent DM are calculated using the Wilder's
+       * smoothing approach:
+       *
+       *                                    Previous -DM14
+       *  Today's -DM14 = Previous -DM14 -  -------------- + Today's -DM1
+       *                                         14
+       *
+       * Calculation of a -DI14 is as follow:
+       *
+       *               -DM14
+       *     -DI14 =  --------
+       *                TR14
+       *
+       * Calculation of the TR14 is:
+       *
+       *                                   Previous TR14
+       *    Today's TR14 = Previous TR14 - -------------- + Today's TR1
+       *                                         14
+       *
+       *    The first TR14 is the summation of the first 14 TR1. See the
+       *    TA_TRANGE function on how to calculate the true range.
+       *
+       * Calculation of the DX14 is:
+       *
+       *    diffDI = ABS( (-DI14) - (+DI14) )
+       *    sumDI  = (-DI14) + (+DI14)
+       *
+       *    DX14 = 100 * (diffDI / sumDI)
+       *
+       * Reference:
+       *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+       */
+      /* Original implementation from Wilder's book was doing some integer
+       * rounding in its calculations.
+       *
+       * This was understandable in the context that at the time the book
+       * was written, most user were doing the calculation by hand.
+       *
+       * For a computer, rounding is unnecessary (and even problematic when inputs
+       * are close to 1).
+       *
+       * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
+       * you can comment out the following #undef/#define and rebuild the library.
+       */
       if( (optInTimePeriod>1) ) {
          lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Dx.ordinal()]);
       } else {
          lookbackTotal = 2;
       }
+      /* Adjust startIdx to account for the lookback period. */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Indicate where the next output should be put
+       * in the outReal.
+       */
       outIdx = 0;
+      /* Process the initial DM and TR */
       today = startIdx;
       outBegIdx.value = today;
       prevMinusDM = 0.0;
@@ -24476,13 +28251,17 @@ public class Core {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          } else if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
          double _true_range_0;
@@ -24500,22 +28279,31 @@ public class Core {
          prevTR += tempReal;
          prevClose = inClose[today];
       }
+      /* Skip the unstable period. Note that this loop must be executed
+       * at least ONCE to calculate the first DI.
+       */
       i = (this.unstablePeriod[FuncUnstId.Dx.ordinal()]+1);
       while( (i--!=0) ) {
+         /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          prevMinusDM -= (prevMinusDM/optInTimePeriod);
          prevPlusDM -= (prevPlusDM/optInTimePeriod);
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          } else if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
+         /* Calculate the prevTR */
          double _true_range_1;
          double range_1 = (prevHigh-prevLow);
          double tmp_1 = Math.abs((prevHigh-prevClose));
@@ -24531,6 +28319,7 @@ public class Core {
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
       }
+      /* Write the first DX output */
       if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
          minusDI = (100.0*(prevMinusDM/prevTR));
          plusDI = (100.0*(prevPlusDM/prevTR));
@@ -24545,20 +28334,26 @@ public class Core {
       }
       outIdx = 1;
       while( (today<endIdx) ) {
+         /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          prevMinusDM -= (prevMinusDM/optInTimePeriod);
          prevPlusDM -= (prevPlusDM/optInTimePeriod);
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          } else if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
+         /* Calculate the prevTR */
          double _true_range_2;
          double range_2 = (prevHigh-prevLow);
          double tmp_2 = Math.abs((prevHigh-prevClose));
@@ -24573,9 +28368,11 @@ public class Core {
          tempReal = _true_range_2;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
+         /* Calculate the DX. The value is rounded (see Wilder book). */
          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
+            /* This loop is just to accumulate the initial DX */
             tempReal = (minusDI+plusDI);
             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                outReal[outIdx] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
@@ -25101,6 +28898,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int emaLookback( int optInTimePeriod )
    {
       return ((optInTimePeriod-1)+this.unstablePeriod[FuncUnstId.Ema.ordinal()]) ;
@@ -25121,16 +28933,56 @@ public class Core {
       int today = 0;
       int outIdx = 0;
       int lookbackTotal = 0;
+      /* Internal implementation can be called from any other TA function.
+       *
+       * Faster because there is no parameter check, but it is a double
+       * edge sword.
+       *
+       * The optInK_1 and optInTimePeriod are usually tightly coupled:
+       *
+       *    optInK_1  = 2 / (optInTimePeriod + 1).
+       *
+       * These values are going to be related by this equation 99.9% of the
+       * time... but there is some exception, this is why both must be provided.
+       */
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = emaLookback(optInTimePeriod);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Do the EMA calculation using tight loops. */
+      /* The first EMA is calculated differently. It
+       * then become the seed for subsequent EMA.
+       *
+       * The algorithm for this seed vary widely.
+       * Only 3 are implemented here:
+       *
+       * TA_MA_CLASSIC:
+       *    Use a simple MA of the first 'period'.
+       *    This is the approach most widely documented.
+       *
+       * TA_MA_METASTOCK:
+       *    Use first price bar value as a seed
+       *    from the begining of all the available
+       *    data.
+       *
+       * TA_MA_TRADESTATION:
+       *    Use 4th price bar as a seed, except when
+       *    period is 1 who use 2th price bar or something
+       *    like that... (not an obvious one...).
+       */
       if( (this.compatibility==Compatibility.Default) ) {
          today = (startIdx-lookbackTotal);
          i = optInTimePeriod;
@@ -25220,6 +29072,7 @@ public class Core {
          return RetCode.OutOfRangeEndIndex ;
       }
       optInK_1 = (2.0/((double)(optInTimePeriod+1)));
+      /* Simply call the internal implementation of the EMA. */
       return emaPrivate(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal) ;
    }
    public RetCode emaUnguarded( int startIdx,
@@ -25339,6 +29192,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int expLookback( )
    {
       return 0 ;
@@ -25421,6 +29287,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int floorLookback( )
    {
       return 0 ;
@@ -25503,8 +29382,24 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int htDcPeriodLookback( )
    {
+      /* See mama_lookback for an explanation of these */
       return (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]) ;
 
    }
@@ -25581,19 +29476,37 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
+      /* Variable used for the price smoother (a weighted moving average). */
+      /* Variables used for the Hilbert Transormation */
+      /* Constant */
       rad2Deg = (180.0/(4.0*Math.atan(1)));
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Initialize the price smoother, which is simply a weighted
+       * moving average of the price.
+       * To understand this algorithm, I strongly suggest to understand
+       * first how TA_WMA is done.
+       */
       trailingWMAIdx = (startIdx-lookbackTotal);
       today = trailingWMAIdx;
+      /* Initialization is same as WMA, except loop is unrolled
+       * for speed optimization.
+       */
       tempReal = inReal[today++];
       periodWMASub = tempReal;
       periodWMASum = tempReal;
@@ -25604,6 +29517,9 @@ public class Core {
       periodWMASub += tempReal;
       periodWMASum += (tempReal*3.0);
       trailingWMAValue = 0.0;
+      /* Subsequent WMA value are evaluated by using
+       * the DO_PRICE_WMA macro.
+       */
       i = 9;
       do {
          tempReal = inReal[today++];
@@ -25614,6 +29530,14 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
       } while( (--i!=0) );
+      /* Initialize the circular buffers used by the hilbert
+       * transform logic.
+       * A buffer is used for odd day and another for even days.
+       * This minimize the number of memory access and floating point
+       * operations needed (note also that by using static circular buffer,
+       * no large dynamic memory allocation is needed for storing
+       * intermediate calculation!).
+       */
       hilbertIdx = 0;
       detrender_Odd[0] = 0.0;
       detrender_Odd[1] = 0.0;
@@ -25670,6 +29594,13 @@ public class Core {
       I1ForEvenPrev2 = 0.0;
       I1ForOddPrev2 = I1ForEvenPrev2;
       smoothPeriod = 0.0;
+      /* The code is speed optimized and is most likely very
+       * hard to follow if you do not already know well the
+       * original algorithm.
+       * To understadn better, it is strongly suggested to look
+       * first at the Excel implementation in "test_MAMA.xls" included
+       * in this package.
+       */
       while( (today<=endIdx) ) {
          adjustedPrevPeriod = ((0.075*period)+0.54);
          todayValue = inReal[today];
@@ -25680,6 +29611,7 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
          if( ((today%2)==0) ) {
+            /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Even[hilbertIdx]);
             detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -25721,9 +29653,16 @@ public class Core {
             }
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+            /* The variable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForOddPrev3 = I1ForOddPrev2;
             I1ForOddPrev2 = detrender;
          } else {
+            /* Do the Hilbert Transforms for odd price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Odd[hilbertIdx]);
             detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -25762,9 +29701,16 @@ public class Core {
             jQ *= adjustedPrevPeriod;
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+            /* The varaiable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "even" logic later.
+             */
             I1ForEvenPrev3 = I1ForEvenPrev2;
             I1ForEvenPrev2 = detrender;
          }
+         /* Adjust the period for next price bar */
          Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
          Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
          prevQ2 = Q2;
@@ -25791,6 +29737,7 @@ public class Core {
          if( (today>=startIdx) ) {
             outReal[outIdx++] = smoothPeriod;
          }
+         /* Ooof... let's do the next price bar now! */
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -26649,8 +30596,31 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int htDcPhaseLookback( )
    {
+      /* 31 input are skip
+       * +32 output are skip to account for misc lookback
+       * ---
+       *  63 Total Lookback
+       *
+       * 31 is for being compatible with Tradestation.
+       * See mama_lookback for an explanation of the "32".
+       */
       return (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]) ;
 
    }
@@ -26737,22 +30707,46 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
+      /* Variable used for the price smoother (a weighted moving average). */
+      /* Variables used for the Hilbert Transormation */
+      /* Varaible used to keep track of the previous
+       * smooth price. In the case of this algorithm,
+       * we will never need more than 50 values.
+       */
       smoothPrice = new double[maxIdx_smoothPrice+1];
+      /* Variable used to calculate the dominant cycle phase */
+      /* circular buffer already declared */
+      /* Constant */
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
       constDeg2RadBy360 = (tempReal*8.0);
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Initialize the price smoother, which is simply a weighted
+       * moving average of the price.
+       * To understand this algorithm, I strongly suggest to understand
+       * first how TA_WMA is done.
+       */
       trailingWMAIdx = (startIdx-lookbackTotal);
       today = trailingWMAIdx;
+      /* Initialization is same as WMA, except loop is unrolled
+       * for speed optimization.
+       */
       tempReal = inReal[today++];
       periodWMASub = tempReal;
       periodWMASum = tempReal;
@@ -26763,6 +30757,9 @@ public class Core {
       periodWMASub += tempReal;
       periodWMASum += (tempReal*3.0);
       trailingWMAValue = 0.0;
+      /* Subsequent WMA value are evaluated by using
+       * the DO_PRICE_WMA macro.
+       */
       i = 34;
       do {
          tempReal = inReal[today++];
@@ -26773,6 +30770,14 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
       } while( (--i!=0) );
+      /* Initialize the circular buffers used by the hilbert
+       * transform logic.
+       * A buffer is used for odd day and another for even days.
+       * This minimize the number of memory access and floating point
+       * operations needed (note also that by using static circular buffer,
+       * no large dynamic memory allocation is needed for storing
+       * intermediate calculation!).
+       */
       hilbertIdx = 0;
       detrender_Odd[0] = 0.0;
       detrender_Odd[1] = 0.0;
@@ -26832,6 +30837,13 @@ public class Core {
       for( i = 0; (i<50); i += 1 ) {
          smoothPrice[i] = 0.0;
       }
+      /* The code is speed optimized and is most likely very
+       * hard to follow if you do not already know well the
+       * original algorithm.
+       * To understadn better, it is strongly suggested to look
+       * first at the Excel implementation in "test_MAMA.xls" included
+       * in this package.
+       */
       DCPhase = 0.0;
       while( (today<=endIdx) ) {
          adjustedPrevPeriod = ((0.075*period)+0.54);
@@ -26842,8 +30854,12 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
+         /* Remember the smoothedValue into the smoothPrice
+          * circular buffer.
+          */
          smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( ((today%2)==0) ) {
+            /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Even[hilbertIdx]);
             detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -26885,9 +30901,16 @@ public class Core {
             }
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+            /* The variable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForOddPrev3 = I1ForOddPrev2;
             I1ForOddPrev2 = detrender;
          } else {
+            /* Do the Hilbert Transforms for odd price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Odd[hilbertIdx]);
             detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -26926,9 +30949,16 @@ public class Core {
             jQ *= adjustedPrevPeriod;
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+            /* The varaiable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "even" logic later.
+             */
             I1ForEvenPrev3 = I1ForEvenPrev2;
             I1ForEvenPrev2 = detrender;
          }
+         /* Adjust the period for next price bar */
          Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
          Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
          prevQ2 = Q2;
@@ -26952,10 +30982,14 @@ public class Core {
          }
          period = ((0.2*period)+(0.8*tempReal));
          smoothPeriod = ((0.33*period)+(0.67*smoothPeriod));
+         /* Compute Dominant Cycle Phase */
          DCPeriod = (smoothPeriod+0.5);
          DCPeriodInt = ((int)DCPeriod);
          realPart = 0.0;
          imagPart = 0.0;
+         /* idx is used to iterate for up to 50 of the last
+          * value of smoothPrice.
+          */
          idx = smoothPrice_Idx;
          for( i = 0; (i<DCPeriodInt); i += 1 ) {
             tempReal = ((((double)i)*constDeg2RadBy360)/((double)DCPeriodInt));
@@ -26979,6 +31013,7 @@ public class Core {
             }
          }
          DCPhase += 90.0;
+         /* Compensate for one bar lag of the weighted moving average */
          DCPhase += (360.0/smoothPeriod);
          if( (imagPart<0.0) ) {
             DCPhase += 180.0;
@@ -26989,6 +31024,7 @@ public class Core {
          if( (today>=startIdx) ) {
             outReal[outIdx++] = DCPhase;
          }
+         /* Ooof... let's do the next price bar now! */
          smoothPrice_Idx++;
          if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
@@ -28011,8 +32047,24 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int htPhasorLookback( )
    {
+      /* See mama_lookback for an explanation of these */
       return (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]) ;
 
    }
@@ -28089,19 +32141,37 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
+      /* Variable used for the price smoother (a weighted moving average). */
+      /* Variables used for the Hilbert Transormation */
+      /* Constant */
       rad2Deg = (180.0/(4.0*Math.atan(1)));
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Initialize the price smoother, which is simply a weighted
+       * moving average of the price.
+       * To understand this algorithm, I strongly suggest to understand
+       * first how TA_WMA is done.
+       */
       trailingWMAIdx = (startIdx-lookbackTotal);
       today = trailingWMAIdx;
+      /* Initialization is same as WMA, except loop is unrolled
+       * for speed optimization.
+       */
       tempReal = inReal[today++];
       periodWMASub = tempReal;
       periodWMASum = tempReal;
@@ -28112,6 +32182,9 @@ public class Core {
       periodWMASub += tempReal;
       periodWMASum += (tempReal*3.0);
       trailingWMAValue = 0.0;
+      /* Subsequent WMA value are evaluated by using
+       * the DO_PRICE_WMA macro.
+       */
       i = 9;
       do {
          tempReal = inReal[today++];
@@ -28122,6 +32195,14 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
       } while( (--i!=0) );
+      /* Initialize the circular buffers used by the hilbert
+       * transform logic.
+       * A buffer is used for odd day and another for even days.
+       * This minimize the number of memory access and floating point
+       * operations needed (note also that by using static circular buffer,
+       * no large dynamic memory allocation is needed for storing
+       * intermediate calculation!).
+       */
       hilbertIdx = 0;
       detrender_Odd[0] = 0.0;
       detrender_Odd[1] = 0.0;
@@ -28177,6 +32258,13 @@ public class Core {
       I1ForOddPrev3 = I1ForEvenPrev3;
       I1ForEvenPrev2 = 0.0;
       I1ForOddPrev2 = I1ForEvenPrev2;
+      /* The code is speed optimized and is most likely very
+       * hard to follow if you do not already know well the
+       * original algorithm.
+       * To understadn better, it is strongly suggested to look
+       * first at the Excel implementation in "test_MAMA.xls" included
+       * in this package.
+       */
       while( (today<=endIdx) ) {
          adjustedPrevPeriod = ((0.075*period)+0.54);
          todayValue = inReal[today];
@@ -28187,6 +32275,7 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
          if( ((today%2)==0) ) {
+            /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Even[hilbertIdx]);
             detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -28232,9 +32321,16 @@ public class Core {
             }
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+            /* The variable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForOddPrev3 = I1ForOddPrev2;
             I1ForOddPrev2 = detrender;
          } else {
+            /* Do the Hilbert Transforms for odd price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Odd[hilbertIdx]);
             detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -28277,9 +32373,16 @@ public class Core {
             jQ *= adjustedPrevPeriod;
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+            /* The varaiable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "even" logic later.
+             */
             I1ForEvenPrev3 = I1ForEvenPrev2;
             I1ForEvenPrev2 = detrender;
          }
+         /* Adjust the period for next price bar */
          Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
          Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
          prevQ2 = Q2;
@@ -28302,8 +32405,10 @@ public class Core {
             period = 50;
          }
          period = ((0.2*period)+(0.8*tempReal));
+         /* Ooof... let's do the next price bar now! */
          today += 1;
       }
+      /* Default return values */
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
@@ -29169,8 +33274,31 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int htSineLookback( )
    {
+      /* 31 input are skip
+       * +32 output are skip to account for misc lookback
+       * ---
+       *  63 Total Lookback
+       *
+       * 31 is for being compatible with Tradestation.
+       * See mama_lookback for an explanation of the "32".
+       */
       return (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]) ;
 
    }
@@ -29259,23 +33387,47 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
+      /* Variable used for the price smoother (a weighted moving average). */
+      /* Variables used for the Hilbert Transormation */
+      /* Varaible used to keep track of the previous
+       * smooth price. In the case of this algorithm,
+       * we will never need more than 50 values.
+       */
       smoothPrice = new double[maxIdx_smoothPrice+1];
+      /* Variable used to calculate the dominant cycle phase */
+      /* circular buffer already declared */
+      /* The following could be replaced by constant eventually. */
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
       deg2Rad = (1.0/rad2Deg);
       constDeg2RadBy360 = (tempReal*8.0);
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Initialize the price smoother, which is simply a weighted
+       * moving average of the price.
+       * To understand this algorithm, I strongly suggest to understand
+       * first how TA_WMA is done.
+       */
       trailingWMAIdx = (startIdx-lookbackTotal);
       today = trailingWMAIdx;
+      /* Initialization is same as WMA, except loop is unrolled
+       * for speed optimization.
+       */
       tempReal = inReal[today++];
       periodWMASub = tempReal;
       periodWMASum = tempReal;
@@ -29286,6 +33438,9 @@ public class Core {
       periodWMASub += tempReal;
       periodWMASum += (tempReal*3.0);
       trailingWMAValue = 0.0;
+      /* Subsequent WMA value are evaluated by using
+       * the DO_PRICE_WMA macro.
+       */
       i = 34;
       do {
          tempReal = inReal[today++];
@@ -29296,6 +33451,14 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
       } while( (--i!=0) );
+      /* Initialize the circular buffers used by the hilbert
+       * transform logic.
+       * A buffer is used for odd day and another for even days.
+       * This minimize the number of memory access and floating point
+       * operations needed (note also that by using static circular buffer,
+       * no large dynamic memory allocation is needed for storing
+       * intermediate calculation!).
+       */
       hilbertIdx = 0;
       detrender_Odd[0] = 0.0;
       detrender_Odd[1] = 0.0;
@@ -29355,6 +33518,13 @@ public class Core {
       for( i = 0; (i<50); i += 1 ) {
          smoothPrice[i] = 0.0;
       }
+      /* The code is speed optimized and is most likely very
+       * hard to follow if you do not already know well the
+       * original algorithm.
+       * To understadn better, it is strongly suggested to look
+       * first at the Excel implementation in "test_MAMA.xls" included
+       * in this package.
+       */
       DCPhase = 0.0;
       while( (today<=endIdx) ) {
          adjustedPrevPeriod = ((0.075*period)+0.54);
@@ -29365,8 +33535,12 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
+         /* Remember the smoothedValue into the smoothPrice
+          * circular buffer.
+          */
          smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( ((today%2)==0) ) {
+            /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Even[hilbertIdx]);
             detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -29408,9 +33582,16 @@ public class Core {
             }
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+            /* The variable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForOddPrev3 = I1ForOddPrev2;
             I1ForOddPrev2 = detrender;
          } else {
+            /* Do the Hilbert Transforms for odd price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Odd[hilbertIdx]);
             detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -29449,9 +33630,16 @@ public class Core {
             jQ *= adjustedPrevPeriod;
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+            /* The varaiable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "even" logic later.
+             */
             I1ForEvenPrev3 = I1ForEvenPrev2;
             I1ForEvenPrev2 = detrender;
          }
+         /* Adjust the period for next price bar */
          Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
          Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
          prevQ2 = Q2;
@@ -29475,10 +33663,14 @@ public class Core {
          }
          period = ((0.2*period)+(0.8*tempReal));
          smoothPeriod = ((0.33*period)+(0.67*smoothPeriod));
+         /* Compute Dominant Cycle Phase */
          DCPeriod = (smoothPeriod+0.5);
          DCPeriodInt = ((int)DCPeriod);
          realPart = 0.0;
          imagPart = 0.0;
+         /* idx is used to iterate for up to 50 of the last
+          * value of smoothPrice.
+          */
          idx = smoothPrice_Idx;
          for( i = 0; (i<DCPeriodInt); i += 1 ) {
             tempReal = ((((double)i)*constDeg2RadBy360)/((double)DCPeriodInt));
@@ -29502,6 +33694,7 @@ public class Core {
             }
          }
          DCPhase += 90.0;
+         /* Compensate for one bar lag of the weighted moving average */
          DCPhase += (360.0/smoothPeriod);
          if( (imagPart<0.0) ) {
             DCPhase += 180.0;
@@ -29513,6 +33706,7 @@ public class Core {
             outSine[outIdx] = Math.sin((DCPhase*deg2Rad));
             outLeadSine[outIdx++] = Math.sin(((DCPhase+45)*deg2Rad));
          }
+         /* Ooof... let's do the next price bar now! */
          smoothPrice_Idx++;
          if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
@@ -30547,8 +34741,31 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int htTrendlineLookback( )
    {
+      /* 31 input are skip
+       * +32 output are skip to account for misc lookback
+       * ---
+       *  63 Total Lookback
+       *
+       * 31 is for being compatible with Tradestation.
+       * See mama_lookback for an explanation of the "32".
+       */
       return (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]) ;
 
    }
@@ -30634,24 +34851,49 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
+      /* Variable used for the price smoother (a weighted moving average). */
+      /* Variable to keep track of the last 3 ITrend */
+      /* Variables used for the Hilbert Transormation */
+      /* Variable used to keep track of the previous
+       * smooth price. In the case of this algorithm,
+       * we will never need more than 50 values.
+       */
       smoothPrice = new double[maxIdx_smoothPrice+1];
+      /* Variable used to calculate the dominant cycle phase */
+      /* circular buffer already declared */
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
+      /* Constant */
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Initialize the price smoother, which is simply a weighted
+       * moving average of the price.
+       * To understand this algorithm, I strongly suggest to understand
+       * first how TA_WMA is done.
+       */
       trailingWMAIdx = (startIdx-lookbackTotal);
       today = trailingWMAIdx;
+      /* Initialization is same as WMA, except loop is unrolled
+       * for speed optimization.
+       */
       tempReal = inReal[today++];
       periodWMASub = tempReal;
       periodWMASum = tempReal;
@@ -30662,6 +34904,9 @@ public class Core {
       periodWMASub += tempReal;
       periodWMASum += (tempReal*3.0);
       trailingWMAValue = 0.0;
+      /* Subsequent WMA value are evaluated by using
+       * the DO_PRICE_WMA macro.
+       */
       i = 34;
       do {
          tempReal = inReal[today++];
@@ -30672,6 +34917,14 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
       } while( (--i!=0) );
+      /* Initialize the circular buffers used by the hilbert
+       * transform logic.
+       * A buffer is used for odd day and another for even days.
+       * This minimize the number of memory access and floating point
+       * operations needed (note also that by using static circular buffer,
+       * no large dynamic memory allocation is needed for storing
+       * intermediate calculation!).
+       */
       hilbertIdx = 0;
       detrender_Odd[0] = 0.0;
       detrender_Odd[1] = 0.0;
@@ -30731,6 +34984,13 @@ public class Core {
       for( i = 0; (i<50); i += 1 ) {
          smoothPrice[i] = 0.0;
       }
+      /* The code is speed optimized and is most likely very
+       * hard to follow if you do not already know well the
+       * original algorithm.
+       * To understadn better, it is strongly suggested to look
+       * first at the Excel implementation in "test_MAMA.xls" included
+       * in this package.
+       */
       while( (today<=endIdx) ) {
          adjustedPrevPeriod = ((0.075*period)+0.54);
          todayValue = inReal[today];
@@ -30740,8 +35000,12 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
+         /* Remember the smoothedValue into the smoothPrice
+          * circular buffer.
+          */
          smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( ((today%2)==0) ) {
+            /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Even[hilbertIdx]);
             detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -30783,9 +35047,16 @@ public class Core {
             }
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+            /* The variable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForOddPrev3 = I1ForOddPrev2;
             I1ForOddPrev2 = detrender;
          } else {
+            /* Do the Hilbert Transforms for odd price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Odd[hilbertIdx]);
             detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -30824,9 +35095,16 @@ public class Core {
             jQ *= adjustedPrevPeriod;
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+            /* The varaiable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "even" logic later.
+             */
             I1ForEvenPrev3 = I1ForEvenPrev2;
             I1ForEvenPrev2 = detrender;
          }
+         /* Adjust the period for next price bar */
          Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
          Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
          prevQ2 = Q2;
@@ -30850,8 +35128,12 @@ public class Core {
          }
          period = ((0.2*period)+(0.8*tempReal));
          smoothPeriod = ((0.33*period)+(0.67*smoothPeriod));
+         /* Compute Trendline */
          DCPeriod = (smoothPeriod+0.5);
          DCPeriodInt = ((int)DCPeriod);
+         /* idx is used to iterate for up to 50 of the last
+          * value of smoothPrice.
+          */
          idx = today;
          tempReal = 0.0;
          for( i = 0; (i<DCPeriodInt); i += 1 ) {
@@ -30867,6 +35149,7 @@ public class Core {
          if( (today>=startIdx) ) {
             outReal[outIdx++] = tempReal2;
          }
+         /* Ooof... let's do the next price bar now! */
          smoothPrice_Idx++;
          if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
@@ -31829,8 +36112,31 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int htTrendModeLookback( )
    {
+      /* 31 input are skip
+       * +32 output are skip to account for misc lookback
+       * ---
+       *  63 Total Lookback
+       *
+       * 31 is for being compatible with Tradestation.
+       * See mama_lookback for an explanation of the "32".
+       */
       return (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]) ;
 
    }
@@ -31929,7 +36235,17 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
+      /* Variable used for the price smoother (a weighted moving average). */
+      /* Variable to keep track of the last 3 ITrend */
+      /* Variables used for the Hilbert Transormation */
+      /* Variable used to keep track of the previous
+       * smooth price. In the case of this algorithm,
+       * we will never need more than 50 values.
+       */
       smoothPrice = new double[maxIdx_smoothPrice+1];
+      /* Variable used to calculate the dominant cycle phase */
+      /* Variable used to calculate the trend mode */
+      /* circular buffer already declared */
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -31940,22 +36256,38 @@ public class Core {
       prevSine = sine;
       leadSine = 0.0;
       prevLeadSine = leadSine;
+      /* The following could be replaced by constant eventually. */
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
       deg2Rad = (1.0/rad2Deg);
       constDeg2RadBy360 = (tempReal*8.0);
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Initialize the price smoother, which is simply a weighted
+       * moving average of the price.
+       * To understand this algorithm, I strongly suggest to understand
+       * first how TA_WMA is done.
+       */
       trailingWMAIdx = (startIdx-lookbackTotal);
       today = trailingWMAIdx;
+      /* Initialization is same as WMA, except loop is unrolled
+       * for speed optimization.
+       */
       tempReal = inReal[today++];
       periodWMASub = tempReal;
       periodWMASum = tempReal;
@@ -31966,6 +36298,9 @@ public class Core {
       periodWMASub += tempReal;
       periodWMASum += (tempReal*3.0);
       trailingWMAValue = 0.0;
+      /* Subsequent WMA value are evaluated by using
+       * the DO_PRICE_WMA macro.
+       */
       i = 34;
       do {
          tempReal = inReal[today++];
@@ -31976,6 +36311,14 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
       } while( (--i!=0) );
+      /* Initialize the circular buffers used by the hilbert
+       * transform logic.
+       * A buffer is used for odd day and another for even days.
+       * This minimize the number of memory access and floating point
+       * operations needed (note also that by using static circular buffer,
+       * no large dynamic memory allocation is needed for storing
+       * intermediate calculation!).
+       */
       hilbertIdx = 0;
       detrender_Odd[0] = 0.0;
       detrender_Odd[1] = 0.0;
@@ -32035,6 +36378,13 @@ public class Core {
       for( i = 0; (i<50); i += 1 ) {
          smoothPrice[i] = 0.0;
       }
+      /* The code is speed optimized and is most likely very
+       * hard to follow if you do not already know well the
+       * original algorithm.
+       * To understadn better, it is strongly suggested to look
+       * first at the Excel implementation in "test_MAMA.xls" included
+       * in this package.
+       */
       DCPhase = 0.0;
       while( (today<=endIdx) ) {
          adjustedPrevPeriod = ((0.075*period)+0.54);
@@ -32045,8 +36395,12 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
+         /* Remember the smoothedValue into the smoothPrice
+          * circular buffer.
+          */
          smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( ((today%2)==0) ) {
+            /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Even[hilbertIdx]);
             detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -32088,9 +36442,16 @@ public class Core {
             }
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+            /* The variable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForOddPrev3 = I1ForOddPrev2;
             I1ForOddPrev2 = detrender;
          } else {
+            /* Do the Hilbert Transforms for odd price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Odd[hilbertIdx]);
             detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -32129,9 +36490,16 @@ public class Core {
             jQ *= adjustedPrevPeriod;
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+            /* The varaiable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "even" logic later.
+             */
             I1ForEvenPrev3 = I1ForEvenPrev2;
             I1ForEvenPrev2 = detrender;
          }
+         /* Adjust the period for next price bar */
          Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
          Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
          prevQ2 = Q2;
@@ -32155,11 +36523,15 @@ public class Core {
          }
          period = ((0.2*period)+(0.8*tempReal));
          smoothPeriod = ((0.33*period)+(0.67*smoothPeriod));
+         /* Compute Dominant Cycle Phase */
          prevDCPhase = DCPhase;
          DCPeriod = (smoothPeriod+0.5);
          DCPeriodInt = ((int)DCPeriod);
          realPart = 0.0;
          imagPart = 0.0;
+         /* idx is used to iterate for up to 50 of the last
+          * value of smoothPrice.
+          */
          idx = smoothPrice_Idx;
          for( i = 0; (i<DCPeriodInt); i += 1 ) {
             tempReal = ((((double)i)*constDeg2RadBy360)/((double)DCPeriodInt));
@@ -32183,6 +36555,7 @@ public class Core {
             }
          }
          DCPhase += 90.0;
+         /* Compensate for one bar lag of the weighted moving average */
          DCPhase += (360.0/smoothPeriod);
          if( (imagPart<0.0) ) {
             DCPhase += 180.0;
@@ -32194,8 +36567,12 @@ public class Core {
          prevLeadSine = leadSine;
          sine = Math.sin((DCPhase*deg2Rad));
          leadSine = Math.sin(((DCPhase+45)*deg2Rad));
+         /* Compute Trendline */
          DCPeriod = (smoothPeriod+0.5);
          DCPeriodInt = ((int)DCPeriod);
+         /* idx is used to iterate for up to 50 of the last
+          * value of smoothPrice.
+          */
          idx = today;
          tempReal = 0.0;
          for( i = 0; (i<DCPeriodInt); i += 1 ) {
@@ -32208,7 +36585,9 @@ public class Core {
          iTrend3 = iTrend2;
          iTrend2 = iTrend1;
          iTrend1 = tempReal;
+         /* Compute the trend Mode , and assume trend by default */
          trend = 1;
+         /* Measure days in trend from last crossing of the SineWave Indicator lines */
          if( (((sine>leadSine)&&(prevSine<=prevLeadSine))||((sine<leadSine)&&(prevSine>=prevLeadSine))) ) {
             daysInTrend = 0;
             trend = 0;
@@ -32228,6 +36607,7 @@ public class Core {
          if( (today>=startIdx) ) {
             outInteger[outIdx++] = trend;
          }
+         /* Ooof... let's do the next price bar now! */
          smoothPrice_Idx++;
          if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
@@ -33427,6 +37807,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  181012 AB    Initial Version
+ */
+
    public int imiLookback( int optInTimePeriod )
    {
       return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Imi.ordinal()])-1) ;
@@ -33454,6 +37847,7 @@ public class Core {
       if( (startIdx<lookback) ) {
          startIdx = lookback;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -33613,6 +38007,24 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  062704 MF   Fix limit case to avoid divid by zero (or by
+ *              a value close to zero induce by the imprecision
+ *              of floating points).
+ */
+
    public int kamaLookback( int optInTimePeriod )
    {
       return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Kama.ordinal()]) ;
@@ -33647,17 +38059,28 @@ public class Core {
       }
       constMax = (2.0/(30.0+1.0));
       constDiff = ((2.0/(2.0+1.0))-constMax);
+      /* Default return values */
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Kama.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Initialize the variables by going through
+       * the lookback period.
+       */
       sumROC1 = 0.0;
       today = (startIdx-lookbackTotal);
       trailingIdx = today;
@@ -33667,52 +38090,98 @@ public class Core {
          tempReal -= inReal[today];
          sumROC1 += Math.abs(tempReal);
       }
+      /* At this point sumROC1 represent the
+       * summation of the 1-day price difference
+       * over the (optInTimePeriod-1)
+       */
+      /* Calculate the first KAMA */
+      /* The yesterday price is used here as the previous KAMA. */
       prevKAMA = inReal[(today-1)];
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
       periodROC = (tempReal-tempReal2);
+      /* Save the trailing value. Do this because inReal
+       * and outReal can be pointers to the same buffer.
+       */
       trailingValue = tempReal2;
+      /* Calculate the efficiency ratio */
       if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
          tempReal = 1.0;
       } else {
          tempReal = Math.abs((periodROC/sumROC1));
       }
+      /* Calculate the smoothing constant */
       tempReal = ((tempReal*constDiff)+constMax);
       tempReal *= tempReal;
+      /* Calculate the KAMA like an EMA, using the
+       * smoothing constant as the adaptive factor.
+       */
       prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      /* 'today' keep track of where the processing is within the
+       * input.
+       */
+      /* Skip the unstable period. Do the whole processing
+       * needed for KAMA, but do not write it in the output.
+       */
       while( (today<=startIdx) ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
          periodROC = (tempReal-tempReal2);
+         /* Adjust sumROC1:
+          *  - Remove trailing ROC1
+          *  - Add new ROC1
+          */
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         /* Save the trailing value. Do this because inReal
+          * and outReal can be pointers to the same buffer.
+          */
          trailingValue = tempReal2;
+         /* Calculate the efficiency ratio */
          if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
          }
+         /* Calculate the smoothing constant */
          tempReal = ((tempReal*constDiff)+constMax);
          tempReal *= tempReal;
+         /* Calculate the KAMA like an EMA, using the
+          * smoothing constant as the adaptive factor.
+          */
          prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
       }
+      /* Write the first value. */
       outReal[0] = prevKAMA;
       outIdx = 1;
       outBegIdx.value = (today-1);
+      /* Do the KAMA calculation for the requested range. */
       while( (today<=endIdx) ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
          periodROC = (tempReal-tempReal2);
+         /* Adjust sumROC1:
+          *  - Remove trailing ROC1
+          *  - Add new ROC1
+          */
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         /* Save the trailing value. Do this because inReal
+          * and outReal can be pointers to the same buffer.
+          */
          trailingValue = tempReal2;
+         /* Calculate the efficiency ratio */
          if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
          }
+         /* Calculate the smoothing constant */
          tempReal = ((tempReal*constDiff)+constMax);
          tempReal *= tempReal;
+         /* Calculate the KAMA like an EMA, using the
+          * smoothing constant as the adaptive factor.
+          */
          prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
          outReal[outIdx++] = prevKAMA;
       }
@@ -34011,6 +38480,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  JP       John Price <jp_talib@gcfl.net>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  070203 JP   Initial.
+ */
+
    public int linearRegLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -34042,16 +38525,35 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Linear Regression is a concept also known as the
+       * "least squares method" or "best fit." Linear
+       * Regression attempts to fit a straight line between
+       * several data points in such a way that distance
+       * between each data point and the line is minimized.
+       *
+       * For each point, a straight line over the specified
+       * previous bar period is determined in terms
+       * of y = b + m*x:
+       *
+       * TA_LINEARREG          : Returns b+m*(period-1)
+       * TA_LINEARREG_SLOPE    : Returns 'm'
+       * TA_LINEARREG_ANGLE    : Returns 'm' in degree.
+       * TA_LINEARREG_INTERCEPT: Returns 'b'
+       * TA_TSF                : Returns b+m*(period)
+       */
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = linearRegLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
       today = startIdx;
       SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
       SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
@@ -34233,6 +38735,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  JP       John Price <jp_talib@gcfl.net>
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel <http://amichel.com>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY      Description
+ *  -------------------------------------------------------------------
+ *  070203 JP      Initial.
+ *  072106 MF,AM   Fix #1526632. Add missing atan().
+ */
+
    public int linearRegAngleLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -34263,16 +38781,35 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Linear Regression is a concept also known as the
+       * "least squares method" or "best fit." Linear
+       * Regression attempts to fit a straight line between
+       * several data points in such a way that distance
+       * between each data point and the line is minimized.
+       *
+       * For each point, a straight line over the specified
+       * previous bar period is determined in terms
+       * of y = b + m*x:
+       *
+       * TA_LINEARREG          : Returns b+m*(period-1)
+       * TA_LINEARREG_SLOPE    : Returns 'm'
+       * TA_LINEARREG_ANGLE    : Returns 'm' in degree.
+       * TA_LINEARREG_INTERCEPT: Returns 'b'
+       * TA_TSF                : Returns b+m*(period)
+       */
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = linearRegAngleLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
       today = startIdx;
       SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
       SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
@@ -34447,6 +38984,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  JP       John Price <jp_talib@gcfl.net>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  070203 JP   Initial.
+ */
+
    public int linearRegInterceptLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -34477,16 +39028,35 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Linear Regression is a concept also known as the
+       * "least squares method" or "best fit." Linear
+       * Regression attempts to fit a straight line between
+       * several data points in such a way that distance
+       * between each data point and the line is minimized.
+       *
+       * For each point, a straight line over the specified
+       * previous bar period is determined in terms
+       * of y = b + m*x:
+       *
+       * TA_LINEARREG          : Returns b+m*(period-1)
+       * TA_LINEARREG_SLOPE    : Returns 'm'
+       * TA_LINEARREG_ANGLE    : Returns 'm' in degree.
+       * TA_LINEARREG_INTERCEPT: Returns 'b'
+       * TA_TSF                : Returns b+m*(period)
+       */
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = linearRegInterceptLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
       today = startIdx;
       SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
       SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
@@ -34661,6 +39231,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  JP       John Price <jp_talib@gcfl.net>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  070203 JP   Initial.
+ */
+
    public int linearRegSlopeLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -34690,16 +39274,35 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Linear Regression is a concept also known as the
+       * "least squares method" or "best fit." Linear
+       * Regression attempts to fit a straight line between
+       * several data points in such a way that distance
+       * between each data point and the line is minimized.
+       *
+       * For each point, a straight line over the specified
+       * previous bar period is determined in terms
+       * of y = b + m*x:
+       *
+       * TA_LINEARREG          : Returns b+m*(period-1)
+       * TA_LINEARREG_SLOPE    : Returns 'm'
+       * TA_LINEARREG_ANGLE    : Returns 'm' in degree.
+       * TA_LINEARREG_INTERCEPT: Returns 'b'
+       * TA_TSF                : Returns b+m*(period)
+       */
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = linearRegSlopeLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
       today = startIdx;
       SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
       SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
@@ -34867,6 +39470,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int lnLookback( )
    {
       return 0 ;
@@ -34949,6 +39565,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int log10Lookback( )
    {
       return 0 ;
@@ -35031,6 +39660,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  022203 MF   Add MAMA
+ *  040503 MF   Add T3
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  111603 MF   Allow period of 1. Just copy input into output.
+ *  060907 MF   Use TA_SMA/TA_EMA instead of internal implementation.
+ */
+
    public int movingAverageLookback( int optInTimePeriod, MAType optInMAType )
    {
       int retValue;
@@ -35102,6 +39750,7 @@ public class Core {
          outBegIdx.value = startIdx;
          return RetCode.Success ;
       }
+      /* Simply forward the job to the corresponding TA function. */
       switch( optInMAType )
       {
       case MAType.Sma:
@@ -35126,6 +39775,9 @@ public class Core {
          retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
+         /* The optInTimePeriod is ignored and the FAMA output of the MAMA
+          * is ignored.
+          */
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
          retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
@@ -35322,10 +39974,35 @@ public class Core {
       return retCode ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JPP      JP Pienaar (j.pienaar@mci.co.za)
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  080403 JPP  Fix #767653 for logic when swapping periods.
+ */
+
    public int macdLookback( int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod )
    {
       int tempInteger;
+      /* The lookback is driven by the signal line output.
+       *
+       * (must also account for the initial data consume
+       *  by the slow period).
+       */
+      /* Make sure slow is really slower than
+       * the fast period! if not, swap...
+       */
       if( (optInSlowPeriod<optInFastPeriod) ) {
+         /* swap */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
@@ -35366,14 +40043,46 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* !!! A lot of speed optimization could be done
+       * !!! with this function.
+       * !!!
+       * !!! A better approach would be to use ema
+       * !!! just to get the seeding values for the
+       * !!! fast and slow EMA. Then process the difference
+       * !!! in an allocated buffer until enough data is
+       * !!! available for the first signal value.
+       * !!! From that point all the processing can
+       * !!! be done in a tight loop.
+       * !!!
+       * !!! That approach will have the following
+       * !!! advantage:
+       * !!!   1) One mem allocation needed instead of two.
+       * !!!   2) The mem allocation size will be only the
+       * !!!      signal lookback period instead of the
+       * !!!      whole range of data.
+       * !!!   3) Processing will be done in a tight loop.
+       * !!!      allowing to avoid a lot of memory store-load
+       * !!!      operation.
+       * !!!   4) The memcpy at the end will be eliminated!
+       * !!!
+       * !!! If only I had time....
+       */
+      /* Make sure slow is really slower than
+       * the fast period! if not, swap...
+       */
       if( (optInSlowPeriod<optInFastPeriod) ) {
+         /* swap */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
+      /* Catch special case for fix 26/12 MACD.
+       * Use hardcoded k values matching the original algorithm.
+       */
       useFixedK = 0;
       if( (optInSlowPeriod==0) ) {
          optInSlowPeriod = 26;
+         /* Fix 26 */
          slowK = 0.075;
          useFixedK = 1;
       } else {
@@ -35381,6 +40090,7 @@ public class Core {
       }
       if( (optInFastPeriod==0) ) {
          optInFastPeriod = 12;
+         /* Fix 12 */
          fastK = 0.15;
          useFixedK = 1;
       } else {
@@ -35388,20 +40098,35 @@ public class Core {
       }
       signalK = (2.0/((double)(optInSignalPeriod+1)));
       lookbackSignal = emaLookback(optInSignalPeriod);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       lookbackTotal = lookbackSignal;
       lookbackTotal += emaLookback(optInSlowPeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Allocate intermediate buffer for fast/slow EMA. */
       tempInteger = (((endIdx-startIdx)+1)+lookbackSignal);
       fastEMABuffer = new double[(int)((tempInteger*1))];
       slowEMABuffer = new double[(int)((tempInteger*1))];
+      /* Calculate the slow EMA.
+       *
+       * Move back the startIdx to get enough data
+       * for the signal period. That way, once the
+       * signal calculation is done, all the output
+       * will start at the requested 'startIdx'.
+       */
       tempInteger = (startIdx-lookbackSignal);
+      /* Use ema_private when hardcoded k is needed (MACDFIX path).
+       * Use ema() for the normal path — codegen handles double/float routing.
+       */
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       } else {
@@ -35412,6 +40137,7 @@ public class Core {
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Calculate the fast EMA. */
       if( (useFixedK) != 0 ) {
          retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       } else {
@@ -35422,24 +40148,30 @@ public class Core {
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Parano tests. Will be removed eventually. */
       if( ((((outBegIdx1.value!=tempInteger)||(outBegIdx2.value!=tempInteger))||(outNbElement1.value!=outNbElement2.value))||(outNbElement1.value!=(((endIdx-startIdx)+1)+lookbackSignal))) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.BadParam ;
       }
+      /* Calculate (fast EMA) - (slow EMA). */
       for( i = 0; (i<outNbElement1.value); i += 1 ) {
          fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
       }
+      /* Copy the result into the output for the caller. */
       System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
+      /* Calculate the signal/trigger line (on double buffer, use ema_private). */
       retCode = emaPrivate(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Calculate the histogram. */
       for( i = 0; (i<outNbElement2.value); i += 1 ) {
          outMACDHist[i] = (outMACD[i]-outMACDSignal[i]);
       }
+      /* All done! Indicate the output limits and return success. */
       outBegIdx.value = startIdx;
       outNBElement.value = outNbElement2.value;
       return RetCode.Success ;
@@ -35766,15 +40498,32 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int macdExtLookback( int optInFastPeriod, MAType optInFastMAType, int optInSlowPeriod, MAType optInSlowMAType, int optInSignalPeriod, MAType optInSignalMAType )
    {
       int tempInteger;
       int lookbackLargest;
+      /* Find the MA with the largest lookback */
       lookbackLargest = movingAverageLookback(optInFastPeriod, optInFastMAType);
       tempInteger = movingAverageLookback(optInSlowPeriod, optInSlowMAType);
       if( (tempInteger>lookbackLargest) ) {
          lookbackLargest = tempInteger;
       }
+      /* Add to the largest MA lookback the signal line lookback */
       return (lookbackLargest+movingAverageLookback(optInSignalPeriod, optInSignalMAType)) ;
 
    }
@@ -35812,32 +40561,51 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Make sure slow is really slower than
+       * the fast period! if not, swap...
+       */
       if( (optInSlowPeriod<optInFastPeriod) ) {
+         /* swap period */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
+         /* swap type */
          tempMAType = optInSlowMAType;
          optInSlowMAType = optInFastMAType;
          optInFastMAType = tempMAType;
       }
+      /* Find the MA with the largest lookback */
       lookbackLargest = movingAverageLookback(optInFastPeriod, optInFastMAType);
       tempInteger = movingAverageLookback(optInSlowPeriod, optInSlowMAType);
       if( (tempInteger>lookbackLargest) ) {
          lookbackLargest = tempInteger;
       }
+      /* Add the lookback needed for the signal line */
       lookbackSignal = movingAverageLookback(optInSignalPeriod, optInSignalMAType);
       lookbackTotal = (lookbackSignal+lookbackLargest);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Allocate intermediate buffer for fast/slow MA. */
       tempInteger = (((endIdx-startIdx)+1)+lookbackSignal);
       fastMABuffer = new double[(int)((tempInteger*1))];
       slowMABuffer = new double[(int)((tempInteger*1))];
+      /* Calculate the slow MA.
+       *
+       * Move back the startIdx to get enough data
+       * for the signal period. That way, once the
+       * signal calculation is done, all the output
+       * will start at the requested 'startIdx'.
+       */
       tempInteger = (startIdx-lookbackSignal);
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
       if( (retCode!=RetCode.Success) ) {
@@ -35845,30 +40613,37 @@ public class Core {
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Calculate the fast MA. */
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Parano tests. Will be removed eventually. */
       if( ((((outBegIdx1.value!=tempInteger)||(outBegIdx2.value!=tempInteger))||(outNbElement1.value!=outNbElement2.value))||(outNbElement1.value!=(((endIdx-startIdx)+1)+lookbackSignal))) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.BadParam ;
       }
+      /* Calculate (fast MA) - (slow MA). */
       for( i = 0; (i<outNbElement1.value); i += 1 ) {
          fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
       }
+      /* Copy the result into the output for the caller. */
       System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
+      /* Calculate the signal/trigger line. */
       retCode = movingAverageUnguarded(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Calculate the histogram. */
       for( i = 0; (i<outNbElement2.value); i += 1 ) {
          outMACDHist[i] = (outMACD[i]-outMACDSignal[i]);
       }
+      /* All done! Indicate the output limits and return success. */
       outBegIdx.value = startIdx;
       outNBElement.value = outNbElement2.value;
       return RetCode.Success ;
@@ -36147,8 +40922,28 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int macdFixLookback( int optInSignalPeriod )
    {
+      /* The lookback is driven by the signal line output.
+       *
+       * (must also account for the initial data consume
+       *  by the fix 26 period EMA).
+       */
       return (emaLookback(26)+emaLookback(optInSignalPeriod)) ;
 
    }
@@ -36169,6 +40964,8 @@ public class Core {
          return RetCode.OutOfRangeEndIndex ;
       }
       return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+      /* 0 indicate fix 12 == 0.15  for optInFastPeriod */
+      /* 0 indicate fix 26 == 0.075 for optInSlowPeriod */
    }
    public RetCode macdFixUnguarded( int startIdx,
                                     int endIdx,
@@ -36213,8 +41010,44 @@ public class Core {
       return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  023003 MF   Initial Coding of MAMA.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int mamaLookback( double optInFastLimit, double optInSlowLimit )
    {
+      /* The two parameters are not a factor to determine
+       * the lookback, but are still requested for
+       * consistency with all other Lookback functions.
+       */
+      /* Lookback is a fix amount + the unstable period.
+       *
+       *
+       * The fix lookback is 32 and is establish as follow:
+       *
+       *         12 price bar to be compatible with the implementation
+       *            of TradeStation found in John Ehlers book.
+       *          6 price bars for the Detrender
+       *          6 price bars for Q1
+       *          3 price bars for jI
+       *          3 price bars for jQ
+       *          1 price bar for Re/Im
+       *          1 price bar for the Delta Phase
+       *        -------
+       *         32 Total
+       */
       return (32+this.unstablePeriod[FuncUnstId.Mama.ordinal()]) ;
 
    }
@@ -36296,19 +41129,37 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
+      /* Variable used for the price smoother (a weighted moving average). */
+      /* Variables used for the Hilbert Transormation */
+      /* Constant */
       rad2Deg = (180.0/(4.0*Math.atan(1)));
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Mama.ordinal()]);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
+      /* Initialize the price smoother, which is simply a weighted
+       * moving average of the price.
+       * To understand this algorithm, I strongly suggest to understand
+       * first how TA_WMA is done.
+       */
       trailingWMAIdx = (startIdx-lookbackTotal);
       today = trailingWMAIdx;
+      /* Initialization is same as WMA, except loop is unrolled
+       * for speed optimization.
+       */
       tempReal = inReal[today++];
       periodWMASub = tempReal;
       periodWMASum = tempReal;
@@ -36319,6 +41170,9 @@ public class Core {
       periodWMASub += tempReal;
       periodWMASum += (tempReal*3.0);
       trailingWMAValue = 0.0;
+      /* Subsequent WMA value are evaluated by using
+       * the DO_PRICE_WMA macro.
+       */
       i = 9;
       do {
          tempReal = inReal[today++];
@@ -36329,6 +41183,14 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
       } while( (--i!=0) );
+      /* Initialize the circular buffers used by the hilbert
+       * transform logic.
+       * A buffer is used for odd day and another for even days.
+       * This minimize the number of memory access and floating point
+       * operations needed (note also that by using static circular buffer,
+       * no large dynamic memory allocation is needed for storing
+       * intermediate calculation!).
+       */
       hilbertIdx = 0;
       detrender_Odd[0] = 0.0;
       detrender_Odd[1] = 0.0;
@@ -36387,6 +41249,13 @@ public class Core {
       I1ForEvenPrev2 = 0.0;
       I1ForOddPrev2 = I1ForEvenPrev2;
       prevPhase = 0.0;
+      /* The code is speed optimized and is most likely very
+       * hard to follow if you do not already know well the
+       * original algorithm.
+       * To understadn better, it is strongly suggested to look
+       * first at the Excel implementation in "test_MAMA.xls" included
+       * in this package.
+       */
       while( (today<=endIdx) ) {
          adjustedPrevPeriod = ((0.075*period)+0.54);
          todayValue = inReal[today];
@@ -36397,6 +41266,7 @@ public class Core {
          smoothedValue = (periodWMASum*0.1);
          periodWMASum -= periodWMASub;
          if( ((today%2)==0) ) {
+            /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Even[hilbertIdx]);
             detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -36438,14 +41308,22 @@ public class Core {
             }
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+            /* The variable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForOddPrev3 = I1ForOddPrev2;
             I1ForOddPrev2 = detrender;
+            /* Put Alpha in tempReal2 */
             if( (I1ForEvenPrev3!=0.0) ) {
                tempReal2 = (Math.atan((Q1/I1ForEvenPrev3))*rad2Deg);
             } else {
                tempReal2 = 0.0;
             }
          } else {
+            /* Do the Hilbert Transforms for odd price bar */
             hilbertTempReal = (a*smoothedValue);
             detrender = (0-detrender_Odd[hilbertIdx]);
             detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -36484,19 +41362,28 @@ public class Core {
             jQ *= adjustedPrevPeriod;
             Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
             I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+            /* The varaiable I1 is the detrender delayed for
+             * 3 price bars.
+             *
+             * Save the current detrender value for being
+             * used by the "odd" logic later.
+             */
             I1ForEvenPrev3 = I1ForEvenPrev2;
             I1ForEvenPrev2 = detrender;
+            /* Put Alpha in tempReal2 */
             if( (I1ForOddPrev3!=0.0) ) {
                tempReal2 = (Math.atan((Q1/I1ForOddPrev3))*rad2Deg);
             } else {
                tempReal2 = 0.0;
             }
          }
+         /* Put Delta Phase into tempReal */
          tempReal = (prevPhase-tempReal2);
          prevPhase = tempReal2;
          if( (tempReal<1.0) ) {
             tempReal = 1.0;
          }
+         /* Put Alpha into tempReal */
          if( (tempReal>1.0) ) {
             tempReal = (optInFastLimit/tempReal);
             if( (tempReal<optInSlowLimit) ) {
@@ -36505,6 +41392,7 @@ public class Core {
          } else {
             tempReal = optInFastLimit;
          }
+         /* Calculate MAMA, FAMA */
          mama = ((tempReal*todayValue)+((1-tempReal)*mama));
          tempReal *= 0.5;
          fama = ((tempReal*mama)+((1-tempReal)*fama));
@@ -36512,6 +41400,7 @@ public class Core {
             outMAMA[outIdx] = mama;
             outFAMA[outIdx++] = fama;
          }
+         /* Adjust the period for next price bar */
          Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
          Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
          prevQ2 = Q2;
@@ -36534,8 +41423,10 @@ public class Core {
             period = 50;
          }
          period = ((0.2*period)+(0.8*tempReal));
+         /* Ooof... let's do the next price bar now! */
          today += 1;
       }
+      /* Default return values */
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
@@ -37491,6 +42382,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  021807 MF     Initial Version
+ */
+
    public int movingAverageVariablePeriodLookback( int optInMinPeriod, int optInMaxPeriod, MAType optInMAType )
    {
       return movingAverageLookback(optInMaxPeriod, optInMAType) ;
@@ -37524,28 +42428,41 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = movingAverageLookback(optInMaxPeriod, optInMAType);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Calculate exact output size */
       if( (lookbackTotal>startIdx) ) {
          tempInt = lookbackTotal;
       } else {
          tempInt = startIdx;
       }
       if( (tempInt>endIdx) ) {
+         /* No output */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outputSize = ((endIdx-tempInt)+1);
+      /* Allocate intermediate local buffer. */
       localOutputArray = new double[(int)((outputSize*1))];
       localPeriodArray = new int[(int)((outputSize*1))];
+      /* Copy caller array of period into local buffer.
+       * At the same time, truncate to min/max.
+       */
       for( i = 0; (i<outputSize); i += 1 ) {
          tempInt = ((int)inPeriods[(startIdx+i)]);
          if( (tempInt<optInMinPeriod) ) {
@@ -37555,9 +42472,22 @@ public class Core {
          }
          localPeriodArray[i] = tempInt;
       }
+      /* Process each element of the input.
+       * For each possible period value, the MA is calculated
+       * only once.
+       * The outReal is then fill up for all element with
+       * the same period.
+       * A local flag (value 0) is set in localPeriodArray
+       * to avoid doing a second time the same calculation.
+       */
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
+            /* TODO: This portion of the function can be slightly speed
+             *       optimized by making the function without unstable period
+             *       start their calculation at 'startIdx+i' instead of startIdx.
+             */
+            /* Calculation of the MA required. */
             retCode = movingAverageUnguarded(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
@@ -37568,11 +42498,13 @@ public class Core {
             for( j = (i+1); (j<outputSize); j += 1 ) {
                if( (localPeriodArray[j]==curPeriod) ) {
                   localPeriodArray[j] = 0;
+                  /* Flag to avoid recalculation */
                   outReal[j] = localOutputArray[j];
                }
             }
          }
       }
+      /* Done. Inform the caller of the success. */
       outBegIdx.value = startIdx;
       outNBElement.value = outputSize;
       return RetCode.Success ;
@@ -37809,6 +42741,23 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  101902 JV   Speed optimization of the algorithm
+ *  102202 MF   Speed optimize a bit further
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int maxLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -37836,15 +42785,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -37871,6 +42832,9 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -38047,6 +43011,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120806 AC   Creation (equal to MAX but outputs index)
+ */
+
    public int maxIndexLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -38074,15 +43051,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -38109,6 +43098,9 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -38285,8 +43277,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ */
+
    public int medPriceLookback( )
    {
+      /* This function have no lookback needed. */
       return 0 ;
 
    }
@@ -38306,6 +43315,12 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* MEDPRICE = (High + Low ) / 2
+       * This is the high and low of the same price bar.
+       *
+       * See MIDPRICE to use instead the highest high and lowest
+       * low over multiple price bar.
+       */
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          outReal[outIdx++] = ((inHigh[i]+inLow[i])/2.0);
@@ -38375,6 +43390,24 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  BT       BobTrader (TADoc.org forum user).
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF    Template creation.
+ *  052603 MF    Adapt code to compile with .NET Managed C++
+ *  062704 MF    Prevent divide by zero.
+ *  121705 MF    Java port related changes.
+ *  060907 MF,BT Fix #1727704. MFI logic bug when no price movement
+ */
+
    public int mfiLookback( int optInTimePeriod )
    {
       return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]) ;
@@ -38410,6 +43443,7 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Id, Type, Static Size */
       if( optInTimePeriod < 1 ) return RetCode.AllocErr;
       mflow_positive = new double[optInTimePeriod];
       mflow_negative = new double[optInTimePeriod];
@@ -38417,14 +43451,20 @@ public class Core {
       mflow_Idx = 0;
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Mfi.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
+      /* Accumulate the positive and negative money flow
+       * among the initial period.
+       */
       today = (startIdx-lookbackTotal);
       prevValue = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
       posSumMF = 0.0;
@@ -38450,6 +43490,11 @@ public class Core {
          mflow_Idx++;
          if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
       }
+      /* The following two equations are equivalent:
+       *    MFI = 100 - (100 / 1 + (posSumMF/negSumMF))
+       *    MFI = 100 * (posSumMF/(posSumMF+negSumMF))
+       * The second equation is used here for speed optimization.
+       */
       if( (today>startIdx) ) {
          tempValue1 = (posSumMF+negSumMF);
          if( (tempValue1<1.0) ) {
@@ -38458,6 +43503,9 @@ public class Core {
             outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
          }
       } else {
+         /* Skip the unstable period. Do the processing
+          * but do not write it in the output.
+          */
          while( (today<startIdx) ) {
             posSumMF -= mflow_positive[mflow_Idx];
             negSumMF -= mflow_negative[mflow_Idx];
@@ -38481,6 +43529,9 @@ public class Core {
             if( mflow_Idx > maxIdx_mflow ) { mflow_Idx = 0; }
          }
       }
+      /* Unstable period skipped... now continue
+       * processing if needed.
+       */
       while( (today<=endIdx) ) {
          posSumMF -= mflow_positive[mflow_Idx];
          negSumMF -= mflow_negative[mflow_Idx];
@@ -38901,6 +43952,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int midPointLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -38928,15 +43994,34 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Find the highest and lowest value of a timeserie
+       * over the period.
+       *      MIDPOINT = (Highest Value + Lowest Value)/2
+       *
+       * See MIDPRICE if the input is a price bar with a
+       * high and low timeserie.
+       */
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -38954,6 +44039,9 @@ public class Core {
          outReal[outIdx++] = ((highest+lowest)/2.0);
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -39103,6 +44191,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int midPriceLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -39131,15 +44234,32 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* MIDPRICE = (Highest High + Lowest Low)/2
+       *
+       * This function is equivalent to MEDPRICE when the
+       * period is 1.
+       */
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -39160,6 +44280,9 @@ public class Core {
          outReal[outIdx++] = ((highest+lowest)/2.0);
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -39321,6 +44444,23 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  101902 JV   Speed optimization of the algorithm
+ *  102202 MF   Speed optimize a bit further
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int minLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -39348,15 +44488,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -39383,6 +44535,9 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -39559,6 +44714,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120806 AC   Creation (equal to MIN but outputs index)
+ */
+
    public int minIndexLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -39586,15 +44754,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -39621,6 +44801,9 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -39797,6 +44980,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120906 AC   Creation
+ */
+
    public int minMaxLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -39828,15 +45024,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -39883,6 +45091,9 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -40131,6 +45342,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120906 AC   Creation (equal to MINMAX but outputs index)
+ */
+
    public int minMaxIndexLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -40162,15 +45386,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -40217,6 +45453,9 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -40465,6 +45704,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel
+ *  MIF      Mirek Fontan (mira@fontan.cz)
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY    Description
+ *  -------------------------------------------------------------------
+ *  010802 MF    Template creation.
+ *  052603 MF    Adapt code to compile with .NET Managed C++
+ *  082303 MF    Fix #792298. Remove rounding. Bug reported by AM.
+ *  062704 MF    Fix #965557. Div by zero bug reported by MIF.
+ *  122204 MF,CF Fix #1090231. Issues when period is 1.
+ */
+
    public int minusDILookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
@@ -40503,21 +45762,125 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /*
+       * The DM1 (one period) is base on the largest part of
+       * today's range that is outside of yesterdays range.
+       *
+       * The following 7 cases explain how the +DM and -DM are
+       * calculated on one period:
+       *
+       * Case 1:                       Case 2:
+       *    C|                        A|
+       *     |                         | C|
+       *     | +DM1 = (C-A)           B|  | +DM1 = 0
+       *     | -DM1 = 0                   | -DM1 = (B-D)
+       * A|  |                           D|
+       *  | D|
+       * B|
+       *
+       * Case 3:                       Case 4:
+       *    C|                           C|
+       *     |                        A|  |
+       *     | +DM1 = (C-A)            |  | +DM1 = 0
+       *     | -DM1 = 0               B|  | -DM1 = (B-D)
+       * A|  |                            |
+       *  |  |                           D|
+       * B|  |
+       *    D|
+       *
+       * Case 5:                      Case 6:
+       * A|                           A| C|
+       *  | C| +DM1 = 0                |  |  +DM1 = 0
+       *  |  | -DM1 = 0                |  |  -DM1 = 0
+       *  | D|                         |  |
+       * B|                           B| D|
+       *
+       *
+       * Case 7:
+       *
+       *    C|
+       * A|  |
+       *  |  | +DM1=0
+       * B|  | -DM1=0
+       *    D|
+       *
+       * In case 3 and 4, the rule is that the smallest delta between
+       * (C-A) and (B-D) determine which of +DM or -DM is zero.
+       *
+       * In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are
+       * zero.
+       *
+       * The rules remain the same when A=B and C=D (when the highs
+       * equal the lows).
+       *
+       * When calculating the DM over a period > 1, the one-period DM
+       * for the desired period are initialy sum. In other word,
+       * for a -DM14, sum the -DM1 for the first 14 days (that's
+       * 13 values because there is no DM for the first day!)
+       * Subsequent DM are calculated using the Wilder's
+       * smoothing approach:
+       *
+       *                                    Previous -DM14
+       *  Today's -DM14 = Previous -DM14 -  -------------- + Today's -DM1
+       *                                         14
+       *
+       * Calculation of a -DI14 is as follow:
+       *
+       *               -DM14
+       *     -DI14 =  --------
+       *                TR14
+       *
+       * Calculation of the TR14 is:
+       *
+       *                                   Previous TR14
+       *    Today's TR14 = Previous TR14 - -------------- + Today's TR1
+       *                                         14
+       *
+       *    The first TR14 is the summation of the first 14 TR1. See the
+       *    TA_TRANGE function on how to calculate the true range.
+       *
+       * Reference:
+       *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+       */
+      /* Original implementation from Wilder's book was doing some integer
+       * rounding in its calculations.
+       *
+       * This was understandable in the context that at the time the book
+       * was written, most user were doing the calculation by hand.
+       *
+       * For a computer, rounding is unnecessary (and even problematic when inputs
+       * are close to 1).
+       *
+       * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
+       * you can comment out the following #undef/#define and rebuild the library.
+       */
       if( (optInTimePeriod>1) ) {
          lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]);
       } else {
          lookbackTotal = 1;
       }
+      /* Adjust startIdx to account for the lookback period. */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Indicate where the next output should be put
+       * in the outReal.
+       */
       outIdx = 0;
+      /* Trap the case where no smoothing is needed. */
       if( (optInTimePeriod<=1) ) {
+         /* No smoothing needed. Just do the following:
+          * for each price bar.
+          *          -DM1
+          *   -DI1 = ----
+          *           TR1
+          */
          outBegIdx.value = startIdx;
          today = (startIdx-1);
          prevHigh = inHigh[today];
@@ -40527,11 +45890,14 @@ public class Core {
             today += 1;
             tempReal = inHigh[today];
             diffP = (tempReal-prevHigh);
+            /* Plus Delta */
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = (prevLow-tempReal);
+            /* Minus Delta */
             prevLow = tempReal;
             if( ((diffM>0)&&(diffP<diffM)) ) {
+               /* Case 2 and 4: +DM=0,-DM=diffM */
                double _true_range_0;
                double range_0 = (prevHigh-prevLow);
                double tmp_0 = Math.abs((prevHigh-prevClose));
@@ -40557,6 +45923,7 @@ public class Core {
          outNBElement.value = outIdx;
          return RetCode.Success ;
       }
+      /* Process the initial DM and TR */
       today = startIdx;
       outBegIdx.value = today;
       prevMinusDM = 0.0;
@@ -40570,11 +45937,14 @@ public class Core {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          }
          double _true_range_1;
@@ -40592,20 +45962,30 @@ public class Core {
          prevTR += tempReal;
          prevClose = inClose[today];
       }
+      /* Process subsequent DI */
+      /* Skip the unstable period. Note that this loop must be executed
+       * at least ONCE to calculate the first DI.
+       */
       i = (this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]+1);
       while( (i--!=0) ) {
+         /* Calculate the prevMinusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM = ((prevMinusDM-(prevMinusDM/optInTimePeriod))+diffM);
          } else {
+            /* Case 1,3,5 and 7 */
             prevMinusDM = (prevMinusDM-(prevMinusDM/optInTimePeriod));
          }
+         /* Calculate the prevTR */
          double _true_range_2;
          double range_2 = (prevHigh-prevLow);
          double tmp_2 = Math.abs((prevHigh-prevClose));
@@ -40621,6 +46001,9 @@ public class Core {
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
       }
+      /* Now start to write the output in
+       * the caller provided outReal.
+       */
       if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
          outReal[0] = (100.0*(prevMinusDM/prevTR));
       } else {
@@ -40628,18 +46011,24 @@ public class Core {
       }
       outIdx = 1;
       while( (today<endIdx) ) {
+         /* Calculate the prevMinusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM = ((prevMinusDM-(prevMinusDM/optInTimePeriod))+diffM);
          } else {
+            /* Case 1,3,5 and 7 */
             prevMinusDM = (prevMinusDM-(prevMinusDM/optInTimePeriod));
          }
+         /* Calculate the prevTR */
          double _true_range_3;
          double range_3 = (prevHigh-prevLow);
          double tmp_3 = Math.abs((prevHigh-prevClose));
@@ -40654,6 +46043,7 @@ public class Core {
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
+         /* Calculate the DI. The value is rounded (see Wilder book). */
          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
          } else {
@@ -41219,6 +46609,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int minusDMLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
@@ -41253,21 +46658,95 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /*
+       * The DM1 (one period) is base on the largest part of
+       * today's range that is outside of yesterdays range.
+       *
+       * The following 7 cases explain how the +DM and -DM are
+       * calculated on one period:
+       *
+       * Case 1:                       Case 2:
+       *    C|                        A|
+       *     |                         | C|
+       *     | +DM1 = (C-A)           B|  | +DM1 = 0
+       *     | -DM1 = 0                   | -DM1 = (B-D)
+       * A|  |                           D|
+       *  | D|
+       * B|
+       *
+       * Case 3:                       Case 4:
+       *    C|                           C|
+       *     |                        A|  |
+       *     | +DM1 = (C-A)            |  | +DM1 = 0
+       *     | -DM1 = 0               B|  | -DM1 = (B-D)
+       * A|  |                            |
+       *  |  |                           D|
+       * B|  |
+       *    D|
+       *
+       * Case 5:                      Case 6:
+       * A|                           A| C|
+       *  | C| +DM1 = 0                |  |  +DM1 = 0
+       *  |  | -DM1 = 0                |  |  -DM1 = 0
+       *  | D|                         |  |
+       * B|                           B| D|
+       *
+       *
+       * Case 7:
+       *
+       *    C|
+       * A|  |
+       *  |  | +DM=0
+       * B|  | -DM=0
+       *    D|
+       *
+       * In case 3 and 4, the rule is that the smallest delta between
+       * (C-A) and (B-D) determine which of +DM or -DM is zero.
+       *
+       * In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are
+       * zero.
+       *
+       * The rules remain the same when A=B and C=D (when the highs
+       * equal the lows).
+       *
+       * When calculating the DM over a period > 1, the one-period DM
+       * for the desired period are initialy sum. In other word,
+       * for a -DM14, sum the -DM1 for the first 14 days (that's
+       * 13 values because there is no DM for the first day!)
+       * Subsequent DM are calculated using the Wilder's
+       * smoothing approach:
+       *
+       *                                    Previous -DM14
+       *  Today's -DM14 = Previous -DM14 -  -------------- + Today's -DM1
+       *                                         14
+       *
+       * Reference:
+       *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+       */
       if( (optInTimePeriod>1) ) {
          lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDM.ordinal()])-1);
       } else {
          lookbackTotal = 1;
       }
+      /* Adjust startIdx to account for the lookback period. */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Indicate where the next output should be put
+       * in the outReal.
+       */
       outIdx = 0;
+      /* Trap the case where no smoothing is needed. */
       if( (optInTimePeriod<=1) ) {
+         /* No smoothing needed. Just do a simple DM1
+          * for each price bar.
+          */
          outBegIdx.value = startIdx;
          today = (startIdx-1);
          prevHigh = inHigh[today];
@@ -41276,11 +46755,14 @@ public class Core {
             today += 1;
             tempReal = inHigh[today];
             diffP = (tempReal-prevHigh);
+            /* Plus Delta */
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = (prevLow-tempReal);
+            /* Minus Delta */
             prevLow = tempReal;
             if( ((diffM>0)&&(diffP<diffM)) ) {
+               /* Case 2 and 4: +DM=0,-DM=diffM */
                outReal[outIdx++] = diffM;
             } else {
                outReal[outIdx++] = 0;
@@ -41289,6 +46771,7 @@ public class Core {
          outNBElement.value = outIdx;
          return RetCode.Success ;
       }
+      /* Process the initial DM */
       outBegIdx.value = startIdx;
       prevMinusDM = 0.0;
       today = (startIdx-lookbackTotal);
@@ -41299,42 +46782,58 @@ public class Core {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
          }
       }
+      /* Process subsequent DM */
+      /* Skip the unstable period. */
       i = this.unstablePeriod[FuncUnstId.MinusDM.ordinal()];
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM = ((prevMinusDM-(prevMinusDM/optInTimePeriod))+diffM);
          } else {
+            /* Case 1,3,5 and 7 */
             prevMinusDM = (prevMinusDM-(prevMinusDM/optInTimePeriod));
          }
       }
+      /* Now start to write the output in
+       * the caller provided outReal.
+       */
       outReal[0] = prevMinusDM;
       outIdx = 1;
       while( (today<endIdx) ) {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffM>0)&&(diffP<diffM)) ) {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM = ((prevMinusDM-(prevMinusDM/optInTimePeriod))+diffM);
          } else {
+            /* Case 1,3,5 and 7 */
             prevMinusDM = (prevMinusDM-(prevMinusDM/optInTimePeriod));
          }
          outReal[outIdx++] = prevMinusDM;
@@ -41673,6 +47172,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int momLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -41695,20 +47209,60 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* The interpretation of the rate of change varies widely depending
+       * which software and/or books you are refering to.
+       *
+       * The following is the table of Rate-Of-Change implemented in TA-LIB:
+       *       MOM     = (price - prevPrice)         [Momentum]
+       *       ROC     = ((price/prevPrice)-1)*100   [Rate of change]
+       *       ROCP    = (price-prevPrice)/prevPrice [Rate of change Percentage]
+       *       ROCR    = (price/prevPrice)           [Rate of change ratio]
+       *       ROCR100 = (price/prevPrice)*100       [Rate of change ratio 100 Scale]
+       *
+       * Here are the equivalent function in other software:
+       *       TA-Lib  |   Tradestation   |    Metastock
+       *       =================================================
+       *       MOM     |   Momentum       |    ROC (Point)
+       *       ROC     |   ROC            |    ROC (Percent)
+       *       ROCP    |   PercentChange  |    -
+       *       ROCR    |   -              |    -
+       *       ROCR100 |   -              |    MO
+       *
+       * The MOM function is the only one who is not normalized, and thus
+       * should be avoided for comparing different time serie of prices.
+       *
+       * ROC and ROCP are centered at zero and can have positive and negative
+       * value. Here are some equivalence:
+       *    ROC = ROCP/100
+       *        = ((price-prevPrice)/prevPrice)/100
+       *        = ((price/prevPrice)-1)*100
+       *
+       * ROCR and ROCR100 are ratio respectively centered at 1 and 100 and are
+       * always positive values.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Calculate Momentum:
+       *    Just substract the value from 'period' ago from
+       *    current value.
+       */
       outIdx = 0;
       inIdx = startIdx;
       trailingIdx = (startIdx-optInTimePeriod);
       while( (inIdx<=endIdx) ) {
          outReal[outIdx++] = (inReal[inIdx++]-inReal[trailingIdx++]);
       }
+      /* Set output limits. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -41807,6 +47361,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int multLookback( )
    {
       return 0 ;
@@ -41909,8 +47476,28 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  060306 MF     Initial Version
+ */
+
    public int natrLookback( int optInTimePeriod )
    {
+      /* The ATR lookback is the sum of:
+       *    1 + (optInTimePeriod - 1)
+       *
+       * Where 1 is for the True Range, and
+       * (optInTimePeriod-1) is for the simple
+       * moving average.
+       */
       return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Natr.ordinal()]) ;
 
    }
@@ -41940,35 +47527,79 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* This function is very similar as ATR, except
+       * it is being normalized as follow:
+       *
+       *    NATR = (ATR(period) / Close) * 100
+       *
+       *
+       * Normalization make the ATR function more relevant
+       * in the folllowing scenario:
+       *    - Long term analysis where the price changes drastically.
+       *    - Cross-market or cross-security ATR comparison.
+       *
+       * More Info:
+       *      Technical Analysis of Stock & Commodities (TASC)
+       *      May 2006 by John Forman
+       */
+      /* Average True Range is the greatest of the following:
+       *
+       *  val1 = distance from today's high to today's low.
+       *  val2 = distance from yesterday's close to today's high.
+       *  val3 = distance from yesterday's close to today's low.
+       *
+       * These value are averaged for the specified period using
+       * Wilder method. This method have an unstable period comparable
+       * to an Exponential Moving Average (EMA).
+       */
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = natrLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
+      /* Trap the case where no smoothing is needed. */
       if( (optInTimePeriod<=1) ) {
+         /* No smoothing needed. Just do a TRANGE. */
          return trueRangeUnguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
       }
+      /* Allocate an intermediate buffer for TRANGE. */
       tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
+      /* Do TRANGE in the intermediate buffer. */
       retCode = trueRangeUnguarded(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
+      /* First value of the ATR is a simple Average of
+       * the TRANGE output for the specified period.
+       */
       retCode = smaUnguarded((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
+      /* Subsequent value are smoothed using the
+       * previous ATR value (Wilder's approach).
+       *  1) Multiply the previous ATR by 'period-1'.
+       *  2) Add today TR value.
+       *  3) Divide by 'period'.
+       */
       today = optInTimePeriod;
       outIdx = this.unstablePeriod[FuncUnstId.Natr.ordinal()];
+      /* Skip the unstable period. */
       while( (outIdx!=0) ) {
          prevATR[0] *= (optInTimePeriod-1);
          prevATR[0] += tempBuffer[today++];
          prevATR[0] /= optInTimePeriod;
          outIdx -= 1;
       }
+      /* Now start to write the final ATR in the caller
+       * provided outReal.
+       */
       outIdx = 1;
       tempValue = inClose[today];
       if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
@@ -41976,6 +47607,7 @@ public class Core {
       } else {
          outReal[0] = 0.0;
       }
+      /* Now do the number of requested ATR. */
       nbATR = ((endIdx-startIdx)+1);
       while( (--nbATR!=0) ) {
          prevATR[0] *= (optInTimePeriod-1);
@@ -42219,8 +47851,26 @@ public class Core {
       return retCode ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  110206 AC   Change volume and open interest to double
+ */
+
    public int obvLookback( )
    {
+      /* This function have no lookback needed. */
       return 0 ;
 
    }
@@ -42357,6 +48007,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel
+ *  MIF      Mirek Fontan (mira@fontan.cz)
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY    Description
+ *  -------------------------------------------------------------------
+ *  010802 MF    Template creation.
+ *  052603 MF    Adapt code to compile with .NET Managed C++
+ *  082303 MF    Fix #792298. Remove rounding. Bug reported by AM.
+ *  062704 MF    Fix #965557. Div by zero bug reported by MIF.
+ *  122204 MF,CF Fix #1090231. Issues when period is 1.
+ */
+
    public int plusDILookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
@@ -42395,21 +48065,125 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /*
+       * The DM1 (one period) is base on the largest part of
+       * today's range that is outside of yesterdays range.
+       *
+       * The following 7 cases explain how the +DM and -DM are
+       * calculated on one period:
+       *
+       * Case 1:                       Case 2:
+       *    C|                        A|
+       *     |                         | C|
+       *     | +DM1 = (C-A)           B|  | +DM1 = 0
+       *     | -DM1 = 0                   | -DM1 = (B-D)
+       * A|  |                           D|
+       *  | D|
+       * B|
+       *
+       * Case 3:                       Case 4:
+       *    C|                           C|
+       *     |                        A|  |
+       *     | +DM1 = (C-A)            |  | +DM1 = 0
+       *     | -DM1 = 0               B|  | -DM1 = (B-D)
+       * A|  |                            |
+       *  |  |                           D|
+       * B|  |
+       *    D|
+       *
+       * Case 5:                      Case 6:
+       * A|                           A| C|
+       *  | C| +DM1 = 0                |  |  +DM1 = 0
+       *  |  | -DM1 = 0                |  |  -DM1 = 0
+       *  | D|                         |  |
+       * B|                           B| D|
+       *
+       *
+       * Case 7:
+       *
+       *    C|
+       * A|  |
+       *  |  | +DM1=0
+       * B|  | -DM1=0
+       *    D|
+       *
+       * In case 3 and 4, the rule is that the smallest delta between
+       * (C-A) and (B-D) determine which of +DM or -DM is zero.
+       *
+       * In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are
+       * zero.
+       *
+       * The rules remain the same when A=B and C=D (when the highs
+       * equal the lows).
+       *
+       * When calculating the DM over a period > 1, the one-period DM
+       * for the desired period are initialy sum. In other word,
+       * for a -DM14, sum the -DM1 for the first 14 days (that's
+       * 13 values because there is no DM for the first day!)
+       * Subsequent DM are calculated using the Wilder's
+       * smoothing approach:
+       *
+       *                                    Previous +DM14
+       *  Today's +DM14 = Previous +DM14 -  -------------- + Today's +DM1
+       *                                         14
+       *
+       * Calculation of a +DI14 is as follow:
+       *
+       *               +DM14
+       *     +DI14 =  --------
+       *                TR14
+       *
+       * Calculation of the TR14 is:
+       *
+       *                                   Previous TR14
+       *    Today's TR14 = Previous TR14 - -------------- + Today's TR1
+       *                                         14
+       *
+       *    The first TR14 is the summation of the first 14 TR1. See the
+       *    TA_TRANGE function on how to calculate the true range.
+       *
+       * Reference:
+       *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+       */
+      /* Original implementation from Wilder's book was doing some integer
+       * rounding in its calculations.
+       *
+       * This was understandable in the context that at the time the book
+       * was written, most user were doing the calculation by hand.
+       *
+       * For a computer, rounding is unnecessary (and even problematic when inputs
+       * are close to 1).
+       *
+       * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
+       * you can comment out the following #undef/#define and rebuild the library.
+       */
       if( (optInTimePeriod>1) ) {
          lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
       } else {
          lookbackTotal = 1;
       }
+      /* Adjust startIdx to account for the lookback period. */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Indicate where the next output should be put
+       * in the outReal.
+       */
       outIdx = 0;
+      /* Trap the case where no smoothing is needed. */
       if( (optInTimePeriod<=1) ) {
+         /* No smoothing needed. Just do the following:
+          * for each price bar.
+          *          +DM1
+          *   +DI1 = ----
+          *           TR1
+          */
          outBegIdx.value = startIdx;
          today = (startIdx-1);
          prevHigh = inHigh[today];
@@ -42419,11 +48193,14 @@ public class Core {
             today += 1;
             tempReal = inHigh[today];
             diffP = (tempReal-prevHigh);
+            /* Plus Delta */
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = (prevLow-tempReal);
+            /* Minus Delta */
             prevLow = tempReal;
             if( ((diffP>0)&&(diffP>diffM)) ) {
+               /* Case 1 and 3: +DM=diffP,-DM=0 */
                double _true_range_0;
                double range_0 = (prevHigh-prevLow);
                double tmp_0 = Math.abs((prevHigh-prevClose));
@@ -42449,6 +48226,7 @@ public class Core {
          outNBElement.value = outIdx;
          return RetCode.Success ;
       }
+      /* Process the initial DM and TR */
       today = startIdx;
       outBegIdx.value = today;
       prevPlusDM = 0.0;
@@ -42462,11 +48240,14 @@ public class Core {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
          double _true_range_1;
@@ -42484,20 +48265,30 @@ public class Core {
          prevTR += tempReal;
          prevClose = inClose[today];
       }
+      /* Process subsequent DI */
+      /* Skip the unstable period. Note that this loop must be executed
+       * at least ONCE to calculate the first DI.
+       */
       i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
       while( (i--!=0) ) {
+         /* Calculate the prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
          } else {
+            /* Case 2,4,5 and 7 */
             prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
          }
+         /* Calculate the prevTR */
          double _true_range_2;
          double range_2 = (prevHigh-prevLow);
          double tmp_2 = Math.abs((prevHigh-prevClose));
@@ -42513,6 +48304,9 @@ public class Core {
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
       }
+      /* Now start to write the output in
+       * the caller provided outReal.
+       */
       if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
          outReal[0] = (100.0*(prevPlusDM/prevTR));
       } else {
@@ -42520,18 +48314,24 @@ public class Core {
       }
       outIdx = 1;
       while( (today<endIdx) ) {
+         /* Calculate the prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
          } else {
+            /* Case 2,4,5 and 7 */
             prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
          }
+         /* Calculate the prevTR */
          double _true_range_3;
          double range_3 = (prevHigh-prevLow);
          double tmp_3 = Math.abs((prevHigh-prevClose));
@@ -42546,6 +48346,7 @@ public class Core {
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
+         /* Calculate the DI. The value is rounded (see Wilder book). */
          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
          } else {
@@ -43111,6 +48912,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  010802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  122104 MF,CF  Fix#1089506 for when optInTimePeriod is 1.
+ */
+
    public int plusDMLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
@@ -43145,21 +48962,95 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /*
+       * The DM1 (one period) is base on the largest part of
+       * today's range that is outside of yesterdays range.
+       *
+       * The following 7 cases explain how the +DM and -DM are
+       * calculated on one period:
+       *
+       * Case 1:                       Case 2:
+       *    C|                        A|
+       *     |                         | C|
+       *     | +DM1 = (C-A)           B|  | +DM1 = 0
+       *     | -DM1 = 0                   | -DM1 = (B-D)
+       * A|  |                           D|
+       *  | D|
+       * B|
+       *
+       * Case 3:                       Case 4:
+       *    C|                           C|
+       *     |                        A|  |
+       *     | +DM1 = (C-A)            |  | +DM1 = 0
+       *     | -DM1 = 0               B|  | -DM1 = (B-D)
+       * A|  |                            |
+       *  |  |                           D|
+       * B|  |
+       *    D|
+       *
+       * Case 5:                      Case 6:
+       * A|                           A| C|
+       *  | C| +DM1 = 0                |  |  +DM1 = 0
+       *  |  | -DM1 = 0                |  |  -DM1 = 0
+       *  | D|                         |  |
+       * B|                           B| D|
+       *
+       *
+       * Case 7:
+       *
+       *    C|
+       * A|  |
+       *  |  | +DM=0
+       * B|  | -DM=0
+       *    D|
+       *
+       * In case 3 and 4, the rule is that the smallest delta between
+       * (C-A) and (B-D) determine which of +DM or -DM is zero.
+       *
+       * In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are
+       * zero.
+       *
+       * The rules remain the same when A=B and C=D (when the highs
+       * equal the lows).
+       *
+       * When calculating the DM over a period > 1, the one-period DM
+       * for the desired period are initialy sum. In other word,
+       * for a +DM14, sum the +DM1 for the first 14 days (that's
+       * 13 values because there is no DM for the first day!)
+       * Subsequent DM are calculated using the Wilder's
+       * smoothing approach:
+       *
+       *                                    Previous +DM14
+       *  Today's +DM14 = Previous +DM14 -  -------------- + Today's +DM1
+       *                                         14
+       *
+       * Reference:
+       *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+       */
       if( (optInTimePeriod>1) ) {
          lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
       } else {
          lookbackTotal = 1;
       }
+      /* Adjust startIdx to account for the lookback period. */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Indicate where the next output should be put
+       * in the outReal.
+       */
       outIdx = 0;
+      /* Trap the case where no smoothing is needed. */
       if( (optInTimePeriod<=1) ) {
+         /* No smoothing needed. Just do a simple DM1
+          * for each price bar.
+          */
          outBegIdx.value = startIdx;
          today = (startIdx-1);
          prevHigh = inHigh[today];
@@ -43168,11 +49059,14 @@ public class Core {
             today += 1;
             tempReal = inHigh[today];
             diffP = (tempReal-prevHigh);
+            /* Plus Delta */
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = (prevLow-tempReal);
+            /* Minus Delta */
             prevLow = tempReal;
             if( ((diffP>0)&&(diffP>diffM)) ) {
+               /* Case 1 and 3: +DM=diffP,-DM=0 */
                outReal[outIdx++] = diffP;
             } else {
                outReal[outIdx++] = 0;
@@ -43181,6 +49075,7 @@ public class Core {
          outNBElement.value = outIdx;
          return RetCode.Success ;
       }
+      /* Process the initial DM */
       outBegIdx.value = startIdx;
       prevPlusDM = 0.0;
       today = (startIdx-lookbackTotal);
@@ -43191,42 +49086,58 @@ public class Core {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
       }
+      /* Process subsequent DM */
+      /* Skip the unstable period. */
       i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
          } else {
+            /* Case 2,4,5 and 7 */
             prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
          }
       }
+      /* Now start to write the output in
+       * the caller provided outReal.
+       */
       outReal[0] = prevPlusDM;
       outIdx = 1;
       while( (today<endIdx) ) {
          today += 1;
          tempReal = inHigh[today];
          diffP = (tempReal-prevHigh);
+         /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
          diffM = (prevLow-tempReal);
+         /* Minus Delta */
          prevLow = tempReal;
          if( ((diffP>0)&&(diffP>diffM)) ) {
+            /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
          } else {
+            /* Case 2,4,5 and 7 */
             prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
          }
          outReal[outIdx++] = prevPlusDM;
@@ -43565,8 +49476,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  020605 AA   Fix #1117666 Lookback bug.
+ */
+
    public int ppoLookback( int optInFastPeriod, int optInSlowPeriod, MAType optInMAType )
    {
+      /* Lookback is driven by the slowest MA. */
       return movingAverageLookback(Math.max(optInSlowPeriod, optInFastPeriod), optInMAType) ;
 
    }
@@ -43596,17 +49524,25 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Allocate an intermediate buffer. */
       tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+      /* Make sure slow is really slower than
+       * the fast period! if not, swap...
+       */
       if( (optInSlowPeriod<optInFastPeriod) ) {
+         /* swap */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
+      /* Calculate the fast MA into the tempBuffer. */
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
+         /* Calculate the slow MA into the output. */
          retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
+            /* Calculate ((fast MA)-(slow MA))/(slow MA) in the output. */
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                tempReal = outReal[i];
                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
@@ -43763,6 +49699,21 @@ public class Core {
       return retCode ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int rocLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -43786,14 +49737,50 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* The interpretation of the rate of change varies widely depending
+       * which software and/or books you are refering to.
+       *
+       * The following is the table of Rate-Of-Change implemented in TA-LIB:
+       *       MOM     = (price - prevPrice)         [Momentum]
+       *       ROC     = ((price/prevPrice)-1)*100   [Rate of change]
+       *       ROCP    = (price-prevPrice)/prevPrice [Rate of change Percentage]
+       *       ROCR    = (price/prevPrice)           [Rate of change ratio]
+       *       ROCR100 = (price/prevPrice)*100       [Rate of change ratio 100 Scale]
+       *
+       * Here are the equivalent function in other software:
+       *       TA-Lib  |   Tradestation   |    Metastock
+       *       =================================================
+       *       MOM     |   Momentum       |    ROC (Point)
+       *       ROC     |   ROC            |    ROC (Percent)
+       *       ROCP    |   PercentChange  |    -
+       *       ROCR    |   -              |    -
+       *       ROCR100 |   -              |    MO
+       *
+       * The MOM function is the only one who is not normalized, and thus
+       * should be avoided for comparing different time serie of prices.
+       *
+       * ROC and ROCP are centered at zero and can have positive and negative
+       * value. Here are some equivalence:
+       *    ROC = ROCP/100
+       *        = ((price-prevPrice)/prevPrice)/100
+       *        = ((price/prevPrice)-1)*100
+       *
+       * ROCR and ROCR100 are ratio respectively centered at 1 and 100 and are
+       * always positive values.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Calculate Rate of change: ((price / prevPrice)-1)*100 */
       outIdx = 0;
       inIdx = startIdx;
       trailingIdx = (startIdx-optInTimePeriod);
@@ -43806,6 +49793,7 @@ public class Core {
          }
          inIdx += 1;
       }
+      /* Set output limits. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -43925,6 +49913,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int rocPLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -43948,14 +49951,50 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* The interpretation of the rate of change varies widely depending
+       * which software and/or books you are refering to.
+       *
+       * The following is the table of Rate-Of-Change implemented in TA-LIB:
+       *       MOM     = (price - prevPrice)         [Momentum]
+       *       ROC     = ((price/prevPrice)-1)*100   [Rate of change]
+       *       ROCP    = (price-prevPrice)/prevPrice [Rate of change Percentage]
+       *       ROCR    = (price/prevPrice)           [Rate of change ratio]
+       *       ROCR100 = (price/prevPrice)*100       [Rate of change ratio 100 Scale]
+       *
+       * Here are the equivalent function in other software:
+       *       TA-Lib  |   Tradestation   |    Metastock
+       *       =================================================
+       *       MOM     |   Momentum       |    ROC (Point)
+       *       ROC     |   ROC            |    ROC (Percent)
+       *       ROCP    |   PercentChange  |    -
+       *       ROCR    |   -              |    -
+       *       ROCR100 |   -              |    MO
+       *
+       * The MOM function is the only one who is not normalized, and thus
+       * should be avoided for comparing different time serie of prices.
+       *
+       * ROC and ROCP are centered at zero and can have positive and negative
+       * value. Here are some equivalence:
+       *    ROC = ROCP/100
+       *        = ((price-prevPrice)/prevPrice)/100
+       *        = ((price/prevPrice)-1)*100
+       *
+       * ROCR and ROCR100 are ratio respectively centered at 1 and 100 and are
+       * always positive values.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Calculate Rate of change Ratio: (price / prevPrice) */
       outIdx = 0;
       inIdx = startIdx;
       trailingIdx = (startIdx-optInTimePeriod);
@@ -43968,6 +50007,7 @@ public class Core {
          }
          inIdx += 1;
       }
+      /* Set output limits. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -44087,6 +50127,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int rocRLookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -44110,14 +50165,50 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* The interpretation of the rate of change varies widely depending
+       * which software and/or books you are refering to.
+       *
+       * The following is the table of Rate-Of-Change implemented in TA-LIB:
+       *       MOM     = (price - prevPrice)         [Momentum]
+       *       ROC     = ((price/prevPrice)-1)*100   [Rate of change]
+       *       ROCP    = (price-prevPrice)/prevPrice [Rate of change Percentage]
+       *       ROCR    = (price/prevPrice)           [Rate of change ratio]
+       *       ROCR100 = (price/prevPrice)*100       [Rate of change ratio 100 Scale]
+       *
+       * Here are the equivalent function in other software:
+       *       TA-Lib  |   Tradestation   |    Metastock
+       *       =================================================
+       *       MOM     |   Momentum       |    ROC (Point)
+       *       ROC     |   ROC            |    ROC (Percent)
+       *       ROCP    |   PercentChange  |    -
+       *       ROCR    |   -              |    -
+       *       ROCR100 |   -              |    MO
+       *
+       * The MOM function is the only one who is not normalized, and thus
+       * should be avoided for comparing different time serie of prices.
+       *
+       * ROC and ROCP are centered at zero and can have positive and negative
+       * value. Here are some equivalence:
+       *    ROC = ROCP/100
+       *        = ((price-prevPrice)/prevPrice)/100
+       *        = ((price/prevPrice)-1)*100
+       *
+       * ROCR and ROCR100 are ratio respectively centered at 1 and 100 and are
+       * always positive values.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Calculate Rate of change Ratio: (price / prevPrice) */
       outIdx = 0;
       inIdx = startIdx;
       trailingIdx = (startIdx-optInTimePeriod);
@@ -44130,6 +50221,7 @@ public class Core {
          }
          inIdx += 1;
       }
+      /* Set output limits. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -44249,6 +50341,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int rocR100Lookback( int optInTimePeriod )
    {
       return optInTimePeriod ;
@@ -44272,14 +50379,50 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* The interpretation of the rate of change varies widely depending
+       * which software and/or books you are refering to.
+       *
+       * The following is the table of Rate-Of-Change implemented in TA-LIB:
+       *       MOM     = (price - prevPrice)         [Momentum]
+       *       ROC     = ((price/prevPrice)-1)*100   [Rate of change]
+       *       ROCP    = (price-prevPrice)/prevPrice [Rate of change Percentage]
+       *       ROCR    = (price/prevPrice)           [Rate of change ratio]
+       *       ROCR100 = (price/prevPrice)*100       [Rate of change ratio 100 Scale]
+       *
+       * Here are the equivalent function in other software:
+       *       TA-Lib  |   Tradestation   |    Metastock
+       *       =================================================
+       *       MOM     |   Momentum       |    ROC (Point)
+       *       ROC     |   ROC            |    ROC (Percent)
+       *       ROCP    |   PercentChange  |    -
+       *       ROCR    |   -              |    -
+       *       ROCR100 |   -              |    MO
+       *
+       * The MOM function is the only one who is not normalized, and thus
+       * should be avoided for comparing different time serie of prices.
+       *
+       * ROC and ROCP are centered at zero and can have positive and negative
+       * value. Here are some equivalence:
+       *    ROC = ROCP/100
+       *        = ((price-prevPrice)/prevPrice)/100
+       *        = ((price/prevPrice)-1)*100
+       *
+       * ROCR and ROCR100 are ratio respectively centered at 1 and 100 and are
+       * always positive values.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Calculate Rate of change Ratio: (price / prevPrice) */
       outIdx = 0;
       inIdx = startIdx;
       trailingIdx = (startIdx-optInTimePeriod);
@@ -44292,6 +50435,7 @@ public class Core {
          }
          inIdx += 1;
       }
+      /* Set output limits. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -44411,6 +50555,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  062804 MF   Resolve div by zero bug on limit case.
+ */
+
    public int rsiLookback( int optInTimePeriod )
    {
       int retValue;
@@ -44446,16 +50606,36 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* The following algorithm is base on the original
+       * work from Wilder's and shall represent the
+       * original idea behind the classic RSI.
+       *
+       * Metastock is starting the calculation one price
+       * bar earlier. To make this possible, they assume
+       * that the very first bar will be identical to the
+       * previous one (no gain or loss).
+       */
+      /* If changing this function, please check also CMO
+       * which is mostly identical (just different in one step
+       * of calculation).
+       */
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = ((int)rsiLookback(optInTimePeriod));
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
+      /* Trap special case where the period is '1'.
+       * In that case, just copy the input into the
+       * output for the requested range (as-is !)
+       */
       if( (optInTimePeriod==1) ) {
          outBegIdx.value = startIdx;
          i = ((int)((endIdx-startIdx)+1));
@@ -44463,11 +50643,32 @@ public class Core {
          System.arraycopy(inReal, startIdx, outReal, 0, (i*1));
          return RetCode.Success ;
       }
+      /* Accumulate Wilder's "Average Gain" and "Average Loss"
+       * among the initial period.
+       */
       today = (startIdx-lookbackTotal);
       prevValue = ((double)inReal[today]);
       unstablePeriod = this.unstablePeriod[FuncUnstId.Rsi.ordinal()];
+      /* If there is no unstable period,
+       * calculate the 'additional' initial
+       * price bar who is particuliar to
+       * metastock.
+       * If there is an unstable period,
+       * no need to calculate since this
+       * first value will be surely skip.
+       */
       if( ((unstablePeriod==0)&&(this.compatibility==Compatibility.Metastock)) ) {
+         /* Preserve prevValue because it may get
+          * overwritten by the output.
+          * (because output ptr could be the same as input ptr).
+          */
          savePrevValue = prevValue;
+         /* No unstable period, so must calculate first output
+          * particular to Metastock.
+          * (Metastock re-use the first price bar, so there
+          *  is no loss/gain at first. Beats me why they
+          *  are doing all this).
+          */
          prevGain = 0.0;
          prevLoss = 0.0;
          for( i = optInTimePeriod; (i>0); i -= 1 ) {
@@ -44483,6 +50684,7 @@ public class Core {
          }
          tempValue1 = (prevLoss/((double)optInTimePeriod));
          tempValue2 = (prevGain/((double)optInTimePeriod));
+         /* Write the output. */
          tempValue1 = (tempValue2+tempValue1);
          if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(tempValue2/tempValue1));
@@ -44491,14 +50693,19 @@ public class Core {
             outReal[outIdx] = 0.0;
             outIdx = (outIdx+1);
          }
+         /* Are we done? */
          if( (today>endIdx) ) {
             outBegIdx.value = startIdx;
             outNBElement.value = outIdx;
             return RetCode.Success ;
          }
+         /* Start over for the next price bar. */
          today = (today-((int)optInTimePeriod));
          prevValue = savePrevValue;
       }
+      /* Remaining of the processing is identical
+       * for both Classic calculation and Metastock.
+       */
       prevGain = 0.0;
       prevLoss = 0.0;
       today = (today+1);
@@ -44513,8 +50720,22 @@ public class Core {
             prevGain += tempValue2;
          }
       }
+      /* Subsequent prevLoss and prevGain are smoothed
+       * using the previous values (Wilder's approach).
+       *  1) Multiply the previous by 'period-1'.
+       *  2) Add today value.
+       *  3) Divide by 'period'.
+       */
       prevLoss /= ((double)optInTimePeriod);
       prevGain /= ((double)optInTimePeriod);
+      /* Often documentation present the RSI calculation as follow:
+       *    RSI = 100 - (100 / 1 + (prevGain/prevLoss))
+       *
+       * The following is equivalent:
+       *    RSI = 100 * (prevGain/(prevGain+prevLoss))
+       *
+       * The second equation is used here for speed optimization.
+       */
       if( (today>startIdx) ) {
          tempValue1 = (prevGain+prevLoss);
          if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
@@ -44525,6 +50746,9 @@ public class Core {
             outIdx = (outIdx+1);
          }
       } else {
+         /* Skip the unstable period. Do the processing
+          * but do not write it in the output.
+          */
          while( (today<startIdx) ) {
             tempValue1 = ((double)inReal[today]);
             tempValue2 = (tempValue1-prevValue);
@@ -44541,6 +50765,9 @@ public class Core {
             today = (today+1);
          }
       }
+      /* Unstable period skipped... now continue
+       * processing if needed.
+       */
       while( (today<=endIdx) ) {
          tempValue1 = ((double)inReal[today]);
          today = (today+1);
@@ -44998,8 +51225,27 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  010802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  122104 MF,CF  Fix#1089506 for out-of-bound access to ep_temp.
+ */
+
    public int sarLookback( double optInAcceleration, double optInMaximum )
    {
+      /* SAR always sacrify one price bar to establish the
+       * initial extreme price.
+       */
       return 1 ;
 
    }
@@ -45032,19 +51278,74 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* > 0 indicates long. == 0 indicates short */
+      /* Implementation of the SAR has been a little bit open to interpretation
+       * since Wilder (the original author) did not define a precise algorithm
+       * on how to bootstrap the algorithm. Take any existing software application
+       * and you will see slight variation on how the algorithm was adapted.
+       *
+       * What is the initial trade direction? Long or short?
+       * ===================================================
+       * The interpretation of what should be the initial SAR values is
+       * open to interpretation, particularly since the caller to the function
+       * does not specify the initial direction of the trade.
+       *
+       * In TA-Lib, the following logic is used:
+       *  - Calculate +DM and -DM between the first and
+       *    second bar. The highest directional indication will
+       *    indicate the assumed direction of the trade for the second
+       *    price bar.
+       *  - In the case of a tie between +DM and -DM,
+       *    the direction is LONG by default.
+       *
+       * What is the initial "extreme point" and thus SAR?
+       * =================================================
+       * The following shows how different people took different approach:
+       *  - Metastock use the first price bar high/low depending of
+       *    the direction. No SAR is calculated for the first price
+       *    bar.
+       *  - Tradestation use the closing price of the second bar. No
+       *    SAR are calculated for the first price bar.
+       *  - Wilder (the original author) use the SIP from the
+       *    previous trade (cannot be implement here since the
+       *    direction and length of the previous trade is unknonw).
+       *  - The Magazine TASC seems to follow Wilder approach which
+       *    is not practical here.
+       *
+       * TA-Lib "consume" the first price bar and use its high/low as the
+       * initial SAR of the second price bar. I found that approach to be
+       * the closest to Wilders idea of having the first entry day use
+       * the previous extreme point, except that here the extreme point is
+       * derived solely from the first price bar. I found the same approach
+       * to be used by Metastock.
+       */
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       *
+       * Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<1) ) {
          startIdx = 1;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Make sure the acceleration and maximum are coherent.
+       * If not, correct the acceleration.
+       */
       af = optInAcceleration;
       if( (af>optInMaximum) ) {
          optInAcceleration = optInMaximum;
          af = optInAcceleration;
       }
+      /* Identify if the initial direction is long or short.
+       * (ep is just used as a temp buffer here, the name
+       *  of the parameter is not significant).
+       */
       retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
       if( (ep_temp[0]>0) ) {
          isLong = 0;
@@ -45058,6 +51359,7 @@ public class Core {
       }
       outBegIdx.value = startIdx;
       outIdx = 0;
+      /* Write the first SAR. */
       todayIdx = startIdx;
       newHigh = inHigh[(todayIdx-1)];
       newLow = inLow[(todayIdx-1)];
@@ -45068,6 +51370,9 @@ public class Core {
          ep = inLow[todayIdx];
          sar = newHigh;
       }
+      /* Cheat on the newLow and newHigh for the
+       * first iteration.
+       */
       newLow = inLow[todayIdx];
       newHigh = inHigh[todayIdx];
       while( (todayIdx<=endIdx) ) {
@@ -45077,19 +51382,30 @@ public class Core {
          newHigh = inHigh[todayIdx];
          todayIdx += 1;
          if( (isLong==1) ) {
+            /* Switch to short if the low penetrates the SAR value. */
             if( (newLow<=sar) ) {
+               /* Switch and Overide the SAR with the ep */
                isLong = 0;
                sar = ep;
+               /* Make sure the overide SAR is within
+                * yesterday's and today's range.
+                */
                if( (sar<prevHigh) ) {
                   sar = prevHigh;
                }
                if( (sar<newHigh) ) {
                   sar = newHigh;
                }
+               /* Output the overide SAR */
                outReal[outIdx++] = sar;
+               /* Adjust af and ep */
                af = optInAcceleration;
                ep = newLow;
+               /* Calculate the new SAR */
                sar = (sar+(af*(ep-sar)));
+               /* Make sure the new SAR is within
+                * yesterday's and today's range.
+                */
                if( (sar<prevHigh) ) {
                   sar = prevHigh;
                }
@@ -45097,7 +51413,10 @@ public class Core {
                   sar = newHigh;
                }
             } else {
+               /* No switch */
+               /* Output the SAR (was calculated in the previous iteration) */
                outReal[outIdx++] = sar;
+               /* Adjust af and ep. */
                if( (newHigh>ep) ) {
                   ep = newHigh;
                   af += optInAcceleration;
@@ -45105,7 +51424,11 @@ public class Core {
                      af = optInMaximum;
                   }
                }
+               /* Calculate the new SAR */
                sar = (sar+(af*(ep-sar)));
+               /* Make sure the new SAR is within
+                * yesterday's and today's range.
+                */
                if( (sar>prevLow) ) {
                   sar = prevLow;
                }
@@ -45113,19 +51436,30 @@ public class Core {
                   sar = newLow;
                }
             }
+         /* Switch to long if the high penetrates the SAR value. */
          } else if( (newHigh>=sar) ) {
+            /* Switch and Overide the SAR with the ep */
             isLong = 1;
             sar = ep;
+            /* Make sure the overide SAR is within
+             * yesterday's and today's range.
+             */
             if( (sar>prevLow) ) {
                sar = prevLow;
             }
             if( (sar>newLow) ) {
                sar = newLow;
             }
+            /* Output the overide SAR */
             outReal[outIdx++] = sar;
+            /* Adjust af and ep */
             af = optInAcceleration;
             ep = newHigh;
+            /* Calculate the new SAR */
             sar = (sar+(af*(ep-sar)));
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
             if( (sar>prevLow) ) {
                sar = prevLow;
             }
@@ -45133,7 +51467,10 @@ public class Core {
                sar = newLow;
             }
          } else {
+            /* No switch */
+            /* Output the SAR (was calculated in the previous iteration) */
             outReal[outIdx++] = sar;
+            /* Adjust af and ep. */
             if( (newLow<ep) ) {
                ep = newLow;
                af += optInAcceleration;
@@ -45141,7 +51478,11 @@ public class Core {
                   af = optInMaximum;
                }
             }
+            /* Calculate the new SAR */
             sar = (sar+(af*(ep-sar)));
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
             if( (sar<prevHigh) ) {
                sar = prevHigh;
             }
@@ -45592,8 +51933,30 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  PP       Peter Pudaite
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY    Description
+ *  -------------------------------------------------------------------
+ *  120802 MF    Template creation.
+ *  091503 PP    Reworked TA_SAR to allow customisation of more SAR params.
+ *  092103 MF    Some changes related on first round of tests
+ *  092303 PP    Minor bug fixes.
+ *  122104 MF,CF Fix#1089506 for out-of-bound access to ep_temp.
+ */
+
    public int sarExtLookback( double optInStartValue, double optInOffsetOnReverse, double optInAccelerationInitLong, double optInAccelerationLong, double optInAccelerationMaxLong, double optInAccelerationInitShort, double optInAccelerationShort, double optInAccelerationMaxShort )
    {
+      /* SAR always sacrifices one price bar to establish the
+       * initial extreme price.
+       */
       return 1 ;
 
    }
@@ -45633,14 +51996,84 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* > 0 indicates long. == 0 indicates short */
+      /* This function is the same as TA_SAR, except that the caller has
+       * greater control on the SAR dynamic and initial state.
+       *
+       * In additon, the TA_SAREXT returns negative values when the position
+       * is short. This allow to distinguish when the SAR do actually reverse.
+       */
+      /* Implementation of the SAR has been a little bit open to interpretation
+       * since Wilder (the original author) did not define a precise algorithm
+       * on how to bootstrap the algorithm. Take any existing software application
+       * and you will see slight variation on how the algorithm was adapted.
+       *
+       * What is the initial trade direction? Long or short?
+       * ===================================================
+       * The interpretation of what should be the initial SAR values is
+       * open to interpretation, particularly since the caller to the function
+       * does not specify the initial direction of the trade.
+       *
+       * In TA-Lib, the following default logic is used:
+       *  - Calculate +DM and -DM between the first and
+       *    second bar. The highest directional indication will
+       *    indicate the assumed direction of the trade for the second
+       *    price bar.
+       *  - In the case of a tie between +DM and -DM,
+       *    the direction is LONG by default.
+       *
+       * What is the initial "extreme point" and thus SAR?
+       * =================================================
+       * The following shows how different people took different approach:
+       *  - Metastock use the first price bar high/low depending of
+       *    the direction. No SAR is calculated for the first price
+       *    bar.
+       *  - Tradestation use the closing price of the second bar. No
+       *    SAR are calculated for the first price bar.
+       *  - Wilder (the original author) use the SIP from the
+       *    previous trade (cannot be implement here since the
+       *    direction and length of the previous trade is unknonw).
+       *  - The Magazine TASC seems to follow Wilder approach which
+       *    is not practical here.
+       *
+       * TA-Lib "consume" the first price bar and use its high/low as the
+       * initial SAR of the second price bar. I found that approach to be
+       * the closest to Wilders idea of having the first entry day use
+       * the previous extreme point, except that here the extreme point is
+       * derived solely from the first price bar. I found the same approach
+       * to be used by Metastock.
+       *
+       *
+       * Can I force the initial SAR?
+       * ============================
+       * Yes. Using the optInStartValue_0 parameter:
+       *  optInStartValue_0 >  0 : SAR is long at optInStartValue_0.
+       *  optInStartValue_0 <  0 : SAR is short at fabs(optInStartValue_0).
+       *
+       * And when optInStartValue_0 == 0, the logic is the same as for TA_SAR
+       * (See previous two sections).
+       */
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       *
+       * Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<1) ) {
          startIdx = 1;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Check if the acceleration factors are being defined by the user.
+       * Make sure the acceleration and maximum are coherent.
+       * If not, correct the acceleration.
+       * Default afLong = 0.02
+       * Default afShort = 0.02
+       */
       afLong = optInAccelerationInitLong;
       afShort = optInAccelerationInitShort;
       if( (afLong>optInAccelerationMaxLong) ) {
@@ -45657,7 +52090,13 @@ public class Core {
       if( (optInAccelerationShort>optInAccelerationMaxShort) ) {
          optInAccelerationShort = optInAccelerationMaxShort;
       }
+      /* Initialise SAR calculations */
       if( (optInStartValue==0) ) {
+         /* Default action */
+         /* Identify if the initial direction is long or short.
+          * (ep is just used as a temp buffer here, the name
+          *  of the parameter is not significant).
+          */
          retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
@@ -45670,16 +52109,20 @@ public class Core {
             return retCode ;
          }
       } else if( (optInStartValue>0) ) {
+         /* Start Long */
          isLong = 1;
       } else {
+         /* optInStartValue_0 < 0 => Start Short */
          isLong = 0;
       }
       outBegIdx.value = startIdx;
       outIdx = 0;
+      /* Write the first SAR. */
       todayIdx = startIdx;
       newHigh = inHigh[(todayIdx-1)];
       newLow = inLow[(todayIdx-1)];
       if( (optInStartValue==0) ) {
+         /* Default action */
          if( (isLong==1) ) {
             ep = inHigh[todayIdx];
             sar = newLow;
@@ -45688,12 +52131,17 @@ public class Core {
             sar = newHigh;
          }
       } else if( (optInStartValue>0) ) {
+         /* Start Long at specified value. */
          ep = inHigh[todayIdx];
          sar = optInStartValue;
       } else {
+         /* if optInStartValue < 0 => Start Short at specified value. */
          ep = inLow[todayIdx];
          sar = Math.abs(optInStartValue);
       }
+      /* Cheat on the newLow and newHigh for the
+       * first iteration.
+       */
       newLow = inLow[todayIdx];
       newHigh = inHigh[todayIdx];
       while( (todayIdx<=endIdx) ) {
@@ -45703,22 +52151,33 @@ public class Core {
          newHigh = inHigh[todayIdx];
          todayIdx += 1;
          if( (isLong==1) ) {
+            /* Switch to short if the low penetrates the SAR value. */
             if( (newLow<=sar) ) {
+               /* Switch and Overide the SAR with the ep */
                isLong = 0;
                sar = ep;
+               /* Make sure the overide SAR is within
+                * yesterday's and today's range.
+                */
                if( (sar<prevHigh) ) {
                   sar = prevHigh;
                }
                if( (sar<newHigh) ) {
                   sar = newHigh;
                }
+               /* Output the overide SAR */
                if( (optInOffsetOnReverse!=0.0) ) {
                   sar += (sar*optInOffsetOnReverse);
                }
                outReal[outIdx++] = (0-sar);
+               /* Adjust afShort and ep */
                afShort = optInAccelerationInitShort;
                ep = newLow;
+               /* Calculate the new SAR */
                sar = (sar+(afShort*(ep-sar)));
+               /* Make sure the new SAR is within
+                * yesterday's and today's range.
+                */
                if( (sar<prevHigh) ) {
                   sar = prevHigh;
                }
@@ -45726,7 +52185,10 @@ public class Core {
                   sar = newHigh;
                }
             } else {
+               /* No switch */
+               /* Output the SAR (was calculated in the previous iteration) */
                outReal[outIdx++] = sar;
+               /* Adjust afLong and ep. */
                if( (newHigh>ep) ) {
                   ep = newHigh;
                   afLong += optInAccelerationLong;
@@ -45734,7 +52196,11 @@ public class Core {
                      afLong = optInAccelerationMaxLong;
                   }
                }
+               /* Calculate the new SAR */
                sar = (sar+(afLong*(ep-sar)));
+               /* Make sure the new SAR is within
+                * yesterday's and today's range.
+                */
                if( (sar>prevLow) ) {
                   sar = prevLow;
                }
@@ -45742,22 +52208,33 @@ public class Core {
                   sar = newLow;
                }
             }
+         /* Switch to long if the high penetrates the SAR value. */
          } else if( (newHigh>=sar) ) {
+            /* Switch and Overide the SAR with the ep */
             isLong = 1;
             sar = ep;
+            /* Make sure the overide SAR is within
+             * yesterday's and today's range.
+             */
             if( (sar>prevLow) ) {
                sar = prevLow;
             }
             if( (sar>newLow) ) {
                sar = newLow;
             }
+            /* Output the overide SAR */
             if( (optInOffsetOnReverse!=0.0) ) {
                sar -= (sar*optInOffsetOnReverse);
             }
             outReal[outIdx++] = sar;
+            /* Adjust afLong and ep */
             afLong = optInAccelerationInitLong;
             ep = newHigh;
+            /* Calculate the new SAR */
             sar = (sar+(afLong*(ep-sar)));
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
             if( (sar>prevLow) ) {
                sar = prevLow;
             }
@@ -45765,7 +52242,10 @@ public class Core {
                sar = newLow;
             }
          } else {
+            /* No switch */
+            /* Output the SAR (was calculated in the previous iteration) */
             outReal[outIdx++] = (0-sar);
+            /* Adjust afShort and ep. */
             if( (newLow<ep) ) {
                ep = newLow;
                afShort += optInAccelerationShort;
@@ -45773,7 +52253,11 @@ public class Core {
                   afShort = optInAccelerationMaxShort;
                }
             }
+            /* Calculate the new SAR */
             sar = (sar+(afShort*(ep-sar)));
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
             if( (sar<prevHigh) ) {
                sar = prevHigh;
             }
@@ -46338,6 +52822,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  082507 MF     Initial Version
+ */
+
    public int sinLookback( )
    {
       return 0 ;
@@ -46420,6 +52917,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int sinhLookback( )
    {
       return 0 ;
@@ -46502,6 +53012,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int smaLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -46527,15 +53052,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = ((int)(optInTimePeriod-1));
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the MA calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       periodTotal = 0.0;
       trailingIdx = (startIdx-lookbackTotal);
       i = trailingIdx;
@@ -46545,6 +53079,10 @@ public class Core {
             i = (i+1);
          }
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the inReal and
+       * outReal to be the same buffer.
+       */
       outIdx = 0;
       while( (i<=endIdx) ) {
          periodTotal += ((double)inReal[i]);
@@ -46555,6 +53093,7 @@ public class Core {
          outReal[outIdx] = (tempReal/((double)optInTimePeriod));
          outIdx = (outIdx+1);
       }
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -46704,6 +53243,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int sqrtLookback( )
    {
       return 0 ;
@@ -46786,8 +53338,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  100502 JV   Speed optimization of the algorithm
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  090404 MF   Fix #978056. Trap sqrt with negative zero values.
+ */
+
    public int stdDevLookback( int optInTimePeriod, double optInNbDev )
    {
+      /* Lookback is driven by the variance. */
       return varianceLookback(optInTimePeriod, optInNbDev) ;
 
    }
@@ -46809,10 +53379,16 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Calculate the variance. */
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
+      /* Calculate the square root of each variance, this
+       * is the standard deviation.
+       *
+       * Multiply also by the ratio specified.
+       */
       if( (optInNbDev!=1.0) ) {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
@@ -46952,11 +53528,29 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int stochLookback( int optInFastK_Period, int optInSlowK_Period, MAType optInSlowK_MAType, int optInSlowD_Period, MAType optInSlowD_MAType )
    {
       int retValue;
+      /* Account for the initial data needed for Fast-K. */
       retValue = (optInFastK_Period-1);
+      /* Add the smoothing being done for %K slow */
       retValue += movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
+      /* Add the smoothing being done for %D slow. */
       retValue += movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
       return retValue ;
 
@@ -46999,19 +53593,72 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* With stochastic, there is a total of 4 different lines that
+       * are defined: FASTK, FASTD, SLOWK and SLOWD.
+       *
+       * The D is the signal line usually drawn over its
+       * corresponding K function.
+       *
+       *                    (Today's Close - LowestLow)
+       *  FASTK(Kperiod) =  --------------------------- * 100
+       *                     (HighestHigh - LowestLow)
+       *
+       *  FASTD(FastDperiod, MA type) = MA Smoothed FASTK over FastDperiod
+       *
+       *  SLOWK(SlowKperiod, MA type) = MA Smoothed FASTK over SlowKperiod
+       *
+       *  SLOWD(SlowDperiod, MA Type) = MA Smoothed SLOWK over SlowDperiod
+       *
+       * The HighestHigh and LowestLow are the extreme values among the
+       * last 'Kperiod'.
+       *
+       * SLOWK and FASTD are equivalent when using the same period.
+       *
+       * The following shows how these four lines are made available in TA-LIB:
+       *
+       *  TA_STOCH  : Returns the SLOWK and SLOWD
+       *  TA_STOCHF : Returns the FASTK and FASTD
+       *
+       * The TA_STOCH function correspond to the more widely implemented version
+       * found in many software/charting package. The TA_STOCHF is more rarely
+       * used because its higher volatility cause often whipsaws.
+       */
+      /* Identify the lookback needed. */
       lookbackK = (optInFastK_Period-1);
       lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
       lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
       lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
+         /* Succeed... but no data in the output. */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the K calculation:
+       *
+       *    Kt = 100 x ((Ct-Lt)/(Ht-Lt))
+       *
+       * Kt is today stochastic
+       * Ct is today closing price.
+       * Lt is the lowest price of the last K Period (including today)
+       * Ht is the highest price of the last K Period (including today)
+       */
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
+      /* Calculate just enough K for ending up with the caller
+       * requested range. (The range of k must consider all
+       * the lookback involve with the smoothing).
+       */
       trailingIdx = (startIdx-lookbackTotal);
       today = (trailingIdx+lookbackK);
       highestIdx = (0-1);
@@ -47019,6 +53666,12 @@ public class Core {
       lowest = 0.0;
       highest = lowest;
       diff = highest;
+      /* Allocate a temporary buffer large enough to
+       * store the K.
+       *
+       * If the output is the same as the input, great
+       * we just save ourself one memory allocation.
+       */
       bufferIsAllocated = 0;
       if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) ) {
          tempBuffer = outSlowK;
@@ -47028,7 +53681,9 @@ public class Core {
          bufferIsAllocated = 1;
          tempBuffer = new double[(int)((((endIdx-today)+1)*1))];
       }
+      /* Do the K calculation */
       while( (today<=endIdx) ) {
+         /* Set the lowest low */
          tmp = inLow[today];
          if( (lowestIdx<trailingIdx) ) {
             lowestIdx = trailingIdx;
@@ -47047,6 +53702,7 @@ public class Core {
             lowest = tmp;
             diff = ((highest-lowest)/100.0);
          }
+         /* Set the highest high */
          tmp = inHigh[today];
          if( (highestIdx<trailingIdx) ) {
             highestIdx = trailingIdx;
@@ -47065,6 +53721,7 @@ public class Core {
             highest = tmp;
             diff = ((highest-lowest)/100.0);
          }
+         /* Calculate stochastic. */
          if( (diff!=0.0) ) {
             tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
          } else {
@@ -47073,23 +53730,42 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Un-smoothed K calculation completed. This K calculation is not returned
+       * to the caller. It is always smoothed and then return.
+       * Some documentation will refer to the smoothed version as being
+       * "K-Slow", but often this end up to be shorten to "K".
+       */
       retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          if( (bufferIsAllocated) != 0 ) {
          }
+         /* Something wrong happen? No further data? */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Calculate the %D which is simply a moving average of
+       * the already smoothed %K.
+       */
       retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      /* Copy tempBuffer into the caller buffer.
+       * (Calculation could not be done directly in the
+       *  caller buffer because more input data then the
+       *  requested range was needed for doing %D).
+       */
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
+      /* Don't need K anymore, free it if it was allocated here. */
       if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
+         /* Something wrong happen while processing %D? */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Note: Keep the outBegIdx relative to the
+       *       caller input before returning.
+       */
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
@@ -47478,10 +54154,28 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  EKO      echo999@ifrance.com
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  051103 EKO  Found bug and fix related to outFastD.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int stochFLookback( int optInFastK_Period, int optInFastD_Period, MAType optInFastD_MAType )
    {
       int retValue;
+      /* Account for the initial data needed for Fast-K. */
       retValue = (optInFastK_Period-1);
+      /* Add the smoothing being done for Fast-D */
       retValue += movingAverageLookback(optInFastD_Period, optInFastD_MAType);
       return retValue ;
 
@@ -47521,18 +54215,71 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* With stochastic, there is a total of 4 different lines that
+       * are defined: FASTK, FASTD, SLOWK and SLOWD.
+       *
+       * The D is the signal line usually drawn over its
+       * corresponding K function.
+       *
+       *                    (Today's Close - LowestLow)
+       *  FASTK(Kperiod) =  --------------------------- * 100
+       *                     (HighestHigh - LowestLow)
+       *
+       *  FASTD(FastDperiod, MA type) = MA Smoothed FASTK over FastDperiod
+       *
+       *  SLOWK(SlowKperiod, MA type) = MA Smoothed FASTK over SlowKperiod
+       *
+       *  SLOWD(SlowDperiod, MA Type) = MA Smoothed SLOWK over SlowDperiod
+       *
+       * The HighestHigh and LowestLow are the extreme values among the
+       * last 'Kperiod'.
+       *
+       * SLOWK and FASTD are equivalent when using the same period.
+       *
+       * The following shows how these four lines are made available in TA-LIB:
+       *
+       *  TA_STOCH  : Returns the SLOWK and SLOWD
+       *  TA_STOCHF : Returns the FASTK and FASTD
+       *
+       * The TA_STOCH function correspond to the more widely implemented version
+       * found in many software/charting package. The TA_STOCHF is more rarely
+       * used because its higher volatility cause often whipsaws.
+       */
+      /* Identify the lookback needed. */
       lookbackK = (optInFastK_Period-1);
       lookbackFastD = movingAverageLookback(optInFastD_Period, optInFastD_MAType);
       lookbackTotal = (lookbackK+lookbackFastD);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
+         /* Succeed... but no data in the output. */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the K calculation:
+       *
+       *    Kt = 100 x ((Ct-Lt)/(Ht-Lt))
+       *
+       * Kt is today stochastic
+       * Ct is today closing price.
+       * Lt is the lowest price of the last K Period (including today)
+       * Ht is the highest price of the last K Period (including today)
+       */
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
+      /* Calculate just enough K for ending up with the caller
+       * requested range. (The range of k must consider all
+       * the lookback involve with the smoothing).
+       */
       trailingIdx = (startIdx-lookbackTotal);
       today = (trailingIdx+lookbackK);
       highestIdx = (0-1);
@@ -47540,6 +54287,12 @@ public class Core {
       lowest = 0.0;
       highest = lowest;
       diff = highest;
+      /* Allocate a temporary buffer large enough to
+       * store the K.
+       *
+       * If the output is the same as the input, great
+       * we just save ourself one memory allocation.
+       */
       bufferIsAllocated = 0;
       if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) ) {
          tempBuffer = outFastK;
@@ -47549,7 +54302,9 @@ public class Core {
          bufferIsAllocated = 1;
          tempBuffer = new double[(int)((((endIdx-today)+1)*1))];
       }
+      /* Do the K calculation */
       while( (today<=endIdx) ) {
+         /* Set the lowest low */
          tmp = inLow[today];
          if( (lowestIdx<trailingIdx) ) {
             lowestIdx = trailingIdx;
@@ -47568,6 +54323,7 @@ public class Core {
             lowest = tmp;
             diff = ((highest-lowest)/100.0);
          }
+         /* Set the highest high */
          tmp = inHigh[today];
          if( (highestIdx<trailingIdx) ) {
             highestIdx = trailingIdx;
@@ -47586,6 +54342,7 @@ public class Core {
             highest = tmp;
             diff = ((highest-lowest)/100.0);
          }
+         /* Calculate stochastic. */
          if( (diff!=0.0) ) {
             tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
          } else {
@@ -47594,22 +54351,36 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Fast-K calculation completed. This K calculation is returned
+       * to the caller. It is smoothed to become Fast-D.
+       */
       retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          if( (bufferIsAllocated) != 0 ) {
          }
+         /* Something wrong happen? No further data? */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Copy tempBuffer into the caller buffer.
+       * (Calculation could not be done directly in the
+       *  caller buffer because more input data then the
+       *  requested range was needed for doing %D).
+       */
       System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
+      /* Don't need K anymore, free it if it was allocated here. */
       if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
+         /* Something wrong happen while processing %D? */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Note: Keep the outBegIdx relative to the
+       *       caller input before returning.
+       */
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
@@ -47983,6 +54754,24 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  PP       Peter Pudaite
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  101103 PP   Initial creation of code.
+ *  112603 MF   Add independent control to the RSI period.
+ *  020605 AA   Fix #1117656. NULL pointer assignement.
+ */
+
    public int stochRsiLookback( int optInTimePeriod, int optInFastK_Period, int optInFastD_Period, MAType optInFastD_MAType )
    {
       int retValue;
@@ -48016,13 +54805,39 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Stochastic RSI
+       *
+       * Reference: "Stochastic RSI and Dynamic Momentum Index"
+       *            by Tushar Chande and Stanley Kroll
+       *            Stock&Commodities V.11:5 (189-199)
+       *
+       * The TA-Lib version offer flexibility beyond what is explain
+       * in the Stock&Commodities article.
+       *
+       * To calculate the "Unsmoothed stochastic RSI" with symetry like
+       * explain in the article, keep the optInTimePeriod and optInFastK_Period
+       * equal. Example:
+       *
+       *    unsmoothed stoch RSI 14 : optInTimePeriod   = 14
+       *                              optInFastK_Period = 14
+       *                              optInFastD_Period = 'x'
+       *
+       * The outFastK is the unsmoothed RSI discuss in the article.
+       *
+       * You can set the optInFastD_Period to smooth the RSI. The smooth
+       * version will be found in outFastD. The outFastK will still contain
+       * the unsmoothed stoch RSI. If you do not care about the smoothing of
+       * the StochRSI, just leave optInFastD_Period to 1 and ignore outFastD.
+       */
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackSTOCHF = stochFLookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
       lookbackTotal = (rsiLookback(optInTimePeriod)+lookbackSTOCHF);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -48199,6 +55014,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int subLookback( )
    {
       return 0 ;
@@ -48220,6 +55048,7 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Default return values */
       for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
          outReal[outIdx] = (inReal0[i]-inReal1[i]);
       }
@@ -48285,6 +55114,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ */
+
    public int sumLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -48310,15 +55153,24 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the MA calculation using tight loops. */
+      /* Add-up the initial period, except for the last value. */
       periodTotal = 0;
       trailingIdx = (startIdx-lookbackTotal);
       i = trailingIdx;
@@ -48327,6 +55179,10 @@ public class Core {
             periodTotal += inReal[i++];
          }
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the inReal and
+       * outReal to be the same buffer.
+       */
       outIdx = 0;
       do {
          periodTotal += inReal[i++];
@@ -48334,6 +55190,7 @@ public class Core {
          periodTotal -= inReal[trailingIdx++];
          outReal[outIdx++] = tempReal;
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -48471,6 +55328,26 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MHL      Matthew Lindblom
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  032003 MHL  Implementation of T3
+ *  040503 MF   Adapt for compatibility with published code
+ *              for TradeStation and Metastock.
+ *              See "Smoothing Techniques For More Accurate Signals"
+ *              from Tim Tillson in Stock&Commodities V16:1 Page 33-37
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int t3Lookback( int optInTimePeriod, double optInVFactor )
    {
       return ((6*(optInTimePeriod-1))+this.unstablePeriod[FuncUnstId.T3.ordinal()]) ;
@@ -48508,10 +55385,27 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* For an explanation of this function, please read:
+       *
+       * Magazine articles written by Tim Tillson
+       *
+       * Essentially, a T3 of time serie 't' is:
+       *   EMA1(x,Period) = EMA(x,Period)
+       *   EMA2(x,Period) = EMA(EMA1(x,Period),Period)
+       *   GD(x,Period,vFactor) = (EMA1(x,Period)*(1+vFactor)) - (EMA2(x,Period)*vFactor)
+       *   T3 = GD (GD ( GD(t, Period, vFactor), Period, vFactor), Period, vFactor);
+       *
+       * T3 offers a moving average with less lags then the
+       * traditional EMA.
+       *
+       * Do not confuse a T3 with EMA3. Both are called "Triple EMA"
+       * in the litterature.
+       */
       lookbackTotal = ((6*(optInTimePeriod-1))+this.unstablePeriod[FuncUnstId.T3.ordinal()]);
       if( (startIdx<=lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
@@ -48521,17 +55415,20 @@ public class Core {
       today = (startIdx-lookbackTotal);
       k = (2.0/(optInTimePeriod+1.0));
       one_minus_k = (1.0-k);
+      /* Initialize e1 */
       tempReal = inReal[today++];
       for( i = (optInTimePeriod-1); (i>0); i -= 1 ) {
          tempReal += inReal[today++];
       }
       e1 = (tempReal/optInTimePeriod);
+      /* Initialize e2 */
       tempReal = e1;
       for( i = (optInTimePeriod-1); (i>0); i -= 1 ) {
          e1 = ((k*inReal[today++])+(one_minus_k*e1));
          tempReal += e1;
       }
       e2 = (tempReal/optInTimePeriod);
+      /* Initialize e3 */
       tempReal = e2;
       for( i = (optInTimePeriod-1); (i>0); i -= 1 ) {
          e1 = ((k*inReal[today++])+(one_minus_k*e1));
@@ -48539,6 +55436,7 @@ public class Core {
          tempReal += e2;
       }
       e3 = (tempReal/optInTimePeriod);
+      /* Initialize e4 */
       tempReal = e3;
       for( i = (optInTimePeriod-1); (i>0); i -= 1 ) {
          e1 = ((k*inReal[today++])+(one_minus_k*e1));
@@ -48547,6 +55445,7 @@ public class Core {
          tempReal += e3;
       }
       e4 = (tempReal/optInTimePeriod);
+      /* Initialize e5 */
       tempReal = e4;
       for( i = (optInTimePeriod-1); (i>0); i -= 1 ) {
          e1 = ((k*inReal[today++])+(one_minus_k*e1));
@@ -48556,6 +55455,7 @@ public class Core {
          tempReal += e4;
       }
       e5 = (tempReal/optInTimePeriod);
+      /* Initialize e6 */
       tempReal = e5;
       for( i = (optInTimePeriod-1); (i>0); i -= 1 ) {
          e1 = ((k*inReal[today++])+(one_minus_k*e1));
@@ -48566,7 +55466,9 @@ public class Core {
          tempReal += e5;
       }
       e6 = (tempReal/optInTimePeriod);
+      /* Skip the unstable period */
       while( (today<=startIdx) ) {
+         /* Do the calculation but do not write the output */
          e1 = ((k*inReal[today++])+(one_minus_k*e1));
          e2 = ((k*e1)+(one_minus_k*e2));
          e3 = ((k*e2)+(one_minus_k*e3));
@@ -48574,13 +55476,16 @@ public class Core {
          e5 = ((k*e4)+(one_minus_k*e5));
          e6 = ((k*e5)+(one_minus_k*e6));
       }
+      /* Calculate the constants */
       tempReal = (optInVFactor*optInVFactor);
       c1 = (0-(tempReal*optInVFactor));
       c2 = (3.0*(tempReal-c1));
       c3 = (((0-6.0)*tempReal)-(3.0*(optInVFactor-c1)));
       c4 = (((1.0+(3.0*optInVFactor))-c1)+(3.0*tempReal));
+      /* Write the first output */
       outIdx = 0;
       outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
+      /* Calculate and output the remaining of the range. */
       while( (today<=endIdx) ) {
          e1 = ((k*inReal[today++])+(one_minus_k*e1));
          e2 = ((k*e1)+(one_minus_k*e2));
@@ -48590,6 +55495,9 @@ public class Core {
          e6 = ((k*e5)+(one_minus_k*e6));
          outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
       }
+      /* Indicates to the caller the number of output
+       * successfully calculated.
+       */
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
@@ -48933,6 +55841,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int tanLookback( )
    {
       return 0 ;
@@ -49015,6 +55936,19 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int tanhLookback( )
    {
       return 0 ;
@@ -49097,9 +56031,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int temaLookback( int optInTimePeriod )
    {
       int retValue;
+      /* Get lookack for one EMA. */
       retValue = emaLookback(optInTimePeriod);
       return (retValue*3) ;
 
@@ -49133,39 +56083,88 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* For an explanation of this function, please read:
+       *
+       * Stocks & Commodities V. 12:1 (11-19):
+       *   Smoothing Data With Faster Moving Averages
+       * Stocks & Commodities V. 12:2 (72-80):
+       *   Smoothing Data With Less Lag
+       *
+       * Both magazine articles written by Patrick G. Mulloy
+       *
+       * Essentially, a TEMA of time serie 't' is:
+       *   EMA1 = EMA(t,period)
+       *   EMA2 = EMA(EMA(t,period),period)
+       *   EMA3 = EMA(EMA(EMA(t,period),period))
+       *   TEMA = 3*EMA1 - 3*EMA2 + EMA3
+       *
+       * TEMA offers a moving average with less lags then the
+       * traditional EMA.
+       *
+       * Do not confuse a TEMA with EMA3. Both are called "Triple EMA"
+       * in the litterature.
+       *
+       * DEMA is very similar (and from the same author).
+       */
+      /* Will change only on success. */
       outNBElement.value = 0;
       outBegIdx.value = 0;
+      /* Adjust startIdx to account for the lookback period. */
       lookbackEMA = emaLookback(optInTimePeriod);
       lookbackTotal = (lookbackEMA*3);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
+      /* Allocate a temporary buffer for the firstEMA. */
       tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
       firstEMA = new double[(int)((tempInt*1))];
+      /* Calculate the first EMA */
       retCode = emaUnguarded((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      /* Verify for failure or if not enough data after
+       * calculating the first EMA.
+       */
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          return retCode ;
       }
+      /* Allocate a temporary buffer for storing the EMA2 */
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
       retCode = emaUnguarded(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      /* Return empty output on failure or if not enough data after
+       * calculating the second EMA.
+       */
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          return retCode ;
       }
+      /* Calculate the EMA3 into the caller provided output. */
       retCode = emaUnguarded(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      /* Return empty output on failure or if not enough data after
+       * calculating the third EMA.
+       */
       if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
          return retCode ;
       }
+      /* Indicate where the output starts relative to
+       * the caller input.
+       */
       firstEMAIdx = (thirdEMABegIdx.value+secondEMABegIdx.value);
       secondEMAIdx = thirdEMABegIdx.value;
       outBegIdx.value = (firstEMAIdx+firstEMABegIdx.value);
+      /* Do the TEMA:
+       *  Iterate through the EMA3 (output buffer) and adjust
+       *  the value by using the EMA2 and EMA1.
+       */
       outIdx = 0;
       while( (outIdx<thirdEMANbElement.value) ) {
          outReal[outIdx] = (outReal[outIdx]+((3.0*firstEMA[firstEMAIdx++])-(3.0*secondEMA[secondEMAIdx++])));
          outIdx += 1;
       }
+      /* Indicates to the caller the number of output
+       * successfully calculated.
+       */
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
@@ -49353,6 +56352,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int trueRangeLookback( )
    {
       return 1 ;
@@ -49381,9 +56395,26 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* True Range is the greatest of the following:
+       *
+       *  val1 = distance from today's high to today's low.
+       *  val2 = distance from yesterday's close to today's high.
+       *  val3 = distance from yesterday's close to today's low.
+       *
+       * Some books and software makes the first TR value to be
+       * the (high - low) of the first bar. This function instead
+       * ignore the first price bar, and only output starting at the
+       * second price bar are valid. This is done for avoiding
+       * inconsistency.
+       */
+      /* Move up the start index if there is not
+       * enough initial data.
+       * Always one price bar gets consumed.
+       */
       if( (startIdx<1) ) {
          startIdx = 1;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -49392,10 +56423,12 @@ public class Core {
       outIdx = 0;
       today = startIdx;
       while( (today<=endIdx) ) {
+         /* Find the greatest of the 3 values. */
          tempLT = inLow[today];
          tempHT = inHigh[today];
          tempCY = inClose[(today-1)];
          greatest = (tempHT-tempLT);
+         /* val1 */
          val2 = Math.abs((tempCY-tempHT));
          if( (val2>greatest) ) {
             greatest = val2;
@@ -49559,6 +56592,23 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  CR       Chris (crokusek@hotmail.com)
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010503 MF   Initial Coding
+ *  031703 MF   Fix #701060. Correct logic when using a range with
+ *              startIdx/endIdx. Thanks to Chris for reporting this.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int trimaLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -49589,20 +56639,143 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       lookbackTotal = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* TRIMA Description
+       * =================
+       * The triangular MA is a weighted moving average. Instead of the
+       * TA_WMA who put more weigth on the latest price bar, the triangular
+       * put more weigth on the data in the middle of the specified period.
+       *
+       * Examples:
+       *   For TimeSerie={a,b,c,d,e,f...} ('a' is the older price)
+       *
+       *   1st value for TRIMA 4-Period is:  ((1*a)+(2*b)+(2*c)+(1*d)) / 6
+       *   2nd value for TRIMA 4-Period is:  ((1*b)+(2*c)+(2*d)+(1*e)) / 6
+       *
+       *   1st value for TRIMA 5-Period is:  ((1*a)+(2*b)+(3*c)+(2*d)+(1*e)) / 9
+       *   2nd value for TRIMA 5-Period is:  ((1*b)+(2*c)+(3*d)+(2*e)+(1*f)) / 9
+       *
+       * Generally Accepted Implementation
+       * ==================================
+       * Using algebra, it can be demonstrated that the TRIMA is equivalent to
+       * doing a SMA of a SMA. The following explain the rules:
+       *
+       *  (1) When the period is even, TRIMA(x,period)=SMA(SMA(x,period/2),(period/2)+1)
+       *  (2) When the period is odd,  TRIMA(x,period)=SMA(SMA(x,(period+1)/2),(period+1)/2)
+       *
+       * In other word:
+       *  (1) A period of 4 becomes TRIMA(x,4) = SMA( SMA( x, 2), 3 )
+       *  (2) A period of 5 becomes TRIMA(x,5) = SMA( SMA( x, 3), 3 )
+       *
+       * The SMA of a SMA is the algorithm generaly found in books.
+       *
+       * Tradestation Implementation
+       * ===========================
+       * Tradestation deviate from the generally accepted implementation by
+       * making the TRIMA to be as follow:
+       *    TRIMA(x,period) = SMA( SMA( x, (int)(period/2)+1), (int)(period/2)+1 );
+       * This formula is done regardless if the period is even or odd.
+       *
+       * In other word:
+       *  (1) A period of 4 becomes TRIMA(x,4) = SMA( SMA( x, 3), 3 )
+       *  (2) A period of 5 becomes TRIMA(x,5) = SMA( SMA( x, 3), 3 )
+       *  (3) A period of 6 becomes TRIMA(x,5) = SMA( SMA( x, 4), 4 )
+       *  (4) A period of 7 becomes TRIMA(x,5) = SMA( SMA( x, 4), 4 )
+       *
+       * It is not clear to me if the Tradestation approach is a bug or a deliberate
+       * decision to do things differently.
+       *
+       * Metastock Implementation
+       * ========================
+       * Output is the same as the generally accepted implementation.
+       *
+       * TA-Lib Implementation
+       * =====================
+       * Output is also the same as the generally accepted implementation.
+       *
+       * For speed optimization and avoid memory allocation, TA-Lib use
+       * a better algorithm than the usual SMA of a SMA.
+       *
+       * The calculation from one TRIMA value to the next is done by doing 4
+       * little adjustment (the following show a TRIMA 4-period):
+       *
+       * TRIMA at time 'd': ((1*a)+(2*b)+(2*c)+(1*d)) / 6
+       * TRIMA at time 'e': ((1*b)+(2*c)+(2*d)+(1*e)) / 6
+       *
+       * To go from TRIMA 'd' to 'e', the following is done:
+       *       1) 'a' and 'b' are substract from the numerator.
+       *       2) 'd' is added to the numerator.
+       *       3) 'e' is added to the numerator.
+       *       4) Calculate TRIMA by doing numerator / 6
+       *       5) Repeat sequence for next output
+       *
+       * These operations are the same steps done by TA-LIB:
+       *       1) is done by numeratorSub
+       *       2) is done by numeratorAdd.
+       *       3) is obtain from the latest input
+       *       4) Calculate and write TRIMA in the output
+       *       5) Repeat for next output.
+       *
+       * Of course, numerotrAdd and numeratorSub needs to be
+       * adjusted for each iteration.
+       *
+       * The update of numeratorSub needs values from the input at
+       * the trailingIdx and middleIdx position.
+       *
+       * The update of numeratorAdd needs values from the input at
+       * the middleIdx and todayIdx.
+       */
       outIdx = 0;
       if( ((optInTimePeriod%2)==1) ) {
+         /* Logic for Odd period */
+         /* Calculate the factor which is 1 divided by the
+          * sumation of the weight.
+          *
+          * The sum of the weight is calculated as follow:
+          *
+          * The simple sumation serie 1+2+3... n can be
+          * express as n(n+1)/2
+          *
+          * From this logic, a "triangular" sumation formula
+          * can be found depending if the period is odd or even.
+          *
+          * Odd Period Formula:
+          *  period = 5 and with n=(int)(period/2)
+          *  the formula for a "triangular" serie is:
+          *    1+2+3+2+1 = (n*(n+1))+n+1
+          *              = (n+1)*(n+1)
+          *              = 3 * 3 = 9
+          *
+          * Even period Formula:
+          *   period = 6 and with n=(int)(period/2)
+          *   the formula for a "triangular" serie is:
+          *    1+2+3+3+2+1 = n*(n+1)
+          *                = 3 * 4 = 12
+          */
+         /* Note: entirely done with int and becomes double only
+          *       on assignement to the factor variable.
+          */
          i = (optInTimePeriod>>1);
          factor = ((i+1)*(i+1));
          factor = (1.0/factor);
+         /* Initialize all the variable before
+          * starting to iterate for each output.
+          */
          trailingIdx = (startIdx-lookbackTotal);
          middleIdx = (trailingIdx+i);
          todayIdx = (middleIdx+i);
@@ -49620,27 +56793,49 @@ public class Core {
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
+         /* Write the first output */
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
          outReal[outIdx++] = (numerator*factor);
          todayIdx += 1;
+         /* Note: The value at the trailingIdx was saved
+          *       in tempReal to account for the case where
+          *       outReal and inReal are ptr on the same
+          *       buffer.
+          */
+         /* Iterate for remaining output */
          while( (todayIdx<=endIdx) ) {
+            /* Step (1) */
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
             numeratorSub += tempReal;
+            /* Step (2) */
             numerator += numeratorAdd;
             numeratorAdd -= tempReal;
             tempReal = inReal[todayIdx++];
             numeratorAdd += tempReal;
+            /* Step (3) */
             numerator += tempReal;
+            /* Step (4) */
             tempReal = inReal[trailingIdx++];
             outReal[outIdx++] = (numerator*factor);
          }
       } else {
+         /* Even logic.
+          *
+          * Very similar to the odd logic, except:
+          *  - calculation of the factor is different.
+          *  - the coverage of the numeratorSub and numeratorAdd is
+          *    slightly different.
+          *  - Adjustment of numeratorAdd is different. See Step (2).
+          */
          i = (optInTimePeriod>>1);
          factor = (i*(i+1));
          factor = (1.0/factor);
+         /* Initialize all the variable before
+          * starting to iterate for each output.
+          */
          trailingIdx = (startIdx-lookbackTotal);
          middleIdx = ((trailingIdx+i)-1);
          todayIdx = (middleIdx+i);
@@ -49658,20 +56853,31 @@ public class Core {
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
+         /* Write the first output */
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
          outReal[outIdx++] = (numerator*factor);
          todayIdx += 1;
+         /* Note: The value at the trailingIdx was saved
+          *       in tempReal to account for the case where
+          *       outReal and inReal are ptr on the same
+          *       buffer.
+          */
+         /* Iterate for remaining output */
          while( (todayIdx<=endIdx) ) {
+            /* Step (1) */
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
             numeratorSub += tempReal;
+            /* Step (2) */
             numeratorAdd -= tempReal;
             numerator += numeratorAdd;
             tempReal = inReal[todayIdx++];
             numeratorAdd += tempReal;
+            /* Step (3) */
             numerator += tempReal;
+            /* Step (4) */
             tempReal = inReal[trailingIdx++];
             outReal[outIdx++] = (numerator*factor);
          }
@@ -50017,6 +57223,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  020605 AA   Fix #1117656. NULL pointer assignement.
+ */
+
    public int trixLookback( int optInTimePeriod )
    {
       int emaLookback;
@@ -50046,12 +57268,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Adjust the startIdx to account for the lookback. */
       emaLookback = emaLookback(optInTimePeriod);
       rocLookback = rocRLookback(1);
       totalLookback = ((emaLookback*3)+rocLookback);
       if( (startIdx<totalLookback) ) {
          startIdx = totalLookback;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
@@ -50059,30 +57283,50 @@ public class Core {
       }
       outBegIdx.value = startIdx;
       nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
+      /* Allocate a temporary buffer for performing
+       * the calculation.
+       */
       tempBuffer = new double[(int)((nbElementToOutput*1))];
+      /* Calculate the first EMA */
       retCode = emaUnguarded((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      /* Verify for failure or if not enough data after
+       * calculating the EMA.
+       */
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= 1;
+      /* Make this variable zero base from now on. */
+      /* Calculate the second EMA */
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      /* Verify for failure or if not enough data after
+       * calculating the EMA.
+       */
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
+      /* Calculate the third EMA */
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      /* Verify for failure or if not enough data after
+       * calculating the EMA.
+       */
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
+      /* Calculate the 1-day Rate-Of-Change */
       nbElementToOutput -= emaLookback;
       retCode = rocUnguarded(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
+      /* Verify for failure or if not enough data after
+       * calculating the rate-of-change.
+       */
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
@@ -50277,6 +57521,20 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  090103 MF   Initial coding re-using the existing TA_LinearReg
+ */
+
    public int tsfLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -50308,16 +57566,35 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Linear Regression is a concept also known as the
+       * "least squares method" or "best fit." Linear
+       * Regression attempts to fit a straight line between
+       * several data points in such a way that distance
+       * between each data point and the line is minimized.
+       *
+       * For each point, a straight line over the specified
+       * previous bar period is determined in terms
+       * of y = b + m*x:
+       *
+       * TA_LINEARREG          : Returns b+m*(period-1)
+       * TA_LINEARREG_SLOPE    : Returns 'm'
+       * TA_LINEARREG_ANGLE    : Returns 'm' in degree.
+       * TA_LINEARREG_INTERCEPT: Returns 'b'
+       * TA_TSF                : Returns b+m*(period)
+       */
+      /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = tsfLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
+      /* Index into the output. */
       today = startIdx;
       SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
       SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
@@ -50499,8 +57776,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ */
+
    public int typPriceLookback( )
    {
+      /* This function have no lookback needed. */
       return 0 ;
 
    }
@@ -50521,6 +57815,7 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Typical price = (High + Low + Close ) / 3 */
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          outReal[outIdx++] = (((inHigh[i]+inLow[i])+inClose[i])/3.0);
@@ -50593,9 +57888,27 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  DM       Drew McCormack (http://www.trade-strategist.com)
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  281206 DM   Initial Implementation
+ *  010606 MF   Abstract local arrays. Detect divide by zero.
+ */
+
    public int ultOscLookback( int optInTimePeriod1, int optInTimePeriod2, int optInTimePeriod3 )
    {
       int maxPeriod;
+      /* Lookback for the Ultimate Oscillator is the lookback of the SMA with the longest
+       * time period, plus 1 for the True Range.
+       */
       maxPeriod = Math.max(Math.max(optInTimePeriod1, optInTimePeriod2), optInTimePeriod3);
       return (smaLookback(maxPeriod)+1) ;
 
@@ -50647,6 +57960,9 @@ public class Core {
       }
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Ensure that the time periods are ordered from shortest to longest.
+       * Sort.
+       */
       periods[0] = optInTimePeriod1;
       periods[1] = optInTimePeriod2;
       periods[2] = optInTimePeriod3;
@@ -50668,13 +57984,16 @@ public class Core {
       optInTimePeriod1 = sortedPeriods[2];
       optInTimePeriod2 = sortedPeriods[1];
       optInTimePeriod3 = sortedPeriods[0];
+      /* Adjust startIdx for lookback period. */
       lookbackTotal = ultOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
+      /* Prime running totals used in moving averages */
       a1Total = 0;
       b1Total = 0;
       for( i = ((startIdx-optInTimePeriod1)+1); (i<startIdx); i += 1 ) {
@@ -50735,12 +58054,14 @@ public class Core {
          a3Total += closeMinusTrueLow;
          b3Total += trueRange;
       }
+      /* Calculate oscillator */
       today = startIdx;
       outIdx = 0;
       trailingIdx1 = ((today-optInTimePeriod1)+1);
       trailingIdx2 = ((today-optInTimePeriod2)+1);
       trailingIdx3 = ((today-optInTimePeriod3)+1);
       while( (today<=endIdx) ) {
+         /* Add on today's terms */
          tempLT = inLow[today];
          tempHT = inHigh[today];
          tempCY = inClose[(today-1)];
@@ -50761,6 +58082,7 @@ public class Core {
          b1Total += trueRange;
          b2Total += trueRange;
          b3Total += trueRange;
+         /* Calculate the oscillator value for today */
          output = 0.0;
          if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
             output += (4.0*(a1Total/b1Total));
@@ -50771,6 +58093,7 @@ public class Core {
          if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
             output += (a3Total/b3Total);
          }
+         /* Remove the trailing terms to prepare for next day */
          tempLT = inLow[trailingIdx1];
          tempHT = inHigh[trailingIdx1];
          tempCY = inClose[(trailingIdx1-1)];
@@ -50819,13 +58142,21 @@ public class Core {
          }
          a3Total -= closeMinusTrueLow;
          b3Total -= trueRange;
+         /* Last operation is to write the output. Must
+          * be done after the trailing index have all been
+          * taken care of because the caller is allowed
+          * to have the input array to be also the output
+          * array.
+          */
          outReal[outIdx] = (100.0*(output/7.0));
+         /* Increment indexes */
          outIdx += 1;
          today += 1;
          trailingIdx1 += 1;
          trailingIdx2 += 1;
          trailingIdx3 += 1;
       }
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -51509,6 +58840,22 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  100502 JV   Speed optimization of the algorithm
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int varianceLookback( int optInTimePeriod, double optInNbDev )
    {
       return (optInTimePeriod-1) ;
@@ -51538,15 +58885,25 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Validate the calculation method type and
+       * identify the minimum number of price bar needed
+       * to calculate at least one output.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the MA calculation using tight loops. */
+      /* Add-up the initial periods, except for the last value. */
       periodTotal1 = 0;
       periodTotal2 = 0;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -51559,12 +58916,22 @@ public class Core {
             periodTotal2 += tempReal;
          }
       }
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the inReal and
+       * outReal to be the same buffer.
+       */
       outIdx = 0;
       do {
          tempReal = inReal[i++];
+         /* Square and add all the deviation over
+          * the same periods.
+          */
          periodTotal1 += tempReal;
          tempReal *= tempReal;
          periodTotal2 += tempReal;
+         /* Square and add all the deviation over
+          * the same period.
+          */
          meanValue1 = (periodTotal1/optInTimePeriod);
          meanValue2 = (periodTotal2/optInTimePeriod);
          tempReal = inReal[trailingIdx++];
@@ -51573,6 +58940,7 @@ public class Core {
          periodTotal2 -= tempReal;
          outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
       } while( (i<=endIdx) );
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -51755,8 +59123,25 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ */
+
    public int wclPriceLookback( )
    {
+      /* This function have no lookback needed. */
       return 0 ;
 
    }
@@ -51777,6 +59162,7 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Weighted Close Price = (High + Low + (Close*2) ) / 4 */
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          outReal[outIdx++] = (((inHigh[i]+inLow[i])+(inClose[i]*2.0))/4.0);
@@ -51849,6 +59235,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int willRLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -51881,16 +59282,29 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify the minimum number of price bar needed
+       * to identify at least one output over the specified
+       * period.
+       */
       nbInitialElementNeeded = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Initialize 'diff', just to avoid warning. */
       diff = 0.0;
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
       today = startIdx;
       trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -51900,6 +59314,7 @@ public class Core {
       highest = lowest;
       diff = highest;
       while( (today<=endIdx) ) {
+         /* Set the lowest low */
          tmp = inLow[today];
          if( (lowestIdx<trailingIdx) ) {
             lowestIdx = trailingIdx;
@@ -51918,6 +59333,7 @@ public class Core {
             lowest = tmp;
             diff = ((highest-lowest)/(0-100.0));
          }
+         /* Set the highest high */
          tmp = inHigh[today];
          if( (highestIdx<trailingIdx) ) {
             highestIdx = trailingIdx;
@@ -51944,6 +59360,9 @@ public class Core {
          trailingIdx += 1;
          today += 1;
       }
+      /* Keep the outBegIdx relative to the
+       * caller input before returning.
+       */
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -52219,6 +59638,21 @@ public class Core {
       return RetCode.Success ;
    }
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int wmaLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
@@ -52249,23 +59683,64 @@ public class Core {
          return RetCode.OutOfRangeEndIndex ;
       }
       lookbackTotal = (optInTimePeriod-1);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* To make the rest more efficient, handle exception
+       * case where the user is asking for a period of '1'.
+       * In that case outputs equals inputs for the requested
+       * range.
+       */
       if( (optInTimePeriod==1) ) {
          outBegIdx.value = startIdx;
          outNBElement.value = ((endIdx-startIdx)+1);
          System.arraycopy(inReal, startIdx, outReal, 0, (((int)outNBElement.value)*1));
          return RetCode.Success ;
       }
+      /* Calculate the divider (always an integer value).
+       * By induction: 1+2+3+4+'n' = n(n+1)/2
+       * '>>1' is usually faster than '/2' for unsigned.
+       */
       divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+      /* The algo used here use a very basic property of
+       * multiplication/addition: (x*2) = x+x
+       *
+       * As an example, a 3 period weighted can be
+       * interpreted in two way:
+       *  (x1*1)+(x2*2)+(x3*3)
+       *      OR
+       *  x1+x2+x2+x3+x3+x3 (this is the periodSum)
+       *
+       * When you move forward in the time serie
+       * you can quickly adjust the periodSum for the
+       * period by substracting:
+       *   x1+x2+x3 (This is the periodSub)
+       * Making the new periodSum equals to:
+       *   x2+x3+x3
+       *
+       * You can then add the new price bar
+       * which is x4+x4+x4 giving:
+       *   x2+x3+x3+x4+x4+x4
+       *
+       * At this point one iteration is completed and you can
+       * see that we are back to the step 1 of this example.
+       *
+       * Why making it so un-intuitive? The number of memory
+       * access and floating point operations are kept to a
+       * minimum with this algo.
+       */
       outIdx = 0;
       trailingIdx = (startIdx-lookbackTotal);
+      /* Evaluate the initial periodSum/periodSub and trailingValue. */
       periodSub = ((double)0.0);
       periodSum = periodSub;
       inIdx = trailingIdx;
@@ -52277,15 +59752,27 @@ public class Core {
          i += 1;
       }
       trailingValue = 0.0;
+      /* Tight loop for the requested range. */
       while( (inIdx<=endIdx) ) {
+         /* Add the current price bar to the sum
+          * who are carried through the iterations.
+          */
          tempReal = inReal[inIdx++];
          periodSub += tempReal;
          periodSub -= trailingValue;
          periodSum += (tempReal*optInTimePeriod);
+         /* Save the trailing value for being substract at
+          * the next iteration.
+          * (must be saved here just in case outReal and
+          *  inReal are the same buffer).
+          */
          trailingValue = inReal[trailingIdx++];
+         /* Calculate the WMA for this price bar. */
          outReal[outIdx++] = (periodSum/divider);
+         /* Prepare the periodSum for the next iteration. */
          periodSum -= periodSub;
       }
+      /* Set output limits. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;

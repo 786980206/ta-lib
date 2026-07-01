@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  DM       Drew McCormack (http://www.trade-strategist.com)
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  281206 DM   Initial Implementation
+ *  010606 MF   Abstract local arrays. Detect divide by zero.
+ */
+
 int ultosc_lookback(int           optInTimePeriod1,                                               int           optInTimePeriod2,                                               int           optInTimePeriod3)
 {
     int maxPeriod;

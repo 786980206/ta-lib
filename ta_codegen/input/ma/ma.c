@@ -1,3 +1,22 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  022203 MF   Add MAMA
+ *  040503 MF   Add T3
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  111603 MF   Allow period of 1. Just copy input into output.
+ *  060907 MF   Use TA_SMA/TA_EMA instead of internal implementation.
+ */
+
 int ma_lookback(int           optInTimePeriod,                                           TA_MAType     optInMAType)
 {
     int retValue;

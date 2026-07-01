@@ -1,3 +1,20 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ *
+ */
+
 int wclprice_lookback(void)
 {
     /* This function have no lookback needed. */

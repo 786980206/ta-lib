@@ -1,3 +1,19 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *
+ */
+
 int macdext_lookback(int           optInFastPeriod,                                                TA_MAType     optInFastMAType,                                               int           optInSlowPeriod,                                                TA_MAType     optInSlowMAType,                                               int           optInSignalPeriod,                                                TA_MAType     optInSignalMAType)
 {
     int tempInteger;

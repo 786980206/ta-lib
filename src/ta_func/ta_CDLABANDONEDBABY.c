@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102304 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLABANDONEDBABY_Lookback( double optInPenetration )
 {
    int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
@@ -105,17 +119,26 @@ TA_LIB_API TA_RetCode TA_CDLABANDONEDBABY( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLABANDONEDBABY_Lookback(optInPenetration);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyDojiPeriodTotal = 0;
    BodyShortPeriodTotal = 0;
@@ -141,16 +164,37 @@ TA_LIB_API TA_RetCode TA_CDLABANDONEDBABY( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long white (black) real body
+    * - second candle: doji
+    * - third candle: black (white) real body that moves well within the first candle's real body
+    * - upside (downside) gap between the first candle and the doji (the shadows of the two candles don't touch)
+    * - downside (upside) gap between the doji and the third candle (the shadows of the two candles don't touch)
+    * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+    * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+    * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+    * it to be relatively long
+    * outInteger is positive (1 to 100) when it's an abandoned baby bottom or negative (-1 to -100) when it's
+    * an abandoned baby top; the user should consider that an abandoned baby is significant when it appears in
+    * an uptrend or downtrend, while this function does not consider the trend
+    */
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,(i-1))))&&(fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(fabs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inLow[(i-1)]>inHigh[(i-2)])) ? (1) : (0)))&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0)))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(fabs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inHigh[(i-1)]<inLow[(i-2)])) ? (1) : (0)))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0))))) )
+      if( (fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))) && /* 1st: long */
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,(i-1))) && /* 2nd: doji */
+          (fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)) && /* 3rd: longer than short */
+          (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(fabs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inLow[(i-1)]>inHigh[(i-2)])) ? (1) : (0)))&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0)))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(fabs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inHigh[(i-1)]<inLow[(i-2)])) ? (1) : (0)))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))) ) /* 1st white 3rd black 3rd closes well within 1st rb upside gap between 1st and 2nd downside gap between 2nd and 3rd 1st black 3rd white 3rd closes well within 1st rb downside gap between 1st and 2nd upside gap between 2nd and 3rd */
       {
          outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-2))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
       BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,(i-1))-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
       BodyShortPeriodTotal += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx));
@@ -159,6 +203,7 @@ TA_LIB_API TA_RetCode TA_CDLABANDONEDBABY( int    startIdx,
       BodyDojiTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

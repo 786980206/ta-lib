@@ -41,6 +41,19 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  082507 MF     Initial Version
+ */
+
 TA_LIB_API int TA_SIN_Lookback( void )
 {
    return 0;

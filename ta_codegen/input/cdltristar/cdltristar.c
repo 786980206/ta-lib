@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *  CSB      Christopher Barnhouse
+ *
+ * Change history:
+ *
+ *  MMDDYY BY      Description
+ *  -------------------------------------------------------------------
+ *  100204 AC      Creation
+ *  051005 CSB,AC  Fix #1199526 for out-of-bound write in output.
+ */
+
 int cdltristar_lookback(void)
 {
     return BodyDoji_avgPeriod + 2;

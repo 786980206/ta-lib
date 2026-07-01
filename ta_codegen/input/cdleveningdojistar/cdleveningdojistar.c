@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100304 AC   Creation
+ *
+ */
+
 int cdleveningdojistar_lookback(double        optInPenetration)
 {
     (void)optInPenetration;

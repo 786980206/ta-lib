@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  JP       John Price <jp_talib@gcfl.net>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  070203 JP   Initial.
+ *
+ */
+
 int linearreg_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod-1;

@@ -41,8 +41,26 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  062804 MF   Resolve div by zero bug on limit case.
+ *  020605 AA   Fix #1117666 Lookback & out-of-bound bug.
+ */
+
 TA_LIB_API int TA_APO_Lookback( int optInFastPeriod, int optInSlowPeriod, TA_MAType optInMAType )
 {
+   /* The slow MA is the key factor determining the lookback period. */
    return TA_MA_Lookback(fmax(optInSlowPeriod,optInFastPeriod),optInMAType);
 }
 
@@ -86,24 +104,32 @@ TA_LIB_API TA_RetCode TA_APO( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Allocate an intermediate buffer. */
    tempBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
    if( !(tempBuffer) )
    {
       return TA_ALLOC_ERR;
    }
+   /* Make sure slow is really slower than
+    * the fast period! if not, swap...
+    */
    if( (optInSlowPeriod<optInFastPeriod) )
    {
+      /* swap */
       tempInteger = optInSlowPeriod;
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
+   /* Calculate the fast MA into the tempBuffer. */
    retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInFastPeriod,optInMAType,&outBegIdx2,&outNbElement2,tempBuffer);
    if( (retCode==TA_SUCCESS) )
    {
+      /* Calculate the slow MA into the output. */
       retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInSlowPeriod,optInMAType,&outBegIdx1,&outNbElement1,outReal);
       if( (retCode==TA_SUCCESS) )
       {
          tempInteger = (outBegIdx1-outBegIdx2);
+         /* Calculate (fast MA)-(slow MA) in the output. */
          for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
          {
             outReal[i] = (tempBuffer[j]-outReal[i]);

@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120404 AC   Creation
+ */
+
 TA_LIB_API int TA_CDL3WHITESOLDIERS_Lookback( void )
 {
    int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
@@ -109,17 +123,26 @@ TA_LIB_API TA_RetCode TA_CDL3WHITESOLDIERS( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDL3WHITESOLDIERS_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    ShadowVeryShortPeriodTotal[2] = 0;
    ShadowVeryShortPeriodTotal[1] = 0;
    ShadowVeryShortPeriodTotal[0] = 0;
@@ -163,16 +186,46 @@ TA_LIB_API TA_RetCode TA_CDL3WHITESOLDIERS( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - three white candlesticks with consecutively higher closes
+    * - Greg Morris wants them to be long, Steve Nison doesn't; anyway they should not be short
+    * - each candle opens within or near the previous white real body
+    * - each candle must have no or very short upper shadow
+    * - to differentiate this pattern from advance block, each candle must not be far shorter than the prior candle
+    * The meanings of "not short", "very short shadow", "far" and "near" are specified with TA_SetCandleSettings;
+    * here the 3 candles must be not short, if you want them to be long use TA_SetCandleSettings on BodyShort;
+    * outInteger is positive (1 to 100): advancing 3 white soldiers is always bullish;
+    * the user should consider that 3 white soldiers is significant when it appears in downtrend, while this function
+    * does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( ((((((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[2],(i-2))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal[2],(i-2)))))&&(inOpen[i]>inOpen[(i-1)]))&&(inOpen[i]<=(inClose[(i-1)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal[1],(i-1)))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))>(fabs((inClose[(i-2)]-inOpen[(i-2)]))-TA_CANDLEAVERAGE(Far,FarPeriodTotal[2],(i-2)))))&&(fabs((inClose[i]-inOpen[i]))>(fabs((inClose[(i-1)]-inOpen[(i-1)]))-TA_CANDLEAVERAGE(Far,FarPeriodTotal[1],(i-1)))))&&(fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i))) )
+      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1) && /* 1st white */
+          ((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[2],(i-2))) &&
+          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* very short upper shadow 2nd white */
+          ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))) &&
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&         /* very short upper shadow 3rd white */
+          ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)) &&
+          (inClose[i]>inClose[(i-1)]) &&                              /* very short upper shadow */
+          (inClose[(i-1)]>inClose[(i-2)]) &&                          /* consecutive higher closes */
+          (inOpen[(i-1)]>inOpen[(i-2)]) &&                            /* 2nd opens within/near 1st real body */
+          (inOpen[(i-1)]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal[2],(i-2)))) &&
+          (inOpen[i]>inOpen[(i-1)]) &&                                /* 3rd opens within/near 2nd real body */
+          (inOpen[i]<=(inClose[(i-1)]+TA_CANDLEAVERAGE(Near,NearPeriodTotal[1],(i-1)))) &&
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))>(fabs((inClose[(i-2)]-inOpen[(i-2)]))-TA_CANDLEAVERAGE(Far,FarPeriodTotal[2],(i-2)))) &&
+          (fabs((inClose[i]-inOpen[i]))>(fabs((inClose[(i-1)]-inOpen[(i-1)]))-TA_CANDLEAVERAGE(Far,FarPeriodTotal[1],(i-1)))) && /* 2nd not far shorter than 1st */
+          (fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)) ) /* 3rd not far shorter than 2nd not short real body */
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       for( totIdx = 2; (totIdx>=0); totIdx -= 1 )
       {
          ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(TA_CANDLERANGE(ShadowVeryShort,(i-totIdx))-TA_CANDLERANGE(ShadowVeryShort,(ShadowVeryShortTrailingIdx-totIdx))));
@@ -189,6 +242,7 @@ TA_LIB_API TA_RetCode TA_CDL3WHITESOLDIERS( int    startIdx,
       FarTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

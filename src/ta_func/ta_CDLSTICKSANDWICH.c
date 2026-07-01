@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  032005 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLSTICKSANDWICH_Lookback( void )
 {
    int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
@@ -84,17 +98,26 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLSTICKSANDWICH_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    EqualPeriodTotal = 0;
    EqualTrailingIdx = (startIdx-Equal_avgPeriod);
    i = EqualTrailingIdx;
@@ -104,20 +127,39 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: black candle
+    * - second candle: white candle that trades only above the prior close (low > prior close)
+    * - third candle: black candle with the close equal to the first candle's close
+    * The meaning of "equal" is specified with TA_SetCandleSettings
+    * outInteger is always positive (1 to 100): stick sandwich is always bullish;
+    * the user should consider that stick sandwich is significant when coming in a downtrend,
+    * while this function does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
+      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* first black */
+          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) &&     /* second white */
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* third black */
+          (inLow[(i-1)]>inClose[(i-2)]) &&                                /* 2nd low > prior close */
+          (inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))) && /* 1st and 3rd same close */
+          (inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
       i += 1;
       EqualTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

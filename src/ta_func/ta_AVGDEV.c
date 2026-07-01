@@ -41,6 +41,19 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090812 AB     Initial Version
+ */
+
 TA_LIB_API int TA_AVGDEV_Lookback( int optInTimePeriod )
 {
    return (optInTimePeriod-1);
@@ -78,12 +91,14 @@ TA_LIB_API TA_RetCode TA_AVGDEV( int    startIdx,
       startIdx = lookback;
    }
    today = startIdx;
+   /* Make sure there is still something to evaluate. */
    if( (today>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Process the initial DM and TR */
    *outBegIdx= today;
    outIdx = 0;
    while( (today<=endIdx) )

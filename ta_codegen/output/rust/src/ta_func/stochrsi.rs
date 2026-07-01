@@ -39,6 +39,24 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  PP       Peter Pudaite
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  101103 PP   Initial creation of code.
+ *  112603 MF   Add independent control to the RSI period.
+ *  020605 AA   Fix #1117656. NULL pointer assignement.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -132,13 +150,38 @@ impl Core {
         let mut outBegIdx1: usize = 0_usize;
         let mut outBegIdx2: usize = 0_usize;
         let mut outNbElement1: usize = 0_usize;
+        // Stochastic RSI
+        //
+        // Reference: "Stochastic RSI and Dynamic Momentum Index"
+        //            by Tushar Chande and Stanley Kroll
+        //            Stock&Commodities V.11:5 (189-199)
+        //
+        // The TA-Lib version offer flexibility beyond what is explain
+        // in the Stock&Commodities article.
+        //
+        // To calculate the "Unsmoothed stochastic RSI" with symetry like
+        // explain in the article, keep the optInTimePeriod and optInFastK_Period
+        // equal. Example:
+        //
+        //    unsmoothed stoch RSI 14 : optInTimePeriod   = 14
+        //                              optInFastK_Period = 14
+        //                              optInFastD_Period = 'x'
+        //
+        // The outFastK is the unsmoothed RSI discuss in the article.
+        //
+        // You can set the optInFastD_Period to smooth the RSI. The smooth
+        // version will be found in outFastD. The outFastK will still contain
+        // the unsmoothed stoch RSI. If you do not care about the smoothing of
+        // the StochRSI, just leave optInFastD_Period to 1 and ignore outFastD.
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
+        // Adjust startIdx to account for the lookback period.
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
         lookbackTotal = self.rsi_lookback(optInTimePeriod) + lookbackSTOCHF;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;

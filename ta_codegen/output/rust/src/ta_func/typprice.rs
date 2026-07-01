@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -54,6 +70,7 @@ impl Core {
     /// # Arguments
     ///
     pub fn typprice_lookback(&self) -> usize {
+        // This function have no lookback needed.
         return (0) as usize;
     }
     /// Typical Price
@@ -85,6 +102,7 @@ impl Core {
         let mut startIdx = startIdx;
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
+        // Typical price = (High + Low + Close ) / 3
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
             outReal[outIdx] = (((inHigh[i] + inLow[i] + inClose[i]) / 3.0) as f64);

@@ -39,6 +39,25 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  022203 MF   Add MAMA
+ *  040503 MF   Add T3
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  111603 MF   Allow period of 1. Just copy input into output.
+ *  060907 MF   Use TA_SMA/TA_EMA instead of internal implementation.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -149,6 +168,7 @@ impl Core {
             (*outBegIdx) = startIdx;
             return RetCode::Success;
         }
+        // Simply forward the job to the corresponding TA function.
         match optInMAType {
             0 => {
                 retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
@@ -172,6 +192,8 @@ impl Core {
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             7 => {
+                // The optInTimePeriod is ignored and the FAMA output of the MAMA
+                // is ignored.
                 dummyBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
                 retCode = self.mama_unguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
             }

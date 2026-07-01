@@ -1,6 +1,24 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  100502 JV   Speed optimization of the algorithm
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  090404 MF   Fix #978056. Trap sqrt with negative zero values.
+ */
+
    public int stdDevLookback( int optInTimePeriod, double optInNbDev )
    {
+      /* Lookback is driven by the variance. */
       return varianceLookback(optInTimePeriod, optInNbDev) ;
 
    }
@@ -22,10 +40,16 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Calculate the variance. */
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
+      /* Calculate the square root of each variance, this
+       * is the standard deviation.
+       *
+       * Multiply also by the ratio specified.
+       */
       if( (optInNbDev!=1.0) ) {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];

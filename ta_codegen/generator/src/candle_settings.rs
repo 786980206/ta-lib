@@ -79,6 +79,7 @@ fn scan_statement(stmt: &Statement, found: &mut BTreeSet<String>) {
             condition,
             then_body,
             else_body,
+            ..
         } => {
             scan_expr(condition, found);
             for s in then_body {
@@ -116,7 +117,10 @@ fn scan_statement(stmt: &Statement, found: &mut BTreeSet<String>) {
         Statement::Expr(e) => {
             scan_expr(e, found);
         }
-        Statement::Break | Statement::Continue | Statement::CircBuf(_) => {}
+        Statement::Break
+        | Statement::Continue
+        | Statement::CircBuf(_)
+        | Statement::Comment(_) => {}
     }
 }
 
@@ -351,6 +355,7 @@ mod tests {
                 value: Expr::Var("Equal_avgPeriod".to_string()),
                 compound: false,
             }],
+            cond_comments: vec![],
         }];
         let found = detect_candle_settings(&stmts);
         assert!(found.contains("Far"));

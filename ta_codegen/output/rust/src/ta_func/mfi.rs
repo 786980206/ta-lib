@@ -39,6 +39,24 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  BT       BobTrader (TADoc.org forum user).
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF    Template creation.
+ *  052603 MF    Adapt code to compile with .NET Managed C++
+ *  062704 MF    Prevent divide by zero.
+ *  121705 MF    Java port related changes.
+ *  060907 MF,BT Fix #1727704. MFI logic bug when no price movement
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -112,6 +130,7 @@ impl Core {
         let mut mflow_negative: Vec<f64> = Vec::new();
         let mut mflow_Idx: usize = 0;
         let mut maxIdx_mflow: usize = 49;
+        // Id, Type, Static Size
         if optInTimePeriod < 1 { return RetCode::AllocErr; }
         mflow_positive = vec![0.0_f64; (optInTimePeriod) as usize];
         mflow_negative = vec![0.0_f64; (optInTimePeriod) as usize];
@@ -119,14 +138,19 @@ impl Core {
         mflow_Idx = 0;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
+        // Adjust startIdx to account for the lookback period.
         lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             return RetCode::Success;
         }
         outIdx = 0;
+        // Index into the output.
+        // Accumulate the positive and negative money flow
+        // among the initial period.
         today = startIdx - lookbackTotal;
         prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
         posSumMF = 0.0;
@@ -155,6 +179,10 @@ impl Core {
             if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
             i -= 1;
         }
+        // The following two equations are equivalent:
+        //    MFI = 100 - (100 / 1 + (posSumMF/negSumMF))
+        //    MFI = 100 * (posSumMF/(posSumMF+negSumMF))
+        // The second equation is used here for speed optimization.
         if today > startIdx {
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < 1.0 {
@@ -165,6 +193,8 @@ impl Core {
                 outIdx += 1;
             }
         } else {
+            // Skip the unstable period. Do the processing
+            // but do not write it in the output.
             while today < startIdx {
                 posSumMF -= mflow_positive[mflow_Idx];
                 negSumMF -= mflow_negative[mflow_Idx];
@@ -188,6 +218,8 @@ impl Core {
                 if mflow_Idx > maxIdx_mflow { mflow_Idx = 0; }
             }
         }
+        // Unstable period skipped... now continue
+        // processing if needed.
         while today <= endIdx {
             posSumMF -= mflow_positive[mflow_Idx];
             negSumMF -= mflow_negative[mflow_Idx];

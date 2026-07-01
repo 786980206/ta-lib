@@ -1,3 +1,23 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MHL      Matthew Lindblom
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  032003 MHL  Implementation of T3
+ *  040503 MF   Adapt for compatibility with published code
+ *              for TradeStation and Metastock.
+ *              See "Smoothing Techniques For More Accurate Signals"
+ *              from Tim Tillson in Stock&Commodities V16:1 Page 33-37
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 int t3_lookback(int           optInTimePeriod,                                           double        optInVFactor)
 {
     (void)optInVFactor;

@@ -1,4 +1,17 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  181012 AB    Initial Version
+ */
+
    public int imiLookback( int optInTimePeriod )
    {
       return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Imi.ordinal()])-1) ;
@@ -26,6 +39,7 @@
       if( (startIdx<lookback) ) {
          startIdx = lookback;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;

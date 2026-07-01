@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -103,15 +118,28 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
+        // MIDPRICE = (Highest High + Lowest Low)/2
+        //
+        // This function is equivalent to MEDPRICE when the
+        // period is 1.
+        // Identify the minimum number of price bar needed
+        // to identify at least one output over the specified
+        // period.
         nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Proceed with the calculation for the requested range.
+        // Note that this algorithm allows the input and
+        // output to be the same buffer.
         outIdx = 0;
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
@@ -134,6 +162,8 @@ impl Core {
             outIdx += 1;
             today += 1;
         }
+        // Keep the outBegIdx relative to the
+        // caller input before returning.
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;

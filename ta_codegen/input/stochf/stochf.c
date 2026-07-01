@@ -1,3 +1,20 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  EKO      echo999@ifrance.com
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  051103 EKO  Found bug and fix related to outFastD.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *
+ */
+
 int stochf_lookback(int           optInFastK_Period,                                               int           optInFastD_Period,                                               TA_MAType     optInFastD_MAType)
 {
     int retValue;

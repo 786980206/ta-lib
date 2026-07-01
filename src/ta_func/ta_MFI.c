@@ -41,6 +41,24 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  BT       BobTrader (TADoc.org forum user).
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF    Template creation.
+ *  052603 MF    Adapt code to compile with .NET Managed C++
+ *  062704 MF    Prevent divide by zero.
+ *  121705 MF    Java port related changes.
+ *  060907 MF,BT Fix #1727704. MFI logic bug when no price movement
+ */
+
 TA_LIB_API int TA_MFI_Lookback( int optInTimePeriod )
 {
    return (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi));
@@ -93,6 +111,7 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Id, Type, Static Size */
    if( optInTimePeriod < 1 ) return TA_INTERNAL_ERROR(137);
    if( (int)optInTimePeriod > (int)(sizeof(local_mflow_positive)/sizeof(double)) )
    {
@@ -117,11 +136,13 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    mflow_Idx = 0;
    *outBegIdx= 0;
    *outNBElement= 0;
+   /* Adjust startIdx to account for the lookback period. */
    lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi));
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       if( mflow_positive != &local_mflow_positive[0] ) TA_Free( mflow_positive );
@@ -129,6 +150,10 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
       return TA_SUCCESS;
    }
    outIdx = 0;
+   /* Index into the output. */
+   /* Accumulate the positive and negative money flow
+    * among the initial period.
+    */
    today = (startIdx-lookbackTotal);
    prevValue = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
    posSumMF = 0.0;
@@ -158,6 +183,11 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
    }
+   /* The following two equations are equivalent:
+    *    MFI = 100 - (100 / 1 + (posSumMF/negSumMF))
+    *    MFI = 100 * (posSumMF/(posSumMF+negSumMF))
+    * The second equation is used here for speed optimization.
+    */
    if( (today>startIdx) )
    {
       tempValue1 = (posSumMF+negSumMF);
@@ -170,6 +200,9 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
       }
    } else 
    {
+      /* Skip the unstable period. Do the processing
+       * but do not write it in the output.
+       */
       while( (today<startIdx) )
       {
          posSumMF -= mflow_positive[mflow_Idx];
@@ -197,6 +230,9 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
          if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
       }
    }
+   /* Unstable period skipped... now continue
+    * processing if needed.
+    */
    while( (today<=endIdx) )
    {
       posSumMF -= mflow_positive[mflow_Idx];

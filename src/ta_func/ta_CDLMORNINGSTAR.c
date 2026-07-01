@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  100304 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLMORNINGSTAR_Lookback( double optInPenetration )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -98,17 +112,26 @@ TA_LIB_API TA_RetCode TA_CDLMORNINGSTAR( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLMORNINGSTAR_Lookback(optInPenetration);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyShortPeriodTotal = 0;
    BodyShortPeriodTotal2 = 0;
@@ -128,16 +151,38 @@ TA_LIB_API TA_RetCode TA_CDLMORNINGSTAR( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long black real body
+    * - second candle: star (Short real body gapping down)
+    * - third candle: white real body that moves well within the first candle's real body
+    * The meaning of "short" and "long" is specified with TA_SetCandleSettings
+    * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+    * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+    * it to be relatively long
+    * outInteger is positive (1 to 100): morning star is always bullish;
+    * the user should consider that a morning star is significant when it appears in a downtrend,
+    * while this function does not consider the trend
+    */
    outIdx = 0;
    do
    {
-      if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))&&(inClose[i]>(inClose[(i-2)]+(fabs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1))))&&(fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal2,i))) )
+      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* black */
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* white real body */
+          (((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)) && /* gapping down */
+          (inClose[i]>(inClose[(i-2)]+(fabs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))) && /* closing well within 1st rb */
+          (fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))) && /* 1st: long */
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1))) && /* 2nd: short */
+          (fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal2,i)) ) /* 3rd: longer than short */
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-2))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
       BodyShortPeriodTotal += (TA_CANDLERANGE(BodyShort,(i-1))-TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx));
       BodyShortPeriodTotal2 += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,(BodyShortTrailingIdx+1)));
@@ -145,6 +190,7 @@ TA_LIB_API TA_RetCode TA_CDLMORNINGSTAR( int    startIdx,
       BodyLongTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

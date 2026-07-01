@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JD       jdoyle
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  111705 MF,JD  Fix#1359452 for handling properly start/end range.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -54,6 +70,7 @@ impl Core {
     /// # Arguments
     ///
     pub fn ad_lookback(&self) -> usize {
+        // This function have no lookback needed.
         return (0) as usize;
     }
     /// Chaikin A/D Line
@@ -93,6 +110,20 @@ impl Core {
         let mut close: f64 = 0.0_f64;
         let mut tmp: f64 = 0.0_f64;
         let mut ad: f64 = 0.0_f64;
+        // Note: Results from this function might vary slightly
+        //       from Metastock outputs. The reason being that
+        //       Metastock use float instead of double and this
+        //       cause a different floating-point precision to
+        //       be used.
+        //
+        //       For most function, this is not an apparent difference
+        //       but for function using large cummulative values (like
+        //       this AD function), minor imprecision adds up and becomes
+        //       significative.
+        //
+        //       For better precision, TA-Lib use double in all its
+        //       its calculations.
+        // Default return values
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;

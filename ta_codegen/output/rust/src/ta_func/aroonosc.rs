@@ -39,6 +39,23 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel <michel@pacbell.net>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  050703 MF   Fix algorithm base on Adrian Michel bug report #748163
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -106,14 +123,30 @@ impl Core {
         let mut highestIdx: i32 = 0_i32;
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
+        // This code is almost identical to the TA_AROON function
+        // except that instead of outputing ArroonUp and AroonDown
+        // individually, an oscillator is build from both.
+        //
+        //  AroonOsc = AroonUp- AroonDown;
+        // This function is using a speed optimized algorithm
+        // for the min/max logic.
+        //
+        // You might want to first look at how TA_MIN/TA_MAX works
+        // and this function will become easier to understand.
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Proceed with the calculation for the requested range.
+        // Note that this algorithm allows the input and
+        // output to be the same buffer.
         outIdx = 0;
         today = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
@@ -123,6 +156,7 @@ impl Core {
         highest = 0.0;
         factor = ((100.0) as f64) / ((optInTimePeriod) as f64);
         while today <= endIdx {
+            // Keep track of the lowestIdx
             tmp = inLow[today];
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
@@ -139,6 +173,7 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
+            // Keep track of the highestIdx
             tmp = inHigh[today];
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
@@ -155,12 +190,23 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
+            // The oscillator is the following:
+            //  AroonUp   = factor*(optInTimePeriod-(today-highestIdx));
+            //  AroonDown = factor*(optInTimePeriod-(today-lowestIdx));
+            //  AroonOsc  = AroonUp-AroonDown;
+            //
+            // An arithmetic simplification give us:
+            //  Aroon = factor*(highestIdx-lowestIdx)
             aroon = factor * (((highestIdx - lowestIdx)) as f64);
+            // Note: Do not forget that input and output buffer can be the same,
+            //       so writing to the output is the last thing being done here.
             outReal[outIdx] = aroon;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }
+        // Keep the outBegIdx relative to the
+        // caller input before returning.
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;

@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112605 MF   Initial coding.
+ */
+
 TA_LIB_API int TA_BOP_Lookback( void )
 {
    return 0;
@@ -76,6 +90,7 @@ TA_LIB_API TA_RetCode TA_BOP( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* BOP = (Close - Open)/(High - Low) */
    outIdx = 0;
    for( i = startIdx; (i<=endIdx); i += 1 )
    {

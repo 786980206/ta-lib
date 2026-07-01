@@ -1,8 +1,26 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  EKO      echo999@ifrance.com
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  051103 EKO  Found bug and fix related to outFastD.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int stochFLookback( int optInFastK_Period, int optInFastD_Period, MAType optInFastD_MAType )
    {
       int retValue;
+      /* Account for the initial data needed for Fast-K. */
       retValue = (optInFastK_Period-1);
+      /* Add the smoothing being done for Fast-D */
       retValue += movingAverageLookback(optInFastD_Period, optInFastD_MAType);
       return retValue ;
 
@@ -42,18 +60,71 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* With stochastic, there is a total of 4 different lines that
+       * are defined: FASTK, FASTD, SLOWK and SLOWD.
+       *
+       * The D is the signal line usually drawn over its
+       * corresponding K function.
+       *
+       *                    (Today's Close - LowestLow)
+       *  FASTK(Kperiod) =  --------------------------- * 100
+       *                     (HighestHigh - LowestLow)
+       *
+       *  FASTD(FastDperiod, MA type) = MA Smoothed FASTK over FastDperiod
+       *
+       *  SLOWK(SlowKperiod, MA type) = MA Smoothed FASTK over SlowKperiod
+       *
+       *  SLOWD(SlowDperiod, MA Type) = MA Smoothed SLOWK over SlowDperiod
+       *
+       * The HighestHigh and LowestLow are the extreme values among the
+       * last 'Kperiod'.
+       *
+       * SLOWK and FASTD are equivalent when using the same period.
+       *
+       * The following shows how these four lines are made available in TA-LIB:
+       *
+       *  TA_STOCH  : Returns the SLOWK and SLOWD
+       *  TA_STOCHF : Returns the FASTK and FASTD
+       *
+       * The TA_STOCH function correspond to the more widely implemented version
+       * found in many software/charting package. The TA_STOCHF is more rarely
+       * used because its higher volatility cause often whipsaws.
+       */
+      /* Identify the lookback needed. */
       lookbackK = (optInFastK_Period-1);
       lookbackFastD = movingAverageLookback(optInFastD_Period, optInFastD_MAType);
       lookbackTotal = (lookbackK+lookbackFastD);
+      /* Move up the start index if there is not
+       * enough initial data.
+       */
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
+         /* Succeed... but no data in the output. */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
+      /* Do the K calculation:
+       *
+       *    Kt = 100 x ((Ct-Lt)/(Ht-Lt))
+       *
+       * Kt is today stochastic
+       * Ct is today closing price.
+       * Lt is the lowest price of the last K Period (including today)
+       * Ht is the highest price of the last K Period (including today)
+       */
+      /* Proceed with the calculation for the requested range.
+       * Note that this algorithm allows the input and
+       * output to be the same buffer.
+       */
       outIdx = 0;
+      /* Calculate just enough K for ending up with the caller
+       * requested range. (The range of k must consider all
+       * the lookback involve with the smoothing).
+       */
       trailingIdx = (startIdx-lookbackTotal);
       today = (trailingIdx+lookbackK);
       highestIdx = (0-1);
@@ -61,6 +132,12 @@
       lowest = 0.0;
       highest = lowest;
       diff = highest;
+      /* Allocate a temporary buffer large enough to
+       * store the K.
+       *
+       * If the output is the same as the input, great
+       * we just save ourself one memory allocation.
+       */
       bufferIsAllocated = 0;
       if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) ) {
          tempBuffer = outFastK;
@@ -70,7 +147,9 @@
          bufferIsAllocated = 1;
          tempBuffer = new double[(int)((((endIdx-today)+1)*1))];
       }
+      /* Do the K calculation */
       while( (today<=endIdx) ) {
+         /* Set the lowest low */
          tmp = inLow[today];
          if( (lowestIdx<trailingIdx) ) {
             lowestIdx = trailingIdx;
@@ -89,6 +168,7 @@
             lowest = tmp;
             diff = ((highest-lowest)/100.0);
          }
+         /* Set the highest high */
          tmp = inHigh[today];
          if( (highestIdx<trailingIdx) ) {
             highestIdx = trailingIdx;
@@ -107,6 +187,7 @@
             highest = tmp;
             diff = ((highest-lowest)/100.0);
          }
+         /* Calculate stochastic. */
          if( (diff!=0.0) ) {
             tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
          } else {
@@ -115,22 +196,36 @@
          trailingIdx += 1;
          today += 1;
       }
+      /* Fast-K calculation completed. This K calculation is returned
+       * to the caller. It is smoothed to become Fast-D.
+       */
       retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          if( (bufferIsAllocated) != 0 ) {
          }
+         /* Something wrong happen? No further data? */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Copy tempBuffer into the caller buffer.
+       * (Calculation could not be done directly in the
+       *  caller buffer because more input data then the
+       *  requested range was needed for doing %D).
+       */
       System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
+      /* Don't need K anymore, free it if it was allocated here. */
       if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
+         /* Something wrong happen while processing %D? */
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Note: Keep the outBegIdx relative to the
+       *       caller input before returning.
+       */
       outBegIdx.value = startIdx;
       return RetCode.Success ;
    }

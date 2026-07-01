@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  020605 AA   Fix #1117666 Lookback bug.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -67,6 +83,7 @@ impl Core {
         } else if (((optInSlowPeriod) as i32) < 2) || (((optInSlowPeriod) as i32) > 100000) {
             return usize::MAX;
         }
+        // Lookback is driven by the slowest MA.
         return self.ma_lookback((optInSlowPeriod).max(optInFastPeriod), optInMAType);
     }
     /// Percentage Price Oscillator
@@ -117,17 +134,24 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
+        // Allocate an intermediate buffer.
         tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
+        // Make sure slow is really slower than
+        // the fast period! if not, swap...
         if optInSlowPeriod < optInFastPeriod {
+            // swap
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
         }
+        // Calculate the fast MA into the tempBuffer.
         retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
         if retCode == RetCode::Success {
+            // Calculate the slow MA into the output.
             retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
             if retCode == RetCode::Success {
                 tempInteger = outBegIdx1 - outBegIdx2;
+                // Calculate ((fast MA)-(slow MA))/(slow MA) in the output.
                 // for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
                 i = 0;
                 j = tempInteger;

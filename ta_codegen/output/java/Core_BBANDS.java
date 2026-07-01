@@ -1,6 +1,24 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  010503 MF   Fix to always use SMA for the STDDEV (Thanks to JV).
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int bbandsLookback( int optInTimePeriod, double optInNbDevUp, double optInNbDevDn, MAType optInMAType )
    {
+      /* The lookback is driven by the middle band moving average. */
       return movingAverageLookback(optInTimePeriod, optInMAType) ;
 
    }
@@ -29,6 +47,14 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Identify TWO temporary buffer among the outputs.
+       *
+       * These temporary buffers allows to perform the
+       * calculation without any memory allocation.
+       *
+       * Whenever possible, make the tempBuffer1 be the
+       * middle band output. This will save one copy operation.
+       */
       if( (inReal==outRealUpperBand) ) {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealLowerBand;
@@ -42,15 +68,27 @@
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealUpperBand;
       }
+      /* Check that the caller is not doing tricky things.
+       * (like using the input buffer in two output!)
+       */
       if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
          return RetCode.BadParam ;
       }
+      /* Calculate the middle band, which is a moving average.
+       * The other two bands will simply add/substract the
+       * standard deviation from this middle band.
+       */
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          outNBElement.value = 0;
          return retCode ;
       }
+      /* Calculate the standard deviation into tempBuffer2. */
       if( (optInMAType==MAType.Sma) ) {
+         /* A small speed optimization by re-using the
+          * already calculated SMA.
+          */
+         /* Inline stddev_using_precalc_ma */
          double _tempReal;
          double _periodTotal2;
          double _meanValue2;
@@ -83,17 +121,29 @@
             }
          }
       } else {
+         /* Calculate the Standard Deviation */
          retCode = stdDevUnguarded(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
          if( (retCode!=RetCode.Success) ) {
             outNBElement.value = 0;
             return retCode ;
          }
       }
+      /* Copy the MA calculation into the middle band ouput, unless
+       * the calculation was done into it already!
+       */
       if( (tempBuffer1!=outRealMiddleBand) ) {
          System.arraycopy(tempBuffer1, 0, outRealMiddleBand, 0, (outNBElement.value*1));
       }
+      /* Now do a tight loop to calculate the upper/lower band at
+       * the same time.
+       *
+       * All the following 5 loops are doing the same, except there
+       * is an attempt to speed optimize by eliminating uneeded
+       * multiplication.
+       */
       if( (optInNbDevUp==optInNbDevDn) ) {
          if( (optInNbDevUp==1.0) ) {
+            /* No standard deviation multiplier needed. */
             for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                tempReal = tempBuffer2[i];
                tempReal2 = outRealMiddleBand[i];
@@ -101,6 +151,7 @@
                outRealLowerBand[i] = (tempReal2-tempReal);
             }
          } else {
+            /* Upper/lower band use the same standard deviation multiplier. */
             for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                tempReal = (tempBuffer2[i]*optInNbDevUp);
                tempReal2 = outRealMiddleBand[i];
@@ -109,6 +160,7 @@
             }
          }
       } else if( (optInNbDevUp==1.0) ) {
+         /* Only lower band has a standard deviation multiplier. */
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
@@ -116,6 +168,7 @@
             outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
          }
       } else if( (optInNbDevDn==1.0) ) {
+         /* Only upper band has a standard deviation multiplier. */
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
@@ -123,6 +176,7 @@
             outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
          }
       } else {
+         /* Upper/lower band have distinctive standard deviation multiplier. */
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];

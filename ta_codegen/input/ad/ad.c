@@ -1,3 +1,19 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JD       jdoyle
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  111705 MF,JD  Fix#1359452 for handling properly start/end range.
+ */
+
 int ad_lookback(void)
 {
     /* This function have no lookback needed. */

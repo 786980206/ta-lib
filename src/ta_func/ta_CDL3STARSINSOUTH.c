@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022705 AC   Creation
+ */
+
 TA_LIB_API int TA_CDL3STARSINSOUTH_Lookback( void )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -109,17 +123,26 @@ TA_LIB_API TA_RetCode TA_CDL3STARSINSOUTH( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDL3STARSINSOUTH_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
    ShadowLongPeriodTotal = 0;
@@ -155,16 +178,45 @@ TA_LIB_API TA_RetCode TA_CDL3STARSINSOUTH( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long black candle with long lower shadow
+    * - second candle: smaller black candle that opens higher than prior close but within prior candle's range
+    *   and trades lower than prior close but not lower than prior low and closes off of its low (it has a shadow)
+    * - third candle: small black marubozu (or candle with very short shadows) engulfed by prior candle's range
+    * The meanings of "long body", "short body", "very short shadow" are specified with TA_SetCandleSettings;
+    * outInteger is positive (1 to 100): 3 stars in the south is always bullish;
+    * the user should consider that 3 stars in the south is significant when it appears in downtrend, while this function
+    * does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( (((((((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<fabs((inClose[(i-2)]-inOpen[(i-2)]))))&&(inOpen[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inHigh[(i-2)]))&&(inLow[(i-1)]<inClose[(i-2)]))&&(inLow[(i-1)]>=inLow[(i-2)]))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])>TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)))&&(inLow[i]>inLow[(i-1)]))&&(inHigh[i]<inHigh[(i-1)])) )
+      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 1st black */
+          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd black */
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 3rd black */
+          (fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))) && /* 1st: long */
+          (((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,(i-2))) && /* with long lower shadow */
+          (fabs((inClose[(i-1)]-inOpen[(i-1)]))<fabs((inClose[(i-2)]-inOpen[(i-2)]))) && /* 2nd: smaller candle */
+          (inOpen[(i-1)]>inClose[(i-2)]) &&
+          (inOpen[(i-1)]<=inHigh[(i-2)]) &&                               /* that opens higher but within 1st range */
+          (inLow[(i-1)]<inClose[(i-2)]) &&                                /* and trades lower than 1st close */
+          (inLow[(i-1)]>=inLow[(i-2)]) &&                                 /* but not lower than 1st low */
+          (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])>TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))) && /* and has a lower shadow */
+          (fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)) && /* 3rd: small marubozu */
+          (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)) &&
+          ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)) &&
+          (inLow[i]>inLow[(i-1)]) &&
+          (inHigh[i]<inHigh[(i-1)]) )                                     /* engulfed by prior candle's range */
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-2))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-2)));
       ShadowLongPeriodTotal += (TA_CANDLERANGE(ShadowLong,(i-2))-TA_CANDLERANGE(ShadowLong,(ShadowLongTrailingIdx-2)));
       for( totIdx = 1; (totIdx>=0); totIdx -= 1 )
@@ -178,6 +230,7 @@ TA_LIB_API TA_RetCode TA_CDL3STARSINSOUTH( int    startIdx,
       ShadowVeryShortTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

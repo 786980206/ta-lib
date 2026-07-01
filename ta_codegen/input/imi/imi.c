@@ -1,3 +1,16 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  181012 AB    Initial Version
+ */
+
 int imi_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_IMI) - 1;

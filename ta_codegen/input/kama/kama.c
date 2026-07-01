@@ -1,3 +1,21 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  062704 MF   Fix limit case to avoid divid by zero (or by
+ *              a value close to zero induce by the imprecision
+ *              of floating points).
+ */
+
 int kama_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_KAMA);

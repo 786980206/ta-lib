@@ -41,6 +41,21 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  RM       Robert Meier
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120307 RM     Initial Version
+ *  120907 MF     Handling of a few limit cases
+ */
+
 TA_LIB_API int TA_ACCBANDS_Lookback( int optInTimePeriod )
 {
    return TA_SMA_Lookback(optInTimePeriod);
@@ -92,17 +107,27 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
    if( !outRealLowerBand )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_SMA_Lookback(optInTimePeriod);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Buffer will contains also the lookback required for SMA
+    * to satisfy the caller requested startIdx/endIdx.
+    */
    outputSize = ((endIdx-startIdx)+1);
    bufferSize = (outputSize+lookbackTotal);
    tempBuffer1 = malloc((bufferSize*sizeof(double)));
@@ -120,6 +145,10 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
+   /* Calculate the upper/lower band at the same time (no SMA yet).
+    * Must start calculation back enough to cover the lookback
+    * required later for the SMA.
+    */
    for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
    {
       tempReal = (inHigh[i]+inLow[i]);
@@ -134,6 +163,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
          tempBuffer2[j] = inLow[i];
       }
    }
+   /* Calculate the middle band, which is a moving average of the close. */
    retCode = TA_SMA_Unguarded(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
@@ -143,6 +173,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
+   /* Now let's take the SMA for the upper band. */
    retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
@@ -152,6 +183,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
+   /* Now let's take the SMA for the lower band. */
    retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);

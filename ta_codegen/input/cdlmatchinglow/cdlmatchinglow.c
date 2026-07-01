@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  032605 AC   Creation
+ *
+ */
+
 int cdlmatchinglow_lookback(void)
 {
     return Equal_avgPeriod + 1;

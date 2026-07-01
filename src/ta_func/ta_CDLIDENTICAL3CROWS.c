@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  103104 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLIDENTICAL3CROWS_Lookback( void )
 {
    int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
@@ -93,17 +107,26 @@ TA_LIB_API TA_RetCode TA_CDLIDENTICAL3CROWS( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLIDENTICAL3CROWS_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    ShadowVeryShortPeriodTotal[2] = 0;
    ShadowVeryShortPeriodTotal[1] = 0;
    ShadowVeryShortPeriodTotal[0] = 0;
@@ -128,16 +151,41 @@ TA_LIB_API TA_RetCode TA_CDLIDENTICAL3CROWS( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - three consecutive and declining black candlesticks
+    * - each candle must have no or very short lower shadow
+    * - each candle after the first must open at or very close to the prior candle's close
+    * The meaning of "very short" is specified with TA_SetCandleSettings;
+    * the meaning of "very close" is specified with TA_SetCandleSettings (Equal);
+    * outInteger is negative (-1 to -100): identical three crows is always bearish;
+    * the user should consider that identical 3 crows is significant when it appears after a mature advance or at high levels,
+    * while this function does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[2],(i-2))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)))&&(inClose[(i-2)]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[i]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[2],(i-2)))))&&(inOpen[(i-1)]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[2],(i-2)))))&&(inOpen[i]<=(inClose[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[1],(i-1)))))&&(inOpen[i]>=(inClose[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[1],(i-1))))) )
+      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 1st black */
+          (((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[2],(i-2))) && /* very short lower shadow */
+          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd black */
+          (((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[1],(i-1))) && /* very short lower shadow */
+          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* 3rd black */
+          (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal[0],i)) && /* very short lower shadow */
+          (inClose[(i-2)]>inClose[(i-1)]) &&                              /* three declining */
+          (inClose[(i-1)]>inClose[i]) &&
+          (inOpen[(i-1)]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[2],(i-2)))) && /* 2nd black opens very close to 1st close */
+          (inOpen[(i-1)]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[2],(i-2)))) &&
+          (inOpen[i]<=(inClose[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[1],(i-1)))) && /* 3rd black opens very close to 2nd close */
+          (inOpen[i]>=(inClose[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal[1],(i-1)))) )
       {
          outInteger[outIdx++] = (0-100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       for( totIdx = 2; (totIdx>=0); totIdx -= 1 )
       {
          ShadowVeryShortPeriodTotal[totIdx] = (ShadowVeryShortPeriodTotal[totIdx]+(TA_CANDLERANGE(ShadowVeryShort,(i-totIdx))-TA_CANDLERANGE(ShadowVeryShort,(ShadowVeryShortTrailingIdx-totIdx))));
@@ -150,6 +198,7 @@ TA_LIB_API TA_RetCode TA_CDLIDENTICAL3CROWS( int    startIdx,
       ShadowVeryShortTrailingIdx += 1;
       EqualTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

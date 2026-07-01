@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLSEPARATINGLINES_Lookback( void )
 {
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
@@ -100,17 +114,26 @@ TA_LIB_API TA_RetCode TA_CDLSEPARATINGLINES( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLSEPARATINGLINES_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    ShadowVeryShortPeriodTotal = 0;
    ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
    BodyLongPeriodTotal = 0;
@@ -136,16 +159,32 @@ TA_LIB_API TA_RetCode TA_CDLSEPARATINGLINES( int    startIdx,
       i += 1;
    }
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: black (white) candle
+    * - second candle: bullish (bearish) belt hold with the same open as the prior candle
+    * The meaning of "long body" and "very short shadow" of the belt hold is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+    * the user should consider that separating lines is significant when coming in a trend and the belt hold has
+    * the same direction of the trend, while this function does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( ((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(inOpen[i]<=(inOpen[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))))&&(inOpen[i]>=(inOpen[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))))&&(fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i)))&&((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i))))) )
+      if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* opposite candles */
+          (inOpen[i]<=(inOpen[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))) && /* same open */
+          (inOpen[i]>=(inOpen[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))) &&
+          (fabs((inClose[i]-inOpen[i]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i)) && /* belt hold: long body */
+          ((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)))||(((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)))) ) /* with no lower shadow if bullish with no upper shadow if bearish */
       {
          outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       ShadowVeryShortPeriodTotal += (TA_CANDLERANGE(ShadowVeryShort,i)-TA_CANDLERANGE(ShadowVeryShort,ShadowVeryShortTrailingIdx));
       BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,i)-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
       EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-1))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-1)));
@@ -154,6 +193,7 @@ TA_LIB_API TA_RetCode TA_CDLSEPARATINGLINES( int    startIdx,
       BodyLongTrailingIdx += 1;
       EqualTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

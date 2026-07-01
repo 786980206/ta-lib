@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -61,6 +76,10 @@ impl Core {
         } else if (((optInSignalPeriod) as i32) < 1) || (((optInSignalPeriod) as i32) > 100000) {
             return usize::MAX;
         }
+        // The lookback is driven by the signal line output.
+        //
+        // (must also account for the initial data consume
+        //  by the fix 26 period EMA).
         return (self.ema_lookback(26) + self.ema_lookback(optInSignalPeriod)) as usize;
     }
     /// Moving Average Convergence/Divergence Fix 12/26
@@ -98,6 +117,8 @@ impl Core {
         }
         let mut startIdx = startIdx;
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
+        // 0 indicate fix 12 == 0.15  for optInFastPeriod
+        // 0 indicate fix 26 == 0.075 for optInSlowPeriod
     }
     #[inline]
     pub fn macdfix_unguarded(

@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  CF       Christo Fogelberg
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  010802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  122104 MF,CF  Fix#1089506 for out-of-bound access to ep_temp.
+ */
 int sar_lookback(double        optInAcceleration,                                            double        optInMaximum)
 {
     (void)optInAcceleration;

@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120404 AC   Creation
+ *
+ */
+
 int cdladvanceblock_lookback(void)
 {
     return max( max( max( ShadowLong_avgPeriod, ShadowShort_avgPeriod ),

@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ *
+ */
+
 int cdlgravestonedoji_lookback(void)
 {
     return max( BodyDoji_avgPeriod, ShadowVeryShort_avgPeriod );

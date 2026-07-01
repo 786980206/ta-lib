@@ -39,6 +39,20 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  JP       John Price <jp_talib@gcfl.net>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  070203 JP   Initial.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -104,16 +118,34 @@ impl Core {
         let mut m: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut tempValue1: f64 = 0.0_f64;
+        // Linear Regression is a concept also known as the
+        // "least squares method" or "best fit." Linear
+        // Regression attempts to fit a straight line between
+        // several data points in such a way that distance
+        // between each data point and the line is minimized.
+        //
+        // For each point, a straight line over the specified
+        // previous bar period is determined in terms
+        // of y = b + m*x:
+        //
+        // TA_LINEARREG          : Returns b+m*(period-1)
+        // TA_LINEARREG_SLOPE    : Returns 'm'
+        // TA_LINEARREG_ANGLE    : Returns 'm' in degree.
+        // TA_LINEARREG_INTERCEPT: Returns 'b'
+        // TA_TSF                : Returns b+m*(period)
+        // Adjust startIdx to account for the lookback period.
         lookbackTotal = self.linearreg_intercept_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
         outIdx = 0;
+        // Index into the output.
         today = startIdx;
         SumX = ((optInTimePeriod * (optInTimePeriod - 1)) as f64) * 0.5;
         SumXSqr = ((optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6) as f64);

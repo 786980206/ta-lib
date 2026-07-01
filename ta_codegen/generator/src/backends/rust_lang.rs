@@ -77,6 +77,11 @@ pub fn generate(
 ) -> String {
     let mut out = String::new();
     out.push_str(&gen_header());
+    // File-level comments carried from the input .c (e.g. contributors/history).
+    for block in &func.header_comments {
+        out.push_str(&super::stmt_walk::block_comment(block, 0));
+        out.push('\n');
+    }
     out.push_str(&gen_imports());
     out.push_str(&gen_impl_block(func, enums, registry, helpers));
     out.push_str(&gen_footer());
@@ -203,16 +208,24 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     // For functions without _private:
     // 1. Generate _unguarded (private_body = copy of body, same as before)
     if func.has_explicit_private {
+        // `_private` holds the algorithm (Rust has no single-precision variant) —
+        // keep its comments. The thin `_unguarded` delegate duplicates the guarded
+        // body, so strip its comments.
         out.push_str(&gen_private_func(
             &body_func, &snake, &ctx, enums, registry, helpers,
         ));
-        // Unguarded uses the guarded body (delegates to _private)
+        let mut unguarded = func.clone();
+        unguarded.body = super::stmt_walk::strip_comments(&func.body);
         out.push_str(&gen_unguarded_func(
-            func, &snake, &ctx, enums, registry, helpers,
+            &unguarded, &snake, &ctx, enums, registry, helpers,
         ));
     } else {
+        // `_unguarded` duplicates the guarded body — strip its comments so they
+        // appear only in the guarded variant.
+        let mut unguarded = body_func.clone();
+        unguarded.body = super::stmt_walk::strip_comments(&body_func.body);
         out.push_str(&gen_unguarded_func(
-            &body_func, &snake, &ctx, enums, registry, helpers,
+            &unguarded, &snake, &ctx, enums, registry, helpers,
         ));
     }
 
@@ -1339,7 +1352,8 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
             Statement::Return { .. }
             | Statement::Break
             | Statement::Continue
-            | Statement::CircBuf(_) => {}
+            | Statement::CircBuf(_)
+            | Statement::Comment(_) => {}
             Statement::Switch { cases, default, .. } => {
                 for (_, case_body) in cases {
                     count += count_assignments_inner(name, case_body, in_loop);
@@ -1392,7 +1406,8 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
             | Statement::Continue
             | Statement::Switch { .. }
             | Statement::DoWhile { .. }
-            | Statement::CircBuf(_) => {}
+            | Statement::CircBuf(_)
+            | Statement::Comment(_) => {}
         }
     }
     vars
@@ -1642,7 +1657,47 @@ struct RustStmt<'a, 'e> {
     inline_counter: &'a Cell<usize>,
 }
 
+impl RustStmt<'_, '_> {
+    /// Shared `if` tail (then-body + else branch with `} else if` collapse) used
+    /// by both the flat and multi-line-condition rendering paths.
+    fn render_if_tail(&self, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = String::new();
+        for s in then_body {
+            out.push_str(&self.walk_stmt(s, indent + 4));
+        }
+        if else_body.is_empty() {
+            out.push_str(&format!("{pad}}}\n"));
+        } else {
+            let code_start = else_body
+                .iter()
+                .position(|s| !matches!(s, Statement::Comment(_)))
+                .unwrap_or(else_body.len());
+            let is_else_if = else_body.len() - code_start == 1
+                && matches!(else_body.get(code_start), Some(Statement::If { .. }));
+            if is_else_if {
+                for c in &else_body[..code_start] {
+                    out.push_str(&self.walk_stmt(c, indent));
+                }
+                out.push_str(&format!("{pad}}} else "));
+                out.push_str(self.walk_stmt(&else_body[code_start], indent).trim_start());
+                return out;
+            }
+            out.push_str(&format!("{pad}}} else {{\n"));
+            for s in else_body {
+                out.push_str(&self.walk_stmt(s, indent + 4));
+            }
+            out.push_str(&format!("{pad}}}\n"));
+        }
+        out
+    }
+}
+
 impl StatementEmitter for RustStmt<'_, '_> {
+    fn comment(&self, lines: &[String], indent: usize) -> String {
+        super::stmt_walk::line_comment(lines, indent)
+    }
+
     fn circ_buf(&self, op: &CircBuf, indent: usize) -> String {
         let pad = " ".repeat(indent);
         match op {
@@ -2082,7 +2137,7 @@ impl StatementEmitter for RustStmt<'_, '_> {
     }
 
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
-    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], cond_comments: &[Option<Vec<String>>], indent: usize) -> String {
         let pad = " ".repeat(indent);
         // Skip post-allocation null-check blocks (dead code in Rust — Vec::new() never fails)
         if contains_alloc_err_return(then_body) {
@@ -2102,40 +2157,51 @@ impl StatementEmitter for RustStmt<'_, '_> {
                     condition: *right.clone(),
                     then_body: then_body.to_vec(),
                     else_body: else_body.to_vec(),
+                    cond_comments: Vec::new(),
                 };
                 let outer_if = Statement::If {
                     condition: *left.clone(),
                     then_body: vec![inner_if],
                     else_body: else_body.to_vec(),
+                    cond_comments: Vec::new(),
                 };
                 return self.walk_stmt(&outer_if, indent);
             }
+        }
+        // Inline per-operand comments: render the `&&`-chain multi-line, brace on
+        // the following line (same condition, reformatted, plus the comments).
+        if !cond_comments.is_empty()
+            && super::stmt_walk::flatten_and(condition).len() == cond_comments.len()
+        {
+            let op_strs: Vec<String> = super::stmt_walk::flatten_and(condition)
+                .iter()
+                .map(|o| {
+                    let s = render_condition(o, self.ctx, self.opt_real_params, self.registry, self.helpers);
+                    // An operand that is itself a logical `||` or a ternary binds
+                    // looser than `&&`; it must stay parenthesized to preserve
+                    // precedence in the chain (render_condition adds no outer
+                    // parens — the flat path relied on the enclosing render).
+                    if matches!(o, Expr::BinOp(_, BinOp::Or, _) | Expr::Ternary(..)) {
+                        format!("({s})")
+                    } else {
+                        s
+                    }
+                })
+                .collect();
+            let mut out = format!("{pad}if ");
+            out.push_str(&super::stmt_walk::render_and_operands(
+                &op_strs, cond_comments, &" ".repeat(indent + 3), "", false,
+            ));
+            out.push_str(&format!("{pad}{{\n"));
+            out.push_str(&self.render_if_tail(then_body, else_body, indent));
+            return out;
         }
         let mut out = format!(
             "{}if {} {{\n",
             pad,
             render_condition(condition, self.ctx, self.opt_real_params, self.registry, self.helpers)
         );
-        for s in then_body {
-            out.push_str(&self.walk_stmt(s, indent + 4));
-        }
-        if else_body.is_empty() {
-            out.push_str(&format!("{pad}}}\n"));
-        } else {
-            out.push_str(&format!("{pad}}} else "));
-            if else_body.len() == 1 {
-                if let Statement::If { .. } = &else_body[0] {
-                    let if_str = self.walk_stmt(&else_body[0], indent);
-                    out.push_str(if_str.trim_start());
-                    return out;
-                }
-            }
-            out.push_str("{\n");
-            for s in else_body {
-                out.push_str(&self.walk_stmt(s, indent + 4));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-        }
+        out.push_str(&self.render_if_tail(then_body, else_body, indent));
         out
     }
 

@@ -1,3 +1,19 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  JP       John Price <jp_talib@gcfl.net>
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel <http://amichel.com>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY      Description
+ *  -------------------------------------------------------------------
+ *  070203 JP      Initial.
+ *  072106 MF,AM   Fix #1526632. Add missing atan().
+ */
+
 int linearreg_angle_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod-1;

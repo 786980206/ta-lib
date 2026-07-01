@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011505 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLDOJI_Lookback( void )
 {
    int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
@@ -84,17 +98,26 @@ TA_LIB_API TA_RetCode TA_CDLDOJI( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLDOJI_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    BodyDojiPeriodTotal = 0;
    BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
    i = BodyDojiTrailingIdx;
@@ -103,6 +126,14 @@ TA_LIB_API TA_RetCode TA_CDLDOJI( int    startIdx,
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
    }
+   /* Proceed with the calculation for the requested range.
+    *
+    * Must have:
+    * - open quite equal to close
+    * How much can be the maximum distance between open and close is specified with TA_SetCandleSettings
+    * outInteger is always positive (1 to 100) but this does not mean it is bullish: doji shows uncertainty and it is
+    * neither bullish nor bearish when considered alone
+    */
    outIdx = 0;
    do
    {
@@ -113,10 +144,14 @@ TA_LIB_API TA_RetCode TA_CDLDOJI( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
       i += 1;
       BodyDojiTrailingIdx += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

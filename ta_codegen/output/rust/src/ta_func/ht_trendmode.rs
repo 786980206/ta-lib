@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -54,6 +69,13 @@ impl Core {
     /// # Arguments
     ///
     pub fn ht_trendmode_lookback(&self) -> usize {
+        // 31 input are skip
+        // +32 output are skip to account for misc lookback
+        // ---
+        //  63 Total Lookback
+        //
+        // 31 is for being compatible with Tradestation.
+        // See mama_lookback for an explanation of the "32".
         return (63 + self.unstable_period[FuncUnstId::HtTrendMode as usize]) as usize;
     }
     /// Hilbert Transform - Trend vs Cycle Mode
@@ -161,8 +183,17 @@ impl Core {
         let mut leadSine: f64 = 0.0_f64;
         a = 0.0962;
         b = 0.5769;
+        // Variable used for the price smoother (a weighted moving average).
+        // Variable to keep track of the last 3 ITrend
+        // Variables used for the Hilbert Transormation
+        // Variable used to keep track of the previous
+        // smooth price. In the case of this algorithm,
+        // we will never need more than 50 values.
         smoothPrice = vec![0.0_f64; maxIdx_smoothPrice + 1];
         smoothPrice_Idx = 0;
+        // Variable used to calculate the dominant cycle phase
+        // Variable used to calculate the trend mode
+        // circular buffer already declared
         iTrend3 = 0.0;
         iTrend2 = iTrend3;
         iTrend1 = iTrend2;
@@ -173,22 +204,34 @@ impl Core {
         prevSine = sine;
         leadSine = 0.0;
         prevLeadSine = leadSine;
+        // The following could be replaced by constant eventually.
         tempReal = (1_f64).atan();
         rad2Deg = 45.0 / tempReal;
         deg2Rad = 1.0 / rad2Deg;
         constDeg2RadBy360 = tempReal * 8.0;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = (63 + self.unstable_period[FuncUnstId::HtTrendMode as usize]) as usize;
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
         (*outBegIdx) = startIdx;
+        // Initialize the price smoother, which is simply a weighted
+        // moving average of the price.
+        // To understand this algorithm, I strongly suggest to understand
+        // first how TA_WMA is done.
         trailingWMAIdx = startIdx - lookbackTotal;
         today = trailingWMAIdx;
+        // Initialization is same as WMA, except loop is unrolled
+        // for speed optimization.
         tempReal = inReal[{ let _v = today; today += 1; _v }];
         periodWMASub = tempReal;
         periodWMASum = tempReal;
@@ -199,6 +242,8 @@ impl Core {
         periodWMASub += tempReal;
         periodWMASum += tempReal * 3.0;
         trailingWMAValue = 0.0;
+        // Subsequent WMA value are evaluated by using
+        // the DO_PRICE_WMA macro.
         i = 34;
         loop {
             tempReal = inReal[{ let _v = today; today += 1; _v }];
@@ -210,6 +255,13 @@ impl Core {
             periodWMASum -= periodWMASub;
             if !({ i -= 1; i } != 0) { break; }
         }
+        // Initialize the circular buffers used by the hilbert
+        // transform logic.
+        // A buffer is used for odd day and another for even days.
+        // This minimize the number of memory access and floating point
+        // operations needed (note also that by using static circular buffer,
+        // no large dynamic memory allocation is needed for storing
+        // intermediate calculation!).
         hilbertIdx = 0;
         detrender_Odd[0] = 0.0;
         detrender_Odd[1] = 0.0;
@@ -272,6 +324,12 @@ impl Core {
             smoothPrice[i] = 0.0;
             i += 1;
         }
+        // The code is speed optimized and is most likely very
+        // hard to follow if you do not already know well the
+        // original algorithm.
+        // To understadn better, it is strongly suggested to look
+        // first at the Excel implementation in "test_MAMA.xls" included
+        // in this package.
         DCPhase = 0.0;
         while today <= endIdx {
             adjustedPrevPeriod = (0.075 as f64).mul_add(period, 0.54);
@@ -282,8 +340,11 @@ impl Core {
             trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
+            // Remember the smoothedValue into the smoothPrice
+            // circular buffer.
             smoothPrice[smoothPrice_Idx] = smoothedValue;
             if today % 2 == 0 {
+                // Do the Hilbert Transforms for even price bar
                 hilbertTempReal = a * smoothedValue;
                 detrender = 0_f64 - detrender_Even[hilbertIdx];
                 detrender_Even[hilbertIdx] = hilbertTempReal;
@@ -325,9 +386,15 @@ impl Core {
                 }
                 Q2 = (0.2 as f64).mul_add(Q1 + jI, 0.8 * prevQ2);
                 I2 = (0.2 as f64).mul_add(I1ForEvenPrev3 - jQ, 0.8 * prevI2);
+                // The variable I1 is the detrender delayed for
+                // 3 price bars.
+                //
+                // Save the current detrender value for being
+                // used by the "odd" logic later.
                 I1ForOddPrev3 = I1ForOddPrev2;
                 I1ForOddPrev2 = detrender;
             } else {
+                // Do the Hilbert Transforms for odd price bar
                 hilbertTempReal = a * smoothedValue;
                 detrender = 0_f64 - detrender_Odd[hilbertIdx];
                 detrender_Odd[hilbertIdx] = hilbertTempReal;
@@ -366,9 +433,15 @@ impl Core {
                 jQ *= adjustedPrevPeriod;
                 Q2 = (0.2 as f64).mul_add(Q1 + jI, 0.8 * prevQ2);
                 I2 = (0.2 as f64).mul_add(I1ForOddPrev3 - jQ, 0.8 * prevI2);
+                // The varaiable I1 is the detrender delayed for
+                // 3 price bars.
+                //
+                // Save the current detrender value for being
+                // used by the "even" logic later.
                 I1ForEvenPrev3 = I1ForEvenPrev2;
                 I1ForEvenPrev2 = detrender;
             }
+            // Adjust the period for next price bar
             Re = (0.2 as f64).mul_add((I2 as f64).mul_add(prevI2, Q2 * prevQ2), 0.8 * Re);
             Im = (0.2 as f64).mul_add(I2 * prevQ2 - Q2 * prevI2, 0.8 * Im);
             prevQ2 = Q2;
@@ -392,11 +465,14 @@ impl Core {
             }
             period = (0.2 as f64).mul_add(period, 0.8 * tempReal);
             smoothPeriod = (0.33 as f64).mul_add(period, 0.67 * smoothPeriod);
+            // Compute Dominant Cycle Phase
             prevDCPhase = DCPhase;
             DCPeriod = smoothPeriod + 0.5;
             DCPeriodInt = ((DCPeriod) as usize) as usize;
             realPart = 0.0;
             imagPart = 0.0;
+            // idx is used to iterate for up to 50 of the last
+            // value of smoothPrice.
             idx = smoothPrice_Idx;
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
@@ -423,6 +499,7 @@ impl Core {
                 }
             }
             DCPhase += 90.0;
+            // Compensate for one bar lag of the weighted moving average
             DCPhase += 360.0 / smoothPeriod;
             if imagPart < 0.0 {
                 DCPhase += 180.0;
@@ -434,8 +511,11 @@ impl Core {
             prevLeadSine = leadSine;
             sine = (DCPhase * deg2Rad).sin();
             leadSine = ((DCPhase + 45_f64) * deg2Rad).sin();
+            // Compute Trendline
             DCPeriod = smoothPeriod + 0.5;
             DCPeriodInt = ((DCPeriod) as usize) as usize;
+            // idx is used to iterate for up to 50 of the last
+            // value of smoothPrice.
             idx = today;
             tempReal = 0.0;
             // for( i = 0; i < DCPeriodInt; i += 1 )
@@ -451,7 +531,9 @@ impl Core {
             iTrend3 = iTrend2;
             iTrend2 = iTrend1;
             iTrend1 = tempReal;
+            // Compute the trend Mode , and assume trend by default
             trend = 1;
+            // Measure days in trend from last crossing of the SineWave Indicator lines
             if sine > leadSine && prevSine <= prevLeadSine || sine < leadSine && prevSine >= prevLeadSine {
                 daysInTrend = 0;
                 trend = 0;
@@ -472,6 +554,7 @@ impl Core {
                 outInteger[outIdx] = (trend) as i32;
                 outIdx += 1;
             }
+            // Ooof... let's do the next price bar now!
             smoothPrice_Idx += 1;
             if smoothPrice_Idx > maxIdx_smoothPrice { smoothPrice_Idx = 0; }
             today += 1;

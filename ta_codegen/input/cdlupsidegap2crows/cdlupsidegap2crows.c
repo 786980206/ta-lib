@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  110104 AC   Creation
+ *
+ */
+
 int cdlupsidegap2crows_lookback(void)
 {
     return max( BodyShort_avgPeriod, BodyLong_avgPeriod ) + 2;

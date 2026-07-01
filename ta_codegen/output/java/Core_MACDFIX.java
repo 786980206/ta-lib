@@ -1,6 +1,26 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
    public int macdFixLookback( int optInSignalPeriod )
    {
+      /* The lookback is driven by the signal line output.
+       *
+       * (must also account for the initial data consume
+       *  by the fix 26 period EMA).
+       */
       return (emaLookback(26)+emaLookback(optInSignalPeriod)) ;
 
    }
@@ -21,6 +41,8 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+      /* 0 indicate fix 12 == 0.15  for optInFastPeriod */
+      /* 0 indicate fix 26 == 0.075 for optInSlowPeriod */
    }
    public RetCode macdFixUnguarded( int startIdx,
                                     int endIdx,

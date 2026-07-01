@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ */
+
 TA_LIB_API int TA_SUM_Lookback( int optInTimePeriod )
 {
    return (optInTimePeriod-1);
@@ -75,17 +89,26 @@ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = (optInTimePeriod-1);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the MA calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    periodTotal = 0;
    trailingIdx = (startIdx-lookbackTotal);
    i = trailingIdx;
@@ -96,6 +119,10 @@ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
          periodTotal += inReal[i++];
       }
    }
+   /* Proceed with the calculation for the requested range.
+    * Note that this algorithm allows the inReal and
+    * outReal to be the same buffer.
+    */
    outIdx = 0;
    do
    {
@@ -104,6 +131,7 @@ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
       periodTotal -= inReal[trailingIdx++];
       outReal[outIdx++] = tempReal;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  DM       Drew McCormack (http://www.trade-strategist.com)
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  281206 DM   Initial Implementation
+ *  010606 MF   Abstract local arrays. Detect divide by zero.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -74,6 +89,8 @@ impl Core {
             return usize::MAX;
         }
         let mut maxPeriod: usize = 0_usize;
+        // Lookback for the Ultimate Oscillator is the lookback of the SMA with the longest
+        // time period, plus 1 for the True Range.
         maxPeriod = (((optInTimePeriod1).max(optInTimePeriod2)).max(optInTimePeriod3)) as usize;
         return (self.sma_lookback((maxPeriod) as i32) + 1) as usize;
     }
@@ -154,6 +171,8 @@ impl Core {
         let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
+        // Ensure that the time periods are ordered from shortest to longest.
+        // Sort.
         periods[0] = optInTimePeriod1;
         periods[1] = optInTimePeriod2;
         periods[2] = optInTimePeriod3;
@@ -181,13 +200,16 @@ impl Core {
         optInTimePeriod1 = sortedPeriods[2];
         optInTimePeriod2 = sortedPeriods[1];
         optInTimePeriod3 = sortedPeriods[0];
+        // Adjust startIdx for lookback period.
         lookbackTotal = self.ultosc_lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             return RetCode::Success;
         }
+        // Prime running totals used in moving averages
         a1Total = 0.0;
         b1Total = 0.0;
         // for( i = startIdx - (optInTimePeriod1) as usize + 1; i < startIdx; i += 1 )
@@ -257,12 +279,14 @@ impl Core {
             b3Total += trueRange;
             i += 1;
         }
+        // Calculate oscillator
         today = startIdx;
         outIdx = 0;
         trailingIdx1 = today - (optInTimePeriod1) as usize + 1;
         trailingIdx2 = today - (optInTimePeriod2) as usize + 1;
         trailingIdx3 = today - (optInTimePeriod3) as usize + 1;
         while today <= endIdx {
+            // Add on today's terms
             tempLT = inLow[today];
             tempHT = inHigh[today];
             tempCY = inClose[today - 1];
@@ -283,6 +307,7 @@ impl Core {
             b1Total += trueRange;
             b2Total += trueRange;
             b3Total += trueRange;
+            // Calculate the oscillator value for today
             output = 0.0;
             if !((b1Total).abs() < 1e-14) {
                 output += 4.0 * (a1Total / b1Total);
@@ -293,6 +318,7 @@ impl Core {
             if !((b3Total).abs() < 1e-14) {
                 output += a3Total / b3Total;
             }
+            // Remove the trailing terms to prepare for next day
             tempLT = inLow[trailingIdx1];
             tempHT = inHigh[trailingIdx1];
             tempCY = inClose[trailingIdx1 - 1];
@@ -341,13 +367,20 @@ impl Core {
             }
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
+            // Last operation is to write the output. Must
+            // be done after the trailing index have all been
+            // taken care of because the caller is allowed
+            // to have the input array to be also the output
+            // array.
             outReal[outIdx] = 100.0 * (output / 7.0);
+            // Increment indexes
             outIdx += 1;
             today += 1;
             trailingIdx1 += 1;
             trailingIdx2 += 1;
             trailingIdx3 += 1;
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

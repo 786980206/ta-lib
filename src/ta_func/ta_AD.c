@@ -41,8 +41,25 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JD       jdoyle
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  111705 MF,JD  Fix#1359452 for handling properly start/end range.
+ */
+
 TA_LIB_API int TA_AD_Lookback( void )
 {
+   /* This function have no lookback needed. */
    return 0;
 }
 
@@ -81,6 +98,21 @@ TA_LIB_API TA_RetCode TA_AD( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Note: Results from this function might vary slightly
+    *       from Metastock outputs. The reason being that
+    *       Metastock use float instead of double and this
+    *       cause a different floating-point precision to
+    *       be used.
+    *
+    *       For most function, this is not an apparent difference
+    *       but for function using large cummulative values (like
+    *       this AD function), minor imprecision adds up and becomes
+    *       significative.
+    *
+    *       For better precision, TA-Lib use double in all its
+    *       its calculations.
+    */
+   /* Default return values */
    nbBar = ((endIdx-startIdx)+1);
    *outNBElement= nbBar;
    *outBegIdx= startIdx;

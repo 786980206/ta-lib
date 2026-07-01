@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  RM       Robert Meier
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  120307 RM     Initial Version
+ *  120907 MF     Handling of a few limit cases
+ */
+
 int accbands_lookback(int           optInTimePeriod)
 {
     return sma_lookback( optInTimePeriod );

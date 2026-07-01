@@ -41,6 +41,19 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
 TA_LIB_API int TA_ATAN_Lookback( void )
 {
    return 0;
@@ -66,6 +79,7 @@ TA_LIB_API TA_RetCode TA_ATAN( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Default return values */
    for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
    {
       outReal[outIdx] = atan(inReal[i]);

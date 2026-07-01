@@ -39,6 +39,23 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  101902 JV   Speed optimization of the algorithm
+ *  102202 MF   Speed optimize a bit further
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -101,15 +118,24 @@ impl Core {
         let mut lowestIdx: i32 = 0_i32;
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
+        // Identify the minimum number of price bar needed
+        // to identify at least one output over the specified
+        // period.
         nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Proceed with the calculation for the requested range.
+        // Note that this algorithm allows the input and
+        // output to be the same buffer.
         outIdx = 0;
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
@@ -137,6 +163,8 @@ impl Core {
             trailingIdx += 1;
             today += 1;
         }
+        // Keep the outBegIdx relative to the
+        // caller input before returning.
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;

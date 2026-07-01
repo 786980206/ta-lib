@@ -41,8 +41,25 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112605 MF   Fix outBegIdx when startIdx != 0
+ */
+
 TA_LIB_API int TA_MEDPRICE_Lookback( void )
 {
+   /* This function have no lookback needed. */
    return 0;
 }
 
@@ -69,6 +86,12 @@ TA_LIB_API TA_RetCode TA_MEDPRICE( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* MEDPRICE = (High + Low ) / 2
+    * This is the high and low of the same price bar.
+    *
+    * See MIDPRICE to use instead the highest high and lowest
+    * low over multiple price bar.
+    */
    outIdx = 0;
    for( i = startIdx; (i<=endIdx); i += 1 )
    {

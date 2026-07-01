@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010102 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -61,6 +76,8 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
+        // Get lookback for one EMA.
+        // Multiply by two (because double smoothing).
         return (self.ema_lookback(optInTimePeriod) * 2) as usize;
     }
     /// Double Exponential Moving Average
@@ -105,35 +122,72 @@ impl Core {
         let mut lookbackTotal: usize = 0_usize;
         let mut lookbackEMA: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
+        // For an explanation of this function, please read
+        //
+        // Stocks & Commodities V. 12:1 (11-19):
+        //   Smoothing Data With Faster Moving Averages
+        // Stocks & Commodities V. 12:2 (72-80):
+        //   Smoothing Data With Less Lag
+        //
+        // Both magazine articles written by Patrick G. Mulloy
+        //
+        // Essentially, a DEMA of time serie 't' is:
+        //   EMA2 = EMA(EMA(t,period),period)
+        //   DEMA = 2*EMA(t,period)- EMA2
+        //
+        // DEMA offers a moving average with less lags then the
+        // traditional EMA.
+        //
+        // Do not confuse a DEMA with the EMA2. Both are called
+        // "Double EMA" in the litterature, but EMA2 is a simple
+        // EMA of an EMA, while DEMA is a compostie of a single
+        // EMA with EMA2.
+        //
+        // TEMA is very similar (and from the same author).
+        // Will change only on success.
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
+        // Adjust startIdx to account for the lookback period.
         lookbackEMA = self.ema_lookback(optInTimePeriod);
         lookbackTotal = lookbackEMA * 2;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             return RetCode::Success;
         }
+        // Allocate a temporary buffer for the firstEMA.
+        //
+        // When possible, re-use the outputBuffer for temp
+        // calculation.
         if inReal.as_ptr() == outReal.as_ptr() {
             firstEMA = outReal.to_vec();
         } else {
             tempInt = lookbackTotal + (endIdx - startIdx) + 1;
             firstEMA = vec![0.0_f64; (tempInt * 1) as usize];
         }
+        // Calculate the first EMA
         retCode = self.ema_unguarded(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
+        // Verify for failure or if not enough data after
+        // calculating the first EMA.
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             if firstEMA.as_ptr() != outReal.as_ptr() {
             }
             return retCode;
         }
+        // Allocate a temporary buffer for storing the EMA of the EMA.
         secondEMA = vec![0.0_f64; (firstEMANbElement * 1) as usize];
         retCode = self.ema_unguarded(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
+        // Return empty output on failure or if not enough data after
+        // calculating the second EMA.
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             if firstEMA.as_ptr() != outReal.as_ptr() {
             }
             return retCode;
         }
+        // Iterate through the second EMA and write the DEMA into
+        // the output.
         firstEMAIdx = secondEMABegIdx;
         outIdx = 0;
         while outIdx < secondEMANbElement {
@@ -142,6 +196,8 @@ impl Core {
         }
         if firstEMA.as_ptr() != outReal.as_ptr() {
         }
+        // Succeed. Indicate where the output starts relative to
+        // the caller input.
         (*outBegIdx) = firstEMABegIdx + secondEMABegIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;

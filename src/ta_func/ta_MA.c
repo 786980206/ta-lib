@@ -41,6 +41,25 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  022203 MF   Add MAMA
+ *  040503 MF   Add T3
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  111603 MF   Allow period of 1. Just copy input into output.
+ *  060907 MF   Use TA_SMA/TA_EMA instead of internal implementation.
+ */
+
 TA_LIB_API int TA_MA_Lookback( int optInTimePeriod, TA_MAType optInMAType )
 {
    int retValue;
@@ -126,6 +145,7 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
       *outBegIdx= startIdx;
       return TA_SUCCESS;
    }
+   /* Simply forward the job to the corresponding TA function. */
    switch( optInMAType )
    {
    case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
@@ -150,6 +170,9 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
       retCode = TA_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
+      /* The optInTimePeriod is ignored and the FAMA output of the MAMA
+       * is ignored.
+       */
       dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
       if( !(dummyBuffer) )
       {

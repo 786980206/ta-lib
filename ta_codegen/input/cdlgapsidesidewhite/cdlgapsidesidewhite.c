@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  020605 AC   Creation
+ *
+ */
+
 int cdlgapsidesidewhite_lookback(void)
 {
     return max( Near_avgPeriod, Equal_avgPeriod ) + 2;

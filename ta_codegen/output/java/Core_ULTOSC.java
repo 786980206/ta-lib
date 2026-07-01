@@ -1,7 +1,25 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  DM       Drew McCormack (http://www.trade-strategist.com)
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  281206 DM   Initial Implementation
+ *  010606 MF   Abstract local arrays. Detect divide by zero.
+ */
+
    public int ultOscLookback( int optInTimePeriod1, int optInTimePeriod2, int optInTimePeriod3 )
    {
       int maxPeriod;
+      /* Lookback for the Ultimate Oscillator is the lookback of the SMA with the longest
+       * time period, plus 1 for the True Range.
+       */
       maxPeriod = Math.max(Math.max(optInTimePeriod1, optInTimePeriod2), optInTimePeriod3);
       return (smaLookback(maxPeriod)+1) ;
 
@@ -53,6 +71,9 @@
       }
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* Ensure that the time periods are ordered from shortest to longest.
+       * Sort.
+       */
       periods[0] = optInTimePeriod1;
       periods[1] = optInTimePeriod2;
       periods[2] = optInTimePeriod3;
@@ -74,13 +95,16 @@
       optInTimePeriod1 = sortedPeriods[2];
       optInTimePeriod2 = sortedPeriods[1];
       optInTimePeriod3 = sortedPeriods[0];
+      /* Adjust startIdx for lookback period. */
       lookbackTotal = ultOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
+      /* Make sure there is still something to evaluate. */
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
+      /* Prime running totals used in moving averages */
       a1Total = 0;
       b1Total = 0;
       for( i = ((startIdx-optInTimePeriod1)+1); (i<startIdx); i += 1 ) {
@@ -141,12 +165,14 @@
          a3Total += closeMinusTrueLow;
          b3Total += trueRange;
       }
+      /* Calculate oscillator */
       today = startIdx;
       outIdx = 0;
       trailingIdx1 = ((today-optInTimePeriod1)+1);
       trailingIdx2 = ((today-optInTimePeriod2)+1);
       trailingIdx3 = ((today-optInTimePeriod3)+1);
       while( (today<=endIdx) ) {
+         /* Add on today's terms */
          tempLT = inLow[today];
          tempHT = inHigh[today];
          tempCY = inClose[(today-1)];
@@ -167,6 +193,7 @@
          b1Total += trueRange;
          b2Total += trueRange;
          b3Total += trueRange;
+         /* Calculate the oscillator value for today */
          output = 0.0;
          if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
             output += (4.0*(a1Total/b1Total));
@@ -177,6 +204,7 @@
          if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
             output += (a3Total/b3Total);
          }
+         /* Remove the trailing terms to prepare for next day */
          tempLT = inLow[trailingIdx1];
          tempHT = inHigh[trailingIdx1];
          tempCY = inClose[(trailingIdx1-1)];
@@ -225,13 +253,21 @@
          }
          a3Total -= closeMinusTrueLow;
          b3Total -= trueRange;
+         /* Last operation is to write the output. Must
+          * be done after the trailing index have all been
+          * taken care of because the caller is allowed
+          * to have the input array to be also the output
+          * array.
+          */
          outReal[outIdx] = (100.0*(output/7.0));
+         /* Increment indexes */
          outIdx += 1;
          today += 1;
          trailingIdx1 += 1;
          trailingIdx2 += 1;
          trailingIdx3 += 1;
       }
+      /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;

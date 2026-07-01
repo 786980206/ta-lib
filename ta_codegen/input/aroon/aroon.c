@@ -1,3 +1,19 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel <michel@pacbell.net>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  050703 MF   Fix algorithm base on Adrian Michel bug report #748163
+ */
+
 int aroon_lookback(int           optInTimePeriod)
 {
     return optInTimePeriod;

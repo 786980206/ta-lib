@@ -39,6 +39,20 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022005 AC   Creation
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -120,15 +134,22 @@ impl Core {
         let BodyShort_avgPeriod: i32 = self.candle_settings.body_short.avg_period;
         #[allow(non_snake_case)]
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.cdlmathold_lookback(optInPenetration);
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         BodyPeriodTotal[4] = 0.0;
         BodyPeriodTotal[3] = 0.0;
         BodyPeriodTotal[2] = 0.0;
@@ -209,15 +230,47 @@ impl Core {
             i += 1;
         }
         i = startIdx;
+        // Proceed with the calculation for the requested range.
+        // Must have:
+        // - first candle: long white candle
+        // - upside gap between the first and the second bodies
+        // - second candle: small black candle
+        // - third and fourth candles: falling small real body candlesticks (commonly black) that hold within the long
+        //   white candle's body and are higher than the reaction days of the rising three methods
+        // - fifth candle: white candle that opens above the previous small candle's close and closes higher than the
+        //   high of the highest reaction day
+        // The meaning of "short" and "long" is specified with TA_SetCandleSettings;
+        // "hold within" means "a part of the real body must be within";
+        // optInPenetration is the maximum percentage of the first white body the reaction days can penetrate (it is
+        // to specify how much the reaction days should be "higher than the reaction days of the rising three methods")
+        // outInteger is positive (1 to 100): mat hold is always bullish
         outIdx = 0;
         loop {
-            if (if inClose[i - 4] >= inOpen[i - 4] { 1 } else { 0 - 1 }) == 1 && ((if inClose[i - 3] >= inOpen[i - 3] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 1 && ((if (inOpen[i - 3]).min(inClose[i - 3]) > (inOpen[i - 4]).max(inClose[i - 4]) { 1 } else { 0 }) != 0) && (inOpen[i - 2]).min(inClose[i - 2]) < inClose[i - 4] && (inOpen[i - 1]).min(inClose[i - 1]) < inClose[i - 4] && (inOpen[i - 2]).min(inClose[i - 2]) > inClose[i - 4] - (inClose[i - 4] - inOpen[i - 4]).abs() * optInPenetration && (inOpen[i - 1]).min(inClose[i - 1]) > inClose[i - 4] - (inClose[i - 4] - inOpen[i - 4]).abs() * optInPenetration && (inClose[i - 2]).max(inOpen[i - 2]) < inOpen[i - 3] && (inClose[i - 1]).max(inOpen[i - 1]) < (inClose[i - 2]).max(inOpen[i - 2]) && inOpen[i] > inClose[i - 1] && inClose[i] > ((inHigh[i - 3]).max(inHigh[i - 2])).max(inHigh[i - 1]) && (inClose[i - 4] - inOpen[i - 4]).abs() > ((BodyLong_factor) * (if (BodyLong_avgPeriod) != 0 { (BodyPeriodTotal[4]) / (BodyLong_avgPeriod as f64) } else { match BodyLong_rangeType { 0 => (inClose[i - 4] - inOpen[i - 4]).abs(), 1 => (inHigh[i - 4]) - (inLow[i - 4]), _ => (inHigh[i - 4]) - (inLow[i - 4]) - ((inClose[i - 4]) - (inOpen[i - 4])).abs() } }) / (if (BodyLong_rangeType) == 2 { 2.0 } else { 1.0 })) && (inClose[i - 3] - inOpen[i - 3]).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal[3]) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 3] - inOpen[i - 3]).abs(), 1 => (inHigh[i - 3]) - (inLow[i - 3]), _ => (inHigh[i - 3]) - (inLow[i - 3]) - ((inClose[i - 3]) - (inOpen[i - 3])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) && (inClose[i - 2] - inOpen[i - 2]).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal[2]) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => (inHigh[i - 2]) - (inLow[i - 2]), _ => (inHigh[i - 2]) - (inLow[i - 2]) - ((inClose[i - 2]) - (inOpen[i - 2])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) && (inClose[i - 1] - inOpen[i - 1]).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal[1]) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) {
+            if (if inClose[i - 4] >= inOpen[i - 4] { 1 } else { 0 - 1 }) == 1 &&       // white, black, 2 black or white, white
+               ((if inClose[i - 3] >= inOpen[i - 3] { 1 } else { 0 - 1 })) as i32 == 0 - 1 &&
+               (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 1 &&
+               ((if (inOpen[i - 3]).min(inClose[i - 3]) > (inOpen[i - 4]).max(inClose[i - 4]) { 1 } else { 0 }) != 0) && // upside gap 1st to 2nd
+               (inOpen[i - 2]).min(inClose[i - 2]) < inClose[i - 4] &&                 // 3rd to 4th hold within 1st: a part of the real body must be within 1st real body
+               (inOpen[i - 1]).min(inClose[i - 1]) < inClose[i - 4] &&
+               (inOpen[i - 2]).min(inClose[i - 2]) > inClose[i - 4] - (inClose[i - 4] - inOpen[i - 4]).abs() * optInPenetration && // reaction days penetrate first body less than optInPenetration percent
+               (inOpen[i - 1]).min(inClose[i - 1]) > inClose[i - 4] - (inClose[i - 4] - inOpen[i - 4]).abs() * optInPenetration &&
+               (inClose[i - 2]).max(inOpen[i - 2]) < inOpen[i - 3] &&                  // 2nd to 4th are falling
+               (inClose[i - 1]).max(inOpen[i - 1]) < (inClose[i - 2]).max(inOpen[i - 2]) &&
+               inOpen[i] > inClose[i - 1] &&                                           // 5th opens above the prior close
+               inClose[i] > ((inHigh[i - 3]).max(inHigh[i - 2])).max(inHigh[i - 1]) && // 5th closes above the highest high of the reaction days
+               (inClose[i - 4] - inOpen[i - 4]).abs() > ((BodyLong_factor) * (if (BodyLong_avgPeriod) != 0 { (BodyPeriodTotal[4]) / (BodyLong_avgPeriod as f64) } else { match BodyLong_rangeType { 0 => (inClose[i - 4] - inOpen[i - 4]).abs(), 1 => (inHigh[i - 4]) - (inLow[i - 4]), _ => (inHigh[i - 4]) - (inLow[i - 4]) - ((inClose[i - 4]) - (inOpen[i - 4])).abs() } }) / (if (BodyLong_rangeType) == 2 { 2.0 } else { 1.0 })) && // 1st long, then 3 small
+               (inClose[i - 3] - inOpen[i - 3]).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal[3]) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 3] - inOpen[i - 3]).abs(), 1 => (inHigh[i - 3]) - (inLow[i - 3]), _ => (inHigh[i - 3]) - (inLow[i - 3]) - ((inClose[i - 3]) - (inOpen[i - 3])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) &&
+               (inClose[i - 2] - inOpen[i - 2]).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal[2]) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => (inHigh[i - 2]) - (inLow[i - 2]), _ => (inHigh[i - 2]) - (inLow[i - 2]) - ((inClose[i - 2]) - (inOpen[i - 2])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) &&
+               (inClose[i - 1] - inOpen[i - 1]).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal[1]) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 }))
+            {
                 outInteger[outIdx] = 100;
                 outIdx += 1;
             } else {
                 outInteger[outIdx] = 0;
                 outIdx += 1;
             }
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             let mut _candlerange_4: f64;
             match BodyLong_rangeType {
                 0 => {
@@ -291,6 +344,7 @@ impl Core {
             BodyLongTrailingIdx += 1;
             if !(i <= endIdx) { break; }
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

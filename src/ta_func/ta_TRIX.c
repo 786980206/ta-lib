@@ -41,6 +41,22 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AA       Andrew Atkinson
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  020605 AA   Fix #1117656. NULL pointer assignement.
+ */
+
 TA_LIB_API int TA_TRIX_Lookback( int optInTimePeriod )
 {
    int emaLookback;
@@ -79,6 +95,7 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Adjust the startIdx to account for the lookback. */
    emaLookback = TA_EMA_Lookback(optInTimePeriod);
    rocLookback = TA_ROCR_Lookback(1);
    totalLookback = ((emaLookback*3)+rocLookback);
@@ -86,6 +103,7 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
    {
       startIdx = totalLookback;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outNBElement= 0;
@@ -94,6 +112,9 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
    }
    *outBegIdx= startIdx;
    nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
+   /* Allocate a temporary buffer for performing
+    * the calculation.
+    */
    tempBuffer = malloc((nbElementToOutput*sizeof(double)));
    if( !(tempBuffer) )
    {
@@ -101,7 +122,11 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
       *outBegIdx= 0;
       return TA_ALLOC_ERR;
    }
+   /* Calculate the first EMA */
    retCode = TA_EMA_Unguarded((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   /* Verify for failure or if not enough data after
+    * calculating the EMA.
+    */
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -110,8 +135,13 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
       return retCode;
    }
    nbElementToOutput -= 1;
+   /* Make this variable zero base from now on. */
+   /* Calculate the second EMA */
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   /* Verify for failure or if not enough data after
+    * calculating the EMA.
+    */
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -119,8 +149,12 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
       free(tempBuffer);
       return retCode;
    }
+   /* Calculate the third EMA */
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   /* Verify for failure or if not enough data after
+    * calculating the EMA.
+    */
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -128,9 +162,13 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
       free(tempBuffer);
       return retCode;
    }
+   /* Calculate the 1-day Rate-Of-Change */
    nbElementToOutput -= emaLookback;
    retCode = TA_ROC_Unguarded(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
    free(tempBuffer);
+   /* Verify for failure or if not enough data after
+    * calculating the rate-of-change.
+    */
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       *outNBElement= 0;

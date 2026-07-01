@@ -1,3 +1,21 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  031202 MF   Template creation.
+ *  052603 MF   Port to managed C++. Change to use CIRCBUF macros.
+ *  061704 MF   Lower limit for period to 2, and correct algorithm
+ *              to avoid cummulative error when value are close to
+ *              the floating point epsilon.
+ */
+
 int cci_lookback(int           optInTimePeriod)
 {
     return (optInTimePeriod-1);

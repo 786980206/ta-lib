@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  102404 AC   Creation
+ *  040309 AC   Increased flexibility to allow real bodies matching
+ *              on one end (Greg Morris - "Candlestick charting explained")
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -116,15 +132,22 @@ impl Core {
         let BodyShort_avgPeriod: i32 = self.candle_settings.body_short.avg_period;
         #[allow(non_snake_case)]
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
+        // Identify the minimum number of price bar needed
+        // to calculate at least one output.
         lookbackTotal = self.cdlharami_lookback();
+        // Move up the start index if there is not
+        // enough initial data.
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         BodyLongPeriodTotal = 0.0;
         BodyShortPeriodTotal = 0.0;
         BodyLongTrailingIdx = startIdx - 1 - (BodyLong_avgPeriod) as usize;
@@ -170,13 +193,30 @@ impl Core {
             i += 1;
         }
         i = startIdx;
+        // Proceed with the calculation for the requested range.
+        // Must have:
+        // - first candle: long white (black) real body
+        // - second candle: short real body totally engulfed by the first
+        // The meaning of "short" and "long" is specified with TA_SetCandleSettings
+        // outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish:
+        // - 100 is returned when the first candle's real body begins before and ends after the second candle's real body
+        // - 80 is returned when the two real bodies match on one end (Greg Morris contemplate this case in his book
+        //   "Candlestick charting explained")
+        // The user should consider that a harami is significant when it appears in a downtrend if bullish or
+        // in an uptrend when bearish, while this function does not consider the trend
         outIdx = 0;
         loop {
             if (inClose[i - 1] - inOpen[i - 1]).abs() > ((BodyLong_factor) * (if (BodyLong_avgPeriod) != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { match BodyLong_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => (inHigh[i - 1]) - (inLow[i - 1]), _ => (inHigh[i - 1]) - (inLow[i - 1]) - ((inClose[i - 1]) - (inOpen[i - 1])).abs() } }) / (if (BodyLong_rangeType) == 2 { 2.0 } else { 1.0 })) {
+                // 1st: long
                 if (inClose[i] - inOpen[i]).abs() <= ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyShortPeriodTotal) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => (inHigh[i]) - (inLow[i]), _ => (inHigh[i]) - (inLow[i]) - ((inClose[i]) - (inOpen[i])).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) {
+                    // 2nd: short
+                    // 2nd is engulfed by 1st
                     if (inClose[i]).max(inOpen[i]) < (inClose[i - 1]).max(inOpen[i - 1]) && (inClose[i]).min(inOpen[i]) > (inClose[i - 1]).min(inOpen[i - 1]) {
                         outInteger[outIdx] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 100) as i32;
                         outIdx += 1;
+                        // 2nd is engulfed by 1st
+                        // (one end of real body can match;
+                        // engulfing guaranteed by "long" and "short")
                     } else if (inClose[i]).max(inOpen[i]) <= (inClose[i - 1]).max(inOpen[i - 1]) && (inClose[i]).min(inOpen[i]) >= (inClose[i - 1]).min(inOpen[i - 1]) {
                         outInteger[outIdx] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 80) as i32;
                         outIdx += 1;
@@ -192,6 +232,8 @@ impl Core {
                 outInteger[outIdx] = 0;
                 outIdx += 1;
             }
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             let mut _candlerange_2: f64;
             match BodyLong_rangeType {
                 0 => {
@@ -259,6 +301,7 @@ impl Core {
             BodyShortTrailingIdx += 1;
             if !(i <= endIdx) { break; }
         }
+        // All done. Indicate the output limits and return.
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

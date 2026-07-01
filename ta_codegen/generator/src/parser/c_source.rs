@@ -9,6 +9,10 @@ use crate::ir::{BinOp, CircBuf, CircBufLayout, Expr, HelperDef, HelperParam, Sta
 pub struct ParsedCSource {
     pub lookback_body: Vec<Statement>,
     pub functions: Vec<ParsedCFunction>,
+    /// File-level comment blocks that preceded the first function (e.g. the
+    /// `List of contributors` / `Change history` block). Each entry is one
+    /// comment block's cleaned content lines.
+    pub header_comments: Vec<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -28,8 +32,8 @@ pub fn parse_c_source(path: &Path) -> ParsedCSource {
 
 /// Parse C source from a string.
 pub fn parse_c_source_str(source: &str) -> ParsedCSource {
-    let tokens = tokenize(source);
-    extract_functions(&tokens)
+    let (tokens, comments) = tokenize_with_comments(source);
+    extract_functions(&tokens, &comments)
 }
 
 /// Parse a helper C file containing standalone utility functions.
@@ -97,36 +101,96 @@ fn strip_local_macros(input: &str) -> String {
     result.join("\n")
 }
 
-#[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
+/// Clean a raw comment body (the text between `//`..EOL or between `/*` and
+/// `*/`) into content lines: leading indentation and a leading `*` (plus one
+/// following space) are stripped from each line, trailing whitespace removed.
+/// This preserves interior alignment (e.g. ADX's ASCII-art `+DM/-DM` diagram)
+/// so a backend can faithfully re-wrap it in ` * `-prefixed form.
+fn clean_comment_lines(raw: &str) -> Vec<String> {
+    let mut lines: Vec<String> = raw
+        .split('\n')
+        .map(|line| {
+            let t = line.trim_end().trim_start();
+            let t = t
+                .strip_prefix('*')
+                .map_or(t, |r| r.strip_prefix(' ').unwrap_or(r));
+            t.to_string()
+        })
+        .collect();
+    // Drop trailing blank lines — chiefly the empty line produced when the
+    // closing `*/` sits on its own line (its leading whitespace). A leading
+    // blank (from `/*` on its own line) is kept, as it is meaningful layout.
+    while lines.last().is_some_and(std::string::String::is_empty) {
+        lines.pop();
+    }
+    lines
+}
+
+/// Tokenize, dropping comments — the historical API used throughout the tests.
 fn tokenize(input: &str) -> Vec<Token> {
+    tokenize_with_comments(input).0
+}
+
+/// Tokenize while capturing comments on the side. The returned token stream is
+/// byte-for-byte identical to [`tokenize`] (comment-free, so every existing
+/// parser path is unaffected); the second element lists each comment paired with
+/// the index of the token it immediately precedes (`tokens.len()` at capture
+/// time), plus its cleaned content lines. The parser re-associates these to
+/// statements positionally without ever seeing a comment token.
+#[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
+fn tokenize_with_comments(input: &str) -> (Vec<Token>, Vec<(usize, Vec<String>, bool)>) {
     let input = strip_local_macros(input);
     let mut tokens = Vec::new();
+    // (index of the token this comment precedes, cleaned lines, trailing?).
+    // `trailing` = the comment shares a source line with the preceding token
+    // (no newline since) — i.e. `x && // note` vs a comment on its own line.
+    let mut comments: Vec<(usize, Vec<String>, bool)> = Vec::new();
     let chars: Vec<char> = input.chars().collect();
     let mut i = 0;
+    let mut newline_since_token = true;
+    let mut last_token_count = 0usize;
 
     while i < chars.len() {
+        // A token was emitted in the previous iteration → reset the newline flag.
+        if tokens.len() != last_token_count {
+            newline_since_token = false;
+            last_token_count = tokens.len();
+        }
+
         let c = chars[i];
 
-        // Skip whitespace
-        if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
+        // Skip whitespace (track newlines for trailing-comment detection)
+        if c == '\n' {
+            newline_since_token = true;
+            i += 1;
+            continue;
+        }
+        if c == ' ' || c == '\t' || c == '\r' {
             i += 1;
             continue;
         }
 
-        // Skip single-line comments
+        // Capture single-line comments (anchored to the next token)
         if c == '/' && i + 1 < chars.len() && chars[i + 1] == '/' {
+            let start = i + 2;
             while i < chars.len() && chars[i] != '\n' {
                 i += 1;
             }
+            let text: String = chars[start..i].iter().collect();
+            comments.push((tokens.len(), clean_comment_lines(&text), !newline_since_token));
             continue;
         }
 
-        // Skip multi-line comments
+        // Capture multi-line comments (anchored to the next token)
         if c == '/' && i + 1 < chars.len() && chars[i + 1] == '*' {
             i += 2;
+            let start = i;
             while i + 1 < chars.len() && !(chars[i] == '*' && chars[i + 1] == '/') {
                 i += 1;
             }
+            let end = i.min(chars.len());
+            let text: String = chars[start..end].iter().collect();
+            comments.push((tokens.len(), clean_comment_lines(&text), !newline_since_token));
             i += 2;
             continue;
         }
@@ -395,7 +459,7 @@ fn tokenize(input: &str) -> Vec<Token> {
         panic!("Unexpected character: {c:?} at position {i}");
     }
 
-    tokens
+    (tokens, comments)
 }
 
 // --- Function Extraction ---
@@ -470,9 +534,27 @@ fn extract_func_params(tokens: &[Token], start: usize) -> Vec<(String, String)> 
     params
 }
 
-fn extract_functions(tokens: &[Token]) -> ParsedCSource {
+/// Collect the comments that fall inside a function body's token span
+/// `[brace_start+1 ..= brace_end]`, re-based to slice-local indices (so index 0
+/// is the first body token). The upper bound is inclusive: a comment whose next
+/// token is the closing `}` at `brace_end` sits just before it, inside the body.
+fn body_comments(
+    comments: &[(usize, Vec<String>, bool)],
+    brace_start: usize,
+    brace_end: usize,
+) -> Vec<(usize, Vec<String>, bool)> {
+    let lo = brace_start + 1;
+    comments
+        .iter()
+        .filter(|(a, _, _)| *a >= lo && *a <= brace_end)
+        .map(|(a, lines, t)| (a - lo, lines.clone(), *t))
+        .collect()
+}
+
+fn extract_functions(tokens: &[Token], comments: &[(usize, Vec<String>, bool)]) -> ParsedCSource {
     let mut lookback_body = Vec::new();
     let mut functions = Vec::new();
+    let mut first_func_tok: Option<usize> = None;
     let mut i = 0;
 
     while i < tokens.len() {
@@ -487,8 +569,10 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
                     // Skip to opening brace
                     if let Some(brace_start) = find_open_brace(tokens, i + 2) {
                         if let Some(brace_end) = find_matching_brace(tokens, brace_start) {
+                            first_func_tok.get_or_insert(i);
                             let body_tokens = &tokens[brace_start + 1..brace_end];
-                            lookback_body = parse_body(body_tokens);
+                            let body_cmts = body_comments(comments, brace_start, brace_end);
+                            lookback_body = parse_body(body_tokens, &body_cmts);
                             i = brace_end + 1;
                             continue;
                         }
@@ -520,10 +604,12 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
                     let params = extract_func_params(tokens, ret_pos + 2);
                     if let Some(brace_start) = find_open_brace(tokens, ret_pos + 2) {
                         if let Some(brace_end) = find_matching_brace(tokens, brace_start) {
+                            first_func_tok.get_or_insert(i);
                             let body_tokens = &tokens[brace_start + 1..brace_end];
+                            let body_cmts = body_comments(comments, brace_start, brace_end);
                             functions.push(ParsedCFunction {
                                 name: func_name,
-                                body: parse_body(body_tokens),
+                                body: parse_body(body_tokens, &body_cmts),
                                 params,
                             });
                             i = brace_end + 1;
@@ -537,9 +623,21 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
         i += 1;
     }
 
+    // File-level comments preceding the first function (e.g. contributors/history).
+    // `<=` because a comment immediately before the first function's first token
+    // anchors *at* that token's index; it is still a file-level header comment
+    // (body comments all anchor past the opening brace, so the two never overlap).
+    let header_start = first_func_tok.unwrap_or(0);
+    let header_comments = comments
+        .iter()
+        .filter(|(a, _, _)| *a <= header_start && first_func_tok.is_some())
+        .map(|(_, lines, _)| lines.clone())
+        .collect();
+
     ParsedCSource {
         lookback_body,
         functions,
+        header_comments,
     }
 }
 
@@ -613,7 +711,7 @@ fn extract_helper_functions(tokens: &[Token]) -> Vec<HelperDef> {
 
         if let Some(brace_end) = find_matching_brace(tokens, pi) {
             let body_tokens = &tokens[pi + 1..brace_end];
-            let body = parse_body(body_tokens);
+            let body = parse_body(body_tokens, &[]);
             helpers.push(HelperDef {
                 name,
                 return_type,
@@ -661,9 +759,12 @@ fn find_matching_brace(tokens: &[Token], open: usize) -> Option<usize> {
     None
 }
 
-/// Parse a slice of tokens (a function body) into statements.
-fn parse_body(tokens: &[Token]) -> Vec<Statement> {
-    let mut parser = Parser::new(tokens.to_vec());
+/// Parse a slice of tokens (a function body) into statements. `comments` are the
+/// body-local comments (index re-based to the slice) captured by
+/// [`tokenize_with_comments`]; they are flushed positionally as
+/// [`Statement::Comment`] nodes.
+fn parse_body(tokens: &[Token], comments: &[(usize, Vec<String>, bool)]) -> Vec<Statement> {
+    let mut parser = Parser::with_comments(tokens.to_vec(), comments.to_vec());
     parser.parse_statements()
 }
 
@@ -681,6 +782,12 @@ fn c_type_to_vartype(type_name: &str) -> VarType {
 struct Parser {
     tokens: Vec<Token>,
     pos: usize,
+    /// Comments captured by [`tokenize_with_comments`], each paired with the
+    /// token index it precedes (in this body's re-based token space). Consumed
+    /// in order via `comment_idx` and flushed as [`Statement::Comment`] at
+    /// statement boundaries in [`parse_statements`](Parser::parse_statements).
+    comments: Vec<(usize, Vec<String>, bool)>,
+    comment_idx: usize,
     /// Function-local `typedef struct {...} Name;` field lists, for CIRCBUF `*_CLASS`.
     struct_defs: HashMap<String, Vec<(String, VarType)>>,
     /// CIRCBUF id -> element layout, captured at PROLOG so INIT/INIT_LOCAL_ONLY/DESTROY
@@ -689,12 +796,33 @@ struct Parser {
 }
 
 impl Parser {
+    #[cfg(test)]
     fn new(tokens: Vec<Token>) -> Self {
+        Self::with_comments(tokens, Vec::new())
+    }
+
+    fn with_comments(tokens: Vec<Token>, comments: Vec<(usize, Vec<String>, bool)>) -> Self {
         Self {
             tokens,
             pos: 0,
+            comments,
+            comment_idx: 0,
             struct_defs: HashMap::new(),
             circbufs: HashMap::new(),
+        }
+    }
+
+    /// Emit a [`Statement::Comment`] for every buffered comment whose anchor
+    /// (the token it precedes) is at or before `pos_limit`, in source order.
+    /// Called at statement boundaries so comments land immediately before the
+    /// statement that followed them in the source.
+    fn flush_comments(&mut self, pos_limit: usize, stmts: &mut Vec<Statement>) {
+        while self.comment_idx < self.comments.len()
+            && self.comments[self.comment_idx].0 <= pos_limit
+        {
+            let lines = self.comments[self.comment_idx].1.clone();
+            stmts.push(Statement::Comment(lines));
+            self.comment_idx += 1;
         }
     }
 
@@ -777,6 +905,9 @@ impl Parser {
         let mut stmts = Vec::new();
         let mut declared_vars: HashSet<String> = HashSet::new();
         while self.pos < self.tokens.len() {
+            // Flush comments that precede the token at the current boundary so
+            // they render immediately before the upcoming statement.
+            self.flush_comments(self.pos, &mut stmts);
             if self.peek() == Some(&Token::RBrace) {
                 break;
             }
@@ -800,6 +931,10 @@ impl Parser {
                 }
             }
         }
+        // Flush trailing comments (e.g. just before this block's closing brace,
+        // or at end of the top-level body where the loop exits without a boundary
+        // check at the final position).
+        self.flush_comments(self.pos, &mut stmts);
         stmts
     }
 
@@ -1506,7 +1641,15 @@ impl Parser {
     fn parse_if(&mut self) -> Statement {
         self.advance(); // consume "if"
         self.expect(&Token::LParen);
-        let condition = self.parse_expr();
+        // For a pure top-level `&&`-chain condition, capture each operand's
+        // trailing comment so backends can render it inline (CDL patterns). If the
+        // condition has a top-level `||` or ternary, fall back to a normal parse
+        // (comments there would clump after the if — a rare, accepted case).
+        let (condition, cond_comments) = if self.condition_has_top_level_or_ternary() {
+            (self.parse_expr(), Vec::new())
+        } else {
+            self.parse_and_chain_collecting()
+        };
         self.expect(&Token::RParen);
 
         let then_body = if self.peek() == Some(&Token::LBrace) {
@@ -1557,6 +1700,89 @@ impl Parser {
             condition,
             then_body,
             else_body,
+            cond_comments,
+        }
+    }
+
+    /// Scan the (already-opened) if-condition for a top-level `||` or ternary `?`
+    /// at paren-depth 0, stopping at the closing `)`. Such conditions are parsed
+    /// normally (no inline operand-comment collection).
+    fn condition_has_top_level_or_ternary(&self) -> bool {
+        let mut depth = 0i32;
+        let mut i = self.pos;
+        while i < self.tokens.len() {
+            match &self.tokens[i] {
+                Token::LParen => depth += 1,
+                Token::RParen => {
+                    if depth == 0 {
+                        return false;
+                    }
+                    depth -= 1;
+                }
+                Token::Op(op) if depth == 0 && op == "||" => return true,
+                Token::Question if depth == 0 => return true,
+                _ => {}
+            }
+            i += 1;
+        }
+        false
+    }
+
+    /// Parse a top-level `&&`-chain condition, collecting each operand's trailing
+    /// comment (the comment that follows it before the next `&&` / closing `)`).
+    /// Returns the rebuilt left-assoc `&&` expression and one comment slot per
+    /// operand (in order). If no operand carried a comment, the returned vec is
+    /// empty (so backends render the flat one-liner as before).
+    fn parse_and_chain_collecting(&mut self) -> (Expr, Vec<Option<Vec<String>>>) {
+        let mut operands = Vec::new();
+        let mut op_comments: Vec<Vec<String>> = Vec::new();
+        // Own-line comments seen after one operand's `&&` annotate the *next*
+        // operand; carried forward here.
+        let mut pending_leading: Vec<String> = Vec::new();
+        loop {
+            operands.push(self.parse_bitwise_or());
+            op_comments.push(std::mem::take(&mut pending_leading));
+            let idx = operands.len() - 1;
+            if matches!(self.peek(), Some(Token::Op(op)) if op == "&&") {
+                self.advance(); // consume &&
+                // Comments between this operand's `&&` and the next operand:
+                // same-line (trailing) → this operand; own-line → the next one.
+                while self.comment_idx < self.comments.len()
+                    && self.comments[self.comment_idx].0 <= self.pos
+                {
+                    let (_, lines, trailing) = self.comments[self.comment_idx].clone();
+                    self.comment_idx += 1;
+                    if trailing {
+                        op_comments[idx].extend(lines);
+                    } else {
+                        pending_leading.extend(lines);
+                    }
+                }
+            } else {
+                // Last operand: attach any remaining comment before the `)`.
+                while self.comment_idx < self.comments.len()
+                    && self.comments[self.comment_idx].0 <= self.pos
+                {
+                    let lines = self.comments[self.comment_idx].1.clone();
+                    self.comment_idx += 1;
+                    op_comments[idx].extend(lines);
+                }
+                break;
+            }
+        }
+
+        let comments: Vec<Option<Vec<String>>> = op_comments
+            .into_iter()
+            .map(|c| if c.is_empty() { None } else { Some(c) })
+            .collect();
+        let mut expr = operands.remove(0);
+        for op in operands {
+            expr = Expr::BinOp(Box::new(expr), BinOp::And, Box::new(op));
+        }
+        if comments.iter().any(Option::is_some) {
+            (expr, comments)
+        } else {
+            (expr, Vec::new())
         }
     }
 
@@ -1613,6 +1839,9 @@ impl Parser {
 
                     let mut body = Vec::new();
                     loop {
+                        // Flush comments at statement boundaries (the case body is
+                        // parsed here directly, not via parse_statements).
+                        self.flush_comments(self.pos, &mut body);
                         match self.peek() {
                             Some(Token::RBrace) => break,
                             Some(Token::Ident(ref s)) if s == "case" || s == "default" => {
@@ -1632,6 +1861,7 @@ impl Parser {
                     self.advance();
                     self.expect(&Token::Colon);
                     loop {
+                        self.flush_comments(self.pos, &mut default_body);
                         match self.peek() {
                             Some(Token::RBrace) => break,
                             Some(Token::Ident(ref s)) if s == "break" => {
@@ -2390,6 +2620,77 @@ mod tests {
                 Token::Semicolon,
             ]
         );
+    }
+
+    #[test]
+    fn test_tokenize_with_comments_captures_anchors() {
+        // Comments are captured on the side, anchored to the index of the token
+        // they precede; the token stream itself stays comment-free.
+        let (tokens, comments) = tokenize_with_comments("int x; /* note */ int y;");
+        assert_eq!(tokens.len(), 6); // int x ; int y ;
+        assert_eq!(comments.len(), 1);
+        assert_eq!(comments[0].0, 3); // precedes the second `int` (token index 3)
+        assert_eq!(comments[0].1, vec!["note".to_string()]);
+        assert!(comments[0].2); // trailing: shares the line with the preceding `;`
+    }
+
+    #[test]
+    fn test_condition_comment_trailing_vs_leading() {
+        // `a` gets its trailing comment; the own-line comment annotates `b`.
+        let src = "\
+TA_RetCode f( int a, int b, int startIdx, int endIdx, int *outBegIdx, int *outNBElement, double outReal[] )
+{
+    if( a > 0 &&   // first
+        // second
+        b > 0 )
+    {
+        a = 1;
+    }
+}
+";
+        let parsed = parse_c_source_str(src);
+        let body = &parsed.functions[0].body;
+        let Statement::If { cond_comments, .. } = &body[0] else {
+            panic!("expected If, got {:?}", body[0]);
+        };
+        assert_eq!(cond_comments.len(), 2);
+        assert_eq!(cond_comments[0], Some(vec!["first".to_string()]));
+        assert_eq!(cond_comments[1], Some(vec!["second".to_string()]));
+    }
+
+    #[test]
+    fn test_carries_header_and_body_comments() {
+        let src = "\
+/* List of contributors:
+ *  MF  Mario Fortier
+ */
+int foo_lookback( int optInPeriod )
+{
+    return optInPeriod;
+}
+TA_RetCode foo( int startIdx, int endIdx, const double inReal[], int optInPeriod, int *outBegIdx, int *outNBElement, double outReal[] )
+{
+    /* Adjust the start index. */
+    int x;
+    x = 1;
+    /* trailing note */
+}
+";
+        let parsed = parse_c_source_str(src);
+        // File-level contributors block captured as a header comment.
+        assert_eq!(parsed.header_comments.len(), 1);
+        assert!(parsed.header_comments[0]
+            .iter()
+            .any(|l| l.contains("Mario Fortier")));
+        // Body comment lands positionally before the statement it preceded.
+        let body = &parsed.functions[0].body;
+        assert!(matches!(&body[0], Statement::Comment(lines)
+            if lines[0].contains("Adjust the start index")));
+        // Trailing comment (just before the closing brace) is preserved.
+        assert!(body.iter().any(|s| matches!(s, Statement::Comment(lines)
+            if lines.iter().any(|l| l.contains("trailing note")))));
+        // Lookback comments still parse (none here) and the lookback body is intact.
+        assert!(!matches!(parsed.lookback_body.first(), Some(Statement::Comment(_))));
     }
 
     #[test]

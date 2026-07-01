@@ -41,6 +41,24 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  031202 MF   Template creation.
+ *  052603 MF   Port to managed C++. Change to use CIRCBUF macros.
+ *  061704 MF   Lower limit for period to 2, and correct algorithm
+ *              to avoid cummulative error when value are close to
+ *              the floating point epsilon.
+ */
+
 TA_LIB_API int TA_CCI_Lookback( int optInTimePeriod )
 {
    return (optInTimePeriod-1);
@@ -87,17 +105,30 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* This ptr will points on a circular buffer of
+    * at least "optInTimePeriod" element.
+    */
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = (optInTimePeriod-1);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Allocate a circular buffer equal to the requested
+    * period.
+    */
    if( optInTimePeriod < 1 ) return TA_INTERNAL_ERROR(137);
    if( (int)optInTimePeriod > (int)(sizeof(local_circBuffer)/sizeof(double)) )
    {
@@ -113,6 +144,10 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
    }
    maxIdx_circBuffer = (optInTimePeriod-1);
    circBuffer_Idx = 0;
+   /* Do the MA calculation using tight loops. */
+   /* Add-up the initial period, except for the last value.
+    * Fill up the circular buffer at the same time.
+    */
    i = (startIdx-lookbackTotal);
    if( (optInTimePeriod>1) )
    {
@@ -124,22 +159,31 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
          if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
       }
    }
+   /* Proceed with the calculation for the requested range.
+    * Note that this algorithm allows the inReal and
+    * outReal to be the same buffer.
+    */
    outIdx = 0;
    do
    {
       lastValue = (((inHigh[i]+inLow[i])+inClose[i])/3);
       circBuffer[circBuffer_Idx] = lastValue;
+      /* Calculate the average for the whole period. */
       theAverage = 0;
       for( j = 0; (j<optInTimePeriod); j += 1 )
       {
          theAverage += circBuffer[j];
       }
       theAverage /= optInTimePeriod;
+      /* Do the summation of the ABS(TypePrice-average)
+       * for the whole period.
+       */
       tempReal2 = 0;
       for( j = 0; (j<optInTimePeriod); j += 1 )
       {
          tempReal2 += fabs((circBuffer[j]-theAverage));
       }
+      /* And finally, the CCI... */
       tempReal = (lastValue-theAverage);
       if( ((tempReal!=0.0)&&(tempReal2!=0.0)) )
       {
@@ -148,12 +192,15 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
       {
          outReal[outIdx++] = 0.0;
       }
+      /* Move forward the circular buffer indexes. */
       circBuffer_Idx++;
       if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
       i += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
+   /* Free the circular buffer if it was dynamically allocated. */
    if( circBuffer != &local_circBuffer[0] ) TA_Free( circBuffer );
    return TA_SUCCESS;
 }

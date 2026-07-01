@@ -39,6 +39,21 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -62,6 +77,7 @@ impl Core {
             return usize::MAX;
         }
         let mut retValue: usize = 0_usize;
+        // Get lookack for one EMA.
         retValue = self.ema_lookback(optInTimePeriod);
         return retValue * 3;
     }
@@ -110,39 +126,81 @@ impl Core {
         let mut firstEMAIdx: usize = 0_usize;
         let mut secondEMAIdx: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
+        // For an explanation of this function, please read:
+        //
+        // Stocks & Commodities V. 12:1 (11-19):
+        //   Smoothing Data With Faster Moving Averages
+        // Stocks & Commodities V. 12:2 (72-80):
+        //   Smoothing Data With Less Lag
+        //
+        // Both magazine articles written by Patrick G. Mulloy
+        //
+        // Essentially, a TEMA of time serie 't' is:
+        //   EMA1 = EMA(t,period)
+        //   EMA2 = EMA(EMA(t,period),period)
+        //   EMA3 = EMA(EMA(EMA(t,period),period))
+        //   TEMA = 3*EMA1 - 3*EMA2 + EMA3
+        //
+        // TEMA offers a moving average with less lags then the
+        // traditional EMA.
+        //
+        // Do not confuse a TEMA with EMA3. Both are called "Triple EMA"
+        // in the litterature.
+        //
+        // DEMA is very similar (and from the same author).
+        // Will change only on success.
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
+        // Adjust startIdx to account for the lookback period.
         lookbackEMA = self.ema_lookback(optInTimePeriod);
         lookbackTotal = lookbackEMA * 3;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             return RetCode::Success;
         }
+        // Allocate a temporary buffer for the firstEMA.
         tempInt = lookbackTotal + (endIdx - startIdx) + 1;
         firstEMA = vec![0.0_f64; (tempInt * 1) as usize];
+        // Calculate the first EMA
         retCode = self.ema_unguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
+        // Verify for failure or if not enough data after
+        // calculating the first EMA.
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             return retCode;
         }
+        // Allocate a temporary buffer for storing the EMA2
         secondEMA = vec![0.0_f64; (firstEMANbElement * 1) as usize];
         retCode = self.ema_unguarded(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
+        // Return empty output on failure or if not enough data after
+        // calculating the second EMA.
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             return retCode;
         }
+        // Calculate the EMA3 into the caller provided output.
         retCode = self.ema_unguarded(0, secondEMANbElement - 1, &secondEMA, optInTimePeriod, &mut thirdEMABegIdx, &mut thirdEMANbElement, outReal);
+        // Return empty output on failure or if not enough data after
+        // calculating the third EMA.
         if retCode != RetCode::Success || thirdEMANbElement == 0 {
             return retCode;
         }
+        // Indicate where the output starts relative to
+        // the caller input.
         firstEMAIdx = thirdEMABegIdx + secondEMABegIdx;
         secondEMAIdx = thirdEMABegIdx;
         (*outBegIdx) = firstEMAIdx + firstEMABegIdx;
+        // Do the TEMA:
+        //  Iterate through the EMA3 (output buffer) and adjust
+        //  the value by using the EMA2 and EMA1.
         outIdx = 0;
         while outIdx < thirdEMANbElement {
             outReal[outIdx] = ((outReal[outIdx] + (3.0 * firstEMA[{ let _v = firstEMAIdx; firstEMAIdx += 1; _v }] - 3.0 * secondEMA[{ let _v = secondEMAIdx; secondEMAIdx += 1; _v }])) as f64);
             outIdx += 1;
         }
+        // Indicates to the caller the number of output
+        // successfully calculated.
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }

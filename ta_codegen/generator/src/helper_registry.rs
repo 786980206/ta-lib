@@ -183,6 +183,7 @@ pub fn substitute_statement(
             condition,
             then_body,
             else_body,
+            cond_comments,
         } => Statement::If {
             condition: substitute_expr(condition, subs),
             then_body: then_body
@@ -193,6 +194,7 @@ pub fn substitute_statement(
                 .iter()
                 .map(|s| substitute_statement(s, subs, suffix))
                 .collect(),
+            cond_comments: cond_comments.clone(),
         },
         Statement::Return { value } => Statement::Return {
             value: value.as_ref().map(|e| {
@@ -232,6 +234,7 @@ pub fn substitute_statement(
         Statement::Break => Statement::Break,
         Statement::Continue => Statement::Continue,
         Statement::CircBuf(op) => Statement::CircBuf(op.clone()),
+        Statement::Comment(lines) => Statement::Comment(lines.clone()),
     }
 }
 
@@ -267,7 +270,8 @@ fn collect_local_names(body: &[Statement]) -> Vec<String> {
             | Statement::Return { .. }
             | Statement::Break
             | Statement::Continue
-            | Statement::CircBuf(_) => {}
+            | Statement::CircBuf(_)
+            | Statement::Comment(_) => {}
         }
     }
     names
@@ -370,7 +374,8 @@ fn replace_returns_with_assign(body: &mut [Statement], temp_name: &str) {
             | Statement::Expr(_)
             | Statement::Break
             | Statement::Continue
-            | Statement::CircBuf(_) => {}
+            | Statement::CircBuf(_)
+            | Statement::Comment(_) => {}
         }
     }
 }

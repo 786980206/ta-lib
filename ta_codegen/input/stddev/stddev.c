@@ -1,3 +1,20 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  100502 JV   Speed optimization of the algorithm
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  090404 MF   Fix #978056. Trap sqrt with negative zero values.
+ */
+
 int stddev_lookback(int           optInTimePeriod,                                               double        optInNbDev)
 {
     /* Lookback is driven by the variance. */
@@ -58,6 +75,20 @@ void stddev_using_precalc_ma( const double inReal[],
                                int timePeriod,
                                double output[] )
 {
+    /* The inMovAvg is the moving average of the inReal.
+     *
+     * inMovAvgBegIdx is relative to inReal, in other word
+     * this is the 'outBegIdx' who was returned when doing the
+     * MA on the inReal.
+     *
+     * inMovAvgNbElement is the number of element who was returned
+     * when doing the MA on the inReal.
+     *
+     * Note: This function is not used by TA_STDDEV, since TA_STDDEV
+     *       is optimized considering it uses always a simple moving
+     *       average. Still the function is put here because it is
+     *       closely related.
+     */
     double tempReal, periodTotal2, meanValue2;
     int outIdx;
 

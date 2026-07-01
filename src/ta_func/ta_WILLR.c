@@ -41,6 +41,21 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 TA_LIB_API int TA_WILLR_Lookback( int optInTimePeriod )
 {
    return (optInTimePeriod-1);
@@ -86,18 +101,31 @@ TA_LIB_API TA_RetCode TA_WILLR( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to identify at least one output over the specified
+    * period.
+    */
    nbInitialElementNeeded = (optInTimePeriod-1);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<nbInitialElementNeeded) )
    {
       startIdx = nbInitialElementNeeded;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Initialize 'diff', just to avoid warning. */
    diff = 0.0;
+   /* Proceed with the calculation for the requested range.
+    * Note that this algorithm allows the input and
+    * output to be the same buffer.
+    */
    outIdx = 0;
    today = startIdx;
    trailingIdx = (startIdx-nbInitialElementNeeded);
@@ -108,6 +136,7 @@ TA_LIB_API TA_RetCode TA_WILLR( int    startIdx,
    diff = highest;
    while( (today<=endIdx) )
    {
+      /* Set the lowest low */
       tmp = inLow[today];
       if( (lowestIdx<trailingIdx) )
       {
@@ -130,6 +159,7 @@ TA_LIB_API TA_RetCode TA_WILLR( int    startIdx,
          lowest = tmp;
          diff = ((highest-lowest)/(0-100.0));
       }
+      /* Set the highest high */
       tmp = inHigh[today];
       if( (highestIdx<trailingIdx) )
       {
@@ -162,6 +192,9 @@ TA_LIB_API TA_RetCode TA_WILLR( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
+   /* Keep the outBegIdx relative to the
+    * caller input before returning.
+    */
    *outBegIdx= startIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;

@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  121204 AC   Creation
+ *
+ */
+
 int cdlthrusting_lookback(void)
 {
     return max( Equal_avgPeriod, BodyLong_avgPeriod

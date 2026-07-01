@@ -1,3 +1,18 @@
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  022705 AC   Creation
+ *
+ */
+
 int cdl3starsinsouth_lookback(void)
 {
     return max( max( ShadowVeryShort_avgPeriod, ShadowLong_avgPeriod ),

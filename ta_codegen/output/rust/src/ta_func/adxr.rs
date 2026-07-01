@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  AM       Adrian Michel
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  010802 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  082303 MF   Fix #792298. Remove rounding. Bug reported by AM.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -108,10 +124,25 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut nbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
+        // Original implementation from Wilder's book was doing some integer
+        // rounding in its calculations.
+        //
+        // This was understandable in the context that at the time the book
+        // was written, most user were doing the calculation by hand.
+        //
+        // For a computer, rounding is unnecessary (and even problematic when inputs
+        // are close to 1).
+        //
+        // TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
+        // you can comment out the following #undef/#define and rebuild the library.
+        // Move up the start index if there is not
+        // enough initial data.
+        // Always one price bar gets consumed.
         adxrLookback = self.adxr_lookback(optInTimePeriod);
         if startIdx < adxrLookback {
             startIdx = adxrLookback;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;

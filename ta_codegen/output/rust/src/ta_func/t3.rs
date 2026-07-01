@@ -39,6 +39,26 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MHL      Matthew Lindblom
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  120802 MF   Template creation.
+ *  032003 MHL  Implementation of T3
+ *  040503 MF   Adapt for compatibility with published code
+ *              for TradeStation and Metastock.
+ *              See "Smoothing Techniques For More Accurate Signals"
+ *              from Tim Tillson in Stock&Commodities V16:1 Page 33-37
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -113,10 +133,26 @@ impl Core {
         let mut c3: f64 = 0.0_f64;
         let mut c4: f64 = 0.0_f64;
         let mut tempReal: f64 = 0.0_f64;
+        // For an explanation of this function, please read:
+        //
+        // Magazine articles written by Tim Tillson
+        //
+        // Essentially, a T3 of time serie 't' is:
+        //   EMA1(x,Period) = EMA(x,Period)
+        //   EMA2(x,Period) = EMA(EMA1(x,Period),Period)
+        //   GD(x,Period,vFactor) = (EMA1(x,Period)*(1+vFactor)) - (EMA2(x,Period)*vFactor)
+        //   T3 = GD (GD ( GD(t, Period, vFactor), Period, vFactor), Period, vFactor);
+        //
+        // T3 offers a moving average with less lags then the
+        // traditional EMA.
+        //
+        // Do not confuse a T3 with EMA3. Both are called "Triple EMA"
+        // in the litterature.
         lookbackTotal = (6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize]) as usize;
         if startIdx <= lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
@@ -126,6 +162,7 @@ impl Core {
         today = startIdx - lookbackTotal;
         k = 2.0 / (((optInTimePeriod) as f64) + 1.0);
         one_minus_k = 1.0 - k;
+        // Initialize e1
         tempReal = inReal[{ let _v = today; today += 1; _v }];
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
@@ -134,6 +171,7 @@ impl Core {
             i -= 1;
         }
         e1 = tempReal / ((optInTimePeriod) as f64);
+        // Initialize e2
         tempReal = e1;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
@@ -143,6 +181,7 @@ impl Core {
             i -= 1;
         }
         e2 = tempReal / ((optInTimePeriod) as f64);
+        // Initialize e3
         tempReal = e2;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
@@ -153,6 +192,7 @@ impl Core {
             i -= 1;
         }
         e3 = tempReal / ((optInTimePeriod) as f64);
+        // Initialize e4
         tempReal = e3;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
@@ -164,6 +204,7 @@ impl Core {
             i -= 1;
         }
         e4 = tempReal / ((optInTimePeriod) as f64);
+        // Initialize e5
         tempReal = e4;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
@@ -176,6 +217,7 @@ impl Core {
             i -= 1;
         }
         e5 = tempReal / ((optInTimePeriod) as f64);
+        // Initialize e6
         tempReal = e5;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
@@ -189,7 +231,9 @@ impl Core {
             i -= 1;
         }
         e6 = tempReal / ((optInTimePeriod) as f64);
+        // Skip the unstable period
         while today <= startIdx {
+            // Do the calculation but do not write the output
             e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
             e2 = (k as f64).mul_add(e1, one_minus_k * e2);
             e3 = (k as f64).mul_add(e2, one_minus_k * e3);
@@ -197,14 +241,17 @@ impl Core {
             e5 = (k as f64).mul_add(e4, one_minus_k * e5);
             e6 = (k as f64).mul_add(e5, one_minus_k * e6);
         }
+        // Calculate the constants
         tempReal = optInVFactor * optInVFactor;
         c1 = 0_f64 - tempReal * optInVFactor;
         c2 = 3.0 * (tempReal - c1);
         c3 = (0_f64 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
         c4 = (3.0 as f64).mul_add(tempReal, (3.0 as f64).mul_add(optInVFactor, 1.0) - c1);
+        // Write the first output
         outIdx = 0;
         outReal[outIdx] = (c4 as f64).mul_add(e3, (c3 as f64).mul_add(e4, (c1 as f64).mul_add(e6, c2 * e5)));
         outIdx += 1;
+        // Calculate and output the remaining of the range.
         while today <= endIdx {
             e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
             e2 = (k as f64).mul_add(e1, one_minus_k * e2);
@@ -215,6 +262,8 @@ impl Core {
             outReal[outIdx] = (c4 as f64).mul_add(e3, (c3 as f64).mul_add(e4, (c1 as f64).mul_add(e6, c2 * e5)));
             outIdx += 1;
         }
+        // Indicates to the caller the number of output
+        // successfully calculated.
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }

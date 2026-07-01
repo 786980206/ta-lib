@@ -39,6 +39,23 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JV       Jesus Viver <324122@cienz.unizar.es>
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  010503 MF   Fix to always use SMA for the STDDEV (Thanks to JV).
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -63,6 +80,7 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
+        // The lookback is driven by the middle band moving average.
         return self.ma_lookback(optInTimePeriod, optInMAType);
     }
     /// Bollinger Bands
@@ -110,6 +128,13 @@ impl Core {
         let mut tempReal2: f64 = 0.0_f64;
         let mut tempBuffer1: Vec<f64> = Vec::new();
         let mut tempBuffer2: Vec<f64> = Vec::new();
+        // Identify TWO temporary buffer among the outputs.
+        //
+        // These temporary buffers allows to perform the
+        // calculation without any memory allocation.
+        //
+        // Whenever possible, make the tempBuffer1 be the
+        // middle band output. This will save one copy operation.
         if inReal.as_ptr() == outRealUpperBand.as_ptr() {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealLowerBand.to_vec();
@@ -123,15 +148,24 @@ impl Core {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealUpperBand.to_vec();
         }
+        // Check that the caller is not doing tricky things.
+        // (like using the input buffer in two output!)
         if tempBuffer1.as_ptr() == inReal.as_ptr() || tempBuffer2.as_ptr() == inReal.as_ptr() {
             return RetCode::BadParam;
         }
+        // Calculate the middle band, which is a moving average.
+        // The other two bands will simply add/substract the
+        // standard deviation from this middle band.
         retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outNBElement) = 0;
             return retCode;
         }
+        // Calculate the standard deviation into tempBuffer2.
         if (optInMAType) as usize == 0 {
+            // A small speed optimization by re-using the
+            // already calculated SMA.
+            // Inline stddev_using_precalc_ma
             let mut _tempReal: f64 = 0.0_f64;
             let mut _periodTotal2: f64 = 0.0_f64;
             let mut _meanValue2: f64 = 0.0_f64;
@@ -172,12 +206,15 @@ impl Core {
                 _endSum += 1;
             }
         } else {
+            // Calculate the Standard Deviation
             retCode = self.stddev_unguarded((((*outBegIdx)) as usize) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
             if retCode != RetCode::Success {
                 (*outNBElement) = 0;
                 return retCode;
             }
         }
+        // Copy the MA calculation into the middle band ouput, unless
+        // the calculation was done into it already!
         if tempBuffer1.as_ptr() != outRealMiddleBand.as_ptr() {
             {
             let _n = ((*outNBElement) * 1) as usize;
@@ -186,8 +223,15 @@ impl Core {
             outRealMiddleBand[_di.._di + _n].copy_from_slice(&tempBuffer1[_si.._si + _n]);
         };
         }
+        // Now do a tight loop to calculate the upper/lower band at
+        // the same time.
+        //
+        // All the following 5 loops are doing the same, except there
+        // is an attempt to speed optimize by eliminating uneeded
+        // multiplication.
         if optInNbDevUp == optInNbDevDn {
             if optInNbDevUp == 1.0 {
+                // No standard deviation multiplier needed.
                 // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
                 i = 0;
                 while i < ((((*outNBElement)) as usize)) as usize {
@@ -198,6 +242,7 @@ impl Core {
                     i += 1;
                 }
             } else {
+                // Upper/lower band use the same standard deviation multiplier.
                 // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
                 i = 0;
                 while i < ((((*outNBElement)) as usize)) as usize {
@@ -209,6 +254,7 @@ impl Core {
                 }
             }
         } else if optInNbDevUp == 1.0 {
+            // Only lower band has a standard deviation multiplier.
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
@@ -219,6 +265,7 @@ impl Core {
                 i += 1;
             }
         } else if optInNbDevDn == 1.0 {
+            // Only upper band has a standard deviation multiplier.
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
@@ -229,6 +276,7 @@ impl Core {
                 i += 1;
             }
         } else {
+            // Upper/lower band have distinctive standard deviation multiplier.
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {

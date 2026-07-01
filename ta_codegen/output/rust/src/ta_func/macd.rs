@@ -39,6 +39,22 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JPP      JP Pienaar (j.pienaar@mci.co.za)
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  080403 JPP  Fix #767653 for logic when swapping periods.
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -74,7 +90,14 @@ impl Core {
             return usize::MAX;
         }
         let mut tempInteger: usize = 0_usize;
+        // The lookback is driven by the signal line output.
+        //
+        // (must also account for the initial data consume
+        //  by the slow period).
+        // Make sure slow is really slower than
+        // the fast period! if not, swap...
         if optInSlowPeriod < optInFastPeriod {
+            // swap
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
@@ -144,14 +167,43 @@ impl Core {
         let mut lookbackSignal: usize = 0_usize;
         let mut useFixedK: usize = 0_usize;
         let mut i: usize = 0_usize;
+        // !!! A lot of speed optimization could be done
+        // !!! with this function.
+        // !!!
+        // !!! A better approach would be to use ema
+        // !!! just to get the seeding values for the
+        // !!! fast and slow EMA. Then process the difference
+        // !!! in an allocated buffer until enough data is
+        // !!! available for the first signal value.
+        // !!! From that point all the processing can
+        // !!! be done in a tight loop.
+        // !!!
+        // !!! That approach will have the following
+        // !!! advantage:
+        // !!!   1) One mem allocation needed instead of two.
+        // !!!   2) The mem allocation size will be only the
+        // !!!      signal lookback period instead of the
+        // !!!      whole range of data.
+        // !!!   3) Processing will be done in a tight loop.
+        // !!!      allowing to avoid a lot of memory store-load
+        // !!!      operation.
+        // !!!   4) The memcpy at the end will be eliminated!
+        // !!!
+        // !!! If only I had time....
+        // Make sure slow is really slower than
+        // the fast period! if not, swap...
         if optInSlowPeriod < optInFastPeriod {
+            // swap
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
         }
+        // Catch special case for fix 26/12 MACD.
+        // Use hardcoded k values matching the original algorithm.
         useFixedK = 0;
         if optInSlowPeriod == 0 {
             optInSlowPeriod = 26;
+            // Fix 26
             slowK = 0.075;
             useFixedK = 1;
         } else {
@@ -159,6 +211,7 @@ impl Core {
         }
         if optInFastPeriod == 0 {
             optInFastPeriod = 12;
+            // Fix 12
             fastK = 0.15;
             useFixedK = 1;
         } else {
@@ -166,20 +219,32 @@ impl Core {
         }
         signalK = 2.0 / ((optInSignalPeriod + 1) as f64);
         lookbackSignal = self.ema_lookback(optInSignalPeriod);
+        // Move up the start index if there is not
+        // enough initial data.
         lookbackTotal = lookbackSignal;
         lookbackTotal += self.ema_lookback(optInSlowPeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::Success;
         }
+        // Allocate intermediate buffer for fast/slow EMA.
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
         fastEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         slowEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
+        // Calculate the slow EMA.
+        //
+        // Move back the startIdx to get enough data
+        // for the signal period. That way, once the
+        // signal calculation is done, all the output
+        // will start at the requested 'startIdx'.
         tempInteger = startIdx - lookbackSignal;
+        // Use ema_private when hardcoded k is needed (MACDFIX path).
+        // Use ema() for the normal path — codegen handles double/float routing.
         if useFixedK != 0 {
             retCode = self.ema_private(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
         } else {
@@ -190,6 +255,7 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
+        // Calculate the fast EMA.
         if useFixedK != 0 {
             retCode = self.ema_private(tempInteger, endIdx, inReal, optInFastPeriod, fastK, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
         } else {
@@ -200,35 +266,41 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
+        // Parano tests. Will be removed eventually.
         if outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 || outNbElement1 != endIdx - startIdx + 1 + lookbackSignal {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return RetCode::BadParam;
         }
+        // Calculate (fast EMA) - (slow EMA).
         // for( i = 0; i < outNbElement1; i += 1 )
         i = 0;
         while i < outNbElement1 {
             fastEMABuffer[i] = fastEMABuffer[i] - slowEMABuffer[i];
             i += 1;
         }
+        // Copy the result into the output for the caller.
         {
             let _n = ((endIdx - startIdx + 1) * 1) as usize;
             let _di = (0) as usize;
             let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastEMABuffer[_si.._si + _n]);
         };
+        // Calculate the signal/trigger line (on double buffer, use ema_private).
         retCode = self.ema_private(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, signalK, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
+        // Calculate the histogram.
         // for( i = 0; i < outNbElement2; i += 1 )
         i = 0;
         while i < outNbElement2 {
             outMACDHist[i] = ((outMACD[i] - outMACDSignal[i]) as f64);
             i += 1;
         }
+        // All done! Indicate the output limits and return success.
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
         return RetCode::Success;

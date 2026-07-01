@@ -1,4 +1,17 @@
 /* Generated */
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  090807 MF     Initial Version
+ */
+
    public int atanLookback( )
    {
       return 0 ;
@@ -19,6 +32,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      /* Default return values */
       for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
          outReal[outIdx] = Math.atan(inReal[i]);
       }

@@ -36,6 +36,7 @@ pub fn generate(
 ) -> String {
     let mut out = String::new();
     out.push_str(&gen_header());
+    out.push_str(&gen_header_comments(func));
     out.push_str(&gen_lookback(func, enums, registry, helpers));
 
     // For functions with explicit _private, emit Private and Logic BEFORE guarded
@@ -107,6 +108,18 @@ fn c_opt_param_type(param_type: &ParamType) -> String {
         ParamType::Enum(name) => format!("TA_{name}"),
         ParamType::Price(_) => unreachable!("Price expanded during parsing"),
     }
+}
+
+/// Emit the file-level comment blocks carried from the input `.c` (e.g. the
+/// contributors / change-history block), each as a block comment, so authorship
+/// is preserved in the generated source.
+fn gen_header_comments(func: &FuncDef) -> String {
+    let mut out = String::new();
+    for block in &func.header_comments {
+        out.push_str(&super::stmt_walk::block_comment(block, 0));
+        out.push('\n');
+    }
+    out
 }
 
 fn gen_header() -> String {
@@ -346,6 +359,19 @@ fn gen_func_inner(
         &func.private_body  // logic variant without _private
     } else {
         &func.body          // guarded without _private
+    };
+
+    // Carry source comments only in the double-precision implementation: the
+    // guarded `TA_*` and (for explicit-private functions) the `TA_*_Private`
+    // that holds the algorithm. Strip them from every single-precision (`TA_S_*`)
+    // copy and from the double `*_Unguarded`/logic duplicate, so they appear once.
+    let keep_comments = !single_precision && (name_override.is_some() || !logic);
+    let body_stripped;
+    let body: &[Statement] = if keep_comments {
+        body
+    } else {
+        body_stripped = super::stmt_walk::strip_comments(body);
+        &body_stripped
     };
 
     // Declare local variables from body (deduplicated)
@@ -636,7 +662,49 @@ struct CStmt<'a> {
     helpers: &'a HelperRegistry,
 }
 
+impl CStmt<'_> {
+    /// Render the shared tail of an `if`: the then-body followed by the else
+    /// branch (with the `} else if` collapse + leading-comment peel). Shared by
+    /// the flat and multi-line-condition rendering paths.
+    fn render_if_tail(&self, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let mut out = String::new();
+        for s in then_body {
+            out.push_str(&self.walk_stmt(s, indent + 3));
+        }
+        if else_body.is_empty() {
+            out.push_str(&format!("{pad}}}\n"));
+        } else {
+            let code_start = else_body
+                .iter()
+                .position(|s| !matches!(s, Statement::Comment(_)))
+                .unwrap_or(else_body.len());
+            let is_else_if = else_body.len() - code_start == 1
+                && matches!(else_body.get(code_start), Some(Statement::If { .. }));
+            if is_else_if {
+                for c in &else_body[..code_start] {
+                    out.push_str(&self.walk_stmt(c, indent));
+                }
+                out.push_str(&format!("{pad}}} else "));
+                out.push_str(self.walk_stmt(&else_body[code_start], indent).trim_start());
+                return out;
+            }
+            out.push_str(&format!("{pad}}} else "));
+            out.push_str(&format!("\n{pad}{{\n"));
+            for s in else_body {
+                out.push_str(&self.walk_stmt(s, indent + 3));
+            }
+            out.push_str(&format!("{pad}}}\n"));
+        }
+        out
+    }
+}
+
 impl StatementEmitter for CStmt<'_> {
+    fn comment(&self, lines: &[String], indent: usize) -> String {
+        super::stmt_walk::block_comment(lines, indent)
+    }
+
     #[allow(clippy::too_many_lines)]
     fn circ_buf(&self, op: &CircBuf, indent: usize) -> String {
         let pad = " ".repeat(indent);
@@ -868,13 +936,14 @@ impl StatementEmitter for CStmt<'_> {
     }
 
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
-    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], indent: usize) -> String {
+    fn if_stmt(&self, condition: &Expr, then_body: &[Statement], else_body: &[Statement], cond_comments: &[Option<Vec<String>>], indent: usize) -> String {
         let pad = " ".repeat(indent);
         // Split `if(A && B)` into nested `if(A) { if(B)` when either side
         // contains a candle macro call (ta_candlerange/ta_candleaverage).
         // This prevents the compiler from speculatively computing both sides
         // of the &&, which wastes expensive fdiv cycles on the common path
-        // where the first condition fails.
+        // where the first condition fails. (Runs before the commented-condition
+        // path so split decisions — and thus the emitted tokens — are unchanged.)
         if let Expr::BinOp(left, BinOp::And, right) = condition {
             if expr_directly_contains_candle_call(left)
                 && expr_directly_contains_candle_call(right)
@@ -884,14 +953,42 @@ impl StatementEmitter for CStmt<'_> {
                     condition: *right.clone(),
                     then_body: then_body.to_vec(),
                     else_body: else_body.to_vec(),
+                    cond_comments: Vec::new(),
                 };
                 let outer_if = Statement::If {
                     condition: *left.clone(),
                     then_body: vec![inner_if],
                     else_body: else_body.to_vec(),
+                    cond_comments: Vec::new(),
                 };
                 return self.walk_stmt(&outer_if, indent);
             }
+        }
+
+        // Inline per-operand comments: render the `&&`-chain multi-line, one
+        // operand per line with its comment. Same tokens as the flat form (just
+        // reformatted) plus the comments — so behaviour is unchanged.
+        if !cond_comments.is_empty()
+            && super::stmt_walk::flatten_and(condition).len() == cond_comments.len()
+        {
+            let mut hoisted = Vec::new();
+            let mut cnt = self.ctx.inline_counter.get();
+            let new_cond = hoist_block_helpers(condition, self.helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
+            self.ctx.inline_counter.set(cnt);
+            let op_strs: Vec<String> = super::stmt_walk::flatten_and(&new_cond)
+                .iter()
+                .map(|o| render_expr(o, self.ctx, self.registry, self.helpers))
+                .collect();
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
+            );
+            out.push_str(&format!("{pad}if( "));
+            out.push_str(&super::stmt_walk::render_and_operands(
+                &op_strs, cond_comments, &" ".repeat(indent + 4), " )", true,
+            ));
+            out.push_str(&format!("{pad}{{\n"));
+            out.push_str(&self.render_if_tail(then_body, else_body, indent));
+            return out;
         }
 
         let mut hoisted = Vec::new();
@@ -908,27 +1005,7 @@ impl StatementEmitter for CStmt<'_> {
             render_expr(&new_cond, self.ctx, self.registry, self.helpers),
             pad
         ));
-        for s in then_body {
-            out.push_str(&self.walk_stmt(s, indent + 3));
-        }
-        if else_body.is_empty() {
-            out.push_str(&format!("{pad}}}\n"));
-        } else {
-            out.push_str(&format!("{pad}}} else "));
-            // Check if the else body is a single if statement (else-if chain)
-            if else_body.len() == 1 {
-                if let Statement::If { .. } = &else_body[0] {
-                    let if_str = self.walk_stmt(&else_body[0], indent);
-                    out.push_str(if_str.trim_start());
-                    return out;
-                }
-            }
-            out.push_str(&format!("\n{pad}{{\n"));
-            for s in else_body {
-                out.push_str(&self.walk_stmt(s, indent + 3));
-            }
-            out.push_str(&format!("{pad}}}\n"));
-        }
+        out.push_str(&self.render_if_tail(then_body, else_body, indent));
         out
     }
 

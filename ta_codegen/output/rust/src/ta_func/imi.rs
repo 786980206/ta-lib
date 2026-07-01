@@ -39,6 +39,19 @@
  *  in ta-lib\src\ta_func
  */
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AB       Anatoliy Belsky
+ *
+ * Change history:
+ *
+ *  MMDDYY BY     Description
+ *  -------------------------------------------------------------------
+ *  181012 AB    Initial Version
+ */
+
 // Import types from parent module
 use super::*;
 
@@ -102,6 +115,7 @@ impl Core {
         if startIdx < lookback {
             startIdx = lookback;
         }
+        // Make sure there is still something to evaluate.
         if startIdx > endIdx {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;

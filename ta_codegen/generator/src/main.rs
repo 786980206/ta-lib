@@ -123,6 +123,7 @@ fn wire_parsed_source(func_def: &mut ir::FuncDef, parsed: &parser::c_source::Par
         .expect("C source must contain at least one function");
     func_def.body = guarded.body.clone();
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body.clone()));
+    func_def.header_comments = parsed.header_comments.clone();
 
     let private_fn = parsed
         .functions

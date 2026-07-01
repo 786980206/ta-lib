@@ -41,6 +41,20 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  AC       Angelo Ciceri
+ *
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  011605 AC   Creation
+ */
+
 TA_LIB_API int TA_CDLXSIDEGAP3METHODS_Lookback( void )
 {
    return 2;
@@ -76,30 +90,59 @@ TA_LIB_API TA_RetCode TA_CDLXSIDEGAP3METHODS( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
+   /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
    lookbackTotal = TA_CDLXSIDEGAP3METHODS_Lookback();
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Do the calculation using tight loops. */
+   /* Add-up the initial period, except for the last value. */
    i = startIdx;
+   /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: white (black) candle
+    * - second candle: white (black) candle
+    * - upside (downside) gap between the first and the second real bodies
+    * - third candle: black (white) candle that opens within the second real body and closes within the first real body
+    * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+    * the user should consider that up/downside gap 3 methods is significant when it appears in a trend, while this
+    * function does not consider it
+    */
    outIdx = 0;
    do
    {
-      if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<fmax(inClose[(i-1)],inOpen[(i-1)])))&&(inOpen[i]>fmin(inClose[(i-1)],inOpen[(i-1)])))&&(inClose[i]<fmax(inClose[(i-2)],inOpen[(i-2)])))&&(inClose[i]>fmin(inClose[(i-2)],inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))))) )
+      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))) && /* 1st and 2nd of same color */
+          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* 3rd opposite color */
+          (inOpen[i]<fmax(inClose[(i-1)],inOpen[(i-1)])) &&  /* 3rd opens within 2nd rb */
+          (inOpen[i]>fmin(inClose[(i-1)],inOpen[(i-1)])) &&
+          (inClose[i]<fmax(inClose[(i-2)],inOpen[(i-2)])) && /* 3rd closes within 1st rb */
+          (inClose[i]>fmin(inClose[(i-2)],inOpen[(i-2)])) &&
+          ((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))) ) /* when 1st is white upside gap when 1st is black downside gap */
       {
          outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
       } else 
       {
          outInteger[outIdx++] = 0;
       }
+      /* add the current range and subtract the first range: this is done after the pattern recognition
+       * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+       */
       i += 1;
    } while( (i<=endIdx) );
+   /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

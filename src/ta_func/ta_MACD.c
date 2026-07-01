@@ -41,11 +41,36 @@
 #include "ta_utility.h"
 #include "ta_memory.h"
 
+/* List of contributors:
+ *
+ *  Initial  Name/description
+ *  -------------------------------------------------------------------
+ *  MF       Mario Fortier
+ *  JPP      JP Pienaar (j.pienaar@mci.co.za)
+ *
+ * Change history:
+ *
+ *  MMDDYY BY   Description
+ *  -------------------------------------------------------------------
+ *  112400 MF   Template creation.
+ *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  080403 JPP  Fix #767653 for logic when swapping periods.
+ */
+
 TA_LIB_API int TA_MACD_Lookback( int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod )
 {
    int tempInteger;
+   /* The lookback is driven by the signal line output.
+    *
+    * (must also account for the initial data consume
+    *  by the slow period).
+    */
+   /* Make sure slow is really slower than
+    * the fast period! if not, swap...
+    */
    if( (optInSlowPeriod<optInFastPeriod) )
    {
+      /* swap */
       tempInteger = optInSlowPeriod;
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
@@ -107,16 +132,48 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
    if( !outMACDHist )
       return TA_BAD_PARAM;
 
+   /* !!! A lot of speed optimization could be done
+    * !!! with this function.
+    * !!!
+    * !!! A better approach would be to use ema
+    * !!! just to get the seeding values for the
+    * !!! fast and slow EMA. Then process the difference
+    * !!! in an allocated buffer until enough data is
+    * !!! available for the first signal value.
+    * !!! From that point all the processing can
+    * !!! be done in a tight loop.
+    * !!!
+    * !!! That approach will have the following
+    * !!! advantage:
+    * !!!   1) One mem allocation needed instead of two.
+    * !!!   2) The mem allocation size will be only the
+    * !!!      signal lookback period instead of the
+    * !!!      whole range of data.
+    * !!!   3) Processing will be done in a tight loop.
+    * !!!      allowing to avoid a lot of memory store-load
+    * !!!      operation.
+    * !!!   4) The memcpy at the end will be eliminated!
+    * !!!
+    * !!! If only I had time....
+    */
+   /* Make sure slow is really slower than
+    * the fast period! if not, swap...
+    */
    if( (optInSlowPeriod<optInFastPeriod) )
    {
+      /* swap */
       tempInteger = optInSlowPeriod;
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
+   /* Catch special case for fix 26/12 MACD.
+    * Use hardcoded k values matching the original algorithm.
+    */
    useFixedK = 0;
    if( (optInSlowPeriod==0) )
    {
       optInSlowPeriod = 26;
+      /* Fix 26 */
       slowK = 0.075;
       useFixedK = 1;
    } else 
@@ -126,6 +183,7 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
    if( (optInFastPeriod==0) )
    {
       optInFastPeriod = 12;
+      /* Fix 12 */
       fastK = 0.15;
       useFixedK = 1;
    } else 
@@ -134,18 +192,23 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
    }
    signalK = (2.0/((double)(optInSignalPeriod+1)));
    lookbackSignal = TA_EMA_Lookback(optInSignalPeriod);
+   /* Move up the start index if there is not
+    * enough initial data.
+    */
    lookbackTotal = lookbackSignal;
    lookbackTotal += TA_EMA_Lookback(optInSlowPeriod);
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
    }
+   /* Make sure there is still something to evaluate. */
    if( (startIdx>endIdx) )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
+   /* Allocate intermediate buffer for fast/slow EMA. */
    tempInteger = (((endIdx-startIdx)+1)+lookbackSignal);
    fastEMABuffer = malloc((tempInteger*sizeof(double)));
    if( !(fastEMABuffer) )
@@ -162,7 +225,17 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       free(fastEMABuffer);
       return TA_ALLOC_ERR;
    }
+   /* Calculate the slow EMA.
+    *
+    * Move back the startIdx to get enough data
+    * for the signal period. That way, once the
+    * signal calculation is done, all the output
+    * will start at the requested 'startIdx'.
+    */
    tempInteger = (startIdx-lookbackSignal);
+   /* Use ema_private when hardcoded k is needed (MACDFIX path).
+    * Use ema() for the normal path — codegen handles double/float routing.
+    */
    if( useFixedK )
    {
       retCode = TA_EMA_Private(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
@@ -178,6 +251,7 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       free(slowEMABuffer);
       return retCode;
    }
+   /* Calculate the fast EMA. */
    if( useFixedK )
    {
       retCode = TA_EMA_Private(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
@@ -193,6 +267,7 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       free(slowEMABuffer);
       return retCode;
    }
+   /* Parano tests. Will be removed eventually. */
    if( ((((outBegIdx1!=tempInteger)||(outBegIdx2!=tempInteger))||(outNbElement1!=outNbElement2))||(outNbElement1!=(((endIdx-startIdx)+1)+lookbackSignal))) )
    {
       *outBegIdx= 0;
@@ -201,11 +276,14 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       free(slowEMABuffer);
       return TA_BAD_PARAM;
    }
+   /* Calculate (fast EMA) - (slow EMA). */
    for( i = 0; (i<outNbElement1); i += 1 )
    {
       fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
    }
+   /* Copy the result into the output for the caller. */
    memcpy(outMACD,&fastEMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
+   /* Calculate the signal/trigger line (on double buffer, use ema_private). */
    retCode = TA_EMA_Private(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastEMABuffer);
    free(slowEMABuffer);
@@ -215,10 +293,12 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
+   /* Calculate the histogram. */
    for( i = 0; (i<outNbElement2); i += 1 )
    {
       outMACDHist[i] = (outMACD[i]-outMACDSignal[i]);
    }
+   /* All done! Indicate the output limits and return success. */
    *outBegIdx= startIdx;
    *outNBElement= outNbElement2;
    return TA_SUCCESS;
