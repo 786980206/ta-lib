@@ -4459,7 +4459,7 @@ fn java_forc_single_init_renders_correctly() {
         "Java ForC should render as for(): {rendered}"
     );
     assert!(
-        rendered.contains("(i<n)"),
+        rendered.contains("i < n"),
         "Java ForC should render condition: {rendered}"
     );
 }
@@ -4541,7 +4541,7 @@ fn java_t3_for_countdown_loops() {
 
     // T3 uses multiple for(i=period-1; i>0; i--) loops (rendered as i -= 1)
     assert!(
-        j.contains("i > 0; i--") || j.contains("(i>0); i -= 1"),
+        j.contains("i > 0; i -= 1"),
         "Java T3 should contain countdown for loops: {j}"
     );
 }
@@ -4654,7 +4654,7 @@ fn java_ternary_bool_to_int_optimization() {
         "Java ternary (cond)?1:0 should simplify to just cond: {rendered}"
     );
     assert!(
-        rendered.contains("(a>b)"),
+        rendered.contains("a > b"),
         "Java ternary should contain the condition directly: {rendered}"
     );
 }
@@ -4722,8 +4722,8 @@ fn java_cast_expression_types() {
     };
     let rendered = render_java_stmt(&stmt);
     assert!(
-        rendered.contains("((int)2.71)"),
-        "Java Cast to Integer should render as ((int)...): {rendered}"
+        rendered.contains("(int)2.71"),
+        "Java Cast to Integer should render as (int)...: {rendered}"
     );
 
     // Cast to RetCodeType
@@ -4737,8 +4737,8 @@ fn java_cast_expression_types() {
     };
     let rendered2 = render_java_stmt(&stmt2);
     assert!(
-        rendered2.contains("((RetCode)0)"),
-        "Java Cast to RetCodeType should render as ((RetCode)...): {rendered2}"
+        rendered2.contains("(RetCode)0"),
+        "Java Cast to RetCodeType should render as (RetCode)...: {rendered2}"
     );
 }
 
@@ -4821,8 +4821,8 @@ fn java_not_expression() {
     };
     let rendered = render_java_stmt(&stmt);
     assert!(
-        rendered.contains("!(flag)"),
-        "Java Not expression should render as !(expr): {rendered}"
+        rendered.contains("!flag"),
+        "Java Not expression should render as !expr: {rendered}"
     );
 }
 

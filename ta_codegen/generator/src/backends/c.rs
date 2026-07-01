@@ -11,7 +11,7 @@ use crate::ir::{
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{expr_directly_contains_candle_call, pascal_word};
-use super::expr_walk::{binop_prec, expr_prec, ExprEmitter};
+use super::expr_walk::{binop_prec, expr_prec, wrap_child, wrap_inlined, ExprEmitter};
 use super::builtins::{MathFn, SpecialBuiltin, StdlibFn};
 use super::stmt_walk::StatementEmitter;
 
@@ -1419,19 +1419,6 @@ impl ExprEmitter for CExpr<'_> {
     }
 }
 
-/// Parenthesize a rendered operand only when its own operator binds looser than
-/// the enclosing operator (`parent_prec`), or ties with it on the right (all the
-/// binary operators here are left-associative). Tighter-binding and atomic
-/// operands are returned unwrapped.
-fn wrap_child(rendered: String, child: &Expr, parent_prec: u8, is_right: bool) -> String {
-    let cp = expr_prec(child);
-    if cp < parent_prec || (cp == parent_prec && is_right) {
-        format!("({rendered})")
-    } else {
-        rendered
-    }
-}
-
 fn render_expr(
     expr: &Expr,
     ctx: &CRenderCtx,
@@ -1572,11 +1559,7 @@ fn render_func_call(
             // The caller splices this in where a call result (atomic) is
             // expected, so a non-atomic inlined body (binary op / ternary) must
             // be parenthesized to keep the surrounding grouping intact.
-            return if expr_prec(&inlined_expr) < 12 {
-                format!("({s})")
-            } else {
-                s
-            };
+            return wrap_inlined(s, &inlined_expr);
         }
         // Multi-statement helpers are hoisted earlier by hoist_block_helpers.
     }

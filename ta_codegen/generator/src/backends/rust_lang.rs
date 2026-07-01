@@ -2720,7 +2720,15 @@ impl ExprEmitter for RustExpr<'_> {
             VarType::RealPointer | VarType::IntPointer => "/* ptr cast */",
             VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
         };
-        format!("({}) as {}", self.walk(inner), rust_type)
+        // `as` binds tighter than every binary operator, so a binary-op inner
+        // must be wrapped; atomic/unary inners do not, and a ternary already
+        // self-parenthesizes as `(if ... else ...)`.
+        let s = self.walk(inner);
+        if matches!(inner, Expr::BinOp(..)) {
+            format!("({s}) as {rust_type}")
+        } else {
+            format!("{s} as {rust_type}")
+        }
     }
 
     fn pointer_deref(&self, name: &str) -> String {

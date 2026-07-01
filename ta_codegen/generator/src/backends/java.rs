@@ -11,7 +11,7 @@ use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{contains_alloc_err_return, expr_directly_contains_candle_call, find_sizeof_type};
 use super::builtins::{MathFn, SpecialBuiltin, StdlibFn};
-use super::expr_walk::ExprEmitter;
+use super::expr_walk::{binop_prec, expr_prec, wrap_child, wrap_inlined, ExprEmitter};
 use super::stmt_walk::StatementEmitter;
 
 /// Candle helper function names that should be rendered inline (as ternary
@@ -1142,7 +1142,17 @@ impl StatementEmitter for JavaStmt<'_> {
                 .iter()
                 .map(|o| {
                     let s = render_expr(o, self.ctx, self.registry, self.helpers);
-                    if is_boolean_expr(o) { s } else { format!("({s}) != 0") }
+                    if is_boolean_expr(o) {
+                        // Re-joined with `&&`, so wrap an operand that binds
+                        // looser than `&&` (an `||` chain or ternary).
+                        if expr_prec(o) < binop_prec(&BinOp::And) {
+                            format!("({s})")
+                        } else {
+                            s
+                        }
+                    } else {
+                        format!("({s}) != 0")
+                    }
                 })
                 .collect();
             let mut out = render_hoisted_blocks(
@@ -1431,7 +1441,12 @@ impl ExprEmitter for JavaExpr<'_> {
             BinOp::Shr => ">>",
             BinOp::Shl => "<<",
         };
-        format!("({}{}{})", self.walk(left), op_str, self.walk(right))
+        // Minimal parenthesization: only wrap an operand that binds looser than
+        // this operator (Java shares C's operator precedence).
+        let pp = binop_prec(op);
+        let l = wrap_child(self.walk(left), left, pp, false);
+        let r = wrap_child(self.walk(right), right, pp, true);
+        format!("{l} {op_str} {r}")
     }
 
     fn cast(&self, var_type: &VarType, inner: &Expr) -> String {
@@ -1443,7 +1458,18 @@ impl ExprEmitter for JavaExpr<'_> {
             VarType::IntPointer => "int[]",
             VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
         };
-        format!("(({}){})", java_type, self.walk(inner))
+        let s = self.walk(inner);
+        let s = if expr_prec(inner) < 12 { format!("({s})") } else { s };
+        format!("({java_type}){s}")
+    }
+
+    fn not(&self, inner: &Expr) -> String {
+        let s = self.walk(inner);
+        if expr_prec(inner) < 12 {
+            format!("!({s})")
+        } else {
+            format!("!{s}")
+        }
     }
 
     fn func_call(&self, name: &str, args: &[Expr]) -> String {
@@ -1501,12 +1527,17 @@ impl ExprEmitter for JavaExpr<'_> {
             return format!("!({})", self.walk(cond));
         }
         // Default: render as Java ternary
-        format!(
-            "(({}) ? ({}) : ({}))",
-            self.walk(cond),
-            self.walk(then_expr),
-            self.walk(else_expr)
-        )
+        let c = self.walk(cond);
+        let t = self.walk(then_expr);
+        let e = self.walk(else_expr);
+        let c = if matches!(cond, Expr::BinOp(..) | Expr::Ternary(..)) {
+            format!("({c})")
+        } else {
+            c
+        };
+        let t = if matches!(then_expr, Expr::Ternary(..)) { format!("({t})") } else { t };
+        let e = if matches!(else_expr, Expr::Ternary(..)) { format!("({e})") } else { e };
+        format!("{c} ? {t} : {e}")
     }
 }
 
@@ -1642,9 +1673,10 @@ fn render_func_call(
     // Check if this is a call to a helper function that can be inlined
     if let Some(helper) = helpers.get(fname) {
         if let Some(inlined_expr) = try_inline_expr(helper, args) {
-            return render_expr(
-                &inlined_expr, ctx, registry, helpers,
-            );
+            let s = render_expr(&inlined_expr, ctx, registry, helpers);
+            // Spliced where an atomic call result is expected — wrap a
+            // non-atomic inlined body to preserve the surrounding grouping.
+            return wrap_inlined(s, &inlined_expr);
         }
         // Multi-statement helpers: Task 10 will handle
     }

@@ -60,6 +60,43 @@ pub fn expr_prec(e: &Expr) -> u8 {
     }
 }
 
+/// Precedence of an atomic/postfix operand — the binding strength a bare call
+/// result, identifier, or index has. Anything looser (a binary op or ternary,
+/// precedence `< ATOMIC_PREC`) must be parenthesized when spliced where an atom
+/// is expected.
+pub const ATOMIC_PREC: u8 = 12;
+
+/// Parenthesize a rendered operand only when its own operator binds looser than
+/// the enclosing operator `parent_prec`, or ties with it on the right — the IR's
+/// binary operators are all left-associative, so an equal-precedence *left*
+/// operand needs no parens. Atomic and tighter-binding operands pass through.
+///
+/// Shared by the C-family backends: C, Java and C# share this exact operator
+/// precedence, and the only operators Rust ranks differently (bitwise `| ^ &`)
+/// are unused by the indicators, so the one table is correct for every backend.
+#[must_use]
+pub fn wrap_child(rendered: String, child: &Expr, parent_prec: u8, is_right: bool) -> String {
+    let cp = expr_prec(child);
+    if cp < parent_prec || (cp == parent_prec && is_right) {
+        format!("({rendered})")
+    } else {
+        rendered
+    }
+}
+
+/// Parenthesize a rendered *inlined helper body* when it is non-atomic (a binary
+/// op or ternary). Helper inlining splices the body where the caller expects an
+/// atomic call result, so an unwrapped binary/ternary body could otherwise
+/// mis-group with the surrounding operators.
+#[must_use]
+pub fn wrap_inlined(rendered: String, inlined: &Expr) -> String {
+    if expr_prec(inlined) < ATOMIC_PREC {
+        format!("({rendered})")
+    } else {
+        rendered
+    }
+}
+
 /// Per-language leaf formatting for the shared [`walk`](ExprEmitter::walk) dispatch.
 ///
 /// Implementors provide the language-specific hooks; the default `walk` owns the
