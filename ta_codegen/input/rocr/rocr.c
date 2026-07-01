@@ -16,17 +16,15 @@
 
 int rocr_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod;
+   return optInTimePeriod;
 }
 
 TA_RetCode rocr(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int inIdx, outIdx, trailingIdx;
-    double tempReal;
+   int inIdx, outIdx, trailingIdx;
+   double tempReal;
 
-
-
-    /* The interpretation of the rate of change varies widely depending
+   /* The interpretation of the rate of change varies widely depending
     * which software and/or books you are refering to.
     *
     * The following is the table of Rate-Of-Change implemented in TA-LIB:
@@ -58,39 +56,39 @@ TA_RetCode rocr(int startIdx, int endIdx, const double inReal[], int optInTimePe
     * always positive values.
     */
 
-    /* Move up the start index if there is not
+   /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < optInTimePeriod )
-    startIdx = optInTimePeriod;
+   if( startIdx < optInTimePeriod )
+      startIdx = optInTimePeriod;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    /* Calculate Rate of change Ratio: (price / prevPrice) */
-    outIdx      = 0;
-    inIdx       = startIdx;
-    trailingIdx = startIdx - optInTimePeriod;
+   /* Calculate Rate of change Ratio: (price / prevPrice) */
+   outIdx      = 0;
+   inIdx       = startIdx;
+   trailingIdx = startIdx - optInTimePeriod;
 
-    while( inIdx <= endIdx )
-    {
-    tempReal = inReal[trailingIdx++];
-    if( tempReal != 0.0 )
-    outReal[outIdx++] = (inReal[inIdx] / tempReal);
-    else
-    outReal[outIdx++] = 0.0;
+   while( inIdx <= endIdx )
+   {
+      tempReal = inReal[trailingIdx++];
+      if( tempReal != 0.0 )
+         outReal[outIdx++] = (inReal[inIdx] / tempReal);
+      else
+         outReal[outIdx++] = 0.0;
 
-    inIdx++;
-    }
+      inIdx++;
+   }
 
-    /* Set output limits. */
-    *outNBElement = outIdx;
-    *outBegIdx    = startIdx;
+   /* Set output limits. */
+   *outNBElement = outIdx;
+   *outBegIdx    = startIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

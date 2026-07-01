@@ -13,51 +13,49 @@
 
 int imi_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_IMI) - 1;
+   return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_IMI) - 1;
 }
 
 TA_RetCode imi(int startIdx, int endIdx, const double inOpen[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int lookback, outIdx = 0;
+   int lookback, outIdx = 0;
 
+   lookback = imi_lookback( optInTimePeriod );
 
+   if(startIdx < lookback)
+      startIdx = lookback;
 
-    lookback = imi_lookback( optInTimePeriod );
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx ) {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    if(startIdx < lookback)
-    startIdx = lookback;
+   *outBegIdx = startIdx;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx ) {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   while (startIdx <= endIdx) {
+      double upsum = .0, downsum = .0;
+      int i;
 
-    *outBegIdx = startIdx;
+      for (i = startIdx - lookback; i <= startIdx; i++) {
+         double close = inClose[i];
+         double open = inOpen[i];
 
-    while (startIdx <= endIdx) {
-    double upsum = .0, downsum = .0;
-    int i;
+         if (close > open) {
+            upsum += (close - open);
+         } else {
+            downsum += (open - close);
+         }
 
-    for (i = startIdx - lookback; i <= startIdx; i++) {
-    double close = inClose[i];
-    double open = inOpen[i];
+         outReal[outIdx] = 100.0*(upsum/(upsum + downsum));
+      }
 
-    if (close > open) {
-    upsum += (close - open);
-    } else {
-    downsum += (open - close);
-    }
+      startIdx++;
+      outIdx++;
+   }
 
-    outReal[outIdx] = 100.0*(upsum/(upsum + downsum));
-    }
+   *outNBElement = outIdx;
 
-    startIdx++;
-    outIdx++;
-    }
-
-    *outNBElement = outIdx;
-
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

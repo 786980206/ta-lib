@@ -16,16 +16,14 @@
 
 int mom_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod;
+   return optInTimePeriod;
 }
 
 TA_RetCode mom(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int inIdx, outIdx, trailingIdx;
+   int inIdx, outIdx, trailingIdx;
 
-
-
-    /* The interpretation of the rate of change varies widely depending
+   /* The interpretation of the rate of change varies widely depending
     * which software and/or books you are refering to.
     *
     * The following is the table of Rate-Of-Change implemented in TA-LIB:
@@ -57,34 +55,34 @@ TA_RetCode mom(int startIdx, int endIdx, const double inReal[], int optInTimePer
     * always positive values.
     */
 
-    /* Move up the start index if there is not
+   /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < optInTimePeriod )
-    startIdx = optInTimePeriod;
+   if( startIdx < optInTimePeriod )
+      startIdx = optInTimePeriod;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    /* Calculate Momentum:
+   /* Calculate Momentum:
     *    Just substract the value from 'period' ago from
     *    current value.
     */
-    outIdx      = 0;
-    inIdx       = startIdx;
-    trailingIdx = startIdx - optInTimePeriod;
+   outIdx      = 0;
+   inIdx       = startIdx;
+   trailingIdx = startIdx - optInTimePeriod;
 
-    while( inIdx <= endIdx )
-    outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
+   while( inIdx <= endIdx )
+      outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
 
-    /* Set output limits. */
-    *outNBElement = outIdx;
-    *outBegIdx    = startIdx;
+   /* Set output limits. */
+   *outNBElement = outIdx;
+   *outBegIdx    = startIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

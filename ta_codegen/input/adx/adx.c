@@ -20,20 +20,20 @@
 
 int adx_lookback(int           optInTimePeriod)
 {
-    return (2 * optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;
+   return (2 * optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;
 }
 
 TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int today, lookbackTotal, outIdx;
-    double prevHigh, prevLow, prevClose;
-    double prevMinusDM, prevPlusDM, prevTR;
-    double tempReal, tempReal2, diffP, diffM;
-    double minusDI, plusDI, sumDX, prevADX;
+   int today, lookbackTotal, outIdx;
+   double prevHigh, prevLow, prevClose;
+   double prevMinusDM, prevPlusDM, prevTR;
+   double tempReal, tempReal2, diffP, diffM;
+   double minusDI, plusDI, sumDX, prevADX;
 
-    int i;
+   int i;
 
-    /*
+   /*
     * The DM1 (one period) is base on the largest part of
     * today's range that is outside of yesterdays range.
     *
@@ -135,7 +135,7 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
     */
 
-    /* Original implementation from Wilder's book was doing some integer
+   /* Original implementation from Wilder's book was doing some integer
     * rounding in its calculations.
     *
     * This was understandable in the context that at the time the book
@@ -147,216 +147,216 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
     * you can comment out the following #undef/#define and rebuild the library.
     */
-    lookbackTotal = (2*optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;
+   lookbackTotal = (2*optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;
 
-    /* Adjust startIdx to account for the lookback period. */
-    if( startIdx < lookbackTotal )
-    startIdx = lookbackTotal;
+   /* Adjust startIdx to account for the lookback period. */
+   if( startIdx < lookbackTotal )
+      startIdx = lookbackTotal;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    /* Indicate where the next output should be put
+   /* Indicate where the next output should be put
     * in the outReal.
     */
-    outIdx = 0;
+   outIdx = 0;
 
-    /* Process the initial DM and TR */
-    *outBegIdx = today = startIdx;
+   /* Process the initial DM and TR */
+   *outBegIdx = today = startIdx;
 
-    prevMinusDM = 0.0;
-    prevPlusDM  = 0.0;
-    prevTR      = 0.0;
-    today       = startIdx - lookbackTotal;
-    prevHigh    = inHigh[today];
-    prevLow     = inLow[today];
-    prevClose   = inClose[today];
-    i           = optInTimePeriod-1;
-    while( i-- > 0 )
-    {
-    /* Calculate the prevMinusDM and prevPlusDM */
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
+   prevMinusDM = 0.0;
+   prevPlusDM  = 0.0;
+   prevTR      = 0.0;
+   today       = startIdx - lookbackTotal;
+   prevHigh    = inHigh[today];
+   prevLow     = inLow[today];
+   prevClose   = inClose[today];
+   i           = optInTimePeriod-1;
+   while( i-- > 0 )
+   {
+      /* Calculate the prevMinusDM and prevPlusDM */
+      today++;
+      tempReal = inHigh[today];
+      diffP    = tempReal-prevHigh; /* Plus Delta */
+      prevHigh = tempReal;
 
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;   /* Minus Delta */
-    prevLow  = tempReal;
+      tempReal = inLow[today];
+      diffM    = prevLow-tempReal;   /* Minus Delta */
+      prevLow  = tempReal;
 
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    prevMinusDM += diffM;
-    }
-    else if( (diffP > 0) && (diffP > diffM) )
-    {
-    /* Case 1 and 3: +DM=diffP,-DM=0 */
-    prevPlusDM += diffP;
-    }
+      if( (diffM > 0) && (diffP < diffM) )
+      {
+         /* Case 2 and 4: +DM=0,-DM=diffM */
+         prevMinusDM += diffM;
+      }
+      else if( (diffP > 0) && (diffP > diffM) )
+      {
+         /* Case 1 and 3: +DM=diffP,-DM=0 */
+         prevPlusDM += diffP;
+      }
 
-    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
-    prevTR += tempReal;
-    prevClose = inClose[today];
-    }
+      tempReal = ta_true_range(prevHigh, prevLow, prevClose);
+      prevTR += tempReal;
+      prevClose = inClose[today];
+   }
 
-    /* Add up all the initial DX. */
-    sumDX = 0.0;
-    i = optInTimePeriod;
-    while( i-- > 0 )
-    {
-    /* Calculate the prevMinusDM and prevPlusDM */
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
+   /* Add up all the initial DX. */
+   sumDX = 0.0;
+   i = optInTimePeriod;
+   while( i-- > 0 )
+   {
+      /* Calculate the prevMinusDM and prevPlusDM */
+      today++;
+      tempReal = inHigh[today];
+      diffP    = tempReal-prevHigh; /* Plus Delta */
+      prevHigh = tempReal;
 
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;   /* Minus Delta */
-    prevLow  = tempReal;
+      tempReal = inLow[today];
+      diffM    = prevLow-tempReal;   /* Minus Delta */
+      prevLow  = tempReal;
 
-    prevMinusDM -= prevMinusDM/optInTimePeriod;
-    prevPlusDM  -= prevPlusDM/optInTimePeriod;
+      prevMinusDM -= prevMinusDM/optInTimePeriod;
+      prevPlusDM  -= prevPlusDM/optInTimePeriod;
 
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    prevMinusDM += diffM;
-    }
-    else if( (diffP > 0) && (diffP > diffM) )
-    {
-    /* Case 1 and 3: +DM=diffP,-DM=0 */
-    prevPlusDM += diffP;
-    }
+      if( (diffM > 0) && (diffP < diffM) )
+      {
+         /* Case 2 and 4: +DM=0,-DM=diffM */
+         prevMinusDM += diffM;
+      }
+      else if( (diffP > 0) && (diffP > diffM) )
+      {
+         /* Case 1 and 3: +DM=diffP,-DM=0 */
+         prevPlusDM += diffP;
+      }
 
-    /* Calculate the prevTR */
-    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
-    prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
-    prevClose = inClose[today];
+      /* Calculate the prevTR */
+      tempReal = ta_true_range(prevHigh, prevLow, prevClose);
+      prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
+      prevClose = inClose[today];
 
-    /* Calculate the DX. The value is rounded (see Wilder book). */
-    if( !TA_IS_ZERO(prevTR) )
-    {
-    minusDI = ta_round_pos(100.0*(prevMinusDM/prevTR));
-    plusDI  = ta_round_pos(100.0*(prevPlusDM/prevTR));
-    /* This loop is just to accumulate the initial DX */
-    tempReal = minusDI+plusDI;
-    if( !TA_IS_ZERO(tempReal) )
-    sumDX  += ta_round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
-    }
-    }
+      /* Calculate the DX. The value is rounded (see Wilder book). */
+      if( !TA_IS_ZERO(prevTR) )
+      {
+         minusDI = ta_round_pos(100.0*(prevMinusDM/prevTR));
+         plusDI  = ta_round_pos(100.0*(prevPlusDM/prevTR));
+         /* This loop is just to accumulate the initial DX */
+         tempReal = minusDI+plusDI;
+         if( !TA_IS_ZERO(tempReal) )
+            sumDX  += ta_round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
+      }
+   }
 
-    /* Calculate the first ADX */
-    prevADX = ta_round_pos( sumDX / optInTimePeriod );
+   /* Calculate the first ADX */
+   prevADX = ta_round_pos( sumDX / optInTimePeriod );
 
-    /* Skip the unstable period */
-    i = TA_GetUnstablePeriod(TA_FUNC_UNST_ADX);
-    while( i-- > 0 )
-    {
-    /* Calculate the prevMinusDM and prevPlusDM */
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
+   /* Skip the unstable period */
+   i = TA_GetUnstablePeriod(TA_FUNC_UNST_ADX);
+   while( i-- > 0 )
+   {
+      /* Calculate the prevMinusDM and prevPlusDM */
+      today++;
+      tempReal = inHigh[today];
+      diffP    = tempReal-prevHigh; /* Plus Delta */
+      prevHigh = tempReal;
 
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;   /* Minus Delta */
-    prevLow  = tempReal;
+      tempReal = inLow[today];
+      diffM    = prevLow-tempReal;   /* Minus Delta */
+      prevLow  = tempReal;
 
-    prevMinusDM -= prevMinusDM/optInTimePeriod;
-    prevPlusDM  -= prevPlusDM/optInTimePeriod;
+      prevMinusDM -= prevMinusDM/optInTimePeriod;
+      prevPlusDM  -= prevPlusDM/optInTimePeriod;
 
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    prevMinusDM += diffM;
-    }
-    else if( (diffP > 0) && (diffP > diffM) )
-    {
-    /* Case 1 and 3: +DM=diffP,-DM=0 */
-    prevPlusDM += diffP;
-    }
+      if( (diffM > 0) && (diffP < diffM) )
+      {
+         /* Case 2 and 4: +DM=0,-DM=diffM */
+         prevMinusDM += diffM;
+      }
+      else if( (diffP > 0) && (diffP > diffM) )
+      {
+         /* Case 1 and 3: +DM=diffP,-DM=0 */
+         prevPlusDM += diffP;
+      }
 
-    /* Calculate the prevTR */
-    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
-    prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
-    prevClose = inClose[today];
+      /* Calculate the prevTR */
+      tempReal = ta_true_range(prevHigh, prevLow, prevClose);
+      prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
+      prevClose = inClose[today];
 
-    if( !TA_IS_ZERO(prevTR) )
-    {
-    /* Calculate the DX. The value is rounded (see Wilder book). */
-    minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
-    plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
-    tempReal = minusDI+plusDI;
-    if( !TA_IS_ZERO(tempReal) )
-    {
-    tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
-    /* Calculate the ADX */
-    prevADX = ta_round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
-    }
-    }
-    }
+      if( !TA_IS_ZERO(prevTR) )
+      {
+         /* Calculate the DX. The value is rounded (see Wilder book). */
+         minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
+         plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
+         tempReal = minusDI+plusDI;
+         if( !TA_IS_ZERO(tempReal) )
+         {
+            tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
+            /* Calculate the ADX */
+            prevADX = ta_round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         }
+      }
+   }
 
-    /* Output the first ADX */
-    outReal[0] = prevADX;
-    outIdx = 1;
+   /* Output the first ADX */
+   outReal[0] = prevADX;
+   outIdx = 1;
 
-    /* Calculate and output subsequent ADX */
-    while( today < endIdx )
-    {
-    /* Calculate the prevMinusDM and prevPlusDM */
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
+   /* Calculate and output subsequent ADX */
+   while( today < endIdx )
+   {
+      /* Calculate the prevMinusDM and prevPlusDM */
+      today++;
+      tempReal = inHigh[today];
+      diffP    = tempReal-prevHigh; /* Plus Delta */
+      prevHigh = tempReal;
 
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;   /* Minus Delta */
-    prevLow  = tempReal;
+      tempReal = inLow[today];
+      diffM    = prevLow-tempReal;   /* Minus Delta */
+      prevLow  = tempReal;
 
-    prevMinusDM -= prevMinusDM/optInTimePeriod;
-    prevPlusDM  -= prevPlusDM/optInTimePeriod;
+      prevMinusDM -= prevMinusDM/optInTimePeriod;
+      prevPlusDM  -= prevPlusDM/optInTimePeriod;
 
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    prevMinusDM += diffM;
-    }
-    else if( (diffP > 0) && (diffP > diffM) )
-    {
-    /* Case 1 and 3: +DM=diffP,-DM=0 */
-    prevPlusDM += diffP;
-    }
+      if( (diffM > 0) && (diffP < diffM) )
+      {
+         /* Case 2 and 4: +DM=0,-DM=diffM */
+         prevMinusDM += diffM;
+      }
+      else if( (diffP > 0) && (diffP > diffM) )
+      {
+         /* Case 1 and 3: +DM=diffP,-DM=0 */
+         prevPlusDM += diffP;
+      }
 
-    /* Calculate the prevTR */
-    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
-    prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
-    prevClose = inClose[today];
+      /* Calculate the prevTR */
+      tempReal = ta_true_range(prevHigh, prevLow, prevClose);
+      prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
+      prevClose = inClose[today];
 
-    if( !TA_IS_ZERO(prevTR) )
-    {
-    /* Calculate the DX. The value is rounded (see Wilder book). */
-    minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
-    plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
-    tempReal = minusDI+plusDI;
-    if( !TA_IS_ZERO(tempReal) )
-    {
-    tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
-    /* Calculate the ADX */
-    prevADX = ta_round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
-    }
-    }
+      if( !TA_IS_ZERO(prevTR) )
+      {
+         /* Calculate the DX. The value is rounded (see Wilder book). */
+         minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
+         plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
+         tempReal = minusDI+plusDI;
+         if( !TA_IS_ZERO(tempReal) )
+         {
+            tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
+            /* Calculate the ADX */
+            prevADX = ta_round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         }
+      }
 
-    /* Output the ADX */
-    outReal[outIdx++] = prevADX;
-    }
+      /* Output the ADX */
+      outReal[outIdx++] = prevADX;
+   }
 
-    *outNBElement = outIdx;
+   *outNBElement = outIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

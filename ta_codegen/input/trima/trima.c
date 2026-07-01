@@ -18,42 +18,40 @@
 
 int trima_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod-1;
+   return optInTimePeriod-1;
 }
 
 TA_RetCode trima(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int lookbackTotal;
+   int lookbackTotal;
 
-    double numerator;
-    double numeratorSub;
-    double numeratorAdd;
+   double numerator;
+   double numeratorSub;
+   double numeratorAdd;
 
-    int i, outIdx, todayIdx, trailingIdx, middleIdx;
-    double factor, tempReal;
+   int i, outIdx, todayIdx, trailingIdx, middleIdx;
+   double factor, tempReal;
 
-
-
-    /* Identify the minimum number of price bar needed
+   /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-    lookbackTotal = (optInTimePeriod-1);
+   lookbackTotal = (optInTimePeriod-1);
 
-    /* Move up the start index if there is not
+   /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
-    startIdx = lookbackTotal;
+   if( startIdx < lookbackTotal )
+      startIdx = lookbackTotal;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    /* TRIMA Description
+   /* TRIMA Description
     * =================
     * The triangular MA is a weighted moving average. Instead of the
     * TA_WMA who put more weigth on the latest price bar, the triangular
@@ -139,180 +137,180 @@ TA_RetCode trima(int startIdx, int endIdx, const double inReal[], int optInTimeP
     * the middleIdx and todayIdx.
     */
 
-    outIdx = 0;
+   outIdx = 0;
 
-    if( (optInTimePeriod % 2) == 1 )
-    {
-    /* Logic for Odd period */
+   if( (optInTimePeriod % 2) == 1 )
+   {
+      /* Logic for Odd period */
 
-    /* Calculate the factor which is 1 divided by the
-    * sumation of the weight.
-    *
-    * The sum of the weight is calculated as follow:
-    *
-    * The simple sumation serie 1+2+3... n can be
-    * express as n(n+1)/2
-    *
-    * From this logic, a "triangular" sumation formula
-    * can be found depending if the period is odd or even.
-    *
-    * Odd Period Formula:
-    *  period = 5 and with n=(int)(period/2)
-    *  the formula for a "triangular" serie is:
-    *    1+2+3+2+1 = (n*(n+1))+n+1
-    *              = (n+1)*(n+1)
-    *              = 3 * 3 = 9
-    *
-    * Even period Formula:
-    *   period = 6 and with n=(int)(period/2)
-    *   the formula for a "triangular" serie is:
-    *    1+2+3+3+2+1 = n*(n+1)
-    *                = 3 * 4 = 12
-    */
+      /* Calculate the factor which is 1 divided by the
+       * sumation of the weight.
+       *
+       * The sum of the weight is calculated as follow:
+       *
+       * The simple sumation serie 1+2+3... n can be
+       * express as n(n+1)/2
+       *
+       * From this logic, a "triangular" sumation formula
+       * can be found depending if the period is odd or even.
+       *
+       * Odd Period Formula:
+       *  period = 5 and with n=(int)(period/2)
+       *  the formula for a "triangular" serie is:
+       *    1+2+3+2+1 = (n*(n+1))+n+1
+       *              = (n+1)*(n+1)
+       *              = 3 * 3 = 9
+       *
+       * Even period Formula:
+       *   period = 6 and with n=(int)(period/2)
+       *   the formula for a "triangular" serie is:
+       *    1+2+3+3+2+1 = n*(n+1)
+       *                = 3 * 4 = 12
+       */
 
-    /* Note: entirely done with int and becomes double only
-    *       on assignement to the factor variable.
-    */
-    i = (optInTimePeriod>>1);
-    factor = (i+1)*(i+1);
-    factor = 1.0/factor;
+      /* Note: entirely done with int and becomes double only
+       *       on assignement to the factor variable.
+       */
+      i = (optInTimePeriod>>1);
+      factor = (i+1)*(i+1);
+      factor = 1.0/factor;
 
-    /* Initialize all the variable before
-    * starting to iterate for each output.
-    */
-    trailingIdx = startIdx-lookbackTotal;
-    middleIdx   = trailingIdx + i;
-    todayIdx    = middleIdx + i;
-    numerator   = 0.0;
-    numeratorSub = 0.0;
-    for( i=middleIdx; i >= trailingIdx; i-- )
-    {
-    tempReal      = inReal[i];
-    numeratorSub += tempReal;
-    numerator    += numeratorSub;
-    }
-    numeratorAdd = 0.0;
-    middleIdx++;
-    for( i=middleIdx; i <= todayIdx; i++ )
-    {
-    tempReal      = inReal[i];
-    numeratorAdd += tempReal;
-    numerator    += numeratorAdd;
-    }
+      /* Initialize all the variable before
+       * starting to iterate for each output.
+       */
+      trailingIdx = startIdx-lookbackTotal;
+      middleIdx   = trailingIdx + i;
+      todayIdx    = middleIdx + i;
+      numerator   = 0.0;
+      numeratorSub = 0.0;
+      for( i=middleIdx; i >= trailingIdx; i-- )
+      {
+         tempReal      = inReal[i];
+         numeratorSub += tempReal;
+         numerator    += numeratorSub;
+      }
+      numeratorAdd = 0.0;
+      middleIdx++;
+      for( i=middleIdx; i <= todayIdx; i++ )
+      {
+         tempReal      = inReal[i];
+         numeratorAdd += tempReal;
+         numerator    += numeratorAdd;
+      }
 
-    /* Write the first output */
-    outIdx = 0;
-    tempReal = inReal[trailingIdx++];
-    outReal[outIdx++] = numerator * factor;
-    todayIdx++;
+      /* Write the first output */
+      outIdx = 0;
+      tempReal = inReal[trailingIdx++];
+      outReal[outIdx++] = numerator * factor;
+      todayIdx++;
 
-    /* Note: The value at the trailingIdx was saved
-    *       in tempReal to account for the case where
-    *       outReal and inReal are ptr on the same
-    *       buffer.
-    */
+      /* Note: The value at the trailingIdx was saved
+       *       in tempReal to account for the case where
+       *       outReal and inReal are ptr on the same
+       *       buffer.
+       */
 
-    /* Iterate for remaining output */
-    while( todayIdx <= endIdx )
-    {
-    /* Step (1) */
-    numerator    -= numeratorSub;
-    numeratorSub -= tempReal;
-    tempReal      = inReal[middleIdx++];
-    numeratorSub += tempReal;
+      /* Iterate for remaining output */
+      while( todayIdx <= endIdx )
+      {
+         /* Step (1) */
+         numerator    -= numeratorSub;
+         numeratorSub -= tempReal;
+         tempReal      = inReal[middleIdx++];
+         numeratorSub += tempReal;
 
-    /* Step (2) */
-    numerator    += numeratorAdd;
-    numeratorAdd -= tempReal;
-    tempReal      = inReal[todayIdx++];
-    numeratorAdd += tempReal;
+         /* Step (2) */
+         numerator    += numeratorAdd;
+         numeratorAdd -= tempReal;
+         tempReal      = inReal[todayIdx++];
+         numeratorAdd += tempReal;
 
-    /* Step (3) */
-    numerator    += tempReal;
+         /* Step (3) */
+         numerator    += tempReal;
 
-    /* Step (4) */
-    tempReal = inReal[trailingIdx++];
-    outReal[outIdx++] = numerator * factor;
-    }
-    }
-    else
-    {
-    /* Even logic.
-    *
-    * Very similar to the odd logic, except:
-    *  - calculation of the factor is different.
-    *  - the coverage of the numeratorSub and numeratorAdd is
-    *    slightly different.
-    *  - Adjustment of numeratorAdd is different. See Step (2).
-    */
-    i = (optInTimePeriod>>1);
-    factor = i*(i+1);
-    factor = 1.0/factor;
+         /* Step (4) */
+         tempReal = inReal[trailingIdx++];
+         outReal[outIdx++] = numerator * factor;
+      }
+   }
+   else
+   {
+      /* Even logic.
+       *
+       * Very similar to the odd logic, except:
+       *  - calculation of the factor is different.
+       *  - the coverage of the numeratorSub and numeratorAdd is
+       *    slightly different.
+       *  - Adjustment of numeratorAdd is different. See Step (2).
+       */
+      i = (optInTimePeriod>>1);
+      factor = i*(i+1);
+      factor = 1.0/factor;
 
-    /* Initialize all the variable before
-    * starting to iterate for each output.
-    */
-    trailingIdx = startIdx-lookbackTotal;
-    middleIdx   = trailingIdx + i - 1;
-    todayIdx    = middleIdx + i;
-    numerator   = 0.0;
+      /* Initialize all the variable before
+       * starting to iterate for each output.
+       */
+      trailingIdx = startIdx-lookbackTotal;
+      middleIdx   = trailingIdx + i - 1;
+      todayIdx    = middleIdx + i;
+      numerator   = 0.0;
 
-    numeratorSub = 0.0;
+      numeratorSub = 0.0;
 
-    for( i=middleIdx; i >= trailingIdx; i-- )
-    {
-    tempReal      = inReal[i];
-    numeratorSub += tempReal;
-    numerator    += numeratorSub;
-    }
-    numeratorAdd = 0.0;
-    middleIdx++;
-    for( i=middleIdx; i <= todayIdx; i++ )
-    {
-    tempReal      = inReal[i];
-    numeratorAdd += tempReal;
-    numerator    += numeratorAdd;
-    }
+      for( i=middleIdx; i >= trailingIdx; i-- )
+      {
+         tempReal      = inReal[i];
+         numeratorSub += tempReal;
+         numerator    += numeratorSub;
+      }
+      numeratorAdd = 0.0;
+      middleIdx++;
+      for( i=middleIdx; i <= todayIdx; i++ )
+      {
+         tempReal      = inReal[i];
+         numeratorAdd += tempReal;
+         numerator    += numeratorAdd;
+      }
 
-    /* Write the first output */
-    outIdx = 0;
-    tempReal = inReal[trailingIdx++];
-    outReal[outIdx++] = numerator * factor;
-    todayIdx++;
+      /* Write the first output */
+      outIdx = 0;
+      tempReal = inReal[trailingIdx++];
+      outReal[outIdx++] = numerator * factor;
+      todayIdx++;
 
-    /* Note: The value at the trailingIdx was saved
-    *       in tempReal to account for the case where
-    *       outReal and inReal are ptr on the same
-    *       buffer.
-    */
+      /* Note: The value at the trailingIdx was saved
+       *       in tempReal to account for the case where
+       *       outReal and inReal are ptr on the same
+       *       buffer.
+       */
 
-    /* Iterate for remaining output */
-    while( todayIdx <= endIdx )
-    {
-    /* Step (1) */
-    numerator    -= numeratorSub;
-    numeratorSub -= tempReal;
-    tempReal      = inReal[middleIdx++];
-    numeratorSub += tempReal;
+      /* Iterate for remaining output */
+      while( todayIdx <= endIdx )
+      {
+         /* Step (1) */
+         numerator    -= numeratorSub;
+         numeratorSub -= tempReal;
+         tempReal      = inReal[middleIdx++];
+         numeratorSub += tempReal;
 
-    /* Step (2) */
-    numeratorAdd -= tempReal;
-    numerator    += numeratorAdd;
-    tempReal      = inReal[todayIdx++];
-    numeratorAdd += tempReal;
+         /* Step (2) */
+         numeratorAdd -= tempReal;
+         numerator    += numeratorAdd;
+         tempReal      = inReal[todayIdx++];
+         numeratorAdd += tempReal;
 
-    /* Step (3) */
-    numerator    += tempReal;
+         /* Step (3) */
+         numerator    += tempReal;
 
-    /* Step (4) */
-    tempReal = inReal[trailingIdx++];
-    outReal[outIdx++] = numerator * factor;
-    }
+         /* Step (4) */
+         tempReal = inReal[trailingIdx++];
+         outReal[outIdx++] = numerator * factor;
+      }
 
-    }
+   }
 
-    *outNBElement = outIdx;
-    *outBegIdx    = startIdx;
+   *outNBElement = outIdx;
+   *outBegIdx    = startIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

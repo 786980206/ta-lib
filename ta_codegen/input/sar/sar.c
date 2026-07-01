@@ -15,31 +15,29 @@
  */
 int sar_lookback(double        optInAcceleration,                                            double        optInMaximum)
 {
-    (void)optInAcceleration;
-    (void)optInMaximum;
-    
-    /* SAR always sacrify one price bar to establish the
+   (void)optInAcceleration;
+   (void)optInMaximum;
+
+   /* SAR always sacrify one price bar to establish the
     * initial extreme price.
     */
-    return 1;
+   return 1;
 }
 
 TA_RetCode sar(int startIdx, int endIdx, const double inHigh[], const double inLow[], double optInAcceleration, double optInMaximum, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    TA_RetCode retCode;
+   TA_RetCode retCode;
 
-    int isLong; /* > 0 indicates long. == 0 indicates short */
-    int todayIdx, outIdx;
+   int isLong; /* > 0 indicates long. == 0 indicates short */
+   int todayIdx, outIdx;
 
-    int tempInt;
+   int tempInt;
 
-    double newHigh, newLow, prevHigh, prevLow;
-    double af, ep, sar;
-    double ep_temp[1];
+   double newHigh, newLow, prevHigh, prevLow;
+   double af, ep, sar;
+   double ep_temp[1];
 
-
-
-    /* Implementation of the SAR has been a little bit open to interpretation
+   /* Implementation of the SAR has been a little bit open to interpretation
     * since Wilder (the original author) did not define a precise algorithm
     * on how to bootstrap the algorithm. Take any existing software application
     * and you will see slight variation on how the algorithm was adapted.
@@ -80,224 +78,224 @@ TA_RetCode sar(int startIdx, int endIdx, const double inHigh[], const double inL
     * to be used by Metastock.
     */
 
-    /* Identify the minimum number of price bar needed
+   /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     *
     * Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < 1 )
-    startIdx = 1;
+   if( startIdx < 1 )
+      startIdx = 1;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    /* Make sure the acceleration and maximum are coherent.
+   /* Make sure the acceleration and maximum are coherent.
     * If not, correct the acceleration.
     */
-    af = optInAcceleration;
-    if( af > optInMaximum )
-    af = optInAcceleration = optInMaximum;
+   af = optInAcceleration;
+   if( af > optInMaximum )
+      af = optInAcceleration = optInMaximum;
 
-    /* Identify if the initial direction is long or short.
+   /* Identify if the initial direction is long or short.
     * (ep is just used as a temp buffer here, the name
     *  of the parameter is not significant).
     */
-    retCode = minus_dm( startIdx, startIdx, inHigh, inLow, 1,
-    &tempInt, &tempInt,
-    ep_temp );
-    if( ep_temp[0] > 0 )
-    isLong = 0;
-    else
-    isLong = 1;
+   retCode = minus_dm( startIdx, startIdx, inHigh, inLow, 1,
+      &tempInt, &tempInt,
+      ep_temp );
+   if( ep_temp[0] > 0 )
+      isLong = 0;
+   else
+      isLong = 1;
 
-    if( retCode != TA_SUCCESS )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return retCode;
-    }
+   if( retCode != TA_SUCCESS )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return retCode;
+   }
 
-    *outBegIdx = startIdx;
-    outIdx = 0;
+   *outBegIdx = startIdx;
+   outIdx = 0;
 
-    /* Write the first SAR. */
-    todayIdx = startIdx;
+   /* Write the first SAR. */
+   todayIdx = startIdx;
 
-    newHigh = inHigh[todayIdx-1];
-    newLow  = inLow[todayIdx-1];
+   newHigh = inHigh[todayIdx-1];
+   newLow  = inLow[todayIdx-1];
 
-    ta_sar_rounding(newHigh);
-    ta_sar_rounding(newLow);
+   ta_sar_rounding(newHigh);
+   ta_sar_rounding(newLow);
 
-    if( isLong == 1 )
-    {
-    ep  = inHigh[todayIdx];
-    sar = newLow;
-    }
-    else
-    {
-    ep  = inLow[todayIdx];
-    sar = newHigh;
-    }
+   if( isLong == 1 )
+   {
+      ep  = inHigh[todayIdx];
+      sar = newLow;
+   }
+   else
+   {
+      ep  = inLow[todayIdx];
+      sar = newHigh;
+   }
 
-    ta_sar_rounding(sar);
+   ta_sar_rounding(sar);
 
-    /* Cheat on the newLow and newHigh for the
+   /* Cheat on the newLow and newHigh for the
     * first iteration.
     */
-    newLow  = inLow[todayIdx];
-    newHigh = inHigh[todayIdx];
+   newLow  = inLow[todayIdx];
+   newHigh = inHigh[todayIdx];
 
-    while( todayIdx <= endIdx )
-    {
-    prevLow  = newLow;
-    prevHigh = newHigh;
-    newLow  = inLow[todayIdx];
-    newHigh = inHigh[todayIdx];
-    todayIdx++;
+   while( todayIdx <= endIdx )
+   {
+      prevLow  = newLow;
+      prevHigh = newHigh;
+      newLow  = inLow[todayIdx];
+      newHigh = inHigh[todayIdx];
+      todayIdx++;
 
-    ta_sar_rounding(newLow);
-    ta_sar_rounding(newHigh);
+      ta_sar_rounding(newLow);
+      ta_sar_rounding(newHigh);
 
-    if( isLong == 1 )
-    {
-    /* Switch to short if the low penetrates the SAR value. */
-    if( newLow <= sar )
-    {
-    /* Switch and Overide the SAR with the ep */
-    isLong = 0;
-    sar = ep;
+      if( isLong == 1 )
+      {
+         /* Switch to short if the low penetrates the SAR value. */
+         if( newLow <= sar )
+         {
+            /* Switch and Overide the SAR with the ep */
+            isLong = 0;
+            sar = ep;
 
-    /* Make sure the overide SAR is within
-    * yesterday's and today's range.
-    */
-    if( sar < prevHigh )
-    sar = prevHigh;
-    if( sar < newHigh )
-    sar = newHigh;
+            /* Make sure the overide SAR is within
+             * yesterday's and today's range.
+             */
+            if( sar < prevHigh )
+               sar = prevHigh;
+            if( sar < newHigh )
+               sar = newHigh;
 
-    /* Output the overide SAR  */
-    outReal[outIdx++] = sar;
+            /* Output the overide SAR  */
+            outReal[outIdx++] = sar;
 
-    /* Adjust af and ep */
-    af = optInAcceleration;
-    ep = newLow;
+            /* Adjust af and ep */
+            af = optInAcceleration;
+            ep = newLow;
 
-    /* Calculate the new SAR */
-    sar = sar + af * (ep - sar);
-    ta_sar_rounding(sar);
+            /* Calculate the new SAR */
+            sar = sar + af * (ep - sar);
+            ta_sar_rounding(sar);
 
-    /* Make sure the new SAR is within
-    * yesterday's and today's range.
-    */
-    if( sar < prevHigh )
-    sar = prevHigh;
-    if( sar < newHigh )
-    sar = newHigh;
-    }
-    else
-    {
-    /* No switch */
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
+            if( sar < prevHigh )
+               sar = prevHigh;
+            if( sar < newHigh )
+               sar = newHigh;
+         }
+         else
+         {
+            /* No switch */
 
-    /* Output the SAR (was calculated in the previous iteration) */
-    outReal[outIdx++] = sar;
+            /* Output the SAR (was calculated in the previous iteration) */
+            outReal[outIdx++] = sar;
 
-    /* Adjust af and ep. */
-    if( newHigh > ep )
-    {
-    ep = newHigh;
-    af += optInAcceleration;
-    if( af > optInMaximum )
-    af = optInMaximum;
-    }
+            /* Adjust af and ep. */
+            if( newHigh > ep )
+            {
+               ep = newHigh;
+               af += optInAcceleration;
+               if( af > optInMaximum )
+                  af = optInMaximum;
+            }
 
-    /* Calculate the new SAR */
-    sar = sar + af * (ep - sar);
-    ta_sar_rounding(sar);
+            /* Calculate the new SAR */
+            sar = sar + af * (ep - sar);
+            ta_sar_rounding(sar);
 
-    /* Make sure the new SAR is within
-    * yesterday's and today's range.
-    */
-    if( sar > prevLow )
-    sar = prevLow;
-    if( sar > newLow )
-    sar = newLow;
-    }
-    }
-    else
-    {
-    /* Switch to long if the high penetrates the SAR value. */
-    if( newHigh >= sar )
-    {
-    /* Switch and Overide the SAR with the ep */
-    isLong = 1;
-    sar = ep;
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
+            if( sar > prevLow )
+               sar = prevLow;
+            if( sar > newLow )
+               sar = newLow;
+         }
+      }
+      else
+      {
+         /* Switch to long if the high penetrates the SAR value. */
+         if( newHigh >= sar )
+         {
+            /* Switch and Overide the SAR with the ep */
+            isLong = 1;
+            sar = ep;
 
-    /* Make sure the overide SAR is within
-    * yesterday's and today's range.
-    */
-    if( sar > prevLow )
-    sar = prevLow;
-    if( sar > newLow )
-    sar = newLow;
+            /* Make sure the overide SAR is within
+             * yesterday's and today's range.
+             */
+            if( sar > prevLow )
+               sar = prevLow;
+            if( sar > newLow )
+               sar = newLow;
 
-    /* Output the overide SAR  */
-    outReal[outIdx++] = sar;
+            /* Output the overide SAR  */
+            outReal[outIdx++] = sar;
 
-    /* Adjust af and ep */
-    af = optInAcceleration;
-    ep = newHigh;
+            /* Adjust af and ep */
+            af = optInAcceleration;
+            ep = newHigh;
 
-    /* Calculate the new SAR */
-    sar = sar + af * (ep - sar);
-    ta_sar_rounding(sar);
+            /* Calculate the new SAR */
+            sar = sar + af * (ep - sar);
+            ta_sar_rounding(sar);
 
-    /* Make sure the new SAR is within
-    * yesterday's and today's range.
-    */
-    if( sar > prevLow )
-    sar = prevLow;
-    if( sar > newLow )
-    sar = newLow;
-    }
-    else
-    {
-    /* No switch */
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
+            if( sar > prevLow )
+               sar = prevLow;
+            if( sar > newLow )
+               sar = newLow;
+         }
+         else
+         {
+            /* No switch */
 
-    /* Output the SAR (was calculated in the previous iteration) */
-    outReal[outIdx++] = sar;
+            /* Output the SAR (was calculated in the previous iteration) */
+            outReal[outIdx++] = sar;
 
-    /* Adjust af and ep. */
-    if( newLow < ep )
-    {
-    ep = newLow;
-    af += optInAcceleration;
-    if( af > optInMaximum )
-    af = optInMaximum;
-    }
+            /* Adjust af and ep. */
+            if( newLow < ep )
+            {
+               ep = newLow;
+               af += optInAcceleration;
+               if( af > optInMaximum )
+                  af = optInMaximum;
+            }
 
-    /* Calculate the new SAR */
-    sar = sar + af * (ep - sar);
-    ta_sar_rounding(sar);
+            /* Calculate the new SAR */
+            sar = sar + af * (ep - sar);
+            ta_sar_rounding(sar);
 
-    /* Make sure the new SAR is within
-    * yesterday's and today's range.
-    */
-    if( sar < prevHigh )
-    sar = prevHigh;
-    if( sar < newHigh )
-    sar = newHigh;
-    }
-    }
-    }
+            /* Make sure the new SAR is within
+             * yesterday's and today's range.
+             */
+            if( sar < prevHigh )
+               sar = prevHigh;
+            if( sar < newHigh )
+               sar = newHigh;
+         }
+      }
+   }
 
-    *outNBElement = outIdx;
+   *outNBElement = outIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

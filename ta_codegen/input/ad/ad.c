@@ -16,20 +16,18 @@
 
 int ad_lookback(void)
 {
-    /* This function have no lookback needed. */
-    return 0;
+   /* This function have no lookback needed. */
+   return 0;
 }
 
 TA_RetCode ad(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], const double inVolume[], int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int nbBar, currentBar, outIdx;
+   int nbBar, currentBar, outIdx;
 
-    double high, low, close, tmp;
-    double ad;
+   double high, low, close, tmp;
+   double ad;
 
-
-
-    /* Note: Results from this function might vary slightly
+   /* Note: Results from this function might vary slightly
     *       from Metastock outputs. The reason being that
     *       Metastock use float instead of double and this
     *       cause a different floating-point precision to
@@ -44,29 +42,29 @@ TA_RetCode ad(int startIdx, int endIdx, const double inHigh[], const double inLo
     *       its calculations.
     */
 
-    /* Default return values */
-    nbBar = endIdx-startIdx+1;
-    *outNBElement = nbBar;
-    *outBegIdx = startIdx;
-    currentBar = startIdx;
-    outIdx = 0;
-    ad = 0.0;
+   /* Default return values */
+   nbBar = endIdx-startIdx+1;
+   *outNBElement = nbBar;
+   *outBegIdx = startIdx;
+   currentBar = startIdx;
+   outIdx = 0;
+   ad = 0.0;
 
-    while( nbBar != 0 )
-    {
-    high  = inHigh[currentBar];
-    low   = inLow[currentBar];
-    tmp   = high-low;
-    close = inClose[currentBar];
+   while( nbBar != 0 )
+   {
+      high  = inHigh[currentBar];
+      low   = inLow[currentBar];
+      tmp   = high-low;
+      close = inClose[currentBar];
 
-    if( tmp > 0.0 )
-    ad += (((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]);
+      if( tmp > 0.0 )
+         ad += (((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]);
 
-    outReal[outIdx++] = ad;
+      outReal[outIdx++] = ad;
 
-    currentBar++;
-    nbBar--;
-    }
+      currentBar++;
+      nbBar--;
+   }
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

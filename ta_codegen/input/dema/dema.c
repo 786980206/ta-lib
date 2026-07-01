@@ -16,26 +16,24 @@
 
 int dema_lookback(int           optInTimePeriod)
 {
-    /* Get lookback for one EMA.
+   /* Get lookback for one EMA.
     * Multiply by two (because double smoothing).
     */
-    return ema_lookback( optInTimePeriod ) * 2;
+   return ema_lookback( optInTimePeriod ) * 2;
 }
 
 TA_RetCode dema(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    double *firstEMA;
-    double *secondEMA;
-    int firstEMABegIdx;
-    int firstEMANbElement;
-    int secondEMABegIdx;
-    int secondEMANbElement;
-    int tempInt, outIdx, firstEMAIdx, lookbackTotal, lookbackEMA;
-    TA_RetCode retCode;
+   double *firstEMA;
+   double *secondEMA;
+   int firstEMABegIdx;
+   int firstEMANbElement;
+   int secondEMABegIdx;
+   int secondEMANbElement;
+   int tempInt, outIdx, firstEMAIdx, lookbackTotal, lookbackEMA;
+   TA_RetCode retCode;
 
-
-
-    /* For an explanation of this function, please read
+   /* For an explanation of this function, please read
     *
     * Stocks & Commodities V. 12:1 (11-19):
     *   Smoothing Data With Faster Moving Averages
@@ -59,94 +57,94 @@ TA_RetCode dema(int startIdx, int endIdx, const double inReal[], int optInTimePe
     * TEMA is very similar (and from the same author).
     */
 
-    /* Will change only on success. */
-    *outNBElement = 0;
-    *outBegIdx = 0;
+   /* Will change only on success. */
+   *outNBElement = 0;
+   *outBegIdx = 0;
 
-    /* Adjust startIdx to account for the lookback period. */
-    lookbackEMA = ema_lookback( optInTimePeriod );
-    lookbackTotal = lookbackEMA * 2;
+   /* Adjust startIdx to account for the lookback period. */
+   lookbackEMA = ema_lookback( optInTimePeriod );
+   lookbackTotal = lookbackEMA * 2;
 
-    if( startIdx < lookbackTotal )
-    startIdx = lookbackTotal;
+   if( startIdx < lookbackTotal )
+      startIdx = lookbackTotal;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    return TA_SUCCESS;
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+      return TA_SUCCESS;
 
-    /* Allocate a temporary buffer for the firstEMA.
+   /* Allocate a temporary buffer for the firstEMA.
     *
     * When possible, re-use the outputBuffer for temp
     * calculation.
     */
-    if( inReal == outReal )
-    firstEMA = outReal;
-    else
-    {
-    tempInt = lookbackTotal+(endIdx-startIdx)+1;
-    firstEMA = malloc((tempInt) * sizeof(double));
-    if( !firstEMA )
-    return TA_ALLOC_ERR;
-    }
+   if( inReal == outReal )
+      firstEMA = outReal;
+   else
+   {
+      tempInt = lookbackTotal+(endIdx-startIdx)+1;
+      firstEMA = malloc((tempInt) * sizeof(double));
+      if( !firstEMA )
+         return TA_ALLOC_ERR;
+   }
 
-    /* Calculate the first EMA */
-    retCode = ema( startIdx-lookbackEMA, endIdx, inReal,
-    optInTimePeriod,
-    &firstEMABegIdx, &firstEMANbElement,
-    firstEMA );
+   /* Calculate the first EMA */
+   retCode = ema( startIdx-lookbackEMA, endIdx, inReal,
+      optInTimePeriod,
+      &firstEMABegIdx, &firstEMANbElement,
+      firstEMA );
 
-    /* Verify for failure or if not enough data after
+   /* Verify for failure or if not enough data after
     * calculating the first EMA.
     */
-    if( (retCode != TA_SUCCESS) || (firstEMANbElement == 0) )
-    {
-    if (firstEMA != outReal) { free(firstEMA); }
-    return retCode;
-    }
+   if( (retCode != TA_SUCCESS) || (firstEMANbElement == 0) )
+   {
+      if (firstEMA != outReal) { free(firstEMA); }
+         return retCode;
+   }
 
-    /* Allocate a temporary buffer for storing the EMA of the EMA. */
-    secondEMA = malloc((firstEMANbElement) * sizeof(double));
+   /* Allocate a temporary buffer for storing the EMA of the EMA. */
+   secondEMA = malloc((firstEMANbElement) * sizeof(double));
 
-    if( !secondEMA )
-    {
-    if (firstEMA != outReal) { free(firstEMA); }
-    return TA_ALLOC_ERR;
-    }
+   if( !secondEMA )
+   {
+      if (firstEMA != outReal) { free(firstEMA); }
+         return TA_ALLOC_ERR;
+   }
 
-    retCode = ema( 0, firstEMANbElement-1, firstEMA,
-    optInTimePeriod,
-    &secondEMABegIdx, &secondEMANbElement,
-    secondEMA );
+   retCode = ema( 0, firstEMANbElement-1, firstEMA,
+      optInTimePeriod,
+      &secondEMABegIdx, &secondEMANbElement,
+      secondEMA );
 
-    /* Return empty output on failure or if not enough data after
+   /* Return empty output on failure or if not enough data after
     * calculating the second EMA.
     */
-    if( (retCode != TA_SUCCESS) || (secondEMANbElement == 0) )
-    {
-    if (firstEMA != outReal) { free(firstEMA); }
-    free(secondEMA);
-    return retCode;
-    }
+   if( (retCode != TA_SUCCESS) || (secondEMANbElement == 0) )
+   {
+      if (firstEMA != outReal) { free(firstEMA); }
+         free(secondEMA);
+      return retCode;
+   }
 
-    /* Iterate through the second EMA and write the DEMA into
+   /* Iterate through the second EMA and write the DEMA into
     * the output.
     */
-    firstEMAIdx = secondEMABegIdx;
-    outIdx = 0;
-    while( outIdx < secondEMANbElement )
-    {
-    outReal[outIdx] = (2.0*firstEMA[firstEMAIdx++]) - secondEMA[outIdx];
-    outIdx++;
-    }
+   firstEMAIdx = secondEMABegIdx;
+   outIdx = 0;
+   while( outIdx < secondEMANbElement )
+   {
+      outReal[outIdx] = (2.0*firstEMA[firstEMAIdx++]) - secondEMA[outIdx];
+      outIdx++;
+   }
 
-    if (firstEMA != outReal) { free(firstEMA); }
-    free(secondEMA);
+   if (firstEMA != outReal) { free(firstEMA); }
+      free(secondEMA);
 
-    /* Succeed. Indicate where the output starts relative to
+   /* Succeed. Indicate where the output starts relative to
     * the caller input.
     */
-    *outBegIdx    = firstEMABegIdx + secondEMABegIdx;
-    *outNBElement = outIdx;
+   *outBegIdx    = firstEMABegIdx + secondEMABegIdx;
+   *outNBElement = outIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

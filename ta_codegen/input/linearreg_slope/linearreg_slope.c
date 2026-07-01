@@ -15,23 +15,21 @@
 
 int linearreg_slope_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod-1;
+   return optInTimePeriod-1;
 }
 
 TA_RetCode linearreg_slope(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int outIdx;
+   int outIdx;
 
-    int today, lookbackTotal;
-    double SumX, SumXY, SumY, SumXSqr, Divisor;
+   int today, lookbackTotal;
+   double SumX, SumXY, SumY, SumXSqr, Divisor;
 
-    int i;
+   int i;
 
-    double tempValue1;
+   double tempValue1;
 
-
-
-    /* Linear Regression is a concept also known as the
+   /* Linear Regression is a concept also known as the
     * "least squares method" or "best fit." Linear
     * Regression attempts to fit a straight line between
     * several data points in such a way that distance
@@ -48,42 +46,42 @@ TA_RetCode linearreg_slope(int startIdx, int endIdx, const double inReal[], int 
     * TA_TSF                : Returns b+m*(period)
     */
 
-    /* Adjust startIdx to account for the lookback period. */
-    lookbackTotal = linearreg_slope_lookback( optInTimePeriod );
+   /* Adjust startIdx to account for the lookback period. */
+   lookbackTotal = linearreg_slope_lookback( optInTimePeriod );
 
-    if( startIdx < lookbackTotal )
-    startIdx = lookbackTotal;
+   if( startIdx < lookbackTotal )
+      startIdx = lookbackTotal;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    outIdx = 0; /* Index into the output. */
-    today = startIdx;
+   outIdx = 0; /* Index into the output. */
+   today = startIdx;
 
-    SumX = optInTimePeriod * ( optInTimePeriod - 1 ) * 0.5;
-    SumXSqr = optInTimePeriod * ( optInTimePeriod - 1 ) * ( 2 * optInTimePeriod - 1 ) / 6;
-    Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   SumX = optInTimePeriod * ( optInTimePeriod - 1 ) * 0.5;
+   SumXSqr = optInTimePeriod * ( optInTimePeriod - 1 ) * ( 2 * optInTimePeriod - 1 ) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
 
-    while( today <= endIdx )
-    {
-    SumXY = 0;
-    SumY = 0;
-    for( i = optInTimePeriod; i-- != 0; )
-    {
-    SumY += tempValue1 = inReal[today - i];
-    SumXY += (double)i * tempValue1;
-    }
-    outReal[outIdx++] = ( optInTimePeriod * SumXY - SumX * SumY) / Divisor;
-    today++;
-    }
+   while( today <= endIdx )
+   {
+      SumXY = 0;
+      SumY = 0;
+      for( i = optInTimePeriod; i-- != 0; )
+      {
+         SumY += tempValue1 = inReal[today - i];
+         SumXY += (double)i * tempValue1;
+      }
+      outReal[outIdx++] = ( optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      today++;
+   }
 
-    *outBegIdx = startIdx;
-    *outNBElement = outIdx;
+   *outBegIdx = startIdx;
+   *outNBElement = outIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

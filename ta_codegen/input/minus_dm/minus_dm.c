@@ -16,23 +16,21 @@
 
 int minus_dm_lookback(int           optInTimePeriod)
 {
-    if( optInTimePeriod > 1 )
-    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM) - 1;
-    else
-    return 1;
+   if( optInTimePeriod > 1 )
+      return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM) - 1;
+   else
+      return 1;
 }
 
 TA_RetCode minus_dm(int startIdx, int endIdx, const double inHigh[], const double inLow[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int today, lookbackTotal, outIdx;
-    double prevHigh, prevLow, tempReal;
-    double prevMinusDM;
-    double diffP, diffM;
-    int i;
+   int today, lookbackTotal, outIdx;
+   double prevHigh, prevLow, tempReal;
+   double prevMinusDM;
+   double diffP, diffM;
+   int i;
 
-
-
-    /*
+   /*
     * The DM1 (one period) is base on the largest part of
     * today's range that is outside of yesterdays range.
     *
@@ -98,141 +96,141 @@ TA_RetCode minus_dm(int startIdx, int endIdx, const double inHigh[], const doubl
     *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
     */
 
-    if( optInTimePeriod > 1 )
-    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM) - 1;
-    else
-    lookbackTotal = 1;
+   if( optInTimePeriod > 1 )
+      lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM) - 1;
+   else
+      lookbackTotal = 1;
 
-    /* Adjust startIdx to account for the lookback period. */
-    if( startIdx < lookbackTotal )
-    startIdx = lookbackTotal;
+   /* Adjust startIdx to account for the lookback period. */
+   if( startIdx < lookbackTotal )
+      startIdx = lookbackTotal;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    /* Indicate where the next output should be put
+   /* Indicate where the next output should be put
     * in the outReal.
     */
-    outIdx = 0;
+   outIdx = 0;
 
-    /* Trap the case where no smoothing is needed. */
-    if( optInTimePeriod <= 1 )
-    {
-    /* No smoothing needed. Just do a simple DM1
-    * for each price bar.
-    */
-    *outBegIdx = startIdx;
-    today = startIdx-1;
-    prevHigh = inHigh[today];
-    prevLow  = inLow[today];
-    while( today < endIdx )
-    {
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;   /* Minus Delta */
-    prevLow  = tempReal;
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    outReal[outIdx++] = diffM;
-    }
-    else
-    outReal[outIdx++] = 0;
-    }
+   /* Trap the case where no smoothing is needed. */
+   if( optInTimePeriod <= 1 )
+   {
+      /* No smoothing needed. Just do a simple DM1
+       * for each price bar.
+       */
+      *outBegIdx = startIdx;
+      today = startIdx-1;
+      prevHigh = inHigh[today];
+      prevLow  = inLow[today];
+      while( today < endIdx )
+      {
+         today++;
+         tempReal = inHigh[today];
+         diffP    = tempReal-prevHigh; /* Plus Delta */
+         prevHigh = tempReal;
+         tempReal = inLow[today];
+         diffM    = prevLow-tempReal;   /* Minus Delta */
+         prevLow  = tempReal;
+         if( (diffM > 0) && (diffP < diffM) )
+         {
+            /* Case 2 and 4: +DM=0,-DM=diffM */
+            outReal[outIdx++] = diffM;
+         }
+         else
+            outReal[outIdx++] = 0;
+      }
 
-    *outNBElement = outIdx;
-    return TA_SUCCESS;
-    }
+      *outNBElement = outIdx;
+      return TA_SUCCESS;
+   }
 
-    /* Process the initial DM */
-    *outBegIdx = startIdx;
+   /* Process the initial DM */
+   *outBegIdx = startIdx;
 
-    prevMinusDM = 0.0;
-    today       = startIdx - lookbackTotal;
-    prevHigh    = inHigh[today];
-    prevLow     = inLow[today];
-    i           = optInTimePeriod-1;
-    while( i-- > 0 )
-    {
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;   /* Minus Delta */
-    prevLow  = tempReal;
+   prevMinusDM = 0.0;
+   today       = startIdx - lookbackTotal;
+   prevHigh    = inHigh[today];
+   prevLow     = inLow[today];
+   i           = optInTimePeriod-1;
+   while( i-- > 0 )
+   {
+      today++;
+      tempReal = inHigh[today];
+      diffP    = tempReal-prevHigh; /* Plus Delta */
+      prevHigh = tempReal;
+      tempReal = inLow[today];
+      diffM    = prevLow-tempReal;   /* Minus Delta */
+      prevLow  = tempReal;
 
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    prevMinusDM += diffM;
-    }
-    }
+      if( (diffM > 0) && (diffP < diffM) )
+      {
+         /* Case 2 and 4: +DM=0,-DM=diffM */
+         prevMinusDM += diffM;
+      }
+   }
 
-    /* Process subsequent DM */
+   /* Process subsequent DM */
 
-    /* Skip the unstable period. */
-    i = TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM);
-    while( i-- != 0 )
-    {
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;   /* Minus Delta */
-    prevLow  = tempReal;
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod) + diffM;
-    }
-    else
-    {
-    /* Case 1,3,5 and 7 */
-    prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod);
-    }
-    }
+   /* Skip the unstable period. */
+   i = TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM);
+   while( i-- != 0 )
+   {
+      today++;
+      tempReal = inHigh[today];
+      diffP    = tempReal-prevHigh; /* Plus Delta */
+      prevHigh = tempReal;
+      tempReal = inLow[today];
+      diffM    = prevLow-tempReal;   /* Minus Delta */
+      prevLow  = tempReal;
+      if( (diffM > 0) && (diffP < diffM) )
+      {
+         /* Case 2 and 4: +DM=0,-DM=diffM */
+         prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod) + diffM;
+      }
+      else
+      {
+         /* Case 1,3,5 and 7 */
+         prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod);
+      }
+   }
 
-    /* Now start to write the output in
+   /* Now start to write the output in
     * the caller provided outReal.
     */
-    outReal[0] = prevMinusDM;
-    outIdx = 1;
+   outReal[0] = prevMinusDM;
+   outIdx = 1;
 
-    while( today < endIdx )
-    {
-    today++;
-    tempReal = inHigh[today];
-    diffP    = tempReal-prevHigh; /* Plus Delta */
-    prevHigh = tempReal;
-    tempReal = inLow[today];
-    diffM    = prevLow-tempReal;  /* Minus Delta */
-    prevLow  = tempReal;
+   while( today < endIdx )
+   {
+      today++;
+      tempReal = inHigh[today];
+      diffP    = tempReal-prevHigh; /* Plus Delta */
+      prevHigh = tempReal;
+      tempReal = inLow[today];
+      diffM    = prevLow-tempReal;  /* Minus Delta */
+      prevLow  = tempReal;
 
-    if( (diffM > 0) && (diffP < diffM) )
-    {
-    /* Case 2 and 4: +DM=0,-DM=diffM */
-    prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod) + diffM;
-    }
-    else
-    {
-    /* Case 1,3,5 and 7 */
-    prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod);
-    }
+      if( (diffM > 0) && (diffP < diffM) )
+      {
+         /* Case 2 and 4: +DM=0,-DM=diffM */
+         prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod) + diffM;
+      }
+      else
+      {
+         /* Case 1,3,5 and 7 */
+         prevMinusDM = prevMinusDM - (prevMinusDM/optInTimePeriod);
+      }
 
-    outReal[outIdx++] = prevMinusDM;
-    }
+      outReal[outIdx++] = prevMinusDM;
+   }
 
-    *outNBElement = outIdx;
+   *outNBElement = outIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }

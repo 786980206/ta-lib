@@ -16,55 +16,53 @@
 
 int wma_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod - 1;
+   return optInTimePeriod - 1;
 }
 
 TA_RetCode wma(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    int inIdx, outIdx, i, trailingIdx, divider;
-    double periodSum, periodSub, tempReal, trailingValue;
-    int lookbackTotal;
+   int inIdx, outIdx, i, trailingIdx, divider;
+   double periodSum, periodSub, tempReal, trailingValue;
+   int lookbackTotal;
 
+   lookbackTotal = optInTimePeriod-1;
 
-
-    lookbackTotal = optInTimePeriod-1;
-
-    /* Move up the start index if there is not
+   /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
-    startIdx = lookbackTotal;
+   if( startIdx < lookbackTotal )
+      startIdx = lookbackTotal;
 
-    /* Make sure there is still something to evaluate. */
-    if( startIdx > endIdx )
-    {
-    *outBegIdx = 0;
-    *outNBElement = 0;
-    return TA_SUCCESS;
-    }
+   /* Make sure there is still something to evaluate. */
+   if( startIdx > endIdx )
+   {
+      *outBegIdx = 0;
+      *outNBElement = 0;
+      return TA_SUCCESS;
+   }
 
-    /* To make the rest more efficient, handle exception
+   /* To make the rest more efficient, handle exception
     * case where the user is asking for a period of '1'.
     * In that case outputs equals inputs for the requested
     * range.
     */
-    if( optInTimePeriod == 1 )
-    {
-    *outBegIdx    = startIdx;
-    *outNBElement = endIdx-startIdx+1;
+   if( optInTimePeriod == 1 )
+   {
+      *outBegIdx    = startIdx;
+      *outNBElement = endIdx-startIdx+1;
 
-    memmove(outReal, &inReal[startIdx], ((int)*outNBElement) * sizeof(double));
+      memmove(outReal, &inReal[startIdx], ((int)*outNBElement) * sizeof(double));
 
-    return TA_SUCCESS;
-    }
+      return TA_SUCCESS;
+   }
 
-    /* Calculate the divider (always an integer value).
+   /* Calculate the divider (always an integer value).
     * By induction: 1+2+3+4+'n' = n(n+1)/2
     * '>>1' is usually faster than '/2' for unsigned.
     */
-    divider = (optInTimePeriod*(optInTimePeriod+1))>>1;
+   divider = (optInTimePeriod*(optInTimePeriod+1))>>1;
 
-    /* The algo used here use a very basic property of
+   /* The algo used here use a very basic property of
     * multiplication/addition: (x*2) = x+x
     *
     * As an example, a 3 period weighted can be
@@ -91,50 +89,50 @@ TA_RetCode wma(int startIdx, int endIdx, const double inReal[], int optInTimePer
     * access and floating point operations are kept to a
     * minimum with this algo.
     */
-    outIdx      = 0;
-    trailingIdx = startIdx - lookbackTotal;
+   outIdx      = 0;
+   trailingIdx = startIdx - lookbackTotal;
 
-    /* Evaluate the initial periodSum/periodSub and trailingValue. */
-    periodSum = periodSub = (double)0.0;
-    inIdx=trailingIdx;
-    i = 1;
-    while( inIdx < startIdx )
-    {
-    tempReal = inReal[inIdx++];
-    periodSub += tempReal;
-    periodSum += tempReal*i;
-    i++;
-    }
-    trailingValue = 0.0;
+   /* Evaluate the initial periodSum/periodSub and trailingValue. */
+   periodSum = periodSub = (double)0.0;
+   inIdx=trailingIdx;
+   i = 1;
+   while( inIdx < startIdx )
+   {
+      tempReal = inReal[inIdx++];
+      periodSub += tempReal;
+      periodSum += tempReal*i;
+      i++;
+   }
+   trailingValue = 0.0;
 
-    /* Tight loop for the requested range. */
-    while( inIdx <= endIdx )
-    {
-    /* Add the current price bar to the sum
-    * who are carried through the iterations.
-    */
-    tempReal = inReal[inIdx++];
-    periodSub += tempReal;
-    periodSub -= trailingValue;
-    periodSum += tempReal*optInTimePeriod;
+   /* Tight loop for the requested range. */
+   while( inIdx <= endIdx )
+   {
+      /* Add the current price bar to the sum
+       * who are carried through the iterations.
+       */
+      tempReal = inReal[inIdx++];
+      periodSub += tempReal;
+      periodSub -= trailingValue;
+      periodSum += tempReal*optInTimePeriod;
 
-    /* Save the trailing value for being substract at
-    * the next iteration.
-    * (must be saved here just in case outReal and
-    *  inReal are the same buffer).
-    */
-    trailingValue = inReal[trailingIdx++];
+      /* Save the trailing value for being substract at
+       * the next iteration.
+       * (must be saved here just in case outReal and
+       *  inReal are the same buffer).
+       */
+      trailingValue = inReal[trailingIdx++];
 
-    /* Calculate the WMA for this price bar. */
-    outReal[outIdx++] = periodSum / divider;
+      /* Calculate the WMA for this price bar. */
+      outReal[outIdx++] = periodSum / divider;
 
-    /* Prepare the periodSum for the next iteration. */
-    periodSum -= periodSub;
-    }
+      /* Prepare the periodSum for the next iteration. */
+      periodSum -= periodSub;
+   }
 
-    /* Set output limits. */
-    *outNBElement = outIdx;
-    *outBegIdx    = startIdx;
+   /* Set output limits. */
+   *outNBElement = outIdx;
+   *outBegIdx    = startIdx;
 
-    return TA_SUCCESS;
+   return TA_SUCCESS;
 }
