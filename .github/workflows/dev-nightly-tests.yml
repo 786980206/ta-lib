@@ -133,6 +133,18 @@ jobs:
         with:
           python-version: "3.x"
 
+      # Check the INPUT source of truth first: it must be re-indented (leading
+      # whitespace, trailing whitespace, and blank-line runs). This fails early
+      # and clearly, before the output-regeneration check below.
+      - name: Verify ta_codegen/input is formatted
+        shell: bash
+        run: |
+          if ! python3 scripts/build.py format-check; then
+            echo "::error::ta_codegen/input is not formatted. Run 'scripts/build.py format' and commit the result."
+            exit 1
+          fi
+          echo "ta_codegen/input is formatted. OK."
+
       - name: Regenerate all backends and verify committed output matches
         shell: bash
         run: |

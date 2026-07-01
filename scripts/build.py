@@ -95,6 +95,8 @@ def show_help():
     ta_codegen          Build the Rust codegen tool
     generate            Generate per-function source for all backends
     servers             Generate all source + compile JSON-RPC language servers
+    format              Re-indent the ta_codegen/input/ C source of truth
+    format-check        Verify inputs are formatted (fails if not); writes nothing
 
   Testing:
     test                C reference regression tests
@@ -126,7 +128,7 @@ def build_servers(root_dir: str):
     run_codegen(root_dir, 'run', '--release', '--', 'build')
 
 # Rust targets run cargo directly (no CMake).
-CARGO_TARGETS = {'ta_codegen', 'generate', 'servers'}
+CARGO_TARGETS = {'ta_codegen', 'generate', 'servers', 'format', 'format-check'}
 
 # C targets map to a cmake target.
 SIMPLE_TARGETS = {
@@ -142,6 +144,8 @@ TARGET_PREREQS = {
     'ta_regtest':   PREREQS_BUILD_BASIC,
     'ta_codegen':   PREREQS_BUILD_CODEGEN,
     'generate':     PREREQS_BUILD_CODEGEN,
+    'format':       PREREQS_BUILD_CODEGEN,
+    'format-check': PREREQS_BUILD_CODEGEN,
     'servers':      PREREQS_BUILD_SERVERS,
     'test':         PREREQS_BUILD_BASIC,
     'regtest':      PREREQS_BUILD_SERVERS,
@@ -188,6 +192,10 @@ def main():
             run_codegen(root_dir, 'build', '--release')
         elif args.target == 'generate':
             run_codegen(root_dir, 'run', '--release', '--', 'generate')
+        elif args.target == 'format':
+            run_codegen(root_dir, 'run', '--release', '--', 'format')
+        elif args.target == 'format-check':
+            run_codegen(root_dir, 'run', '--release', '--', 'format', '--check')
         else:  # servers
             build_servers(root_dir)
         return

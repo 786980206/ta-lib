@@ -2,6 +2,7 @@ use ta_codegen_lib::backends;
 use ta_codegen_lib::extractor::func_extractor::extract_function_source;
 use ta_codegen_lib::extractor::table_parser::{parse_shared_defs, parse_table};
 use ta_codegen_lib::extractor::TableFuncDef;
+use ta_codegen_lib::formatter;
 use ta_codegen_lib::helper_registry::HelperRegistry;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
@@ -86,6 +87,11 @@ fn main() {
             let func_filter = find_arg(&args, &["--function", "--func"]);
             extract(func_filter.as_deref());
         }
+        "format" => {
+            let func_filter = find_arg(&args, &["--func", "--function"]);
+            let check_only = args.iter().any(|a| a == "--check");
+            std::process::exit(format(func_filter.as_deref(), check_only));
+        }
         _ => {
             eprintln!("Usage: ta_codegen <command> [options]");
             eprintln!();
@@ -95,6 +101,11 @@ fn main() {
             eprintln!("  generate-bench   Generate the direct-call C benchmark binary source");
             eprintln!("  build            Compile generated server source into executables");
             eprintln!("  extract          Extract indicators from C source to ta_codegen/input/");
+            eprintln!("  format           Re-indent the ta_codegen/input/ C source of truth");
+            eprintln!();
+            eprintln!("Options for 'format':");
+            eprintln!("  --func=NAME[,NAME,...]       Only format matching indicators (default: all)");
+            eprintln!("  --check                      Report files that need formatting; write nothing");
             eprintln!();
             eprintln!("Options for 'generate' / 'generate-servers' / 'build':");
             eprintln!(
@@ -184,9 +195,127 @@ fn is_reserved_dir(name: &str) -> bool {
     matches!(name, "helpers" | "lib")
 }
 
+/// Recursively collect `*.c` files under `dir`.
+fn collect_c_files(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_c_files(&path, out);
+        } else if path.extension().is_some_and(|e| e == "c") {
+            out.push(path);
+        }
+    }
+}
+
+/// Re-indent the `ta_codegen/input/` C source of truth (see [`formatter`] for
+/// the safety invariant). With `check_only`, nothing is written. Returns the
+/// number of files scanned and the repo-relative paths that changed (or would
+/// change), or an error message on an I/O or safety-check failure.
+///
+/// This is the shared core behind both the `format` subcommand and the
+/// automatic pre-pass in [`generate`].
+fn format_inputs(
+    root: &Path,
+    filters: Option<&[String]>,
+    check_only: bool,
+) -> Result<(usize, Vec<PathBuf>), String> {
+    let base = root.join("ta_codegen/input");
+    let mut files = Vec::new();
+    collect_c_files(&base, &mut files);
+    files.sort();
+
+    let mut scanned = 0usize;
+    let mut changed = Vec::new();
+    for path in &files {
+        // Optional --func filter: substring match on the (lowercased) path.
+        if let Some(fs) = filters {
+            let hay = path.to_string_lossy().to_lowercase();
+            if !fs.iter().any(|f| hay.contains(f.as_str())) {
+                continue;
+            }
+        }
+        scanned += 1;
+
+        let original = std::fs::read_to_string(path)
+            .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+        let formatted = formatter::reindent_source(&original);
+
+        // Belt-and-suspenders: never write output that changed anything but
+        // whitespace / blank-line runs, even if a formatter bug slipped through.
+        if !formatter::content_preserved(&original, &formatted) {
+            return Err(format!(
+                "refusing to write {} — non-whitespace change detected (bug)",
+                path.display()
+            ));
+        }
+        if formatted == original {
+            continue;
+        }
+        if !check_only {
+            std::fs::write(path, &formatted)
+                .map_err(|e| format!("cannot write {}: {e}", path.display()))?;
+        }
+        changed.push(path.strip_prefix(root).unwrap_or(path).to_path_buf());
+    }
+    Ok((scanned, changed))
+}
+
+/// `format` subcommand: re-indent the input source of truth in place. Returns a
+/// process exit code: 0 = success/clean; 1 = (with `--check`) files need
+/// formatting, or an I/O / safety-check failure occurred.
+fn format(func_filter: Option<&str>, check_only: bool) -> i32 {
+    let root = repo_root();
+    let filters: Option<Vec<String>> =
+        func_filter.map(|f| f.split(',').map(|s| s.trim().to_lowercase()).collect());
+
+    match format_inputs(&root, filters.as_deref(), check_only) {
+        Ok((scanned, changed)) => {
+            let verb = if check_only { "would reformat" } else { "reformatted" };
+            for rel in &changed {
+                println!("{verb} {}", rel.display());
+            }
+            if check_only && !changed.is_empty() {
+                eprintln!(
+                    "{} of {scanned} input file(s) need formatting (run `ta_codegen format`)",
+                    changed.len()
+                );
+                return 1;
+            }
+            if check_only {
+                println!("all {scanned} input file(s) already formatted");
+            } else {
+                println!("formatted {} of {scanned} input file(s)", changed.len());
+            }
+            0
+        }
+        Err(msg) => {
+            eprintln!("error: {msg}");
+            1
+        }
+    }
+}
+
 fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     let root = repo_root();
     let base = root.join("ta_codegen/input");
+
+    // Keep the source of truth tidy: re-indent every input in place before
+    // generating. This only ever changes indentation / whitespace / blank-line
+    // runs (never semantics — the parser is whitespace-insensitive, so output is
+    // unaffected), and only files that actually changed are rewritten.
+    match format_inputs(&root, None, false) {
+        Ok((_, changed)) if !changed.is_empty() => {
+            println!("Formatted {} input file(s).", changed.len());
+        }
+        Ok(_) => {}
+        Err(msg) => {
+            eprintln!("error: input formatting failed: {msg}");
+            std::process::exit(1);
+        }
+    }
 
     // Load indicator registry for cross-call resolution
     let registry = Registry::from_dir(&base);
