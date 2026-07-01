@@ -60,7 +60,7 @@
 
 TA_LIB_API int TA_LINEARREG_ANGLE_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_LINEARREG_ANGLE( int    startIdx,
@@ -115,12 +115,12 @@ TA_LIB_API TA_RetCode TA_LINEARREG_ANGLE( int    startIdx,
     */
    /* Adjust startIdx to account for the lookback period. */
    lookbackTotal = TA_LINEARREG_ANGLE_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -129,21 +129,21 @@ TA_LIB_API TA_RetCode TA_LINEARREG_ANGLE( int    startIdx,
    outIdx = 0;
    /* Index into the output. */
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      outReal[outIdx++] = (atan(m)*(180.0/3.141592653589793));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      outReal[outIdx++] = atan(m) * (180.0 / 3.141592653589793);
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -172,11 +172,11 @@ TA_LIB_API TA_RetCode TA_LINEARREG_ANGLE_Unguarded( int    startIdx,
    double tempValue1;
 
    lookbackTotal = TA_LINEARREG_ANGLE_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -184,21 +184,21 @@ TA_LIB_API TA_RetCode TA_LINEARREG_ANGLE_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      outReal[outIdx++] = (atan(m)*(180.0/3.141592653589793));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      outReal[outIdx++] = atan(m) * (180.0 / 3.141592653589793);
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -241,11 +241,11 @@ TA_RetCode TA_S_LINEARREG_ANGLE( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_LINEARREG_ANGLE_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -253,21 +253,21 @@ TA_RetCode TA_S_LINEARREG_ANGLE( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      outReal[outIdx++] = (atan(m)*(180.0/3.141592653589793));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      outReal[outIdx++] = atan(m) * (180.0 / 3.141592653589793);
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -296,11 +296,11 @@ TA_RetCode TA_S_LINEARREG_ANGLE_Unguarded( int    startIdx,
    double tempValue1;
 
    lookbackTotal = TA_LINEARREG_ANGLE_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -308,21 +308,21 @@ TA_RetCode TA_S_LINEARREG_ANGLE_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      outReal[outIdx++] = (atan(m)*(180.0/3.141592653589793));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      outReal[outIdx++] = atan(m) * (180.0 / 3.141592653589793);
       today += 1;
    }
    *outBegIdx= startIdx;

@@ -60,7 +60,7 @@
 TA_LIB_API int TA_HT_PHASOR_Lookback( void )
 {
    /* See mama_lookback for an explanation of these */
-   return (32+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor));
+   return 32 + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor);
 }
 
 TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
@@ -146,20 +146,20 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
    /* Variable used for the price smoother (a weighted moving average). */
    /* Variables used for the Hilbert Transormation */
    /* Constant */
-   rad2Deg = (180.0/(4.0*atan(1)));
+   rad2Deg = 180.0 / (4.0 * atan(1));
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-   lookbackTotal = (32+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor));
+   lookbackTotal = 32 + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor);
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -171,7 +171,7 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
     * To understand this algorithm, I strongly suggest to understand
     * first how TA_WMA is done.
     */
-   trailingWMAIdx = (startIdx-lookbackTotal);
+   trailingWMAIdx = startIdx - lookbackTotal;
    today = trailingWMAIdx;
    /* Initialization is same as WMA, except loop is unrolled
     * for speed optimization.
@@ -181,10 +181,10 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
    periodWMASum = tempReal;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*2.0);
+   periodWMASum += tempReal * 2.0;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*3.0);
+   periodWMASum += tempReal * 3.0;
    trailingWMAValue = 0.0;
    /* Subsequent WMA value are evaluated by using
     * the DO_PRICE_WMA macro.
@@ -195,11 +195,11 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
       tempReal = inReal[today++];
       periodWMASub += tempReal;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (tempReal*4.0);
+      periodWMASum += tempReal * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-   } while( (--i!=0) );
+   } while( --i != 0 );
    /* Initialize the circular buffers used by the hilbert
     * transform logic.
     * A buffer is used for odd day and another for even days.
@@ -270,66 +270,66 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
     * first at the Excel implementation in "test_MAMA.xls" included
     * in this package.
     */
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
-      adjustedPrevPeriod = ((0.075*period)+0.54);
+      adjustedPrevPeriod = 0.075 * period + 0.54;
       todayValue = inReal[today];
       periodWMASub += todayValue;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (todayValue*4.0);
+      periodWMASum += todayValue * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      if( ((today%2)==0) )
+      if( today % 2 == 0 )
       {
          /* Do the Hilbert Transforms for even price bar */
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Even[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Even[hilbertIdx];
          detrender_Even[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Even;
-         prev_detrender_Even = (b*prev_detrender_input_Even);
+         prev_detrender_Even = b * prev_detrender_input_Even;
          detrender += prev_detrender_Even;
          prev_detrender_input_Even = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Even[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Even[hilbertIdx];
          Q1_Even[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Even;
-         prev_Q1_Even = (b*prev_Q1_input_Even);
+         prev_Q1_Even = b * prev_Q1_input_Even;
          Q1 += prev_Q1_Even;
          prev_Q1_input_Even = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForEvenPrev3;
          }
-         hilbertTempReal = (a*I1ForEvenPrev3);
-         jI = (0-jI_Even[hilbertIdx]);
+         hilbertTempReal = a * I1ForEvenPrev3;
+         jI = 0 - jI_Even[hilbertIdx];
          jI_Even[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Even;
-         prev_jI_Even = (b*prev_jI_input_Even);
+         prev_jI_Even = b * prev_jI_input_Even;
          jI += prev_jI_Even;
          prev_jI_input_Even = I1ForEvenPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Even[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Even[hilbertIdx];
          jQ_Even[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Even;
-         prev_jQ_Even = (b*prev_jQ_input_Even);
+         prev_jQ_Even = b * prev_jQ_input_Even;
          jQ += prev_jQ_Even;
          prev_jQ_input_Even = Q1;
          jQ *= adjustedPrevPeriod;
-         if( (++hilbertIdx==3) )
+         if( ++hilbertIdx == 3 )
          {
             hilbertIdx = 0;
          }
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForEvenPrev3 - jQ) + 0.8 * prevI2;
          /* The variable I1 is the detrender delayed for
           * 3 price bars.
           *
@@ -341,49 +341,49 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
       } else 
       {
          /* Do the Hilbert Transforms for odd price bar */
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Odd[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Odd[hilbertIdx];
          detrender_Odd[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Odd;
-         prev_detrender_Odd = (b*prev_detrender_input_Odd);
+         prev_detrender_Odd = b * prev_detrender_input_Odd;
          detrender += prev_detrender_Odd;
          prev_detrender_input_Odd = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Odd[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Odd[hilbertIdx];
          Q1_Odd[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Odd;
-         prev_Q1_Odd = (b*prev_Q1_input_Odd);
+         prev_Q1_Odd = b * prev_Q1_input_Odd;
          Q1 += prev_Q1_Odd;
          prev_Q1_input_Odd = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForOddPrev3;
          }
-         hilbertTempReal = (a*I1ForOddPrev3);
-         jI = (0-jI_Odd[hilbertIdx]);
+         hilbertTempReal = a * I1ForOddPrev3;
+         jI = 0 - jI_Odd[hilbertIdx];
          jI_Odd[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Odd;
-         prev_jI_Odd = (b*prev_jI_input_Odd);
+         prev_jI_Odd = b * prev_jI_input_Odd;
          jI += prev_jI_Odd;
          prev_jI_input_Odd = I1ForOddPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Odd[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Odd[hilbertIdx];
          jQ_Odd[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Odd;
-         prev_jQ_Odd = (b*prev_jQ_input_Odd);
+         prev_jQ_Odd = b * prev_jQ_input_Odd;
          jQ += prev_jQ_Odd;
          prev_jQ_input_Odd = Q1;
          jQ *= adjustedPrevPeriod;
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForOddPrev3 - jQ) + 0.8 * prevI2;
          /* The varaiable I1 is the detrender delayed for
           * 3 price bars.
           *
@@ -394,33 +394,33 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
          I1ForEvenPrev2 = detrender;
       }
       /* Adjust the period for next price bar */
-      Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
-      Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
+      Re = 0.2 * (I2 * prevI2 + Q2 * prevQ2) + 0.8 * Re;
+      Im = 0.2 * (I2 * prevQ2 - Q2 * prevI2) + 0.8 * Im;
       prevQ2 = Q2;
       prevI2 = I2;
       tempReal = period;
-      if( ((Im!=0.0)&&(Re!=0.0)) )
+      if( Im != 0.0 && Re != 0.0 )
       {
-         period = (360.0/(atan((Im/Re))*rad2Deg));
+         period = 360.0 / (atan(Im / Re) * rad2Deg);
       }
-      tempReal2 = (1.5*tempReal);
-      if( (period>tempReal2) )
-      {
-         period = tempReal2;
-      }
-      tempReal2 = (0.67*tempReal);
-      if( (period<tempReal2) )
+      tempReal2 = 1.5 * tempReal;
+      if( period > tempReal2 )
       {
          period = tempReal2;
       }
-      if( (period<6) )
+      tempReal2 = 0.67 * tempReal;
+      if( period < tempReal2 )
+      {
+         period = tempReal2;
+      }
+      if( period < 6 )
       {
          period = 6;
-      } else if( (period>50) )
+      } else if( period > 50 )
       {
          period = 50;
       }
-      period = ((0.2*period)+(0.8*tempReal));
+      period = 0.2 * period + 0.8 * tempReal;
       /* Ooof... let's do the next price bar now! */
       today += 1;
    }
@@ -497,30 +497,30 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR_Unguarded( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
-   rad2Deg = (180.0/(4.0*atan(1)));
-   lookbackTotal = (32+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor));
-   if( (startIdx<lookbackTotal) )
+   rad2Deg = 180.0 / (4.0 * atan(1));
+   lookbackTotal = 32 + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   trailingWMAIdx = (startIdx-lookbackTotal);
+   trailingWMAIdx = startIdx - lookbackTotal;
    today = trailingWMAIdx;
    tempReal = inReal[today++];
    periodWMASub = tempReal;
    periodWMASum = tempReal;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*2.0);
+   periodWMASum += tempReal * 2.0;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*3.0);
+   periodWMASum += tempReal * 3.0;
    trailingWMAValue = 0.0;
    i = 9;
    do
@@ -528,11 +528,11 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR_Unguarded( int    startIdx,
       tempReal = inReal[today++];
       periodWMASub += tempReal;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (tempReal*4.0);
+      periodWMASum += tempReal * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-   } while( (--i!=0) );
+   } while( --i != 0 );
    hilbertIdx = 0;
    detrender_Odd[0] = 0.0;
    detrender_Odd[1] = 0.0;
@@ -588,142 +588,142 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR_Unguarded( int    startIdx,
    I1ForOddPrev3 = I1ForEvenPrev3;
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
-      adjustedPrevPeriod = ((0.075*period)+0.54);
+      adjustedPrevPeriod = 0.075 * period + 0.54;
       todayValue = inReal[today];
       periodWMASub += todayValue;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (todayValue*4.0);
+      periodWMASum += todayValue * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      if( ((today%2)==0) )
+      if( today % 2 == 0 )
       {
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Even[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Even[hilbertIdx];
          detrender_Even[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Even;
-         prev_detrender_Even = (b*prev_detrender_input_Even);
+         prev_detrender_Even = b * prev_detrender_input_Even;
          detrender += prev_detrender_Even;
          prev_detrender_input_Even = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Even[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Even[hilbertIdx];
          Q1_Even[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Even;
-         prev_Q1_Even = (b*prev_Q1_input_Even);
+         prev_Q1_Even = b * prev_Q1_input_Even;
          Q1 += prev_Q1_Even;
          prev_Q1_input_Even = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForEvenPrev3;
          }
-         hilbertTempReal = (a*I1ForEvenPrev3);
-         jI = (0-jI_Even[hilbertIdx]);
+         hilbertTempReal = a * I1ForEvenPrev3;
+         jI = 0 - jI_Even[hilbertIdx];
          jI_Even[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Even;
-         prev_jI_Even = (b*prev_jI_input_Even);
+         prev_jI_Even = b * prev_jI_input_Even;
          jI += prev_jI_Even;
          prev_jI_input_Even = I1ForEvenPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Even[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Even[hilbertIdx];
          jQ_Even[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Even;
-         prev_jQ_Even = (b*prev_jQ_input_Even);
+         prev_jQ_Even = b * prev_jQ_input_Even;
          jQ += prev_jQ_Even;
          prev_jQ_input_Even = Q1;
          jQ *= adjustedPrevPeriod;
-         if( (++hilbertIdx==3) )
+         if( ++hilbertIdx == 3 )
          {
             hilbertIdx = 0;
          }
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForEvenPrev3 - jQ) + 0.8 * prevI2;
          I1ForOddPrev3 = I1ForOddPrev2;
          I1ForOddPrev2 = detrender;
       } else 
       {
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Odd[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Odd[hilbertIdx];
          detrender_Odd[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Odd;
-         prev_detrender_Odd = (b*prev_detrender_input_Odd);
+         prev_detrender_Odd = b * prev_detrender_input_Odd;
          detrender += prev_detrender_Odd;
          prev_detrender_input_Odd = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Odd[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Odd[hilbertIdx];
          Q1_Odd[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Odd;
-         prev_Q1_Odd = (b*prev_Q1_input_Odd);
+         prev_Q1_Odd = b * prev_Q1_input_Odd;
          Q1 += prev_Q1_Odd;
          prev_Q1_input_Odd = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForOddPrev3;
          }
-         hilbertTempReal = (a*I1ForOddPrev3);
-         jI = (0-jI_Odd[hilbertIdx]);
+         hilbertTempReal = a * I1ForOddPrev3;
+         jI = 0 - jI_Odd[hilbertIdx];
          jI_Odd[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Odd;
-         prev_jI_Odd = (b*prev_jI_input_Odd);
+         prev_jI_Odd = b * prev_jI_input_Odd;
          jI += prev_jI_Odd;
          prev_jI_input_Odd = I1ForOddPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Odd[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Odd[hilbertIdx];
          jQ_Odd[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Odd;
-         prev_jQ_Odd = (b*prev_jQ_input_Odd);
+         prev_jQ_Odd = b * prev_jQ_input_Odd;
          jQ += prev_jQ_Odd;
          prev_jQ_input_Odd = Q1;
          jQ *= adjustedPrevPeriod;
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForOddPrev3 - jQ) + 0.8 * prevI2;
          I1ForEvenPrev3 = I1ForEvenPrev2;
          I1ForEvenPrev2 = detrender;
       }
-      Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
-      Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
+      Re = 0.2 * (I2 * prevI2 + Q2 * prevQ2) + 0.8 * Re;
+      Im = 0.2 * (I2 * prevQ2 - Q2 * prevI2) + 0.8 * Im;
       prevQ2 = Q2;
       prevI2 = I2;
       tempReal = period;
-      if( ((Im!=0.0)&&(Re!=0.0)) )
+      if( Im != 0.0 && Re != 0.0 )
       {
-         period = (360.0/(atan((Im/Re))*rad2Deg));
+         period = 360.0 / (atan(Im / Re) * rad2Deg);
       }
-      tempReal2 = (1.5*tempReal);
-      if( (period>tempReal2) )
-      {
-         period = tempReal2;
-      }
-      tempReal2 = (0.67*tempReal);
-      if( (period<tempReal2) )
+      tempReal2 = 1.5 * tempReal;
+      if( period > tempReal2 )
       {
          period = tempReal2;
       }
-      if( (period<6) )
+      tempReal2 = 0.67 * tempReal;
+      if( period < tempReal2 )
+      {
+         period = tempReal2;
+      }
+      if( period < 6 )
       {
          period = 6;
-      } else if( (period>50) )
+      } else if( period > 50 )
       {
          period = 50;
       }
-      period = ((0.2*period)+(0.8*tempReal));
+      period = 0.2 * period + 0.8 * tempReal;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -810,30 +810,30 @@ TA_RetCode TA_S_HT_PHASOR( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
-   rad2Deg = (180.0/(4.0*atan(1)));
-   lookbackTotal = (32+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor));
-   if( (startIdx<lookbackTotal) )
+   rad2Deg = 180.0 / (4.0 * atan(1));
+   lookbackTotal = 32 + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   trailingWMAIdx = (startIdx-lookbackTotal);
+   trailingWMAIdx = startIdx - lookbackTotal;
    today = trailingWMAIdx;
    tempReal = inReal[today++];
    periodWMASub = tempReal;
    periodWMASum = tempReal;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*2.0);
+   periodWMASum += tempReal * 2.0;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*3.0);
+   periodWMASum += tempReal * 3.0;
    trailingWMAValue = 0.0;
    i = 9;
    do
@@ -841,11 +841,11 @@ TA_RetCode TA_S_HT_PHASOR( int    startIdx,
       tempReal = inReal[today++];
       periodWMASub += tempReal;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (tempReal*4.0);
+      periodWMASum += tempReal * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-   } while( (--i!=0) );
+   } while( --i != 0 );
    hilbertIdx = 0;
    detrender_Odd[0] = 0.0;
    detrender_Odd[1] = 0.0;
@@ -901,142 +901,142 @@ TA_RetCode TA_S_HT_PHASOR( int    startIdx,
    I1ForOddPrev3 = I1ForEvenPrev3;
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
-      adjustedPrevPeriod = ((0.075*period)+0.54);
+      adjustedPrevPeriod = 0.075 * period + 0.54;
       todayValue = inReal[today];
       periodWMASub += todayValue;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (todayValue*4.0);
+      periodWMASum += todayValue * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      if( ((today%2)==0) )
+      if( today % 2 == 0 )
       {
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Even[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Even[hilbertIdx];
          detrender_Even[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Even;
-         prev_detrender_Even = (b*prev_detrender_input_Even);
+         prev_detrender_Even = b * prev_detrender_input_Even;
          detrender += prev_detrender_Even;
          prev_detrender_input_Even = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Even[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Even[hilbertIdx];
          Q1_Even[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Even;
-         prev_Q1_Even = (b*prev_Q1_input_Even);
+         prev_Q1_Even = b * prev_Q1_input_Even;
          Q1 += prev_Q1_Even;
          prev_Q1_input_Even = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForEvenPrev3;
          }
-         hilbertTempReal = (a*I1ForEvenPrev3);
-         jI = (0-jI_Even[hilbertIdx]);
+         hilbertTempReal = a * I1ForEvenPrev3;
+         jI = 0 - jI_Even[hilbertIdx];
          jI_Even[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Even;
-         prev_jI_Even = (b*prev_jI_input_Even);
+         prev_jI_Even = b * prev_jI_input_Even;
          jI += prev_jI_Even;
          prev_jI_input_Even = I1ForEvenPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Even[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Even[hilbertIdx];
          jQ_Even[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Even;
-         prev_jQ_Even = (b*prev_jQ_input_Even);
+         prev_jQ_Even = b * prev_jQ_input_Even;
          jQ += prev_jQ_Even;
          prev_jQ_input_Even = Q1;
          jQ *= adjustedPrevPeriod;
-         if( (++hilbertIdx==3) )
+         if( ++hilbertIdx == 3 )
          {
             hilbertIdx = 0;
          }
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForEvenPrev3 - jQ) + 0.8 * prevI2;
          I1ForOddPrev3 = I1ForOddPrev2;
          I1ForOddPrev2 = detrender;
       } else 
       {
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Odd[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Odd[hilbertIdx];
          detrender_Odd[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Odd;
-         prev_detrender_Odd = (b*prev_detrender_input_Odd);
+         prev_detrender_Odd = b * prev_detrender_input_Odd;
          detrender += prev_detrender_Odd;
          prev_detrender_input_Odd = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Odd[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Odd[hilbertIdx];
          Q1_Odd[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Odd;
-         prev_Q1_Odd = (b*prev_Q1_input_Odd);
+         prev_Q1_Odd = b * prev_Q1_input_Odd;
          Q1 += prev_Q1_Odd;
          prev_Q1_input_Odd = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForOddPrev3;
          }
-         hilbertTempReal = (a*I1ForOddPrev3);
-         jI = (0-jI_Odd[hilbertIdx]);
+         hilbertTempReal = a * I1ForOddPrev3;
+         jI = 0 - jI_Odd[hilbertIdx];
          jI_Odd[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Odd;
-         prev_jI_Odd = (b*prev_jI_input_Odd);
+         prev_jI_Odd = b * prev_jI_input_Odd;
          jI += prev_jI_Odd;
          prev_jI_input_Odd = I1ForOddPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Odd[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Odd[hilbertIdx];
          jQ_Odd[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Odd;
-         prev_jQ_Odd = (b*prev_jQ_input_Odd);
+         prev_jQ_Odd = b * prev_jQ_input_Odd;
          jQ += prev_jQ_Odd;
          prev_jQ_input_Odd = Q1;
          jQ *= adjustedPrevPeriod;
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForOddPrev3 - jQ) + 0.8 * prevI2;
          I1ForEvenPrev3 = I1ForEvenPrev2;
          I1ForEvenPrev2 = detrender;
       }
-      Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
-      Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
+      Re = 0.2 * (I2 * prevI2 + Q2 * prevQ2) + 0.8 * Re;
+      Im = 0.2 * (I2 * prevQ2 - Q2 * prevI2) + 0.8 * Im;
       prevQ2 = Q2;
       prevI2 = I2;
       tempReal = period;
-      if( ((Im!=0.0)&&(Re!=0.0)) )
+      if( Im != 0.0 && Re != 0.0 )
       {
-         period = (360.0/(atan((Im/Re))*rad2Deg));
+         period = 360.0 / (atan(Im / Re) * rad2Deg);
       }
-      tempReal2 = (1.5*tempReal);
-      if( (period>tempReal2) )
-      {
-         period = tempReal2;
-      }
-      tempReal2 = (0.67*tempReal);
-      if( (period<tempReal2) )
+      tempReal2 = 1.5 * tempReal;
+      if( period > tempReal2 )
       {
          period = tempReal2;
       }
-      if( (period<6) )
+      tempReal2 = 0.67 * tempReal;
+      if( period < tempReal2 )
+      {
+         period = tempReal2;
+      }
+      if( period < 6 )
       {
          period = 6;
-      } else if( (period>50) )
+      } else if( period > 50 )
       {
          period = 50;
       }
-      period = ((0.2*period)+(0.8*tempReal));
+      period = 0.2 * period + 0.8 * tempReal;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -1111,30 +1111,30 @@ TA_RetCode TA_S_HT_PHASOR_Unguarded( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
-   rad2Deg = (180.0/(4.0*atan(1)));
-   lookbackTotal = (32+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor));
-   if( (startIdx<lookbackTotal) )
+   rad2Deg = 180.0 / (4.0 * atan(1));
+   lookbackTotal = 32 + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,Ht_phasor);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   trailingWMAIdx = (startIdx-lookbackTotal);
+   trailingWMAIdx = startIdx - lookbackTotal;
    today = trailingWMAIdx;
    tempReal = inReal[today++];
    periodWMASub = tempReal;
    periodWMASum = tempReal;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*2.0);
+   periodWMASum += tempReal * 2.0;
    tempReal = inReal[today++];
    periodWMASub += tempReal;
-   periodWMASum += (tempReal*3.0);
+   periodWMASum += tempReal * 3.0;
    trailingWMAValue = 0.0;
    i = 9;
    do
@@ -1142,11 +1142,11 @@ TA_RetCode TA_S_HT_PHASOR_Unguarded( int    startIdx,
       tempReal = inReal[today++];
       periodWMASub += tempReal;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (tempReal*4.0);
+      periodWMASum += tempReal * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-   } while( (--i!=0) );
+   } while( --i != 0 );
    hilbertIdx = 0;
    detrender_Odd[0] = 0.0;
    detrender_Odd[1] = 0.0;
@@ -1202,142 +1202,142 @@ TA_RetCode TA_S_HT_PHASOR_Unguarded( int    startIdx,
    I1ForOddPrev3 = I1ForEvenPrev3;
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
-      adjustedPrevPeriod = ((0.075*period)+0.54);
+      adjustedPrevPeriod = 0.075 * period + 0.54;
       todayValue = inReal[today];
       periodWMASub += todayValue;
       periodWMASub -= trailingWMAValue;
-      periodWMASum += (todayValue*4.0);
+      periodWMASum += todayValue * 4.0;
       trailingWMAValue = inReal[trailingWMAIdx++];
-      smoothedValue = (periodWMASum*0.1);
+      smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      if( ((today%2)==0) )
+      if( today % 2 == 0 )
       {
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Even[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Even[hilbertIdx];
          detrender_Even[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Even;
-         prev_detrender_Even = (b*prev_detrender_input_Even);
+         prev_detrender_Even = b * prev_detrender_input_Even;
          detrender += prev_detrender_Even;
          prev_detrender_input_Even = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Even[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Even[hilbertIdx];
          Q1_Even[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Even;
-         prev_Q1_Even = (b*prev_Q1_input_Even);
+         prev_Q1_Even = b * prev_Q1_input_Even;
          Q1 += prev_Q1_Even;
          prev_Q1_input_Even = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForEvenPrev3;
          }
-         hilbertTempReal = (a*I1ForEvenPrev3);
-         jI = (0-jI_Even[hilbertIdx]);
+         hilbertTempReal = a * I1ForEvenPrev3;
+         jI = 0 - jI_Even[hilbertIdx];
          jI_Even[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Even;
-         prev_jI_Even = (b*prev_jI_input_Even);
+         prev_jI_Even = b * prev_jI_input_Even;
          jI += prev_jI_Even;
          prev_jI_input_Even = I1ForEvenPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Even[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Even[hilbertIdx];
          jQ_Even[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Even;
-         prev_jQ_Even = (b*prev_jQ_input_Even);
+         prev_jQ_Even = b * prev_jQ_input_Even;
          jQ += prev_jQ_Even;
          prev_jQ_input_Even = Q1;
          jQ *= adjustedPrevPeriod;
-         if( (++hilbertIdx==3) )
+         if( ++hilbertIdx == 3 )
          {
             hilbertIdx = 0;
          }
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForEvenPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForEvenPrev3 - jQ) + 0.8 * prevI2;
          I1ForOddPrev3 = I1ForOddPrev2;
          I1ForOddPrev2 = detrender;
       } else 
       {
-         hilbertTempReal = (a*smoothedValue);
-         detrender = (0-detrender_Odd[hilbertIdx]);
+         hilbertTempReal = a * smoothedValue;
+         detrender = 0 - detrender_Odd[hilbertIdx];
          detrender_Odd[hilbertIdx] = hilbertTempReal;
          detrender += hilbertTempReal;
          detrender -= prev_detrender_Odd;
-         prev_detrender_Odd = (b*prev_detrender_input_Odd);
+         prev_detrender_Odd = b * prev_detrender_input_Odd;
          detrender += prev_detrender_Odd;
          prev_detrender_input_Odd = smoothedValue;
          detrender *= adjustedPrevPeriod;
-         hilbertTempReal = (a*detrender);
-         Q1 = (0-Q1_Odd[hilbertIdx]);
+         hilbertTempReal = a * detrender;
+         Q1 = 0 - Q1_Odd[hilbertIdx];
          Q1_Odd[hilbertIdx] = hilbertTempReal;
          Q1 += hilbertTempReal;
          Q1 -= prev_Q1_Odd;
-         prev_Q1_Odd = (b*prev_Q1_input_Odd);
+         prev_Q1_Odd = b * prev_Q1_input_Odd;
          Q1 += prev_Q1_Odd;
          prev_Q1_input_Odd = detrender;
          Q1 *= adjustedPrevPeriod;
-         if( (today>=startIdx) )
+         if( today >= startIdx )
          {
             outQuadrature[outIdx] = Q1;
             outInPhase[outIdx++] = I1ForOddPrev3;
          }
-         hilbertTempReal = (a*I1ForOddPrev3);
-         jI = (0-jI_Odd[hilbertIdx]);
+         hilbertTempReal = a * I1ForOddPrev3;
+         jI = 0 - jI_Odd[hilbertIdx];
          jI_Odd[hilbertIdx] = hilbertTempReal;
          jI += hilbertTempReal;
          jI -= prev_jI_Odd;
-         prev_jI_Odd = (b*prev_jI_input_Odd);
+         prev_jI_Odd = b * prev_jI_input_Odd;
          jI += prev_jI_Odd;
          prev_jI_input_Odd = I1ForOddPrev3;
          jI *= adjustedPrevPeriod;
-         hilbertTempReal = (a*Q1);
-         jQ = (0-jQ_Odd[hilbertIdx]);
+         hilbertTempReal = a * Q1;
+         jQ = 0 - jQ_Odd[hilbertIdx];
          jQ_Odd[hilbertIdx] = hilbertTempReal;
          jQ += hilbertTempReal;
          jQ -= prev_jQ_Odd;
-         prev_jQ_Odd = (b*prev_jQ_input_Odd);
+         prev_jQ_Odd = b * prev_jQ_input_Odd;
          jQ += prev_jQ_Odd;
          prev_jQ_input_Odd = Q1;
          jQ *= adjustedPrevPeriod;
-         Q2 = ((0.2*(Q1+jI))+(0.8*prevQ2));
-         I2 = ((0.2*(I1ForOddPrev3-jQ))+(0.8*prevI2));
+         Q2 = 0.2 * (Q1 + jI) + 0.8 * prevQ2;
+         I2 = 0.2 * (I1ForOddPrev3 - jQ) + 0.8 * prevI2;
          I1ForEvenPrev3 = I1ForEvenPrev2;
          I1ForEvenPrev2 = detrender;
       }
-      Re = ((0.2*((I2*prevI2)+(Q2*prevQ2)))+(0.8*Re));
-      Im = ((0.2*((I2*prevQ2)-(Q2*prevI2)))+(0.8*Im));
+      Re = 0.2 * (I2 * prevI2 + Q2 * prevQ2) + 0.8 * Re;
+      Im = 0.2 * (I2 * prevQ2 - Q2 * prevI2) + 0.8 * Im;
       prevQ2 = Q2;
       prevI2 = I2;
       tempReal = period;
-      if( ((Im!=0.0)&&(Re!=0.0)) )
+      if( Im != 0.0 && Re != 0.0 )
       {
-         period = (360.0/(atan((Im/Re))*rad2Deg));
+         period = 360.0 / (atan(Im / Re) * rad2Deg);
       }
-      tempReal2 = (1.5*tempReal);
-      if( (period>tempReal2) )
-      {
-         period = tempReal2;
-      }
-      tempReal2 = (0.67*tempReal);
-      if( (period<tempReal2) )
+      tempReal2 = 1.5 * tempReal;
+      if( period > tempReal2 )
       {
          period = tempReal2;
       }
-      if( (period<6) )
+      tempReal2 = 0.67 * tempReal;
+      if( period < tempReal2 )
+      {
+         period = tempReal2;
+      }
+      if( period < 6 )
       {
          period = 6;
-      } else if( (period>50) )
+      } else if( period > 50 )
       {
          period = 50;
       }
-      period = ((0.2*period)+(0.8*tempReal));
+      period = 0.2 * period + 0.8 * tempReal;
       today += 1;
    }
    *outNBElement= outIdx;

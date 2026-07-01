@@ -122,12 +122,12 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -136,25 +136,25 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
    /* Do the calculation using tight loops. */
    /* Add-up the initial period, except for the last value. */
    BodyDojiPeriodTotal = 0;
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    ShadowLongPeriodTotal = 0;
-   ShadowLongTrailingIdx = (startIdx-ShadowLong_avgPeriod);
+   ShadowLongTrailingIdx = startIdx - ShadowLong_avgPeriod;
    NearPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
    }
    i = ShadowLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i);
       i += 1;
    }
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       NearPeriodTotal += TA_CANDLERANGE(Near,i);
       i += 1;
@@ -171,10 +171,10 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) && /* doji */
-          (((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)) && /* long shadow */
-          ((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)) && /* long shadow */
-          ((fmin(inOpen[i],inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))&&(fmax(inOpen[i],inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))) ) /* body near midpoint */
+      if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) && /* doji */
+          (((inClose[i] >= inOpen[i]) ? inOpen[i] : inClose[i]) - inLow[i]) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && /* long shadow */
+          (inHigh[i] - ((inClose[i] >= inOpen[i]) ? inClose[i] : inOpen[i])) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && /* long shadow */
+          fmin(inOpen[i],inClose[i]) <= inLow[i] + (inHigh[i] - inLow[i]) / 2 + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i) && fmax(inOpen[i],inClose[i]) >= inLow[i] + (inHigh[i] - inLow[i]) / 2 - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i) ) /* body near midpoint */
       {
          outInteger[outIdx++] = 100;
       } else 
@@ -184,14 +184,14 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
-      ShadowLongPeriodTotal += (TA_CANDLERANGE(ShadowLong,i)-TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx));
-      NearPeriodTotal += (TA_CANDLERANGE(Near,i)-TA_CANDLERANGE(Near,NearTrailingIdx));
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
+      ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i) - TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx);
+      NearPeriodTotal += TA_CANDLERANGE(Near,i) - TA_CANDLERANGE(Near,NearTrailingIdx);
       i += 1;
       BodyDojiTrailingIdx += 1;
       ShadowLongTrailingIdx += 1;
       NearTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -228,36 +228,36 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN_Unguarded( int    startIdx,
    double ShadowLong_factor = TA_Globals->candleSettings[TA_ShadowLong].factor;
 
    lookbackTotal = TA_CDLRICKSHAWMAN_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyDojiPeriodTotal = 0;
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    ShadowLongPeriodTotal = 0;
-   ShadowLongTrailingIdx = (startIdx-ShadowLong_avgPeriod);
+   ShadowLongTrailingIdx = startIdx - ShadowLong_avgPeriod;
    NearPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
    }
    i = ShadowLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i);
       i += 1;
    }
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       NearPeriodTotal += TA_CANDLERANGE(Near,i);
       i += 1;
@@ -265,21 +265,21 @@ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((fmin(inOpen[i],inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))&&(fmax(inOpen[i],inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,i))))) )
+      if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) && (((inClose[i] >= inOpen[i]) ? inOpen[i] : inClose[i]) - inLow[i]) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && (inHigh[i] - ((inClose[i] >= inOpen[i]) ? inClose[i] : inOpen[i])) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && (fmin(inOpen[i],inClose[i]) <= inLow[i] + (inHigh[i] - inLow[i]) / 2 + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i) && fmax(inOpen[i],inClose[i]) >= inLow[i] + (inHigh[i] - inLow[i]) / 2 - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
-      ShadowLongPeriodTotal += (TA_CANDLERANGE(ShadowLong,i)-TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx));
-      NearPeriodTotal += (TA_CANDLERANGE(Near,i)-TA_CANDLERANGE(Near,NearTrailingIdx));
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
+      ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i) - TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx);
+      NearPeriodTotal += TA_CANDLERANGE(Near,i) - TA_CANDLERANGE(Near,NearTrailingIdx);
       i += 1;
       BodyDojiTrailingIdx += 1;
       ShadowLongTrailingIdx += 1;
       NearTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -331,36 +331,36 @@ TA_RetCode TA_S_CDLRICKSHAWMAN( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLRICKSHAWMAN_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyDojiPeriodTotal = 0;
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    ShadowLongPeriodTotal = 0;
-   ShadowLongTrailingIdx = (startIdx-ShadowLong_avgPeriod);
+   ShadowLongTrailingIdx = startIdx - ShadowLong_avgPeriod;
    NearPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
    }
    i = ShadowLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i);
       i += 1;
    }
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       NearPeriodTotal += TA_CANDLERANGE(Near,i);
       i += 1;
@@ -368,21 +368,21 @@ TA_RetCode TA_S_CDLRICKSHAWMAN( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((fmin(inOpen[i],inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))&&(fmax(inOpen[i],inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,i))))) )
+      if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) && (((inClose[i] >= inOpen[i]) ? inOpen[i] : inClose[i]) - inLow[i]) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && (inHigh[i] - ((inClose[i] >= inOpen[i]) ? inClose[i] : inOpen[i])) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && (fmin(inOpen[i],inClose[i]) <= inLow[i] + (inHigh[i] - inLow[i]) / 2 + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i) && fmax(inOpen[i],inClose[i]) >= inLow[i] + (inHigh[i] - inLow[i]) / 2 - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
-      ShadowLongPeriodTotal += (TA_CANDLERANGE(ShadowLong,i)-TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx));
-      NearPeriodTotal += (TA_CANDLERANGE(Near,i)-TA_CANDLERANGE(Near,NearTrailingIdx));
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
+      ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i) - TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx);
+      NearPeriodTotal += TA_CANDLERANGE(Near,i) - TA_CANDLERANGE(Near,NearTrailingIdx);
       i += 1;
       BodyDojiTrailingIdx += 1;
       ShadowLongTrailingIdx += 1;
       NearTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -418,36 +418,36 @@ TA_RetCode TA_S_CDLRICKSHAWMAN_Unguarded( int    startIdx,
    double ShadowLong_factor = TA_Globals->candleSettings[TA_ShadowLong].factor;
 
    lookbackTotal = TA_CDLRICKSHAWMAN_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyDojiPeriodTotal = 0;
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    ShadowLongPeriodTotal = 0;
-   ShadowLongTrailingIdx = (startIdx-ShadowLong_avgPeriod);
+   ShadowLongTrailingIdx = startIdx - ShadowLong_avgPeriod;
    NearPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
    }
    i = ShadowLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i);
       i += 1;
    }
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       NearPeriodTotal += TA_CANDLERANGE(Near,i);
       i += 1;
@@ -455,21 +455,21 @@ TA_RetCode TA_S_CDLRICKSHAWMAN_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&((fmin(inOpen[i],inClose[i])<=((inLow[i]+((inHigh[i]-inLow[i])/2))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)))&&(fmax(inOpen[i],inClose[i])>=((inLow[i]+((inHigh[i]-inLow[i])/2))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,i))))) )
+      if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) && (((inClose[i] >= inOpen[i]) ? inOpen[i] : inClose[i]) - inLow[i]) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && (inHigh[i] - ((inClose[i] >= inOpen[i]) ? inClose[i] : inOpen[i])) > TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i) && (fmin(inOpen[i],inClose[i]) <= inLow[i] + (inHigh[i] - inLow[i]) / 2 + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i) && fmax(inOpen[i],inClose[i]) >= inLow[i] + (inHigh[i] - inLow[i]) / 2 - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i)) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
-      ShadowLongPeriodTotal += (TA_CANDLERANGE(ShadowLong,i)-TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx));
-      NearPeriodTotal += (TA_CANDLERANGE(Near,i)-TA_CANDLERANGE(Near,NearTrailingIdx));
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
+      ShadowLongPeriodTotal += TA_CANDLERANGE(ShadowLong,i) - TA_CANDLERANGE(ShadowLong,ShadowLongTrailingIdx);
+      NearPeriodTotal += TA_CANDLERANGE(Near,i) - TA_CANDLERANGE(Near,NearTrailingIdx);
       i += 1;
       BodyDojiTrailingIdx += 1;
       ShadowLongTrailingIdx += 1;
       NearTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

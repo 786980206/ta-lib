@@ -106,15 +106,15 @@ TA_LIB_API TA_RetCode TA_PPO( int    startIdx,
       return TA_BAD_PARAM;
 
    /* Allocate an intermediate buffer. */
-   tempBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-   if( !(tempBuffer) )
+   tempBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+   if( !tempBuffer )
    {
       return TA_ALLOC_ERR;
    }
    /* Make sure slow is really slower than
     * the fast period! if not, swap...
     */
-   if( (optInSlowPeriod<optInFastPeriod) )
+   if( optInSlowPeriod < optInFastPeriod )
    {
       /* swap */
       tempInteger = optInSlowPeriod;
@@ -123,20 +123,20 @@ TA_LIB_API TA_RetCode TA_PPO( int    startIdx,
    }
    /* Calculate the fast MA into the tempBuffer. */
    retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInFastPeriod,optInMAType,&outBegIdx2,&outNbElement2,tempBuffer);
-   if( (retCode==TA_SUCCESS) )
+   if( retCode == TA_SUCCESS )
    {
       /* Calculate the slow MA into the output. */
       retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInSlowPeriod,optInMAType,&outBegIdx1,&outNbElement1,outReal);
-      if( (retCode==TA_SUCCESS) )
+      if( retCode == TA_SUCCESS )
       {
-         tempInteger = (outBegIdx1-outBegIdx2);
+         tempInteger = outBegIdx1 - outBegIdx2;
          /* Calculate ((fast MA)-(slow MA))/(slow MA) in the output. */
-         for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
+         for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !(TA_IS_ZERO(tempReal)) )
+            if( !TA_IS_ZERO(tempReal) )
             {
-               outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
             } else 
             {
                outReal[i] = 0.0;
@@ -171,30 +171,30 @@ TA_LIB_API TA_RetCode TA_PPO_Unguarded( int    startIdx,
    int i;
    int j;
 
-   tempBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-   if( !(tempBuffer) )
+   tempBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+   if( !tempBuffer )
    {
       return TA_ALLOC_ERR;
    }
-   if( (optInSlowPeriod<optInFastPeriod) )
+   if( optInSlowPeriod < optInFastPeriod )
    {
       tempInteger = optInSlowPeriod;
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
    retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInFastPeriod,optInMAType,&outBegIdx2,&outNbElement2,tempBuffer);
-   if( (retCode==TA_SUCCESS) )
+   if( retCode == TA_SUCCESS )
    {
       retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInSlowPeriod,optInMAType,&outBegIdx1,&outNbElement1,outReal);
-      if( (retCode==TA_SUCCESS) )
+      if( retCode == TA_SUCCESS )
       {
-         tempInteger = (outBegIdx1-outBegIdx2);
-         for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
+         tempInteger = outBegIdx1 - outBegIdx2;
+         for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !(TA_IS_ZERO(tempReal)) )
+            if( !TA_IS_ZERO(tempReal) )
             {
-               outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
             } else 
             {
                outReal[i] = 0.0;
@@ -249,30 +249,30 @@ TA_RetCode TA_S_PPO( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   tempBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-   if( !(tempBuffer) )
+   tempBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+   if( !tempBuffer )
    {
       return TA_ALLOC_ERR;
    }
-   if( (optInSlowPeriod<optInFastPeriod) )
+   if( optInSlowPeriod < optInFastPeriod )
    {
       tempInteger = optInSlowPeriod;
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
    retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,optInFastPeriod,optInMAType,&outBegIdx2,&outNbElement2,tempBuffer);
-   if( (retCode==TA_SUCCESS) )
+   if( retCode == TA_SUCCESS )
    {
       retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,optInSlowPeriod,optInMAType,&outBegIdx1,&outNbElement1,outReal);
-      if( (retCode==TA_SUCCESS) )
+      if( retCode == TA_SUCCESS )
       {
-         tempInteger = (outBegIdx1-outBegIdx2);
-         for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
+         tempInteger = outBegIdx1 - outBegIdx2;
+         for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !(TA_IS_ZERO(tempReal)) )
+            if( !TA_IS_ZERO(tempReal) )
             {
-               outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
             } else 
             {
                outReal[i] = 0.0;
@@ -307,30 +307,30 @@ TA_RetCode TA_S_PPO_Unguarded( int    startIdx,
    int i;
    int j;
 
-   tempBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-   if( !(tempBuffer) )
+   tempBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+   if( !tempBuffer )
    {
       return TA_ALLOC_ERR;
    }
-   if( (optInSlowPeriod<optInFastPeriod) )
+   if( optInSlowPeriod < optInFastPeriod )
    {
       tempInteger = optInSlowPeriod;
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
    retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,optInFastPeriod,optInMAType,&outBegIdx2,&outNbElement2,tempBuffer);
-   if( (retCode==TA_SUCCESS) )
+   if( retCode == TA_SUCCESS )
    {
       retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,optInSlowPeriod,optInMAType,&outBegIdx1,&outNbElement1,outReal);
-      if( (retCode==TA_SUCCESS) )
+      if( retCode == TA_SUCCESS )
       {
-         tempInteger = (outBegIdx1-outBegIdx2);
-         for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
+         tempInteger = outBegIdx1 - outBegIdx2;
+         for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !(TA_IS_ZERO(tempReal)) )
+            if( !TA_IS_ZERO(tempReal) )
             {
-               outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
             } else 
             {
                outReal[i] = 0.0;

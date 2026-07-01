@@ -80,7 +80,7 @@ TA_LIB_API TA_RetCode TA_LN( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = log(inReal[i]);
    }
@@ -99,7 +99,7 @@ TA_LIB_API TA_RetCode TA_LN_Unguarded( int    startIdx,
    int outIdx;
    int i;
 
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = log(inReal[i]);
    }
@@ -128,7 +128,7 @@ TA_RetCode TA_S_LN( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = log(inReal[i]);
    }
@@ -147,7 +147,7 @@ TA_RetCode TA_S_LN_Unguarded( int    startIdx,
    int outIdx;
    int i;
 
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = log(inReal[i]);
    }

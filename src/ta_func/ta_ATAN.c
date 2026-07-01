@@ -81,7 +81,7 @@ TA_LIB_API TA_RetCode TA_ATAN( int    startIdx,
       return TA_BAD_PARAM;
 
    /* Default return values */
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = atan(inReal[i]);
    }
@@ -100,7 +100,7 @@ TA_LIB_API TA_RetCode TA_ATAN_Unguarded( int    startIdx,
    int outIdx;
    int i;
 
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = atan(inReal[i]);
    }
@@ -129,7 +129,7 @@ TA_RetCode TA_S_ATAN( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = atan(inReal[i]);
    }
@@ -148,7 +148,7 @@ TA_RetCode TA_S_ATAN_Unguarded( int    startIdx,
    int outIdx;
    int i;
 
-   for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
+   for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
    {
       outReal[outIdx] = atan(inReal[i]);
    }

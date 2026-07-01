@@ -111,12 +111,12 @@ TA_LIB_API TA_RetCode TA_AROON( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -128,52 +128,52 @@ TA_LIB_API TA_RetCode TA_AROON( int    startIdx,
     */
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   lowestIdx = (0-1);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - optInTimePeriod;
+   lowestIdx = 0 - 1;
+   highestIdx = 0 - 1;
    lowest = 0.0;
    highest = 0.0;
-   factor = (((double)100.0)/((double)optInTimePeriod));
-   while( (today<=endIdx) )
+   factor = (double)100.0 / (double)optInTimePeriod;
+   while( today <= endIdx )
    {
       /* Keep track of the lowestIdx */
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<=lowest) )
+            if( tmp <= lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
       }
       /* Keep track of the highestIdx */
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>=highest) )
+            if( tmp >= highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
@@ -181,8 +181,8 @@ TA_LIB_API TA_RetCode TA_AROON( int    startIdx,
       /* Note: Do not forget that input and output buffer can be the same,
        *       so writing to the output is the last thing being done here.
        */
-      outAroonUp[outIdx] = (factor*(optInTimePeriod-(today-highestIdx)));
-      outAroonDown[outIdx] = (factor*(optInTimePeriod-(today-lowestIdx)));
+      outAroonUp[outIdx] = factor * (optInTimePeriod - (today - highestIdx));
+      outAroonDown[outIdx] = factor * (optInTimePeriod - (today - lowestIdx));
       outIdx += 1;
       trailingIdx += 1;
       today += 1;
@@ -216,11 +216,11 @@ TA_LIB_API TA_RetCode TA_AROON_Unguarded( int    startIdx,
    int today;
    int i;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -228,56 +228,56 @@ TA_LIB_API TA_RetCode TA_AROON_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   lowestIdx = (0-1);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - optInTimePeriod;
+   lowestIdx = 0 - 1;
+   highestIdx = 0 - 1;
    lowest = 0.0;
    highest = 0.0;
-   factor = (((double)100.0)/((double)optInTimePeriod));
-   while( (today<=endIdx) )
+   factor = (double)100.0 / (double)optInTimePeriod;
+   while( today <= endIdx )
    {
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<=lowest) )
+            if( tmp <= lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
       }
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>=highest) )
+            if( tmp >= highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
       }
-      outAroonUp[outIdx] = (factor*(optInTimePeriod-(today-highestIdx)));
-      outAroonDown[outIdx] = (factor*(optInTimePeriod-(today-lowestIdx)));
+      outAroonUp[outIdx] = factor * (optInTimePeriod - (today - highestIdx));
+      outAroonDown[outIdx] = factor * (optInTimePeriod - (today - lowestIdx));
       outIdx += 1;
       trailingIdx += 1;
       today += 1;
@@ -326,11 +326,11 @@ TA_RetCode TA_S_AROON( int    startIdx,
    if( !outAroonUp )
       return TA_BAD_PARAM;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -338,56 +338,56 @@ TA_RetCode TA_S_AROON( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   lowestIdx = (0-1);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - optInTimePeriod;
+   lowestIdx = 0 - 1;
+   highestIdx = 0 - 1;
    lowest = 0.0;
    highest = 0.0;
-   factor = (((double)100.0)/((double)optInTimePeriod));
-   while( (today<=endIdx) )
+   factor = (double)100.0 / (double)optInTimePeriod;
+   while( today <= endIdx )
    {
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<=lowest) )
+            if( tmp <= lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
       }
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>=highest) )
+            if( tmp >= highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
       }
-      outAroonUp[outIdx] = (factor*(optInTimePeriod-(today-highestIdx)));
-      outAroonDown[outIdx] = (factor*(optInTimePeriod-(today-lowestIdx)));
+      outAroonUp[outIdx] = factor * (optInTimePeriod - (today - highestIdx));
+      outAroonDown[outIdx] = factor * (optInTimePeriod - (today - lowestIdx));
       outIdx += 1;
       trailingIdx += 1;
       today += 1;
@@ -418,11 +418,11 @@ TA_RetCode TA_S_AROON_Unguarded( int    startIdx,
    int today;
    int i;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -430,56 +430,56 @@ TA_RetCode TA_S_AROON_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   lowestIdx = (0-1);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - optInTimePeriod;
+   lowestIdx = 0 - 1;
+   highestIdx = 0 - 1;
    lowest = 0.0;
    highest = 0.0;
-   factor = (((double)100.0)/((double)optInTimePeriod));
-   while( (today<=endIdx) )
+   factor = (double)100.0 / (double)optInTimePeriod;
+   while( today <= endIdx )
    {
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<=lowest) )
+            if( tmp <= lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
       }
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>=highest) )
+            if( tmp >= highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
       }
-      outAroonUp[outIdx] = (factor*(optInTimePeriod-(today-highestIdx)));
-      outAroonDown[outIdx] = (factor*(optInTimePeriod-(today-lowestIdx)));
+      outAroonUp[outIdx] = factor * (optInTimePeriod - (today - highestIdx));
+      outAroonDown[outIdx] = factor * (optInTimePeriod - (today - lowestIdx));
       outIdx += 1;
       trailingIdx += 1;
       today += 1;

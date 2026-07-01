@@ -62,7 +62,7 @@
 
 TA_LIB_API int TA_KAMA_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama));
+   return optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
 }
 
 TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
@@ -101,24 +101,24 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   constMax = (2.0/(30.0+1.0));
-   constDiff = ((2.0/(2.0+1.0))-constMax);
+   constMax = 2.0 / (30.0 + 1.0);
+   constDiff = 2.0 / (2.0 + 1.0) - constMax;
    /* Default return values */
    *outBegIdx= 0;
    *outNBElement= 0;
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama));
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -128,10 +128,10 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
     * the lookback period.
     */
    sumROC1 = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    trailingIdx = today;
    i = optInTimePeriod;
-   while( (i-->0) )
+   while( i-- > 0 )
    {
       tempReal = inReal[today++];
       tempReal -= inReal[today];
@@ -143,101 +143,101 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
     */
    /* Calculate the first KAMA */
    /* The yesterday price is used here as the previous KAMA. */
-   prevKAMA = inReal[(today-1)];
+   prevKAMA = inReal[today - 1];
    tempReal = inReal[today];
    tempReal2 = inReal[trailingIdx++];
-   periodROC = (tempReal-tempReal2);
+   periodROC = tempReal - tempReal2;
    /* Save the trailing value. Do this because inReal
     * and outReal can be pointers to the same buffer.
     */
    trailingValue = tempReal2;
    /* Calculate the efficiency ratio */
-   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+   if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
    {
       tempReal = 1.0;
    } else 
    {
-      tempReal = fabs((periodROC/sumROC1));
+      tempReal = fabs(periodROC / sumROC1);
    }
    /* Calculate the smoothing constant */
-   tempReal = ((tempReal*constDiff)+constMax);
+   tempReal = tempReal * constDiff + constMax;
    tempReal *= tempReal;
    /* Calculate the KAMA like an EMA, using the
     * smoothing constant as the adaptive factor.
     */
-   prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+   prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
    /* 'today' keep track of where the processing is within the
     * input.
     */
    /* Skip the unstable period. Do the whole processing
     * needed for KAMA, but do not write it in the output.
     */
-   while( (today<=startIdx) )
+   while( today <= startIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
+      periodROC = tempReal - tempReal2;
       /* Adjust sumROC1:
        *  - Remove trailing ROC1
        *  - Add new ROC1
        */
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       /* Save the trailing value. Do this because inReal
        * and outReal can be pointers to the same buffer.
        */
       trailingValue = tempReal2;
       /* Calculate the efficiency ratio */
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
       /* Calculate the smoothing constant */
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
       /* Calculate the KAMA like an EMA, using the
        * smoothing constant as the adaptive factor.
        */
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
    }
    /* Write the first value. */
    outReal[0] = prevKAMA;
    outIdx = 1;
-   *outBegIdx= (today-1);
+   *outBegIdx= today - 1;
    /* Do the KAMA calculation for the requested range. */
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
+      periodROC = tempReal - tempReal2;
       /* Adjust sumROC1:
        *  - Remove trailing ROC1
        *  - Add new ROC1
        */
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       /* Save the trailing value. Do this because inReal
        * and outReal can be pointers to the same buffer.
        */
       trailingValue = tempReal2;
       /* Calculate the efficiency ratio */
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
       /* Calculate the smoothing constant */
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
       /* Calculate the KAMA like an EMA, using the
        * smoothing constant as the adaptive factor.
        */
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       outReal[outIdx++] = prevKAMA;
    }
    *outNBElement= outIdx;
@@ -266,86 +266,86 @@ TA_LIB_API TA_RetCode TA_KAMA_Unguarded( int    startIdx,
    int trailingIdx;
    double trailingValue;
 
-   constMax = (2.0/(30.0+1.0));
-   constDiff = ((2.0/(2.0+1.0))-constMax);
+   constMax = 2.0 / (30.0 + 1.0);
+   constDiff = 2.0 / (2.0 + 1.0) - constMax;
    *outBegIdx= 0;
    *outNBElement= 0;
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama));
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    sumROC1 = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    trailingIdx = today;
    i = optInTimePeriod;
-   while( (i-->0) )
+   while( i-- > 0 )
    {
       tempReal = inReal[today++];
       tempReal -= inReal[today];
       sumROC1 += fabs(tempReal);
    }
-   prevKAMA = inReal[(today-1)];
+   prevKAMA = inReal[today - 1];
    tempReal = inReal[today];
    tempReal2 = inReal[trailingIdx++];
-   periodROC = (tempReal-tempReal2);
+   periodROC = tempReal - tempReal2;
    trailingValue = tempReal2;
-   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+   if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
    {
       tempReal = 1.0;
    } else 
    {
-      tempReal = fabs((periodROC/sumROC1));
+      tempReal = fabs(periodROC / sumROC1);
    }
-   tempReal = ((tempReal*constDiff)+constMax);
+   tempReal = tempReal * constDiff + constMax;
    tempReal *= tempReal;
-   prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
-   while( (today<=startIdx) )
+   prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+   while( today <= startIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      periodROC = tempReal - tempReal2;
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
    }
    outReal[0] = prevKAMA;
    outIdx = 1;
-   *outBegIdx= (today-1);
-   while( (today<=endIdx) )
+   *outBegIdx= today - 1;
+   while( today <= endIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      periodROC = tempReal - tempReal2;
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       outReal[outIdx++] = prevKAMA;
    }
    *outNBElement= outIdx;
@@ -388,86 +388,86 @@ TA_RetCode TA_S_KAMA( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   constMax = (2.0/(30.0+1.0));
-   constDiff = ((2.0/(2.0+1.0))-constMax);
+   constMax = 2.0 / (30.0 + 1.0);
+   constDiff = 2.0 / (2.0 + 1.0) - constMax;
    *outBegIdx= 0;
    *outNBElement= 0;
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama));
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    sumROC1 = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    trailingIdx = today;
    i = optInTimePeriod;
-   while( (i-->0) )
+   while( i-- > 0 )
    {
       tempReal = inReal[today++];
       tempReal -= inReal[today];
       sumROC1 += fabs(tempReal);
    }
-   prevKAMA = inReal[(today-1)];
+   prevKAMA = inReal[today - 1];
    tempReal = inReal[today];
    tempReal2 = inReal[trailingIdx++];
-   periodROC = (tempReal-tempReal2);
+   periodROC = tempReal - tempReal2;
    trailingValue = tempReal2;
-   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+   if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
    {
       tempReal = 1.0;
    } else 
    {
-      tempReal = fabs((periodROC/sumROC1));
+      tempReal = fabs(periodROC / sumROC1);
    }
-   tempReal = ((tempReal*constDiff)+constMax);
+   tempReal = tempReal * constDiff + constMax;
    tempReal *= tempReal;
-   prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
-   while( (today<=startIdx) )
+   prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+   while( today <= startIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      periodROC = tempReal - tempReal2;
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
    }
    outReal[0] = prevKAMA;
    outIdx = 1;
-   *outBegIdx= (today-1);
-   while( (today<=endIdx) )
+   *outBegIdx= today - 1;
+   while( today <= endIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      periodROC = tempReal - tempReal2;
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       outReal[outIdx++] = prevKAMA;
    }
    *outNBElement= outIdx;
@@ -496,86 +496,86 @@ TA_RetCode TA_S_KAMA_Unguarded( int    startIdx,
    int trailingIdx;
    double trailingValue;
 
-   constMax = (2.0/(30.0+1.0));
-   constDiff = ((2.0/(2.0+1.0))-constMax);
+   constMax = 2.0 / (30.0 + 1.0);
+   constDiff = 2.0 / (2.0 + 1.0) - constMax;
    *outBegIdx= 0;
    *outNBElement= 0;
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama));
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    sumROC1 = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    trailingIdx = today;
    i = optInTimePeriod;
-   while( (i-->0) )
+   while( i-- > 0 )
    {
       tempReal = inReal[today++];
       tempReal -= inReal[today];
       sumROC1 += fabs(tempReal);
    }
-   prevKAMA = inReal[(today-1)];
+   prevKAMA = inReal[today - 1];
    tempReal = inReal[today];
    tempReal2 = inReal[trailingIdx++];
-   periodROC = (tempReal-tempReal2);
+   periodROC = tempReal - tempReal2;
    trailingValue = tempReal2;
-   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+   if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
    {
       tempReal = 1.0;
    } else 
    {
-      tempReal = fabs((periodROC/sumROC1));
+      tempReal = fabs(periodROC / sumROC1);
    }
-   tempReal = ((tempReal*constDiff)+constMax);
+   tempReal = tempReal * constDiff + constMax;
    tempReal *= tempReal;
-   prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
-   while( (today<=startIdx) )
+   prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+   while( today <= startIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      periodROC = tempReal - tempReal2;
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
    }
    outReal[0] = prevKAMA;
    outIdx = 1;
-   *outBegIdx= (today-1);
-   while( (today<=endIdx) )
+   *outBegIdx= today - 1;
+   while( today <= endIdx )
    {
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
-      sumROC1 -= fabs((trailingValue-tempReal2));
-      sumROC1 += fabs((tempReal-inReal[(today-1)]));
+      periodROC = tempReal - tempReal2;
+      sumROC1 -= fabs(trailingValue - tempReal2);
+      sumROC1 += fabs(tempReal - inReal[today - 1]);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
+      if( sumROC1 <= periodROC || TA_IS_ZERO(sumROC1) )
       {
          tempReal = 1.0;
       } else 
       {
-         tempReal = fabs((periodROC/sumROC1));
+         tempReal = fabs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       outReal[outIdx++] = prevKAMA;
    }
    *outNBElement= outIdx;

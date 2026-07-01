@@ -62,7 +62,7 @@
 
 TA_LIB_API int TA_CCI_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
@@ -112,16 +112,16 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-   lookbackTotal = (optInTimePeriod-1);
+   lookbackTotal = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -149,12 +149,12 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
    /* Add-up the initial period, except for the last value.
     * Fill up the circular buffer at the same time.
     */
-   i = (startIdx-lookbackTotal);
-   if( (optInTimePeriod>1) )
+   i = startIdx - lookbackTotal;
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
-         circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
+         circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3;
          i += 1;
          circBuffer_Idx++;
          if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
@@ -167,11 +167,11 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
    outIdx = 0;
    do
    {
-      lastValue = (((inHigh[i]+inLow[i])+inClose[i])/3);
+      lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3;
       circBuffer[circBuffer_Idx] = lastValue;
       /* Calculate the average for the whole period. */
       theAverage = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
          theAverage += circBuffer[j];
       }
@@ -180,15 +180,15 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
        * for the whole period.
        */
       tempReal2 = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
-         tempReal2 += fabs((circBuffer[j]-theAverage));
+         tempReal2 += fabs(circBuffer[j] - theAverage);
       }
       /* And finally, the CCI... */
-      tempReal = (lastValue-theAverage);
-      if( ((tempReal!=0.0)&&(tempReal2!=0.0)) )
+      tempReal = lastValue - theAverage;
+      if( tempReal != 0.0 && tempReal2 != 0.0 )
       {
-         outReal[outIdx++] = (tempReal/(0.015*(tempReal2/optInTimePeriod)));
+         outReal[outIdx++] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -197,7 +197,7 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
       circBuffer_Idx++;
       if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
       i += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -229,12 +229,12 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
    int circBuffer_Idx;
    int maxIdx_circBuffer;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -255,12 +255,12 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
    }
    maxIdx_circBuffer = (optInTimePeriod-1);
    circBuffer_Idx = 0;
-   i = (startIdx-lookbackTotal);
-   if( (optInTimePeriod>1) )
+   i = startIdx - lookbackTotal;
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
-         circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
+         circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3;
          i += 1;
          circBuffer_Idx++;
          if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
@@ -269,23 +269,23 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      lastValue = (((inHigh[i]+inLow[i])+inClose[i])/3);
+      lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3;
       circBuffer[circBuffer_Idx] = lastValue;
       theAverage = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
          theAverage += circBuffer[j];
       }
       theAverage /= optInTimePeriod;
       tempReal2 = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
-         tempReal2 += fabs((circBuffer[j]-theAverage));
+         tempReal2 += fabs(circBuffer[j] - theAverage);
       }
-      tempReal = (lastValue-theAverage);
-      if( ((tempReal!=0.0)&&(tempReal2!=0.0)) )
+      tempReal = lastValue - theAverage;
+      if( tempReal != 0.0 && tempReal2 != 0.0 )
       {
-         outReal[outIdx++] = (tempReal/(0.015*(tempReal2/optInTimePeriod)));
+         outReal[outIdx++] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -293,7 +293,7 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
       circBuffer_Idx++;
       if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
       i += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    if( circBuffer != &local_circBuffer[0] ) TA_Free( circBuffer );
@@ -341,12 +341,12 @@ TA_RetCode TA_S_CCI( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -367,12 +367,12 @@ TA_RetCode TA_S_CCI( int    startIdx,
    }
    maxIdx_circBuffer = (optInTimePeriod-1);
    circBuffer_Idx = 0;
-   i = (startIdx-lookbackTotal);
-   if( (optInTimePeriod>1) )
+   i = startIdx - lookbackTotal;
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
-         circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
+         circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3;
          i += 1;
          circBuffer_Idx++;
          if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
@@ -381,23 +381,23 @@ TA_RetCode TA_S_CCI( int    startIdx,
    outIdx = 0;
    do
    {
-      lastValue = (((inHigh[i]+inLow[i])+inClose[i])/3);
+      lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3;
       circBuffer[circBuffer_Idx] = lastValue;
       theAverage = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
          theAverage += circBuffer[j];
       }
       theAverage /= optInTimePeriod;
       tempReal2 = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
-         tempReal2 += fabs((circBuffer[j]-theAverage));
+         tempReal2 += fabs(circBuffer[j] - theAverage);
       }
-      tempReal = (lastValue-theAverage);
-      if( ((tempReal!=0.0)&&(tempReal2!=0.0)) )
+      tempReal = lastValue - theAverage;
+      if( tempReal != 0.0 && tempReal2 != 0.0 )
       {
-         outReal[outIdx++] = (tempReal/(0.015*(tempReal2/optInTimePeriod)));
+         outReal[outIdx++] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -405,7 +405,7 @@ TA_RetCode TA_S_CCI( int    startIdx,
       circBuffer_Idx++;
       if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
       i += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    if( circBuffer != &local_circBuffer[0] ) TA_Free( circBuffer );
@@ -435,12 +435,12 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
    int circBuffer_Idx;
    int maxIdx_circBuffer;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -461,12 +461,12 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
    }
    maxIdx_circBuffer = (optInTimePeriod-1);
    circBuffer_Idx = 0;
-   i = (startIdx-lookbackTotal);
-   if( (optInTimePeriod>1) )
+   i = startIdx - lookbackTotal;
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
-         circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
+         circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3;
          i += 1;
          circBuffer_Idx++;
          if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
@@ -475,23 +475,23 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      lastValue = (((inHigh[i]+inLow[i])+inClose[i])/3);
+      lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3;
       circBuffer[circBuffer_Idx] = lastValue;
       theAverage = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
          theAverage += circBuffer[j];
       }
       theAverage /= optInTimePeriod;
       tempReal2 = 0;
-      for( j = 0; (j<optInTimePeriod); j += 1 )
+      for( j = 0; j < optInTimePeriod; j += 1 )
       {
-         tempReal2 += fabs((circBuffer[j]-theAverage));
+         tempReal2 += fabs(circBuffer[j] - theAverage);
       }
-      tempReal = (lastValue-theAverage);
-      if( ((tempReal!=0.0)&&(tempReal2!=0.0)) )
+      tempReal = lastValue - theAverage;
+      if( tempReal != 0.0 && tempReal2 != 0.0 )
       {
-         outReal[outIdx++] = (tempReal/(0.015*(tempReal2/optInTimePeriod)));
+         outReal[outIdx++] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -499,7 +499,7 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
       circBuffer_Idx++;
       if( circBuffer_Idx > maxIdx_circBuffer ) circBuffer_Idx = 0;
       i += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    if( circBuffer != &local_circBuffer[0] ) TA_Free( circBuffer );

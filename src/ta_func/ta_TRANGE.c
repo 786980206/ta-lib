@@ -110,12 +110,12 @@ TA_LIB_API TA_RetCode TA_TRANGE( int    startIdx,
     * enough initial data.
     * Always one price bar gets consumed.
     */
-   if( (startIdx<1) )
+   if( startIdx < 1 )
    {
       startIdx = 1;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -123,21 +123,21 @@ TA_LIB_API TA_RetCode TA_TRANGE( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       /* Find the greatest of the 3 values. */
       tempLT = inLow[today];
       tempHT = inHigh[today];
-      tempCY = inClose[(today-1)];
-      greatest = (tempHT-tempLT);
+      tempCY = inClose[today - 1];
+      greatest = tempHT - tempLT;
       /* val1 */
-      val2 = fabs((tempCY-tempHT));
-      if( (val2>greatest) )
+      val2 = fabs(tempCY - tempHT);
+      if( val2 > greatest )
       {
          greatest = val2;
       }
-      val3 = fabs((tempCY-tempLT));
-      if( (val3>greatest) )
+      val3 = fabs(tempCY - tempLT);
+      if( val3 > greatest )
       {
          greatest = val3;
       }
@@ -167,11 +167,11 @@ TA_LIB_API TA_RetCode TA_TRANGE_Unguarded( int    startIdx,
    double tempLT;
    double tempHT;
 
-   if( (startIdx<1) )
+   if( startIdx < 1 )
    {
       startIdx = 1;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -179,19 +179,19 @@ TA_LIB_API TA_RetCode TA_TRANGE_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempLT = inLow[today];
       tempHT = inHigh[today];
-      tempCY = inClose[(today-1)];
-      greatest = (tempHT-tempLT);
-      val2 = fabs((tempCY-tempHT));
-      if( (val2>greatest) )
+      tempCY = inClose[today - 1];
+      greatest = tempHT - tempLT;
+      val2 = fabs(tempCY - tempHT);
+      if( val2 > greatest )
       {
          greatest = val2;
       }
-      val3 = fabs((tempCY-tempLT));
-      if( (val3>greatest) )
+      val3 = fabs(tempCY - tempLT);
+      if( val3 > greatest )
       {
          greatest = val3;
       }
@@ -235,11 +235,11 @@ TA_RetCode TA_S_TRANGE( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   if( (startIdx<1) )
+   if( startIdx < 1 )
    {
       startIdx = 1;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -247,19 +247,19 @@ TA_RetCode TA_S_TRANGE( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempLT = inLow[today];
       tempHT = inHigh[today];
-      tempCY = inClose[(today-1)];
-      greatest = (tempHT-tempLT);
-      val2 = fabs((tempCY-tempHT));
-      if( (val2>greatest) )
+      tempCY = inClose[today - 1];
+      greatest = tempHT - tempLT;
+      val2 = fabs(tempCY - tempHT);
+      if( val2 > greatest )
       {
          greatest = val2;
       }
-      val3 = fabs((tempCY-tempLT));
-      if( (val3>greatest) )
+      val3 = fabs(tempCY - tempLT);
+      if( val3 > greatest )
       {
          greatest = val3;
       }
@@ -289,11 +289,11 @@ TA_RetCode TA_S_TRANGE_Unguarded( int    startIdx,
    double tempLT;
    double tempHT;
 
-   if( (startIdx<1) )
+   if( startIdx < 1 )
    {
       startIdx = 1;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -301,19 +301,19 @@ TA_RetCode TA_S_TRANGE_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempLT = inLow[today];
       tempHT = inHigh[today];
-      tempCY = inClose[(today-1)];
-      greatest = (tempHT-tempLT);
-      val2 = fabs((tempCY-tempHT));
-      if( (val2>greatest) )
+      tempCY = inClose[today - 1];
+      greatest = tempHT - tempLT;
+      val2 = fabs(tempCY - tempHT);
+      if( val2 > greatest )
       {
          greatest = val2;
       }
-      val3 = fabs((tempCY-tempLT));
-      if( (val3>greatest) )
+      val3 = fabs(tempCY - tempLT);
+      if( val3 > greatest )
       {
          greatest = val3;
       }

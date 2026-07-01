@@ -58,7 +58,7 @@
 
 TA_LIB_API int TA_SUM_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
@@ -93,16 +93,16 @@ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-   lookbackTotal = (optInTimePeriod-1);
+   lookbackTotal = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -111,11 +111,11 @@ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
    /* Do the MA calculation using tight loops. */
    /* Add-up the initial period, except for the last value. */
    periodTotal = 0;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          periodTotal += inReal[i++];
       }
@@ -131,7 +131,7 @@ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
       tempReal = periodTotal;
       periodTotal -= inReal[trailingIdx++];
       outReal[outIdx++] = tempReal;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -153,23 +153,23 @@ TA_LIB_API TA_RetCode TA_SUM_Unguarded( int    startIdx,
    int trailingIdx;
    int lookbackTotal;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    periodTotal = 0;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          periodTotal += inReal[i++];
       }
@@ -181,7 +181,7 @@ TA_LIB_API TA_RetCode TA_SUM_Unguarded( int    startIdx,
       tempReal = periodTotal;
       periodTotal -= inReal[trailingIdx++];
       outReal[outIdx++] = tempReal;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -216,23 +216,23 @@ TA_RetCode TA_S_SUM( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    periodTotal = 0;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          periodTotal += inReal[i++];
       }
@@ -244,7 +244,7 @@ TA_RetCode TA_S_SUM( int    startIdx,
       tempReal = periodTotal;
       periodTotal -= inReal[trailingIdx++];
       outReal[outIdx++] = tempReal;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -265,23 +265,23 @@ TA_RetCode TA_S_SUM_Unguarded( int    startIdx,
    int trailingIdx;
    int lookbackTotal;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    periodTotal = 0;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          periodTotal += inReal[i++];
       }
@@ -293,7 +293,7 @@ TA_RetCode TA_S_SUM_Unguarded( int    startIdx,
       tempReal = periodTotal;
       periodTotal -= inReal[trailingIdx++];
       outReal[outIdx++] = tempReal;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

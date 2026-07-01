@@ -57,7 +57,7 @@
 
 TA_LIB_API int TA_MININDEX_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_MININDEX( int    startIdx,
@@ -95,16 +95,16 @@ TA_LIB_API TA_RetCode TA_MININDEX( int    startIdx,
     * to identify at least one output over the specified
     * period.
     */
-   nbInitialElementNeeded = (optInTimePeriod-1);
+   nbInitialElementNeeded = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -116,27 +116,27 @@ TA_LIB_API TA_RetCode TA_MININDEX( int    startIdx,
     */
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   lowestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
@@ -170,12 +170,12 @@ TA_LIB_API TA_RetCode TA_MININDEX_Unguarded( int    startIdx,
    int today;
    int i;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -183,27 +183,27 @@ TA_LIB_API TA_RetCode TA_MININDEX_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   lowestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
@@ -248,12 +248,12 @@ TA_RetCode TA_S_MININDEX( int    startIdx,
    if( !outInteger )
       return TA_BAD_PARAM;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -261,27 +261,27 @@ TA_RetCode TA_S_MININDEX( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   lowestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
@@ -312,12 +312,12 @@ TA_RetCode TA_S_MININDEX_Unguarded( int    startIdx,
    int today;
    int i;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -325,27 +325,27 @@ TA_RetCode TA_S_MININDEX_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   lowestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-      } else if( (tmp<=lowest) )
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;

@@ -114,21 +114,21 @@ TA_LIB_API TA_RetCode TA_AD( int    startIdx,
     *       its calculations.
     */
    /* Default return values */
-   nbBar = ((endIdx-startIdx)+1);
+   nbBar = endIdx - startIdx + 1;
    *outNBElement= nbBar;
    *outBegIdx= startIdx;
    currentBar = startIdx;
    outIdx = 0;
    ad = 0.0;
-   while( (nbBar!=0) )
+   while( nbBar != 0 )
    {
       high = inHigh[currentBar];
       low = inLow[currentBar];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[currentBar];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
       }
       outReal[outIdx++] = ad;
       currentBar += 1;
@@ -156,21 +156,21 @@ TA_LIB_API TA_RetCode TA_AD_Unguarded( int    startIdx,
    double tmp;
    double ad;
 
-   nbBar = ((endIdx-startIdx)+1);
+   nbBar = endIdx - startIdx + 1;
    *outNBElement= nbBar;
    *outBegIdx= startIdx;
    currentBar = startIdx;
    outIdx = 0;
    ad = 0.0;
-   while( (nbBar!=0) )
+   while( nbBar != 0 )
    {
       high = inHigh[currentBar];
       low = inLow[currentBar];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[currentBar];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
       }
       outReal[outIdx++] = ad;
       currentBar += 1;
@@ -214,21 +214,21 @@ TA_RetCode TA_S_AD( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   nbBar = ((endIdx-startIdx)+1);
+   nbBar = endIdx - startIdx + 1;
    *outNBElement= nbBar;
    *outBegIdx= startIdx;
    currentBar = startIdx;
    outIdx = 0;
    ad = 0.0;
-   while( (nbBar!=0) )
+   while( nbBar != 0 )
    {
       high = inHigh[currentBar];
       low = inLow[currentBar];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[currentBar];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
       }
       outReal[outIdx++] = ad;
       currentBar += 1;
@@ -256,21 +256,21 @@ TA_RetCode TA_S_AD_Unguarded( int    startIdx,
    double tmp;
    double ad;
 
-   nbBar = ((endIdx-startIdx)+1);
+   nbBar = endIdx - startIdx + 1;
    *outNBElement= nbBar;
    *outBegIdx= startIdx;
    currentBar = startIdx;
    outIdx = 0;
    ad = 0.0;
-   while( (nbBar!=0) )
+   while( nbBar != 0 )
    {
       high = inHigh[currentBar];
       low = inLow[currentBar];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[currentBar];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
       }
       outReal[outIdx++] = ad;
       currentBar += 1;

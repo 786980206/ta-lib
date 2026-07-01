@@ -123,12 +123,12 @@ TA_LIB_API TA_RetCode TA_ROCP( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -137,13 +137,13 @@ TA_LIB_API TA_RetCode TA_ROCP( int    startIdx,
    /* Calculate Rate of change Ratio: (price / prevPrice) */
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
       tempReal = inReal[trailingIdx++];
-      if( (tempReal!=0.0) )
+      if( tempReal != 0.0 )
       {
-         outReal[outIdx++] = ((inReal[inIdx]-tempReal)/tempReal);
+         outReal[outIdx++] = (inReal[inIdx] - tempReal) / tempReal;
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -169,11 +169,11 @@ TA_LIB_API TA_RetCode TA_ROCP_Unguarded( int    startIdx,
    int trailingIdx;
    double tempReal;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -181,13 +181,13 @@ TA_LIB_API TA_RetCode TA_ROCP_Unguarded( int    startIdx,
    }
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
       tempReal = inReal[trailingIdx++];
-      if( (tempReal!=0.0) )
+      if( tempReal != 0.0 )
       {
-         outReal[outIdx++] = ((inReal[inIdx]-tempReal)/tempReal);
+         outReal[outIdx++] = (inReal[inIdx] - tempReal) / tempReal;
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -226,11 +226,11 @@ TA_RetCode TA_S_ROCP( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -238,13 +238,13 @@ TA_RetCode TA_S_ROCP( int    startIdx,
    }
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
       tempReal = inReal[trailingIdx++];
-      if( (tempReal!=0.0) )
+      if( tempReal != 0.0 )
       {
-         outReal[outIdx++] = ((inReal[inIdx]-tempReal)/tempReal);
+         outReal[outIdx++] = (inReal[inIdx] - tempReal) / tempReal;
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -269,11 +269,11 @@ TA_RetCode TA_S_ROCP_Unguarded( int    startIdx,
    int trailingIdx;
    double tempReal;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -281,13 +281,13 @@ TA_RetCode TA_S_ROCP_Unguarded( int    startIdx,
    }
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
       tempReal = inReal[trailingIdx++];
-      if( (tempReal!=0.0) )
+      if( tempReal != 0.0 )
       {
-         outReal[outIdx++] = ((inReal[inIdx]-tempReal)/tempReal);
+         outReal[outIdx++] = (inReal[inIdx] - tempReal) / tempReal;
       } else 
       {
          outReal[outIdx++] = 0.0;

@@ -94,9 +94,9 @@ TA_LIB_API TA_RetCode TA_MEDPRICE( int    startIdx,
     * low over multiple price bar.
     */
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((inHigh[i]+inLow[i])/2.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i]) / 2.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -115,9 +115,9 @@ TA_LIB_API TA_RetCode TA_MEDPRICE_Unguarded( int    startIdx,
    int i;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((inHigh[i]+inLow[i])/2.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i]) / 2.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -148,9 +148,9 @@ TA_RetCode TA_S_MEDPRICE( int    startIdx,
       return TA_BAD_PARAM;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((inHigh[i]+inLow[i])/2.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i]) / 2.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -169,9 +169,9 @@ TA_RetCode TA_S_MEDPRICE_Unguarded( int    startIdx,
    int i;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((inHigh[i]+inLow[i])/2.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i]) / 2.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;

@@ -93,15 +93,15 @@ TA_LIB_API TA_RetCode TA_BOP( int    startIdx,
 
    /* BOP = (Close - Open)/(High - Low) */
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      tempReal = (inHigh[i]-inLow[i]);
+      tempReal = inHigh[i] - inLow[i];
       if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
+         outReal[outIdx++] = (inClose[i] - inOpen[i]) / tempReal;
       }
    }
    *outNBElement= outIdx;
@@ -124,15 +124,15 @@ TA_LIB_API TA_RetCode TA_BOP_Unguarded( int    startIdx,
    double tempReal;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      tempReal = (inHigh[i]-inLow[i]);
+      tempReal = inHigh[i] - inLow[i];
       if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
+         outReal[outIdx++] = (inClose[i] - inOpen[i]) / tempReal;
       }
    }
    *outNBElement= outIdx;
@@ -171,15 +171,15 @@ TA_RetCode TA_S_BOP( int    startIdx,
       return TA_BAD_PARAM;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      tempReal = (inHigh[i]-inLow[i]);
+      tempReal = inHigh[i] - inLow[i];
       if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
+         outReal[outIdx++] = (inClose[i] - inOpen[i]) / tempReal;
       }
    }
    *outNBElement= outIdx;
@@ -202,15 +202,15 @@ TA_RetCode TA_S_BOP_Unguarded( int    startIdx,
    double tempReal;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      tempReal = (inHigh[i]-inLow[i]);
+      tempReal = inHigh[i] - inLow[i];
       if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
+         outReal[outIdx++] = (inClose[i] - inOpen[i]) / tempReal;
       }
    }
    *outNBElement= outIdx;

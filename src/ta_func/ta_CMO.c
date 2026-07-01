@@ -60,8 +60,8 @@
 TA_LIB_API int TA_CMO_Lookback( int optInTimePeriod )
 {
    int retValue;
-   retValue = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_CMO,Cmo));
-   if( (TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock)) )
+   retValue = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_CMO,Cmo);
+   if( TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock) )
    {
       retValue -= 1;
    }
@@ -118,12 +118,12 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
    *outNBElement= 0;
    /* Adjust startIdx to account for the lookback period. */
    lookbackTotal = TA_CMO_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
@@ -133,18 +133,18 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
     * In that case, just copy the input into the
     * output for the requested range (as-is !)
     */
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      i = ((endIdx-startIdx)+1);
+      i = endIdx - startIdx + 1;
       *outNBElement= i;
-      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
+      memcpy(&outReal[0],&inReal[startIdx],i * sizeof(double));
       return TA_SUCCESS;
    }
    /* Accumulate Wilder's "Average Gain" and "Average Loss"
     * among the initial period.
     */
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevValue = inReal[today];
    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_CMO,Cmo);
    /* If there is no unstable period,
@@ -155,7 +155,7 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
     * no need to calculate since this
     * first value will be surely skip.
     */
-   if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
+   if( unstablePeriod == 0 && TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock) )
    {
       /* Preserve prevValue because it may get
        * overwritten by the output.
@@ -170,12 +170,12 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
        */
       prevGain = 0.0;
       prevLoss = 0.0;
-      for( i = optInTimePeriod; (i>0); i -= 1 )
+      for( i = optInTimePeriod; i > 0; i -= 1 )
       {
          tempValue1 = inReal[today++];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -183,20 +183,20 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
             prevGain += tempValue2;
          }
       }
-      tempValue1 = (prevLoss/optInTimePeriod);
-      tempValue2 = (prevGain/optInTimePeriod);
-      tempValue3 = (tempValue2-tempValue1);
-      tempValue4 = (tempValue1+tempValue2);
+      tempValue1 = prevLoss / optInTimePeriod;
+      tempValue2 = prevGain / optInTimePeriod;
+      tempValue3 = tempValue2 - tempValue1;
+      tempValue4 = tempValue1 + tempValue2;
       /* Write the output. */
-      if( !(TA_IS_ZERO(tempValue4)) )
+      if( !TA_IS_ZERO(tempValue4) )
       {
-         outReal[outIdx++] = (100*(tempValue3/tempValue4));
+         outReal[outIdx++] = 100 * (tempValue3 / tempValue4);
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
       /* Are we done? */
-      if( (today>endIdx) )
+      if( today > endIdx )
       {
          *outBegIdx= startIdx;
          *outNBElement= outIdx;
@@ -212,12 +212,12 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
    prevGain = 0.0;
    prevLoss = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -241,12 +241,12 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
     *
     * The second equation is used here for speed optimization.
     */
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -256,14 +256,14 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
       /* Skip the unstable period. Do the processing
        * but do not write it in the output.
        */
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          tempValue1 = inReal[today];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         prevLoss *= (optInTimePeriod-1);
-         prevGain *= (optInTimePeriod-1);
-         if( (tempValue2<0) )
+         prevLoss *= optInTimePeriod - 1;
+         prevGain *= optInTimePeriod - 1;
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -278,14 +278,14 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
    /* Unstable period skipped... now continue
     * processing if needed.
     */
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      prevLoss *= (optInTimePeriod-1);
-      prevGain *= (optInTimePeriod-1);
-      if( (tempValue2<0) )
+      prevLoss *= optInTimePeriod - 1;
+      prevGain *= optInTimePeriod - 1;
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -294,10 +294,10 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
       }
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -333,37 +333,37 @@ TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = TA_CMO_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
    outIdx = 0;
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      i = ((endIdx-startIdx)+1);
+      i = endIdx - startIdx + 1;
       *outNBElement= i;
-      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
+      memcpy(&outReal[0],&inReal[startIdx],i * sizeof(double));
       return TA_SUCCESS;
    }
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevValue = inReal[today];
    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_CMO,Cmo);
-   if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
+   if( unstablePeriod == 0 && TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock) )
    {
       savePrevValue = prevValue;
       prevGain = 0.0;
       prevLoss = 0.0;
-      for( i = optInTimePeriod; (i>0); i -= 1 )
+      for( i = optInTimePeriod; i > 0; i -= 1 )
       {
          tempValue1 = inReal[today++];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -371,18 +371,18 @@ TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
             prevGain += tempValue2;
          }
       }
-      tempValue1 = (prevLoss/optInTimePeriod);
-      tempValue2 = (prevGain/optInTimePeriod);
-      tempValue3 = (tempValue2-tempValue1);
-      tempValue4 = (tempValue1+tempValue2);
-      if( !(TA_IS_ZERO(tempValue4)) )
+      tempValue1 = prevLoss / optInTimePeriod;
+      tempValue2 = prevGain / optInTimePeriod;
+      tempValue3 = tempValue2 - tempValue1;
+      tempValue4 = tempValue1 + tempValue2;
+      if( !TA_IS_ZERO(tempValue4) )
       {
-         outReal[outIdx++] = (100*(tempValue3/tempValue4));
+         outReal[outIdx++] = 100 * (tempValue3 / tempValue4);
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
-      if( (today>endIdx) )
+      if( today > endIdx )
       {
          *outBegIdx= startIdx;
          *outNBElement= outIdx;
@@ -394,12 +394,12 @@ TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
    prevGain = 0.0;
    prevLoss = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -409,26 +409,26 @@ TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
    }
    prevLoss /= optInTimePeriod;
    prevGain /= optInTimePeriod;
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
    } else 
    {
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          tempValue1 = inReal[today];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         prevLoss *= (optInTimePeriod-1);
-         prevGain *= (optInTimePeriod-1);
-         if( (tempValue2<0) )
+         prevLoss *= optInTimePeriod - 1;
+         prevGain *= optInTimePeriod - 1;
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -440,14 +440,14 @@ TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
          today += 1;
       }
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      prevLoss *= (optInTimePeriod-1);
-      prevGain *= (optInTimePeriod-1);
-      if( (tempValue2<0) )
+      prevLoss *= optInTimePeriod - 1;
+      prevGain *= optInTimePeriod - 1;
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -456,10 +456,10 @@ TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
       }
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -509,37 +509,37 @@ TA_RetCode TA_S_CMO( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = TA_CMO_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
    outIdx = 0;
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      i = ((endIdx-startIdx)+1);
+      i = endIdx - startIdx + 1;
       *outNBElement= i;
-      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
+      memcpy(&outReal[0],&inReal[startIdx],i * sizeof(double));
       return TA_SUCCESS;
    }
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevValue = inReal[today];
    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_CMO,Cmo);
-   if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
+   if( unstablePeriod == 0 && TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock) )
    {
       savePrevValue = prevValue;
       prevGain = 0.0;
       prevLoss = 0.0;
-      for( i = optInTimePeriod; (i>0); i -= 1 )
+      for( i = optInTimePeriod; i > 0; i -= 1 )
       {
          tempValue1 = inReal[today++];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -547,18 +547,18 @@ TA_RetCode TA_S_CMO( int    startIdx,
             prevGain += tempValue2;
          }
       }
-      tempValue1 = (prevLoss/optInTimePeriod);
-      tempValue2 = (prevGain/optInTimePeriod);
-      tempValue3 = (tempValue2-tempValue1);
-      tempValue4 = (tempValue1+tempValue2);
-      if( !(TA_IS_ZERO(tempValue4)) )
+      tempValue1 = prevLoss / optInTimePeriod;
+      tempValue2 = prevGain / optInTimePeriod;
+      tempValue3 = tempValue2 - tempValue1;
+      tempValue4 = tempValue1 + tempValue2;
+      if( !TA_IS_ZERO(tempValue4) )
       {
-         outReal[outIdx++] = (100*(tempValue3/tempValue4));
+         outReal[outIdx++] = 100 * (tempValue3 / tempValue4);
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
-      if( (today>endIdx) )
+      if( today > endIdx )
       {
          *outBegIdx= startIdx;
          *outNBElement= outIdx;
@@ -570,12 +570,12 @@ TA_RetCode TA_S_CMO( int    startIdx,
    prevGain = 0.0;
    prevLoss = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -585,26 +585,26 @@ TA_RetCode TA_S_CMO( int    startIdx,
    }
    prevLoss /= optInTimePeriod;
    prevGain /= optInTimePeriod;
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
    } else 
    {
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          tempValue1 = inReal[today];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         prevLoss *= (optInTimePeriod-1);
-         prevGain *= (optInTimePeriod-1);
-         if( (tempValue2<0) )
+         prevLoss *= optInTimePeriod - 1;
+         prevGain *= optInTimePeriod - 1;
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -616,14 +616,14 @@ TA_RetCode TA_S_CMO( int    startIdx,
          today += 1;
       }
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      prevLoss *= (optInTimePeriod-1);
-      prevGain *= (optInTimePeriod-1);
-      if( (tempValue2<0) )
+      prevLoss *= optInTimePeriod - 1;
+      prevGain *= optInTimePeriod - 1;
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -632,10 +632,10 @@ TA_RetCode TA_S_CMO( int    startIdx,
       }
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -671,37 +671,37 @@ TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = TA_CMO_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
    outIdx = 0;
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      i = ((endIdx-startIdx)+1);
+      i = endIdx - startIdx + 1;
       *outNBElement= i;
-      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
+      memcpy(&outReal[0],&inReal[startIdx],i * sizeof(double));
       return TA_SUCCESS;
    }
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevValue = inReal[today];
    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_CMO,Cmo);
-   if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
+   if( unstablePeriod == 0 && TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock) )
    {
       savePrevValue = prevValue;
       prevGain = 0.0;
       prevLoss = 0.0;
-      for( i = optInTimePeriod; (i>0); i -= 1 )
+      for( i = optInTimePeriod; i > 0; i -= 1 )
       {
          tempValue1 = inReal[today++];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -709,18 +709,18 @@ TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
             prevGain += tempValue2;
          }
       }
-      tempValue1 = (prevLoss/optInTimePeriod);
-      tempValue2 = (prevGain/optInTimePeriod);
-      tempValue3 = (tempValue2-tempValue1);
-      tempValue4 = (tempValue1+tempValue2);
-      if( !(TA_IS_ZERO(tempValue4)) )
+      tempValue1 = prevLoss / optInTimePeriod;
+      tempValue2 = prevGain / optInTimePeriod;
+      tempValue3 = tempValue2 - tempValue1;
+      tempValue4 = tempValue1 + tempValue2;
+      if( !TA_IS_ZERO(tempValue4) )
       {
-         outReal[outIdx++] = (100*(tempValue3/tempValue4));
+         outReal[outIdx++] = 100 * (tempValue3 / tempValue4);
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
-      if( (today>endIdx) )
+      if( today > endIdx )
       {
          *outBegIdx= startIdx;
          *outNBElement= outIdx;
@@ -732,12 +732,12 @@ TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
    prevGain = 0.0;
    prevLoss = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -747,26 +747,26 @@ TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
    }
    prevLoss /= optInTimePeriod;
    prevGain /= optInTimePeriod;
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
    } else 
    {
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          tempValue1 = inReal[today];
-         tempValue2 = (tempValue1-prevValue);
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         prevLoss *= (optInTimePeriod-1);
-         prevGain *= (optInTimePeriod-1);
-         if( (tempValue2<0) )
+         prevLoss *= optInTimePeriod - 1;
+         prevGain *= optInTimePeriod - 1;
+         if( tempValue2 < 0 )
          {
             prevLoss -= tempValue2;
          } else 
@@ -778,14 +778,14 @@ TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
          today += 1;
       }
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tempValue1 = inReal[today++];
-      tempValue2 = (tempValue1-prevValue);
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
-      prevLoss *= (optInTimePeriod-1);
-      prevGain *= (optInTimePeriod-1);
-      if( (tempValue2<0) )
+      prevLoss *= optInTimePeriod - 1;
+      prevGain *= optInTimePeriod - 1;
+      if( tempValue2 < 0 )
       {
          prevLoss -= tempValue2;
       } else 
@@ -794,10 +794,10 @@ TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
       }
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
-      tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      tempValue1 = prevGain + prevLoss;
+      if( !TA_IS_ZERO(tempValue1) )
       {
-         outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
+         outReal[outIdx++] = 100.0 * ((prevGain - prevLoss) / tempValue1);
       } else 
       {
          outReal[outIdx++] = 0.0;

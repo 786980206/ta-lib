@@ -62,7 +62,7 @@ TA_LIB_API int TA_STOCHF_Lookback( int optInFastK_Period, int optInFastD_Period,
 {
    int retValue;
    /* Account for the initial data needed for Fast-K. */
-   retValue = (optInFastK_Period-1);
+   retValue = optInFastK_Period - 1;
    /* Add the smoothing being done for Fast-D */
    retValue += TA_MA_Lookback(optInFastD_Period,optInFastD_MAType);
    return retValue;
@@ -155,18 +155,18 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
     * used because its higher volatility cause often whipsaws.
     */
    /* Identify the lookback needed. */
-   lookbackK = (optInFastK_Period-1);
+   lookbackK = optInFastK_Period - 1;
    lookbackFastD = TA_MA_Lookback(optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (lookbackK+lookbackFastD);
+   lookbackTotal = lookbackK + lookbackFastD;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       /* Succeed... but no data in the output. */
       *outBegIdx= 0;
@@ -191,9 +191,9 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
     * requested range. (The range of k must consider all
     * the lookback involve with the smoothing).
     */
-   trailingIdx = (startIdx-lookbackTotal);
-   today = (trailingIdx+lookbackK);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - lookbackTotal;
+   today = trailingIdx + lookbackK;
+   highestIdx = 0 - 1;
    lowestIdx = highestIdx;
    lowest = 0.0;
    highest = lowest;
@@ -205,70 +205,70 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
     * we just save ourself one memory allocation.
     */
    bufferIsAllocated = 0;
-   if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) )
+   if( outFastK == inHigh || outFastK == inLow || outFastK == inClose )
    {
       tempBuffer = outFastK;
-   } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) )
+   } else if( outFastD == inHigh || outFastD == inLow || outFastD == inClose )
    {
       tempBuffer = outFastD;
    } else 
    {
       bufferIsAllocated = 1;
-      tempBuffer = malloc((((endIdx-today)+1)*sizeof(double)));
+      tempBuffer = malloc((endIdx - today + 1) * sizeof(double));
    }
    /* Do the K calculation */
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       /* Set the lowest low */
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp<=lowest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
       /* Set the highest high */
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp>=highest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
       /* Calculate stochastic. */
-      if( (diff!=0.0) )
+      if( diff != 0.0 )
       {
-         tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
       } else 
       {
          tempBuffer[outIdx++] = 0.0;
@@ -279,8 +279,8 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
    /* Fast-K calculation completed. This K calculation is returned
     * to the caller. It is smoothed to become Fast-D.
     */
-   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   retCode = TA_MA_Unguarded(0,outIdx - 1,tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       if( bufferIsAllocated )
       {
@@ -296,13 +296,13 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
     *  caller buffer because more input data then the
     *  requested range was needed for doing %D).
     */
-   memcpy(outFastK,&tempBuffer[lookbackFastD],(((int)*outNBElement)*sizeof(double)));
+   memcpy(outFastK,&tempBuffer[lookbackFastD],(int)*outNBElement * sizeof(double));
    /* Don't need K anymore, free it if it was allocated here. */
    if( bufferIsAllocated )
    {
       free(tempBuffer);
    }
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       /* Something wrong happen while processing %D? */
       *outBegIdx= 0;
@@ -346,88 +346,88 @@ TA_LIB_API TA_RetCode TA_STOCHF_Unguarded( int    startIdx,
    int i;
    int bufferIsAllocated;
 
-   lookbackK = (optInFastK_Period-1);
+   lookbackK = optInFastK_Period - 1;
    lookbackFastD = TA_MA_Lookback(optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (lookbackK+lookbackFastD);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = lookbackK + lookbackFastD;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    outIdx = 0;
-   trailingIdx = (startIdx-lookbackTotal);
-   today = (trailingIdx+lookbackK);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - lookbackTotal;
+   today = trailingIdx + lookbackK;
+   highestIdx = 0 - 1;
    lowestIdx = highestIdx;
    lowest = 0.0;
    highest = lowest;
    diff = highest;
    bufferIsAllocated = 0;
-   if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) )
+   if( outFastK == inHigh || outFastK == inLow || outFastK == inClose )
    {
       tempBuffer = outFastK;
-   } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) )
+   } else if( outFastD == inHigh || outFastD == inLow || outFastD == inClose )
    {
       tempBuffer = outFastD;
    } else 
    {
       bufferIsAllocated = 1;
-      tempBuffer = malloc((((endIdx-today)+1)*sizeof(double)));
+      tempBuffer = malloc((endIdx - today + 1) * sizeof(double));
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp<=lowest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp>=highest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
-      if( (diff!=0.0) )
+      if( diff != 0.0 )
       {
-         tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
       } else 
       {
          tempBuffer[outIdx++] = 0.0;
@@ -435,8 +435,8 @@ TA_LIB_API TA_RetCode TA_STOCHF_Unguarded( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   retCode = TA_MA_Unguarded(0,outIdx - 1,tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       if( bufferIsAllocated )
       {
@@ -446,12 +446,12 @@ TA_LIB_API TA_RetCode TA_STOCHF_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   memcpy(outFastK,&tempBuffer[lookbackFastD],(((int)*outNBElement)*sizeof(double)));
+   memcpy(outFastK,&tempBuffer[lookbackFastD],(int)*outNBElement * sizeof(double));
    if( bufferIsAllocated )
    {
       free(tempBuffer);
    }
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -517,88 +517,88 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
    if( !outFastD )
       return TA_BAD_PARAM;
 
-   lookbackK = (optInFastK_Period-1);
+   lookbackK = optInFastK_Period - 1;
    lookbackFastD = TA_MA_Lookback(optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (lookbackK+lookbackFastD);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = lookbackK + lookbackFastD;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    outIdx = 0;
-   trailingIdx = (startIdx-lookbackTotal);
-   today = (trailingIdx+lookbackK);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - lookbackTotal;
+   today = trailingIdx + lookbackK;
+   highestIdx = 0 - 1;
    lowestIdx = highestIdx;
    lowest = 0.0;
    highest = lowest;
    diff = highest;
    bufferIsAllocated = 0;
-   if( ((((void *)outFastK==(void *)inHigh)||((void *)outFastK==(void *)inLow))||((void *)outFastK==(void *)inClose)) )
+   if( (void *)outFastK == (void *)inHigh || (void *)outFastK == (void *)inLow || (void *)outFastK == (void *)inClose )
    {
       tempBuffer = outFastK;
-   } else if( ((((void *)outFastD==(void *)inHigh)||((void *)outFastD==(void *)inLow))||((void *)outFastD==(void *)inClose)) )
+   } else if( (void *)outFastD == (void *)inHigh || (void *)outFastD == (void *)inLow || (void *)outFastD == (void *)inClose )
    {
       tempBuffer = outFastD;
    } else 
    {
       bufferIsAllocated = 1;
-      tempBuffer = malloc((((endIdx-today)+1)*sizeof(double)));
+      tempBuffer = malloc((endIdx - today + 1) * sizeof(double));
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp<=lowest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp>=highest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
-      if( (diff!=0.0) )
+      if( diff != 0.0 )
       {
-         tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
       } else 
       {
          tempBuffer[outIdx++] = 0.0;
@@ -606,8 +606,8 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   retCode = TA_MA_Unguarded(0,outIdx - 1,tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       if( bufferIsAllocated )
       {
@@ -617,12 +617,12 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   memcpy(outFastK,&tempBuffer[lookbackFastD],(((int)*outNBElement)*sizeof(double)));
+   memcpy(outFastK,&tempBuffer[lookbackFastD],(int)*outNBElement * sizeof(double));
    if( bufferIsAllocated )
    {
       free(tempBuffer);
    }
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -662,88 +662,88 @@ TA_RetCode TA_S_STOCHF_Unguarded( int    startIdx,
    int i;
    int bufferIsAllocated;
 
-   lookbackK = (optInFastK_Period-1);
+   lookbackK = optInFastK_Period - 1;
    lookbackFastD = TA_MA_Lookback(optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (lookbackK+lookbackFastD);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = lookbackK + lookbackFastD;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    outIdx = 0;
-   trailingIdx = (startIdx-lookbackTotal);
-   today = (trailingIdx+lookbackK);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - lookbackTotal;
+   today = trailingIdx + lookbackK;
+   highestIdx = 0 - 1;
    lowestIdx = highestIdx;
    lowest = 0.0;
    highest = lowest;
    diff = highest;
    bufferIsAllocated = 0;
-   if( ((((void *)outFastK==(void *)inHigh)||((void *)outFastK==(void *)inLow))||((void *)outFastK==(void *)inClose)) )
+   if( (void *)outFastK == (void *)inHigh || (void *)outFastK == (void *)inLow || (void *)outFastK == (void *)inClose )
    {
       tempBuffer = outFastK;
-   } else if( ((((void *)outFastD==(void *)inHigh)||((void *)outFastD==(void *)inLow))||((void *)outFastD==(void *)inClose)) )
+   } else if( (void *)outFastD == (void *)inHigh || (void *)outFastD == (void *)inLow || (void *)outFastD == (void *)inClose )
    {
       tempBuffer = outFastD;
    } else 
    {
       bufferIsAllocated = 1;
-      tempBuffer = malloc((((endIdx-today)+1)*sizeof(double)));
+      tempBuffer = malloc((endIdx - today + 1) * sizeof(double));
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inLow[today];
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inLow[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inLow[i];
-            if( (tmp<lowest) )
+            if( tmp < lowest )
             {
                lowestIdx = i;
                lowest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp<=lowest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp <= lowest )
       {
          lowestIdx = today;
          lowest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
       tmp = inHigh[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inHigh[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inHigh[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-         diff = ((highest-lowest)/100.0);
-      } else if( (tmp>=highest) )
+         diff = (highest - lowest) / 100.0;
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
-         diff = ((highest-lowest)/100.0);
+         diff = (highest - lowest) / 100.0;
       }
-      if( (diff!=0.0) )
+      if( diff != 0.0 )
       {
-         tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
       } else 
       {
          tempBuffer[outIdx++] = 0.0;
@@ -751,8 +751,8 @@ TA_RetCode TA_S_STOCHF_Unguarded( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   retCode = TA_MA_Unguarded(0,outIdx - 1,tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       if( bufferIsAllocated )
       {
@@ -762,12 +762,12 @@ TA_RetCode TA_S_STOCHF_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   memcpy(outFastK,&tempBuffer[lookbackFastD],(((int)*outNBElement)*sizeof(double)));
+   memcpy(outFastK,&tempBuffer[lookbackFastD],(int)*outNBElement * sizeof(double));
    if( bufferIsAllocated )
    {
       free(tempBuffer);
    }
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       *outBegIdx= 0;
       *outNBElement= 0;

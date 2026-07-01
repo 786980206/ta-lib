@@ -62,7 +62,7 @@ TA_LIB_API int TA_CDLTRISTAR_Lookback( void )
    int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
    int BodyDoji_avgPeriod = TA_Globals->candleSettings[TA_BodyDoji].avgPeriod;
    double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
-   return (BodyDoji_avgPeriod+2);
+   return BodyDoji_avgPeriod + 2;
 }
 
 TA_LIB_API TA_RetCode TA_CDLTRISTAR( int    startIdx,
@@ -107,12 +107,12 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -121,9 +121,9 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR( int    startIdx,
    /* Do the calculation using tight loops. */
    /* Add-up the initial period, except for the last value. */
    BodyPeriodTotal = 0;
-   BodyTrailingIdx = ((startIdx-2)-BodyDoji_avgPeriod);
+   BodyTrailingIdx = startIdx - 2 - BodyDoji_avgPeriod;
    i = BodyTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -139,19 +139,19 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (fabs((inClose[(i-2)]-inOpen[(i-2)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2))) && /* 1st: doji */
-          (fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2))) && /* 2nd: doji */
-          (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2))) )
+      if( fabs(inClose[i - 2] - inOpen[i - 2]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && /* 1st: doji */
+          fabs(inClose[i - 1] - inOpen[i - 1]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && /* 2nd: doji */
+          fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) )
       {
          /* 3rd: doji */
          outInteger[outIdx] = 0;
-         if( (((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)) && /* 2nd gaps up */
-             (fmax(inOpen[i],inClose[i])<fmax(inOpen[(i-1)],inClose[(i-1)])) ) /* 3rd is not higher than 2nd */
+         if( ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && /* 2nd gaps up */
+             fmax(inOpen[i],inClose[i]) < fmax(inOpen[i - 1],inClose[i - 1]) ) /* 3rd is not higher than 2nd */
          {
-            outInteger[outIdx] = (0-100);
+            outInteger[outIdx] = 0 - 100;
          }
-         if( (((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)) && /* 2nd gaps down */
-             (fmin(inOpen[i],inClose[i])>fmin(inOpen[(i-1)],inClose[(i-1)])) ) /* 3rd is not lower than 2nd */
+         if( ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && /* 2nd gaps down */
+             fmin(inOpen[i],inClose[i]) > fmin(inOpen[i - 1],inClose[i - 1]) ) /* 3rd is not lower than 2nd */
          {
             outInteger[outIdx] = 100;
          }
@@ -163,10 +163,10 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      BodyPeriodTotal += (TA_CANDLERANGE(BodyDoji,(i-2))-TA_CANDLERANGE(BodyDoji,BodyTrailingIdx));
+      BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i - 2) - TA_CANDLERANGE(BodyDoji,BodyTrailingIdx);
       i += 1;
       BodyTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -193,20 +193,20 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR_Unguarded( int    startIdx,
    double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
 
    lookbackTotal = TA_CDLTRISTAR_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyPeriodTotal = 0;
-   BodyTrailingIdx = ((startIdx-2)-BodyDoji_avgPeriod);
+   BodyTrailingIdx = startIdx - 2 - BodyDoji_avgPeriod;
    i = BodyTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -215,14 +215,14 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((fabs((inClose[(i-2)]-inOpen[(i-2)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2))))&&(fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2)))) )
+      if( fabs(inClose[i - 2] - inOpen[i - 2]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && fabs(inClose[i - 1] - inOpen[i - 1]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) )
       {
          outInteger[outIdx] = 0;
-         if( ((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(fmax(inOpen[i],inClose[i])<fmax(inOpen[(i-1)],inClose[(i-1)]))) )
+         if( ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && fmax(inOpen[i],inClose[i]) < fmax(inOpen[i - 1],inClose[i - 1]) )
          {
-            outInteger[outIdx] = (0-100);
+            outInteger[outIdx] = 0 - 100;
          }
-         if( ((((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(fmin(inOpen[i],inClose[i])>fmin(inOpen[(i-1)],inClose[(i-1)]))) )
+         if( ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && fmin(inOpen[i],inClose[i]) > fmin(inOpen[i - 1],inClose[i - 1]) )
          {
             outInteger[outIdx] = 100;
          }
@@ -231,10 +231,10 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR_Unguarded( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
-      BodyPeriodTotal += (TA_CANDLERANGE(BodyDoji,(i-2))-TA_CANDLERANGE(BodyDoji,BodyTrailingIdx));
+      BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i - 2) - TA_CANDLERANGE(BodyDoji,BodyTrailingIdx);
       i += 1;
       BodyTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -276,20 +276,20 @@ TA_RetCode TA_S_CDLTRISTAR( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLTRISTAR_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyPeriodTotal = 0;
-   BodyTrailingIdx = ((startIdx-2)-BodyDoji_avgPeriod);
+   BodyTrailingIdx = startIdx - 2 - BodyDoji_avgPeriod;
    i = BodyTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -298,14 +298,14 @@ TA_RetCode TA_S_CDLTRISTAR( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((fabs((inClose[(i-2)]-inOpen[(i-2)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2))))&&(fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2)))) )
+      if( fabs(inClose[i - 2] - inOpen[i - 2]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && fabs(inClose[i - 1] - inOpen[i - 1]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) )
       {
          outInteger[outIdx] = 0;
-         if( ((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(fmax(inOpen[i],inClose[i])<fmax(inOpen[(i-1)],inClose[(i-1)]))) )
+         if( ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && fmax(inOpen[i],inClose[i]) < fmax(inOpen[i - 1],inClose[i - 1]) )
          {
-            outInteger[outIdx] = (0-100);
+            outInteger[outIdx] = 0 - 100;
          }
-         if( ((((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(fmin(inOpen[i],inClose[i])>fmin(inOpen[(i-1)],inClose[(i-1)]))) )
+         if( ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && fmin(inOpen[i],inClose[i]) > fmin(inOpen[i - 1],inClose[i - 1]) )
          {
             outInteger[outIdx] = 100;
          }
@@ -314,10 +314,10 @@ TA_RetCode TA_S_CDLTRISTAR( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
-      BodyPeriodTotal += (TA_CANDLERANGE(BodyDoji,(i-2))-TA_CANDLERANGE(BodyDoji,BodyTrailingIdx));
+      BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i - 2) - TA_CANDLERANGE(BodyDoji,BodyTrailingIdx);
       i += 1;
       BodyTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -343,20 +343,20 @@ TA_RetCode TA_S_CDLTRISTAR_Unguarded( int    startIdx,
    double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
 
    lookbackTotal = TA_CDLTRISTAR_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyPeriodTotal = 0;
-   BodyTrailingIdx = ((startIdx-2)-BodyDoji_avgPeriod);
+   BodyTrailingIdx = startIdx - 2 - BodyDoji_avgPeriod;
    i = BodyTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -365,14 +365,14 @@ TA_RetCode TA_S_CDLTRISTAR_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((fabs((inClose[(i-2)]-inOpen[(i-2)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2))))&&(fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,(i-2)))) )
+      if( fabs(inClose[i - 2] - inOpen[i - 2]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && fabs(inClose[i - 1] - inOpen[i - 1]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) && fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyPeriodTotal,i - 2) )
       {
          outInteger[outIdx] = 0;
-         if( ((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(fmax(inOpen[i],inClose[i])<fmax(inOpen[(i-1)],inClose[(i-1)]))) )
+         if( ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && fmax(inOpen[i],inClose[i]) < fmax(inOpen[i - 1],inClose[i - 1]) )
          {
-            outInteger[outIdx] = (0-100);
+            outInteger[outIdx] = 0 - 100;
          }
-         if( ((((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(fmin(inOpen[i],inClose[i])>fmin(inOpen[(i-1)],inClose[(i-1)]))) )
+         if( ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && fmin(inOpen[i],inClose[i]) > fmin(inOpen[i - 1],inClose[i - 1]) )
          {
             outInteger[outIdx] = 100;
          }
@@ -381,10 +381,10 @@ TA_RetCode TA_S_CDLTRISTAR_Unguarded( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
-      BodyPeriodTotal += (TA_CANDLERANGE(BodyDoji,(i-2))-TA_CANDLERANGE(BodyDoji,BodyTrailingIdx));
+      BodyPeriodTotal += TA_CANDLERANGE(BodyDoji,i - 2) - TA_CANDLERANGE(BodyDoji,BodyTrailingIdx);
       i += 1;
       BodyTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

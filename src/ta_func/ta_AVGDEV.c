@@ -57,7 +57,7 @@
 
 TA_LIB_API int TA_AVGDEV_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_AVGDEV( int    startIdx,
@@ -86,14 +86,14 @@ TA_LIB_API TA_RetCode TA_AVGDEV( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookback = (optInTimePeriod-1);
-   if( (startIdx<lookback) )
+   lookback = optInTimePeriod - 1;
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
    today = startIdx;
    /* Make sure there is still something to evaluate. */
-   if( (today>endIdx) )
+   if( today > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -102,22 +102,22 @@ TA_LIB_API TA_RetCode TA_AVGDEV( int    startIdx,
    /* Process the initial DM and TR */
    *outBegIdx= today;
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       double todaySum;
       double todayDev;
       int i;
       todaySum = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todaySum += inReal[(today-i)];
+         todaySum += inReal[today - i];
       }
       todayDev = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todayDev += fabs((inReal[(today-i)]-(todaySum/optInTimePeriod)));
+         todayDev += fabs(inReal[today - i] - todaySum / optInTimePeriod);
       }
-      outReal[outIdx] = (todayDev/optInTimePeriod);
+      outReal[outIdx] = todayDev / optInTimePeriod;
       outIdx += 1;
       today += 1;
    }
@@ -137,13 +137,13 @@ TA_LIB_API TA_RetCode TA_AVGDEV_Unguarded( int    startIdx,
    int outIdx;
    int lookback;
 
-   lookback = (optInTimePeriod-1);
-   if( (startIdx<lookback) )
+   lookback = optInTimePeriod - 1;
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
    today = startIdx;
-   if( (today>endIdx) )
+   if( today > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -151,22 +151,22 @@ TA_LIB_API TA_RetCode TA_AVGDEV_Unguarded( int    startIdx,
    }
    *outBegIdx= today;
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       double todaySum;
       double todayDev;
       int i;
       todaySum = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todaySum += inReal[(today-i)];
+         todaySum += inReal[today - i];
       }
       todayDev = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todayDev += fabs((inReal[(today-i)]-(todaySum/optInTimePeriod)));
+         todayDev += fabs(inReal[today - i] - todaySum / optInTimePeriod);
       }
-      outReal[outIdx] = (todayDev/optInTimePeriod);
+      outReal[outIdx] = todayDev / optInTimePeriod;
       outIdx += 1;
       today += 1;
    }
@@ -200,13 +200,13 @@ TA_RetCode TA_S_AVGDEV( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookback = (optInTimePeriod-1);
-   if( (startIdx<lookback) )
+   lookback = optInTimePeriod - 1;
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
    today = startIdx;
-   if( (today>endIdx) )
+   if( today > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -214,22 +214,22 @@ TA_RetCode TA_S_AVGDEV( int    startIdx,
    }
    *outBegIdx= today;
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       double todaySum;
       double todayDev;
       int i;
       todaySum = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todaySum += inReal[(today-i)];
+         todaySum += inReal[today - i];
       }
       todayDev = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todayDev += fabs((inReal[(today-i)]-(todaySum/optInTimePeriod)));
+         todayDev += fabs(inReal[today - i] - todaySum / optInTimePeriod);
       }
-      outReal[outIdx] = (todayDev/optInTimePeriod);
+      outReal[outIdx] = todayDev / optInTimePeriod;
       outIdx += 1;
       today += 1;
    }
@@ -249,13 +249,13 @@ TA_RetCode TA_S_AVGDEV_Unguarded( int    startIdx,
    int outIdx;
    int lookback;
 
-   lookback = (optInTimePeriod-1);
-   if( (startIdx<lookback) )
+   lookback = optInTimePeriod - 1;
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
    today = startIdx;
-   if( (today>endIdx) )
+   if( today > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -263,22 +263,22 @@ TA_RetCode TA_S_AVGDEV_Unguarded( int    startIdx,
    }
    *outBegIdx= today;
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       double todaySum;
       double todayDev;
       int i;
       todaySum = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todaySum += inReal[(today-i)];
+         todaySum += inReal[today - i];
       }
       todayDev = 0.0;
-      for( i = 0; (i<optInTimePeriod); i += 1 )
+      for( i = 0; i < optInTimePeriod; i += 1 )
       {
-         todayDev += fabs((inReal[(today-i)]-(todaySum/optInTimePeriod)));
+         todayDev += fabs(inReal[today - i] - todaySum / optInTimePeriod);
       }
-      outReal[outIdx] = (todayDev/optInTimePeriod);
+      outReal[outIdx] = todayDev / optInTimePeriod;
       outIdx += 1;
       today += 1;
    }

@@ -61,7 +61,7 @@ TA_LIB_API int TA_CDLSTICKSANDWICH_Lookback( void )
    int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
    int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
    double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
-   return (Equal_avgPeriod+2);
+   return Equal_avgPeriod + 2;
 }
 
 TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
@@ -106,12 +106,12 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -120,11 +120,11 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
    /* Do the calculation using tight loops. */
    /* Add-up the initial period, except for the last value. */
    EqualPeriodTotal = 0;
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2);
       i += 1;
    }
    i = startIdx;
@@ -141,12 +141,12 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* first black */
-          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) &&     /* second white */
-          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&         /* third black */
-          (inLow[(i-1)]>inClose[(i-2)]) &&                                /* 2nd low > prior close */
-          (inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))) && /* 1st and 3rd same close */
-          (inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))) )
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && /* first black */
+          ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 &&     /* second white */
+          ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 &&         /* third black */
+          inLow[i - 1] > inClose[i - 2] &&                            /* 2nd low > prior close */
+          inClose[i] <= inClose[i - 2] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) && /* 1st and 3rd same close */
+          inClose[i] >= inClose[i - 2] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) )
       {
          outInteger[outIdx++] = 100;
       } else 
@@ -156,10 +156,10 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 2);
       i += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -186,39 +186,39 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH_Unguarded( int    startIdx,
    double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    lookbackTotal = TA_CDLSTICKSANDWICH_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    EqualPeriodTotal = 0;
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && inLow[i - 1] > inClose[i - 2] && inClose[i] <= inClose[i - 2] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) && inClose[i] >= inClose[i - 2] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 2);
       i += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -260,39 +260,39 @@ TA_RetCode TA_S_CDLSTICKSANDWICH( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLSTICKSANDWICH_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    EqualPeriodTotal = 0;
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && inLow[i - 1] > inClose[i - 2] && inClose[i] <= inClose[i - 2] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) && inClose[i] >= inClose[i - 2] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 2);
       i += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -318,39 +318,39 @@ TA_RetCode TA_S_CDLSTICKSANDWICH_Unguarded( int    startIdx,
    double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    lookbackTotal = TA_CDLSTICKSANDWICH_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    EqualPeriodTotal = 0;
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && inLow[i - 1] > inClose[i - 2] && inClose[i] <= inClose[i - 2] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) && inClose[i] >= inClose[i - 2] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 2) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 2) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 2);
       i += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

@@ -92,9 +92,9 @@ TA_LIB_API TA_RetCode TA_TYPPRICE( int    startIdx,
 
    /* Typical price = (High + Low + Close ) / 3 */
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = (((inHigh[i]+inLow[i])+inClose[i])/3.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -114,9 +114,9 @@ TA_LIB_API TA_RetCode TA_TYPPRICE_Unguarded( int    startIdx,
    int i;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = (((inHigh[i]+inLow[i])+inClose[i])/3.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -150,9 +150,9 @@ TA_RetCode TA_S_TYPPRICE( int    startIdx,
       return TA_BAD_PARAM;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = (((inHigh[i]+inLow[i])+inClose[i])/3.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -172,9 +172,9 @@ TA_RetCode TA_S_TYPPRICE_Unguarded( int    startIdx,
    int i;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = (((inHigh[i]+inLow[i])+inClose[i])/3.0);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;

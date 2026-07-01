@@ -60,7 +60,7 @@
 
 TA_LIB_API int TA_VAR_Lookback( int optInTimePeriod, double optInNbDev )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_VAR( int    startIdx,
@@ -102,16 +102,16 @@ TA_LIB_API TA_RetCode TA_VAR( int    startIdx,
     * identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-   nbInitialElementNeeded = (optInTimePeriod-1);
+   nbInitialElementNeeded = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -121,11 +121,11 @@ TA_LIB_API TA_RetCode TA_VAR( int    startIdx,
    /* Add-up the initial periods, except for the last value. */
    periodTotal1 = 0;
    periodTotal2 = 0;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          tempReal = inReal[i++];
          periodTotal1 += tempReal;
@@ -150,14 +150,14 @@ TA_LIB_API TA_RetCode TA_VAR( int    startIdx,
       /* Square and add all the deviation over
        * the same period.
        */
-      meanValue1 = (periodTotal1/optInTimePeriod);
-      meanValue2 = (periodTotal2/optInTimePeriod);
+      meanValue1 = periodTotal1 / optInTimePeriod;
+      meanValue2 = periodTotal2 / optInTimePeriod;
       tempReal = inReal[trailingIdx++];
       periodTotal1 -= tempReal;
       tempReal *= tempReal;
       periodTotal2 -= tempReal;
-      outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-   } while( (i<=endIdx) );
+      outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -183,12 +183,12 @@ TA_LIB_API TA_RetCode TA_VAR_Unguarded( int    startIdx,
    int trailingIdx;
    int nbInitialElementNeeded;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -196,11 +196,11 @@ TA_LIB_API TA_RetCode TA_VAR_Unguarded( int    startIdx,
    }
    periodTotal1 = 0;
    periodTotal2 = 0;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          tempReal = inReal[i++];
          periodTotal1 += tempReal;
@@ -215,14 +215,14 @@ TA_LIB_API TA_RetCode TA_VAR_Unguarded( int    startIdx,
       periodTotal1 += tempReal;
       tempReal *= tempReal;
       periodTotal2 += tempReal;
-      meanValue1 = (periodTotal1/optInTimePeriod);
-      meanValue2 = (periodTotal2/optInTimePeriod);
+      meanValue1 = periodTotal1 / optInTimePeriod;
+      meanValue2 = periodTotal2 / optInTimePeriod;
       tempReal = inReal[trailingIdx++];
       periodTotal1 -= tempReal;
       tempReal *= tempReal;
       periodTotal2 -= tempReal;
-      outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-   } while( (i<=endIdx) );
+      outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -263,12 +263,12 @@ TA_RetCode TA_S_VAR( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -276,11 +276,11 @@ TA_RetCode TA_S_VAR( int    startIdx,
    }
    periodTotal1 = 0;
    periodTotal2 = 0;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          tempReal = inReal[i++];
          periodTotal1 += tempReal;
@@ -295,14 +295,14 @@ TA_RetCode TA_S_VAR( int    startIdx,
       periodTotal1 += tempReal;
       tempReal *= tempReal;
       periodTotal2 += tempReal;
-      meanValue1 = (periodTotal1/optInTimePeriod);
-      meanValue2 = (periodTotal2/optInTimePeriod);
+      meanValue1 = periodTotal1 / optInTimePeriod;
+      meanValue2 = periodTotal2 / optInTimePeriod;
       tempReal = inReal[trailingIdx++];
       periodTotal1 -= tempReal;
       tempReal *= tempReal;
       periodTotal2 -= tempReal;
-      outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-   } while( (i<=endIdx) );
+      outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -327,12 +327,12 @@ TA_RetCode TA_S_VAR_Unguarded( int    startIdx,
    int trailingIdx;
    int nbInitialElementNeeded;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -340,11 +340,11 @@ TA_RetCode TA_S_VAR_Unguarded( int    startIdx,
    }
    periodTotal1 = 0;
    periodTotal2 = 0;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    i = trailingIdx;
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      while( (i<startIdx) )
+      while( i < startIdx )
       {
          tempReal = inReal[i++];
          periodTotal1 += tempReal;
@@ -359,14 +359,14 @@ TA_RetCode TA_S_VAR_Unguarded( int    startIdx,
       periodTotal1 += tempReal;
       tempReal *= tempReal;
       periodTotal2 += tempReal;
-      meanValue1 = (periodTotal1/optInTimePeriod);
-      meanValue2 = (periodTotal2/optInTimePeriod);
+      meanValue1 = periodTotal1 / optInTimePeriod;
+      meanValue2 = periodTotal2 / optInTimePeriod;
       tempReal = inReal[trailingIdx++];
       periodTotal1 -= tempReal;
       tempReal *= tempReal;
       periodTotal2 -= tempReal;
-      outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-   } while( (i<=endIdx) );
+      outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

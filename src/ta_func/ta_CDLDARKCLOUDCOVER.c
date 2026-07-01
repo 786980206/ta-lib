@@ -61,7 +61,7 @@ TA_LIB_API int TA_CDLDARKCLOUDCOVER_Lookback( double optInPenetration )
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
    int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
    double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
-   return (BodyLong_avgPeriod+1);
+   return BodyLong_avgPeriod + 1;
 }
 
 TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
@@ -111,12 +111,12 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -125,11 +125,11 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
    /* Do the calculation using tight loops. */
    /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
-   BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
+   BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,(i-1));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1);
       i += 1;
    }
    i = startIdx;
@@ -147,14 +147,14 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 1st: white */
-          (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) && /* long */
-          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)) &&     /* 2nd: black */
-          (inOpen[i]>inHigh[(i-1)]) &&                                /* open above prior high */
-          (inClose[i]>inOpen[(i-1)]) &&                               /* close within prior body */
-          (inClose[i]<(inClose[(i-1)]-(fabs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration))) )
+      if( ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && /* 1st: white */
+          fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) && /* long */
+          ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 &&     /* 2nd: black */
+          inOpen[i] > inHigh[i - 1] &&                            /* open above prior high */
+          inClose[i] > inOpen[i - 1] &&                           /* close within prior body */
+          inClose[i] < inClose[i - 1] - fabs(inClose[i - 1] - inOpen[i - 1]) * optInPenetration )
       {
-         outInteger[outIdx++] = (0-100);
+         outInteger[outIdx++] = 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
@@ -162,10 +162,10 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-1)));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx - 1);
       i += 1;
       BodyLongTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -193,39 +193,39 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER_Unguarded( int    startIdx,
    double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
 
    lookbackTotal = TA_CDLDARKCLOUDCOVER_Lookback(optInPenetration);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyLongPeriodTotal = 0;
-   BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
+   BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,(i-1));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inHigh[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<(inClose[(i-1)]-(fabs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration)))) )
+      if( ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && inOpen[i] > inHigh[i - 1] && inClose[i] > inOpen[i - 1] && inClose[i] < inClose[i - 1] - fabs(inClose[i - 1] - inOpen[i - 1]) * optInPenetration )
       {
-         outInteger[outIdx++] = (0-100);
+         outInteger[outIdx++] = 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-1)));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx - 1);
       i += 1;
       BodyLongTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -272,39 +272,39 @@ TA_RetCode TA_S_CDLDARKCLOUDCOVER( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLDARKCLOUDCOVER_Lookback(optInPenetration);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyLongPeriodTotal = 0;
-   BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
+   BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,(i-1));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inHigh[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<(inClose[(i-1)]-(fabs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration)))) )
+      if( ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && inOpen[i] > inHigh[i - 1] && inClose[i] > inOpen[i - 1] && inClose[i] < inClose[i - 1] - fabs(inClose[i - 1] - inOpen[i - 1]) * optInPenetration )
       {
-         outInteger[outIdx++] = (0-100);
+         outInteger[outIdx++] = 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-1)));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx - 1);
       i += 1;
       BodyLongTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -331,39 +331,39 @@ TA_RetCode TA_S_CDLDARKCLOUDCOVER_Unguarded( int    startIdx,
    double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
 
    lookbackTotal = TA_CDLDARKCLOUDCOVER_Lookback(optInPenetration);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    BodyLongPeriodTotal = 0;
-   BodyLongTrailingIdx = (startIdx-BodyLong_avgPeriod);
+   BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,(i-1));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inHigh[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<(inClose[(i-1)]-(fabs((inClose[(i-1)]-inOpen[(i-1)]))*optInPenetration)))) )
+      if( ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && inOpen[i] > inHigh[i - 1] && inClose[i] > inOpen[i - 1] && inClose[i] < inClose[i - 1] - fabs(inClose[i - 1] - inOpen[i - 1]) * optInPenetration )
       {
-         outInteger[outIdx++] = (0-100);
+         outInteger[outIdx++] = 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,(BodyLongTrailingIdx-1)));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx - 1);
       i += 1;
       BodyLongTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

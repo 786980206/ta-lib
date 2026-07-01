@@ -60,7 +60,7 @@
 
 TA_LIB_API int TA_CORREL_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_CORREL( int    startIdx,
@@ -106,35 +106,35 @@ TA_LIB_API TA_RetCode TA_CORREL( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    /* Calculate the initial values. */
    sumY2 = 0.0;
    sumX2 = sumY2;
    sumY = sumX2;
    sumX = sumY;
    sumXY = sumX;
-   for( today = trailingIdx; (today<=startIdx); today += 1 )
+   for( today = trailingIdx; today <= startIdx; today += 1 )
    {
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
    }
    /* Write the first output.
     * Save first the trailing values since the input
@@ -142,42 +142,42 @@ TA_LIB_API TA_RetCode TA_CORREL( int    startIdx,
     */
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
-   tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+   tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+   if( !TA_IS_ZERO_OR_NEG(tempReal) )
    {
-      outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+      outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
    } else 
    {
       outReal[0] = 0.0;
    }
    /* Tight loop to do subsequent values. */
    outIdx = 1;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       /* Remove trailing values */
       sumX -= trailingX;
-      sumX2 -= (trailingX*trailingX);
-      sumXY -= (trailingX*trailingY);
+      sumX2 -= trailingX * trailingX;
+      sumXY -= trailingX * trailingY;
       sumY -= trailingY;
-      sumY2 -= (trailingY*trailingY);
+      sumY2 -= trailingY * trailingY;
       /* Add new values */
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today++];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
       /* Output new coefficient.
        * Save first the trailing values since the input
        * and output might be the same array,
        */
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !TA_IS_ZERO_OR_NEG(tempReal) )
       {
-         outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+         outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -211,65 +211,65 @@ TA_LIB_API TA_RetCode TA_CORREL_Unguarded( int    startIdx,
    int trailingIdx;
    int outIdx;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    sumY2 = 0.0;
    sumX2 = sumY2;
    sumY = sumX2;
    sumX = sumY;
    sumXY = sumX;
-   for( today = trailingIdx; (today<=startIdx); today += 1 )
+   for( today = trailingIdx; today <= startIdx; today += 1 )
    {
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
    }
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
-   tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+   tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+   if( !TA_IS_ZERO_OR_NEG(tempReal) )
    {
-      outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+      outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
    } else 
    {
       outReal[0] = 0.0;
    }
    outIdx = 1;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       sumX -= trailingX;
-      sumX2 -= (trailingX*trailingX);
-      sumXY -= (trailingX*trailingY);
+      sumX2 -= trailingX * trailingX;
+      sumXY -= trailingX * trailingY;
       sumY -= trailingY;
-      sumY2 -= (trailingY*trailingY);
+      sumY2 -= trailingY * trailingY;
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today++];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !TA_IS_ZERO_OR_NEG(tempReal) )
       {
-         outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+         outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -319,65 +319,65 @@ TA_RetCode TA_S_CORREL( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    sumY2 = 0.0;
    sumX2 = sumY2;
    sumY = sumX2;
    sumX = sumY;
    sumXY = sumX;
-   for( today = trailingIdx; (today<=startIdx); today += 1 )
+   for( today = trailingIdx; today <= startIdx; today += 1 )
    {
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
    }
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
-   tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+   tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+   if( !TA_IS_ZERO_OR_NEG(tempReal) )
    {
-      outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+      outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
    } else 
    {
       outReal[0] = 0.0;
    }
    outIdx = 1;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       sumX -= trailingX;
-      sumX2 -= (trailingX*trailingX);
-      sumXY -= (trailingX*trailingY);
+      sumX2 -= trailingX * trailingX;
+      sumXY -= trailingX * trailingY;
       sumY -= trailingY;
-      sumY2 -= (trailingY*trailingY);
+      sumY2 -= trailingY * trailingY;
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today++];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !TA_IS_ZERO_OR_NEG(tempReal) )
       {
-         outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+         outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
       } else 
       {
          outReal[outIdx++] = 0.0;
@@ -411,65 +411,65 @@ TA_RetCode TA_S_CORREL_Unguarded( int    startIdx,
    int trailingIdx;
    int outIdx;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    sumY2 = 0.0;
    sumX2 = sumY2;
    sumY = sumX2;
    sumX = sumY;
    sumXY = sumX;
-   for( today = trailingIdx; (today<=startIdx); today += 1 )
+   for( today = trailingIdx; today <= startIdx; today += 1 )
    {
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
    }
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
-   tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+   tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+   if( !TA_IS_ZERO_OR_NEG(tempReal) )
    {
-      outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+      outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
    } else 
    {
       outReal[0] = 0.0;
    }
    outIdx = 1;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       sumX -= trailingX;
-      sumX2 -= (trailingX*trailingX);
-      sumXY -= (trailingX*trailingY);
+      sumX2 -= trailingX * trailingX;
+      sumXY -= trailingX * trailingY;
       sumY -= trailingY;
-      sumY2 -= (trailingY*trailingY);
+      sumY2 -= trailingY * trailingY;
       x = inReal0[today];
       sumX += x;
-      sumX2 += (x*x);
+      sumX2 += x * x;
       y = inReal1[today++];
-      sumXY += (x*y);
+      sumXY += x * y;
       sumY += y;
-      sumY2 += (y*y);
+      sumY2 += y * y;
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !TA_IS_ZERO_OR_NEG(tempReal) )
       {
-         outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
+         outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / sqrt(tempReal);
       } else 
       {
          outReal[outIdx++] = 0.0;

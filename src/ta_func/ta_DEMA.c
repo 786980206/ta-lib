@@ -62,7 +62,7 @@ TA_LIB_API int TA_DEMA_Lookback( int optInTimePeriod )
    /* Get lookback for one EMA.
     * Multiply by two (because double smoothing).
     */
-   return (TA_EMA_Lookback(optInTimePeriod)*2);
+   return TA_EMA_Lookback(optInTimePeriod) * 2;
 }
 
 TA_LIB_API TA_RetCode TA_DEMA( int    startIdx,
@@ -128,13 +128,13 @@ TA_LIB_API TA_RetCode TA_DEMA( int    startIdx,
    *outBegIdx= 0;
    /* Adjust startIdx to account for the lookback period. */
    lookbackEMA = TA_EMA_Lookback(optInTimePeriod);
-   lookbackTotal = (lookbackEMA*2);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = lookbackEMA * 2;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
@@ -143,48 +143,48 @@ TA_LIB_API TA_RetCode TA_DEMA( int    startIdx,
     * When possible, re-use the outputBuffer for temp
     * calculation.
     */
-   if( (inReal==outReal) )
+   if( inReal == outReal )
    {
       firstEMA = outReal;
    } else 
    {
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = malloc((tempInt*sizeof(double)));
-      if( !(firstEMA) )
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = malloc(tempInt * sizeof(double));
+      if( !firstEMA )
       {
          return TA_ALLOC_ERR;
       }
    }
    /* Calculate the first EMA */
-   retCode = TA_EMA_Unguarded((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   retCode = TA_EMA_Unguarded(startIdx - lookbackEMA,endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
    /* Verify for failure or if not enough data after
     * calculating the first EMA.
     */
-   if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
+   if( retCode != TA_SUCCESS || firstEMANbElement == 0 )
    {
-      if( (firstEMA!=outReal) )
+      if( firstEMA != outReal )
       {
          free(firstEMA);
       }
       return retCode;
    }
    /* Allocate a temporary buffer for storing the EMA of the EMA. */
-   secondEMA = malloc((firstEMANbElement*sizeof(double)));
-   if( !(secondEMA) )
+   secondEMA = malloc(firstEMANbElement * sizeof(double));
+   if( !secondEMA )
    {
-      if( (firstEMA!=outReal) )
+      if( firstEMA != outReal )
       {
          free(firstEMA);
       }
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA_Unguarded(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   retCode = TA_EMA_Unguarded(0,firstEMANbElement - 1,firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
    /* Return empty output on failure or if not enough data after
     * calculating the second EMA.
     */
-   if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
+   if( retCode != TA_SUCCESS || secondEMANbElement == 0 )
    {
-      if( (firstEMA!=outReal) )
+      if( firstEMA != outReal )
       {
          free(firstEMA);
       }
@@ -196,12 +196,12 @@ TA_LIB_API TA_RetCode TA_DEMA( int    startIdx,
     */
    firstEMAIdx = secondEMABegIdx;
    outIdx = 0;
-   while( (outIdx<secondEMANbElement) )
+   while( outIdx < secondEMANbElement )
    {
-      outReal[outIdx] = ((2.0*firstEMA[firstEMAIdx++])-secondEMA[outIdx]);
+      outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
       outIdx += 1;
    }
-   if( (firstEMA!=outReal) )
+   if( firstEMA != outReal )
    {
       free(firstEMA);
    }
@@ -209,7 +209,7 @@ TA_LIB_API TA_RetCode TA_DEMA( int    startIdx,
    /* Succeed. Indicate where the output starts relative to
     * the caller input.
     */
-   *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
+   *outBegIdx= firstEMABegIdx + secondEMABegIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
 }
@@ -238,49 +238,49 @@ TA_LIB_API TA_RetCode TA_DEMA_Unguarded( int    startIdx,
    *outNBElement= 0;
    *outBegIdx= 0;
    lookbackEMA = TA_EMA_Lookback(optInTimePeriod);
-   lookbackTotal = (lookbackEMA*2);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = lookbackEMA * 2;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
-   if( (inReal==outReal) )
+   if( inReal == outReal )
    {
       firstEMA = outReal;
    } else 
    {
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = malloc((tempInt*sizeof(double)));
-      if( !(firstEMA) )
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = malloc(tempInt * sizeof(double));
+      if( !firstEMA )
       {
          return TA_ALLOC_ERR;
       }
    }
-   retCode = TA_EMA_Unguarded((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
-   if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
+   retCode = TA_EMA_Unguarded(startIdx - lookbackEMA,endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   if( retCode != TA_SUCCESS || firstEMANbElement == 0 )
    {
-      if( (firstEMA!=outReal) )
+      if( firstEMA != outReal )
       {
          free(firstEMA);
       }
       return retCode;
    }
-   secondEMA = malloc((firstEMANbElement*sizeof(double)));
-   if( !(secondEMA) )
+   secondEMA = malloc(firstEMANbElement * sizeof(double));
+   if( !secondEMA )
    {
-      if( (firstEMA!=outReal) )
+      if( firstEMA != outReal )
       {
          free(firstEMA);
       }
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA_Unguarded(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
-   if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
+   retCode = TA_EMA_Unguarded(0,firstEMANbElement - 1,firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   if( retCode != TA_SUCCESS || secondEMANbElement == 0 )
    {
-      if( (firstEMA!=outReal) )
+      if( firstEMA != outReal )
       {
          free(firstEMA);
       }
@@ -289,17 +289,17 @@ TA_LIB_API TA_RetCode TA_DEMA_Unguarded( int    startIdx,
    }
    firstEMAIdx = secondEMABegIdx;
    outIdx = 0;
-   while( (outIdx<secondEMANbElement) )
+   while( outIdx < secondEMANbElement )
    {
-      outReal[outIdx] = ((2.0*firstEMA[firstEMAIdx++])-secondEMA[outIdx]);
+      outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
       outIdx += 1;
    }
-   if( (firstEMA!=outReal) )
+   if( firstEMA != outReal )
    {
       free(firstEMA);
    }
    free(secondEMA);
-   *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
+   *outBegIdx= firstEMABegIdx + secondEMABegIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
 }
@@ -342,49 +342,49 @@ TA_RetCode TA_S_DEMA( int    startIdx,
    *outNBElement= 0;
    *outBegIdx= 0;
    lookbackEMA = TA_EMA_Lookback(optInTimePeriod);
-   lookbackTotal = (lookbackEMA*2);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = lookbackEMA * 2;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
-   if( ((void *)inReal==(void *)outReal) )
+   if( (void *)inReal == (void *)outReal )
    {
       firstEMA = outReal;
    } else 
    {
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = malloc((tempInt*sizeof(double)));
-      if( !(firstEMA) )
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = malloc(tempInt * sizeof(double));
+      if( !firstEMA )
       {
          return TA_ALLOC_ERR;
       }
    }
-   retCode = TA_S_EMA_Unguarded((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
-   if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
+   retCode = TA_S_EMA_Unguarded(startIdx - lookbackEMA,endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   if( retCode != TA_SUCCESS || firstEMANbElement == 0 )
    {
-      if( ((void *)firstEMA!=(void *)outReal) )
+      if( (void *)firstEMA != (void *)outReal )
       {
          free(firstEMA);
       }
       return retCode;
    }
-   secondEMA = malloc((firstEMANbElement*sizeof(double)));
-   if( !(secondEMA) )
+   secondEMA = malloc(firstEMANbElement * sizeof(double));
+   if( !secondEMA )
    {
-      if( ((void *)firstEMA!=(void *)outReal) )
+      if( (void *)firstEMA != (void *)outReal )
       {
          free(firstEMA);
       }
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA_Unguarded(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
-   if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
+   retCode = TA_EMA_Unguarded(0,firstEMANbElement - 1,firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   if( retCode != TA_SUCCESS || secondEMANbElement == 0 )
    {
-      if( ((void *)firstEMA!=(void *)outReal) )
+      if( (void *)firstEMA != (void *)outReal )
       {
          free(firstEMA);
       }
@@ -393,17 +393,17 @@ TA_RetCode TA_S_DEMA( int    startIdx,
    }
    firstEMAIdx = secondEMABegIdx;
    outIdx = 0;
-   while( (outIdx<secondEMANbElement) )
+   while( outIdx < secondEMANbElement )
    {
-      outReal[outIdx] = ((2.0*firstEMA[firstEMAIdx++])-secondEMA[outIdx]);
+      outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
       outIdx += 1;
    }
-   if( ((void *)firstEMA!=(void *)outReal) )
+   if( (void *)firstEMA != (void *)outReal )
    {
       free(firstEMA);
    }
    free(secondEMA);
-   *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
+   *outBegIdx= firstEMABegIdx + secondEMABegIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
 }
@@ -432,49 +432,49 @@ TA_RetCode TA_S_DEMA_Unguarded( int    startIdx,
    *outNBElement= 0;
    *outBegIdx= 0;
    lookbackEMA = TA_EMA_Lookback(optInTimePeriod);
-   lookbackTotal = (lookbackEMA*2);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = lookbackEMA * 2;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
-   if( ((void *)inReal==(void *)outReal) )
+   if( (void *)inReal == (void *)outReal )
    {
       firstEMA = outReal;
    } else 
    {
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = malloc((tempInt*sizeof(double)));
-      if( !(firstEMA) )
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = malloc(tempInt * sizeof(double));
+      if( !firstEMA )
       {
          return TA_ALLOC_ERR;
       }
    }
-   retCode = TA_S_EMA_Unguarded((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
-   if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
+   retCode = TA_S_EMA_Unguarded(startIdx - lookbackEMA,endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   if( retCode != TA_SUCCESS || firstEMANbElement == 0 )
    {
-      if( ((void *)firstEMA!=(void *)outReal) )
+      if( (void *)firstEMA != (void *)outReal )
       {
          free(firstEMA);
       }
       return retCode;
    }
-   secondEMA = malloc((firstEMANbElement*sizeof(double)));
-   if( !(secondEMA) )
+   secondEMA = malloc(firstEMANbElement * sizeof(double));
+   if( !secondEMA )
    {
-      if( ((void *)firstEMA!=(void *)outReal) )
+      if( (void *)firstEMA != (void *)outReal )
       {
          free(firstEMA);
       }
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA_Unguarded(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
-   if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
+   retCode = TA_EMA_Unguarded(0,firstEMANbElement - 1,firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   if( retCode != TA_SUCCESS || secondEMANbElement == 0 )
    {
-      if( ((void *)firstEMA!=(void *)outReal) )
+      if( (void *)firstEMA != (void *)outReal )
       {
          free(firstEMA);
       }
@@ -483,17 +483,17 @@ TA_RetCode TA_S_DEMA_Unguarded( int    startIdx,
    }
    firstEMAIdx = secondEMABegIdx;
    outIdx = 0;
-   while( (outIdx<secondEMANbElement) )
+   while( outIdx < secondEMANbElement )
    {
-      outReal[outIdx] = ((2.0*firstEMA[firstEMAIdx++])-secondEMA[outIdx]);
+      outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
       outIdx += 1;
    }
-   if( ((void *)firstEMA!=(void *)outReal) )
+   if( (void *)firstEMA != (void *)outReal )
    {
       free(firstEMA);
    }
    free(secondEMA);
-   *outBegIdx= (firstEMABegIdx+secondEMABegIdx);
+   *outBegIdx= firstEMABegIdx + secondEMABegIdx;
    *outNBElement= outIdx;
    return TA_SUCCESS;
 }

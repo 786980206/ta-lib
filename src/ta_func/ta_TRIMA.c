@@ -61,7 +61,7 @@
 
 TA_LIB_API int TA_TRIMA_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
@@ -101,16 +101,16 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-   lookbackTotal = (optInTimePeriod-1);
+   lookbackTotal = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -202,7 +202,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
     * the middleIdx and todayIdx.
     */
    outIdx = 0;
-   if( ((optInTimePeriod%2)==1) )
+   if( optInTimePeriod % 2 == 1 )
    {
       /* Logic for Odd period */
       /* Calculate the factor which is 1 divided by the
@@ -232,18 +232,18 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
       /* Note: entirely done with int and becomes double only
        *       on assignement to the factor variable.
        */
-      i = (optInTimePeriod>>1);
-      factor = ((i+1)*(i+1));
-      factor = (1.0/factor);
+      i = optInTimePeriod >> 1;
+      factor = (i + 1) * (i + 1);
+      factor = 1.0 / factor;
       /* Initialize all the variable before
        * starting to iterate for each output.
        */
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = (trailingIdx+i);
-      todayIdx = (middleIdx+i);
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -251,7 +251,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -260,7 +260,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
       /* Write the first output */
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
       /* Note: The value at the trailingIdx was saved
        *       in tempReal to account for the case where
@@ -268,7 +268,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
        *       buffer.
        */
       /* Iterate for remaining output */
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          /* Step (1) */
          numerator -= numeratorSub;
@@ -284,7 +284,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
          numerator += tempReal;
          /* Step (4) */
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    } else 
    {
@@ -296,18 +296,18 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
        *    slightly different.
        *  - Adjustment of numeratorAdd is different. See Step (2).
        */
-      i = (optInTimePeriod>>1);
-      factor = (i*(i+1));
-      factor = (1.0/factor);
+      i = optInTimePeriod >> 1;
+      factor = i * (i + 1);
+      factor = 1.0 / factor;
       /* Initialize all the variable before
        * starting to iterate for each output.
        */
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = ((trailingIdx+i)-1);
-      todayIdx = (middleIdx+i);
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i - 1;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -315,7 +315,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -324,7 +324,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
       /* Write the first output */
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
       /* Note: The value at the trailingIdx was saved
        *       in tempReal to account for the case where
@@ -332,7 +332,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
        *       buffer.
        */
       /* Iterate for remaining output */
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          /* Step (1) */
          numerator -= numeratorSub;
@@ -348,7 +348,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
          numerator += tempReal;
          /* Step (4) */
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    }
    *outNBElement= outIdx;
@@ -376,29 +376,29 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
    double factor;
    double tempReal;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    outIdx = 0;
-   if( ((optInTimePeriod%2)==1) )
+   if( optInTimePeriod % 2 == 1 )
    {
-      i = (optInTimePeriod>>1);
-      factor = ((i+1)*(i+1));
-      factor = (1.0/factor);
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = (trailingIdx+i);
-      todayIdx = (middleIdx+i);
+      i = optInTimePeriod >> 1;
+      factor = (i + 1) * (i + 1);
+      factor = 1.0 / factor;
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -406,7 +406,7 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -414,9 +414,9 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
       }
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          numerator -= numeratorSub;
          numeratorSub -= tempReal;
@@ -428,19 +428,19 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
          numeratorAdd += tempReal;
          numerator += tempReal;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    } else 
    {
-      i = (optInTimePeriod>>1);
-      factor = (i*(i+1));
-      factor = (1.0/factor);
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = ((trailingIdx+i)-1);
-      todayIdx = (middleIdx+i);
+      i = optInTimePeriod >> 1;
+      factor = i * (i + 1);
+      factor = 1.0 / factor;
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i - 1;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -448,7 +448,7 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -456,9 +456,9 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
       }
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          numerator -= numeratorSub;
          numeratorSub -= tempReal;
@@ -470,7 +470,7 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
          numeratorAdd += tempReal;
          numerator += tempReal;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    }
    *outNBElement= outIdx;
@@ -512,29 +512,29 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    outIdx = 0;
-   if( ((optInTimePeriod%2)==1) )
+   if( optInTimePeriod % 2 == 1 )
    {
-      i = (optInTimePeriod>>1);
-      factor = ((i+1)*(i+1));
-      factor = (1.0/factor);
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = (trailingIdx+i);
-      todayIdx = (middleIdx+i);
+      i = optInTimePeriod >> 1;
+      factor = (i + 1) * (i + 1);
+      factor = 1.0 / factor;
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -542,7 +542,7 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -550,9 +550,9 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
       }
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          numerator -= numeratorSub;
          numeratorSub -= tempReal;
@@ -564,19 +564,19 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
          numeratorAdd += tempReal;
          numerator += tempReal;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    } else 
    {
-      i = (optInTimePeriod>>1);
-      factor = (i*(i+1));
-      factor = (1.0/factor);
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = ((trailingIdx+i)-1);
-      todayIdx = (middleIdx+i);
+      i = optInTimePeriod >> 1;
+      factor = i * (i + 1);
+      factor = 1.0 / factor;
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i - 1;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -584,7 +584,7 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -592,9 +592,9 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
       }
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          numerator -= numeratorSub;
          numeratorSub -= tempReal;
@@ -606,7 +606,7 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
          numeratorAdd += tempReal;
          numerator += tempReal;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    }
    *outNBElement= outIdx;
@@ -634,29 +634,29 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
    double factor;
    double tempReal;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    outIdx = 0;
-   if( ((optInTimePeriod%2)==1) )
+   if( optInTimePeriod % 2 == 1 )
    {
-      i = (optInTimePeriod>>1);
-      factor = ((i+1)*(i+1));
-      factor = (1.0/factor);
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = (trailingIdx+i);
-      todayIdx = (middleIdx+i);
+      i = optInTimePeriod >> 1;
+      factor = (i + 1) * (i + 1);
+      factor = 1.0 / factor;
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -664,7 +664,7 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -672,9 +672,9 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
       }
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          numerator -= numeratorSub;
          numeratorSub -= tempReal;
@@ -686,19 +686,19 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
          numeratorAdd += tempReal;
          numerator += tempReal;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    } else 
    {
-      i = (optInTimePeriod>>1);
-      factor = (i*(i+1));
-      factor = (1.0/factor);
-      trailingIdx = (startIdx-lookbackTotal);
-      middleIdx = ((trailingIdx+i)-1);
-      todayIdx = (middleIdx+i);
+      i = optInTimePeriod >> 1;
+      factor = i * (i + 1);
+      factor = 1.0 / factor;
+      trailingIdx = startIdx - lookbackTotal;
+      middleIdx = trailingIdx + i - 1;
+      todayIdx = middleIdx + i;
       numerator = 0.0;
       numeratorSub = 0.0;
-      for( i = middleIdx; (i>=trailingIdx); i -= 1 )
+      for( i = middleIdx; i >= trailingIdx; i -= 1 )
       {
          tempReal = inReal[i];
          numeratorSub += tempReal;
@@ -706,7 +706,7 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
       }
       numeratorAdd = 0.0;
       middleIdx += 1;
-      for( i = middleIdx; (i<=todayIdx); i += 1 )
+      for( i = middleIdx; i <= todayIdx; i += 1 )
       {
          tempReal = inReal[i];
          numeratorAdd += tempReal;
@@ -714,9 +714,9 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
       }
       outIdx = 0;
       tempReal = inReal[trailingIdx++];
-      outReal[outIdx++] = (numerator*factor);
+      outReal[outIdx++] = numerator * factor;
       todayIdx += 1;
-      while( (todayIdx<=endIdx) )
+      while( todayIdx <= endIdx )
       {
          numerator -= numeratorSub;
          numeratorSub -= tempReal;
@@ -728,7 +728,7 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
          numeratorAdd += tempReal;
          numerator += tempReal;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
       }
    }
    *outNBElement= outIdx;

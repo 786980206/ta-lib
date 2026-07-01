@@ -115,12 +115,12 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -129,17 +129,17 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
    /* Buffer will contains also the lookback required for SMA
     * to satisfy the caller requested startIdx/endIdx.
     */
-   outputSize = ((endIdx-startIdx)+1);
-   bufferSize = (outputSize+lookbackTotal);
-   tempBuffer1 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer1) )
+   outputSize = endIdx - startIdx + 1;
+   bufferSize = outputSize + lookbackTotal;
+   tempBuffer1 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer1 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
-   tempBuffer2 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer2) )
+   tempBuffer2 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer2 )
    {
       free(tempBuffer1);
       *outBegIdx= 0;
@@ -150,14 +150,14 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
     * Must start calculation back enough to cover the lookback
     * required later for the SMA.
     */
-   for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
+   for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
    {
-      tempReal = (inHigh[i]+inLow[i]);
-      if( !(TA_IS_ZERO(tempReal)) )
+      tempReal = inHigh[i] + inLow[i];
+      if( !TA_IS_ZERO(tempReal) )
       {
-         tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
-         tempBuffer1[j] = (inHigh[i]*(1+tempReal));
-         tempBuffer2[j] = (inLow[i]*(1-tempReal));
+         tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
+         tempBuffer1[j] = inHigh[i] * (1 + tempReal);
+         tempBuffer2[j] = inLow[i] * (1 - tempReal);
       } else 
       {
          tempBuffer1[j] = inHigh[i];
@@ -166,7 +166,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
    }
    /* Calculate the middle band, which is a moving average of the close. */
    retCode = TA_SMA_Unguarded(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -175,8 +175,8 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
       return retCode;
    }
    /* Now let's take the SMA for the upper band. */
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -185,10 +185,10 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
       return retCode;
    }
    /* Now let's take the SMA for the lower band. */
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -224,41 +224,41 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Unguarded( int    startIdx,
    double tempReal;
 
    lookbackTotal = TA_SMA_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   outputSize = ((endIdx-startIdx)+1);
-   bufferSize = (outputSize+lookbackTotal);
-   tempBuffer1 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer1) )
+   outputSize = endIdx - startIdx + 1;
+   bufferSize = outputSize + lookbackTotal;
+   tempBuffer1 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer1 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
-   tempBuffer2 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer2) )
+   tempBuffer2 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer2 )
    {
       free(tempBuffer1);
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
-   for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
+   for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
    {
-      tempReal = (inHigh[i]+inLow[i]);
-      if( !(TA_IS_ZERO(tempReal)) )
+      tempReal = inHigh[i] + inLow[i];
+      if( !TA_IS_ZERO(tempReal) )
       {
-         tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
-         tempBuffer1[j] = (inHigh[i]*(1+tempReal));
-         tempBuffer2[j] = (inLow[i]*(1-tempReal));
+         tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
+         tempBuffer1[j] = inHigh[i] * (1 + tempReal);
+         tempBuffer2[j] = inLow[i] * (1 - tempReal);
       } else 
       {
          tempBuffer1[j] = inHigh[i];
@@ -266,7 +266,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Unguarded( int    startIdx,
       }
    }
    retCode = TA_SMA_Unguarded(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -274,8 +274,8 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -283,10 +283,10 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -344,41 +344,41 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_SMA_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   outputSize = ((endIdx-startIdx)+1);
-   bufferSize = (outputSize+lookbackTotal);
-   tempBuffer1 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer1) )
+   outputSize = endIdx - startIdx + 1;
+   bufferSize = outputSize + lookbackTotal;
+   tempBuffer1 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer1 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
-   tempBuffer2 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer2) )
+   tempBuffer2 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer2 )
    {
       free(tempBuffer1);
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
-   for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
+   for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
    {
-      tempReal = (inHigh[i]+inLow[i]);
-      if( !(TA_IS_ZERO(tempReal)) )
+      tempReal = inHigh[i] + inLow[i];
+      if( !TA_IS_ZERO(tempReal) )
       {
-         tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
-         tempBuffer1[j] = (inHigh[i]*(1+tempReal));
-         tempBuffer2[j] = (inLow[i]*(1-tempReal));
+         tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
+         tempBuffer1[j] = inHigh[i] * (1 + tempReal);
+         tempBuffer2[j] = inLow[i] * (1 - tempReal);
       } else 
       {
          tempBuffer1[j] = inHigh[i];
@@ -386,7 +386,7 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
       }
    }
    retCode = TA_S_SMA_Unguarded(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -394,8 +394,8 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -403,10 +403,10 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -442,41 +442,41 @@ TA_RetCode TA_S_ACCBANDS_Unguarded( int    startIdx,
    double tempReal;
 
    lookbackTotal = TA_SMA_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   outputSize = ((endIdx-startIdx)+1);
-   bufferSize = (outputSize+lookbackTotal);
-   tempBuffer1 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer1) )
+   outputSize = endIdx - startIdx + 1;
+   bufferSize = outputSize + lookbackTotal;
+   tempBuffer1 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer1 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
-   tempBuffer2 = malloc((bufferSize*sizeof(double)));
-   if( !(tempBuffer2) )
+   tempBuffer2 = malloc(bufferSize * sizeof(double));
+   if( !tempBuffer2 )
    {
       free(tempBuffer1);
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_ALLOC_ERR;
    }
-   for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
+   for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
    {
-      tempReal = (inHigh[i]+inLow[i]);
-      if( !(TA_IS_ZERO(tempReal)) )
+      tempReal = inHigh[i] + inLow[i];
+      if( !TA_IS_ZERO(tempReal) )
       {
-         tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
-         tempBuffer1[j] = (inHigh[i]*(1+tempReal));
-         tempBuffer2[j] = (inLow[i]*(1-tempReal));
+         tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
+         tempBuffer1[j] = inHigh[i] * (1 + tempReal);
+         tempBuffer2[j] = inLow[i] * (1 - tempReal);
       } else 
       {
          tempBuffer1[j] = inHigh[i];
@@ -484,7 +484,7 @@ TA_RetCode TA_S_ACCBANDS_Unguarded( int    startIdx,
       }
    }
    retCode = TA_S_SMA_Unguarded(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -492,8 +492,8 @@ TA_RetCode TA_S_ACCBANDS_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       free(tempBuffer1);
       free(tempBuffer2);
@@ -501,10 +501,10 @@ TA_RetCode TA_S_ACCBANDS_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_SMA_Unguarded(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA_Unguarded(0,bufferSize - 1,tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
-   if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
+   if( retCode != TA_SUCCESS || (int)outNbElementDummy != outputSize )
    {
       *outBegIdx= 0;
       *outNBElement= 0;

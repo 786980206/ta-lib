@@ -112,46 +112,46 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    /* Calculate exact output size */
-   if( (lookbackTotal>startIdx) )
+   if( lookbackTotal > startIdx )
    {
       tempInt = lookbackTotal;
    } else 
    {
       tempInt = startIdx;
    }
-   if( (tempInt>endIdx) )
+   if( tempInt > endIdx )
    {
       /* No output */
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   outputSize = ((endIdx-tempInt)+1);
+   outputSize = endIdx - tempInt + 1;
    /* Allocate intermediate local buffer. */
-   localOutputArray = malloc((outputSize*sizeof(double)));
-   localPeriodArray = malloc((outputSize*sizeof(int)));
+   localOutputArray = malloc(outputSize * sizeof(double));
+   localPeriodArray = malloc(outputSize * sizeof(int));
    /* Copy caller array of period into local buffer.
     * At the same time, truncate to min/max.
     */
-   for( i = 0; (i<outputSize); i += 1 )
+   for( i = 0; i < outputSize; i += 1 )
    {
-      tempInt = ((int)inPeriods[(startIdx+i)]);
-      if( (tempInt<optInMinPeriod) )
+      tempInt = (int)inPeriods[startIdx + i];
+      if( tempInt < optInMinPeriod )
       {
          tempInt = optInMinPeriod;
-      } else if( (tempInt>optInMaxPeriod) )
+      } else if( tempInt > optInMaxPeriod )
       {
          tempInt = optInMaxPeriod;
       }
@@ -165,10 +165,10 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
     * A local flag (value 0) is set in localPeriodArray
     * to avoid doing a second time the same calculation.
     */
-   for( i = 0; (i<outputSize); i += 1 )
+   for( i = 0; i < outputSize; i += 1 )
    {
       curPeriod = localPeriodArray[i];
-      if( (curPeriod!=0) )
+      if( curPeriod != 0 )
       {
          /* TODO: This portion of the function can be slightly speed
           *       optimized by making the function without unstable period
@@ -176,7 +176,7 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
           */
          /* Calculation of the MA required. */
          retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
-         if( (retCode!=TA_SUCCESS) )
+         if( retCode != TA_SUCCESS )
          {
             free(localOutputArray);
             free(localPeriodArray);
@@ -185,9 +185,9 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
             return retCode;
          }
          outReal[i] = localOutputArray[i];
-         for( j = (i+1); (j<outputSize); j += 1 )
+         for( j = i + 1; j < outputSize; j += 1 )
          {
-            if( (localPeriodArray[j]==curPeriod) )
+            if( localPeriodArray[j] == curPeriod )
             {
                localPeriodArray[j] = 0;
                /* Flag to avoid recalculation */
@@ -228,51 +228,51 @@ TA_LIB_API TA_RetCode TA_MAVP_Unguarded( int    startIdx,
    TA_RetCode retCode;
 
    lookbackTotal = TA_MA_Lookback(optInMaxPeriod,optInMAType);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   if( (lookbackTotal>startIdx) )
+   if( lookbackTotal > startIdx )
    {
       tempInt = lookbackTotal;
    } else 
    {
       tempInt = startIdx;
    }
-   if( (tempInt>endIdx) )
+   if( tempInt > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   outputSize = ((endIdx-tempInt)+1);
-   localOutputArray = malloc((outputSize*sizeof(double)));
-   localPeriodArray = malloc((outputSize*sizeof(int)));
-   for( i = 0; (i<outputSize); i += 1 )
+   outputSize = endIdx - tempInt + 1;
+   localOutputArray = malloc(outputSize * sizeof(double));
+   localPeriodArray = malloc(outputSize * sizeof(int));
+   for( i = 0; i < outputSize; i += 1 )
    {
-      tempInt = ((int)inPeriods[(startIdx+i)]);
-      if( (tempInt<optInMinPeriod) )
+      tempInt = (int)inPeriods[startIdx + i];
+      if( tempInt < optInMinPeriod )
       {
          tempInt = optInMinPeriod;
-      } else if( (tempInt>optInMaxPeriod) )
+      } else if( tempInt > optInMaxPeriod )
       {
          tempInt = optInMaxPeriod;
       }
       localPeriodArray[i] = tempInt;
    }
-   for( i = 0; (i<outputSize); i += 1 )
+   for( i = 0; i < outputSize; i += 1 )
    {
       curPeriod = localPeriodArray[i];
-      if( (curPeriod!=0) )
+      if( curPeriod != 0 )
       {
          retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
-         if( (retCode!=TA_SUCCESS) )
+         if( retCode != TA_SUCCESS )
          {
             free(localOutputArray);
             free(localPeriodArray);
@@ -281,9 +281,9 @@ TA_LIB_API TA_RetCode TA_MAVP_Unguarded( int    startIdx,
             return retCode;
          }
          outReal[i] = localOutputArray[i];
-         for( j = (i+1); (j<outputSize); j += 1 )
+         for( j = i + 1; j < outputSize; j += 1 )
          {
-            if( (localPeriodArray[j]==curPeriod) )
+            if( localPeriodArray[j] == curPeriod )
             {
                localPeriodArray[j] = 0;
                outReal[j] = localOutputArray[j];
@@ -344,51 +344,51 @@ TA_RetCode TA_S_MAVP( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_MA_Lookback(optInMaxPeriod,optInMAType);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   if( (lookbackTotal>startIdx) )
+   if( lookbackTotal > startIdx )
    {
       tempInt = lookbackTotal;
    } else 
    {
       tempInt = startIdx;
    }
-   if( (tempInt>endIdx) )
+   if( tempInt > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   outputSize = ((endIdx-tempInt)+1);
-   localOutputArray = malloc((outputSize*sizeof(double)));
-   localPeriodArray = malloc((outputSize*sizeof(int)));
-   for( i = 0; (i<outputSize); i += 1 )
+   outputSize = endIdx - tempInt + 1;
+   localOutputArray = malloc(outputSize * sizeof(double));
+   localPeriodArray = malloc(outputSize * sizeof(int));
+   for( i = 0; i < outputSize; i += 1 )
    {
-      tempInt = ((int)inPeriods[(startIdx+i)]);
-      if( (tempInt<optInMinPeriod) )
+      tempInt = (int)inPeriods[startIdx + i];
+      if( tempInt < optInMinPeriod )
       {
          tempInt = optInMinPeriod;
-      } else if( (tempInt>optInMaxPeriod) )
+      } else if( tempInt > optInMaxPeriod )
       {
          tempInt = optInMaxPeriod;
       }
       localPeriodArray[i] = tempInt;
    }
-   for( i = 0; (i<outputSize); i += 1 )
+   for( i = 0; i < outputSize; i += 1 )
    {
       curPeriod = localPeriodArray[i];
-      if( (curPeriod!=0) )
+      if( curPeriod != 0 )
       {
          retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
-         if( (retCode!=TA_SUCCESS) )
+         if( retCode != TA_SUCCESS )
          {
             free(localOutputArray);
             free(localPeriodArray);
@@ -397,9 +397,9 @@ TA_RetCode TA_S_MAVP( int    startIdx,
             return retCode;
          }
          outReal[i] = localOutputArray[i];
-         for( j = (i+1); (j<outputSize); j += 1 )
+         for( j = i + 1; j < outputSize; j += 1 )
          {
-            if( (localPeriodArray[j]==curPeriod) )
+            if( localPeriodArray[j] == curPeriod )
             {
                localPeriodArray[j] = 0;
                outReal[j] = localOutputArray[j];
@@ -438,51 +438,51 @@ TA_RetCode TA_S_MAVP_Unguarded( int    startIdx,
    TA_RetCode retCode;
 
    lookbackTotal = TA_MA_Lookback(optInMaxPeriod,optInMAType);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   if( (lookbackTotal>startIdx) )
+   if( lookbackTotal > startIdx )
    {
       tempInt = lookbackTotal;
    } else 
    {
       tempInt = startIdx;
    }
-   if( (tempInt>endIdx) )
+   if( tempInt > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   outputSize = ((endIdx-tempInt)+1);
-   localOutputArray = malloc((outputSize*sizeof(double)));
-   localPeriodArray = malloc((outputSize*sizeof(int)));
-   for( i = 0; (i<outputSize); i += 1 )
+   outputSize = endIdx - tempInt + 1;
+   localOutputArray = malloc(outputSize * sizeof(double));
+   localPeriodArray = malloc(outputSize * sizeof(int));
+   for( i = 0; i < outputSize; i += 1 )
    {
-      tempInt = ((int)inPeriods[(startIdx+i)]);
-      if( (tempInt<optInMinPeriod) )
+      tempInt = (int)inPeriods[startIdx + i];
+      if( tempInt < optInMinPeriod )
       {
          tempInt = optInMinPeriod;
-      } else if( (tempInt>optInMaxPeriod) )
+      } else if( tempInt > optInMaxPeriod )
       {
          tempInt = optInMaxPeriod;
       }
       localPeriodArray[i] = tempInt;
    }
-   for( i = 0; (i<outputSize); i += 1 )
+   for( i = 0; i < outputSize; i += 1 )
    {
       curPeriod = localPeriodArray[i];
-      if( (curPeriod!=0) )
+      if( curPeriod != 0 )
       {
          retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
-         if( (retCode!=TA_SUCCESS) )
+         if( retCode != TA_SUCCESS )
          {
             free(localOutputArray);
             free(localPeriodArray);
@@ -491,9 +491,9 @@ TA_RetCode TA_S_MAVP_Unguarded( int    startIdx,
             return retCode;
          }
          outReal[i] = localOutputArray[i];
-         for( j = (i+1); (j<outputSize); j += 1 )
+         for( j = i + 1; j < outputSize; j += 1 )
          {
-            if( (localPeriodArray[j]==curPeriod) )
+            if( localPeriodArray[j] == curPeriod )
             {
                localPeriodArray[j] = 0;
                outReal[j] = localOutputArray[j];

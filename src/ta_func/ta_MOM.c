@@ -122,12 +122,12 @@ TA_LIB_API TA_RetCode TA_MOM( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -139,10 +139,10 @@ TA_LIB_API TA_RetCode TA_MOM( int    startIdx,
     */
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
-      outReal[outIdx++] = (inReal[inIdx++]-inReal[trailingIdx++]);
+      outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
    }
    /* Set output limits. */
    *outNBElement= outIdx;
@@ -162,11 +162,11 @@ TA_LIB_API TA_RetCode TA_MOM_Unguarded( int    startIdx,
    int outIdx;
    int trailingIdx;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -174,10 +174,10 @@ TA_LIB_API TA_RetCode TA_MOM_Unguarded( int    startIdx,
    }
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
-      outReal[outIdx++] = (inReal[inIdx++]-inReal[trailingIdx++]);
+      outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -210,11 +210,11 @@ TA_RetCode TA_S_MOM( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -222,10 +222,10 @@ TA_RetCode TA_S_MOM( int    startIdx,
    }
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
-      outReal[outIdx++] = (inReal[inIdx++]-inReal[trailingIdx++]);
+      outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -244,11 +244,11 @@ TA_RetCode TA_S_MOM_Unguarded( int    startIdx,
    int outIdx;
    int trailingIdx;
 
-   if( (startIdx<optInTimePeriod) )
+   if( startIdx < optInTimePeriod )
    {
       startIdx = optInTimePeriod;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -256,10 +256,10 @@ TA_RetCode TA_S_MOM_Unguarded( int    startIdx,
    }
    outIdx = 0;
    inIdx = startIdx;
-   trailingIdx = (startIdx-optInTimePeriod);
-   while( (inIdx<=endIdx) )
+   trailingIdx = startIdx - optInTimePeriod;
+   while( inIdx <= endIdx )
    {
-      outReal[outIdx++] = (inReal[inIdx++]-inReal[trailingIdx++]);
+      outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;

@@ -95,9 +95,9 @@ TA_LIB_API TA_RetCode TA_AVGPRICE( int    startIdx,
 
    /* Average price = (High + Low + Open + Close) / 4 */
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -118,9 +118,9 @@ TA_LIB_API TA_RetCode TA_AVGPRICE_Unguarded( int    startIdx,
    int i;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -157,9 +157,9 @@ TA_RetCode TA_S_AVGPRICE( int    startIdx,
       return TA_BAD_PARAM;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -180,9 +180,9 @@ TA_RetCode TA_S_AVGPRICE_Unguarded( int    startIdx,
    int i;
 
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
-      outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;

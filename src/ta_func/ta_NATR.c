@@ -64,7 +64,7 @@ TA_LIB_API int TA_NATR_Lookback( int optInTimePeriod )
     * (optInTimePeriod-1) is for the simple
     * moving average.
     */
-   return (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_NATR,Natr));
+   return optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_NATR,Natr);
 }
 
 TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
@@ -135,26 +135,26 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
    *outNBElement= 0;
    /* Adjust startIdx to account for the lookback period. */
    lookbackTotal = TA_NATR_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
    /* Trap the case where no smoothing is needed. */
-   if( (optInTimePeriod<=1) )
+   if( optInTimePeriod <= 1 )
    {
       /* No smoothing needed. Just do a TRANGE. */
       return TA_TRANGE_Unguarded(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
    /* Allocate an intermediate buffer for TRANGE. */
-   tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
+   tempBuffer = malloc((lookbackTotal + (endIdx - startIdx) + 1) * sizeof(double));
    /* Do TRANGE in the intermediate buffer. */
-   retCode = TA_TRANGE_Unguarded(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_TRANGE_Unguarded(startIdx - lookbackTotal + 1,endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
@@ -162,8 +162,8 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
    /* First value of the ATR is a simple Average of
     * the TRANGE output for the specified period.
     */
-   retCode = TA_SMA_Unguarded((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_SMA_Unguarded(optInTimePeriod - 1,optInTimePeriod - 1,tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
@@ -177,9 +177,9 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
    today = optInTimePeriod;
    outIdx = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_NATR,Natr);
    /* Skip the unstable period. */
-   while( (outIdx!=0) )
+   while( outIdx != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       outIdx -= 1;
@@ -189,24 +189,24 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
     */
    outIdx = 1;
    tempValue = inClose[today];
-   if( !(TA_IS_ZERO(tempValue)) )
+   if( !TA_IS_ZERO(tempValue) )
    {
-      outReal[0] = ((prevATR/tempValue)*100.0);
+      outReal[0] = prevATR / tempValue * 100.0;
    } else 
    {
       outReal[0] = 0.0;
    }
    /* Now do the number of requested ATR. */
-   nbATR = ((endIdx-startIdx)+1);
-   while( (--nbATR!=0) )
+   nbATR = endIdx - startIdx + 1;
+   while( --nbATR != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !(TA_IS_ZERO(tempValue)) )
+      if( !TA_IS_ZERO(tempValue) )
       {
-         outReal[outIdx] = ((prevATR/tempValue)*100.0);
+         outReal[outIdx] = prevATR / tempValue * 100.0;
       } else 
       {
          outReal[0] = 0.0;
@@ -243,59 +243,59 @@ TA_LIB_API TA_RetCode TA_NATR_Unguarded( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = TA_NATR_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
-   if( (optInTimePeriod<=1) )
+   if( optInTimePeriod <= 1 )
    {
       return TA_TRANGE_Unguarded(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
-   tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_TRANGE_Unguarded(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
-   if( (retCode!=TA_SUCCESS) )
+   tempBuffer = malloc((lookbackTotal + (endIdx - startIdx) + 1) * sizeof(double));
+   retCode = TA_TRANGE_Unguarded(startIdx - lookbackTotal + 1,endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_SMA_Unguarded((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_SMA_Unguarded(optInTimePeriod - 1,optInTimePeriod - 1,tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
    }
    today = optInTimePeriod;
    outIdx = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_NATR,Natr);
-   while( (outIdx!=0) )
+   while( outIdx != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       outIdx -= 1;
    }
    outIdx = 1;
    tempValue = inClose[today];
-   if( !(TA_IS_ZERO(tempValue)) )
+   if( !TA_IS_ZERO(tempValue) )
    {
-      outReal[0] = ((prevATR/tempValue)*100.0);
+      outReal[0] = prevATR / tempValue * 100.0;
    } else 
    {
       outReal[0] = 0.0;
    }
-   nbATR = ((endIdx-startIdx)+1);
-   while( (--nbATR!=0) )
+   nbATR = endIdx - startIdx + 1;
+   while( --nbATR != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !(TA_IS_ZERO(tempValue)) )
+      if( !TA_IS_ZERO(tempValue) )
       {
-         outReal[outIdx] = ((prevATR/tempValue)*100.0);
+         outReal[outIdx] = prevATR / tempValue * 100.0;
       } else 
       {
          outReal[0] = 0.0;
@@ -350,59 +350,59 @@ TA_RetCode TA_S_NATR( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = TA_NATR_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
-   if( (optInTimePeriod<=1) )
+   if( optInTimePeriod <= 1 )
    {
       return TA_S_TRANGE_Unguarded(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
-   tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_S_TRANGE_Unguarded(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
-   if( (retCode!=TA_SUCCESS) )
+   tempBuffer = malloc((lookbackTotal + (endIdx - startIdx) + 1) * sizeof(double));
+   retCode = TA_S_TRANGE_Unguarded(startIdx - lookbackTotal + 1,endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_SMA_Unguarded((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_SMA_Unguarded(optInTimePeriod - 1,optInTimePeriod - 1,tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
    }
    today = optInTimePeriod;
    outIdx = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_NATR,Natr);
-   while( (outIdx!=0) )
+   while( outIdx != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       outIdx -= 1;
    }
    outIdx = 1;
    tempValue = inClose[today];
-   if( !(TA_IS_ZERO(tempValue)) )
+   if( !TA_IS_ZERO(tempValue) )
    {
-      outReal[0] = ((prevATR/tempValue)*100.0);
+      outReal[0] = prevATR / tempValue * 100.0;
    } else 
    {
       outReal[0] = 0.0;
    }
-   nbATR = ((endIdx-startIdx)+1);
-   while( (--nbATR!=0) )
+   nbATR = endIdx - startIdx + 1;
+   while( --nbATR != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !(TA_IS_ZERO(tempValue)) )
+      if( !TA_IS_ZERO(tempValue) )
       {
-         outReal[outIdx] = ((prevATR/tempValue)*100.0);
+         outReal[outIdx] = prevATR / tempValue * 100.0;
       } else 
       {
          outReal[0] = 0.0;
@@ -439,59 +439,59 @@ TA_RetCode TA_S_NATR_Unguarded( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = TA_NATR_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       return TA_SUCCESS;
    }
-   if( (optInTimePeriod<=1) )
+   if( optInTimePeriod <= 1 )
    {
       return TA_S_TRANGE_Unguarded(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
-   tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_S_TRANGE_Unguarded(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
-   if( (retCode!=TA_SUCCESS) )
+   tempBuffer = malloc((lookbackTotal + (endIdx - startIdx) + 1) * sizeof(double));
+   retCode = TA_S_TRANGE_Unguarded(startIdx - lookbackTotal + 1,endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_SMA_Unguarded((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_SMA_Unguarded(optInTimePeriod - 1,optInTimePeriod - 1,tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   if( retCode != TA_SUCCESS )
    {
       free(tempBuffer);
       return retCode;
    }
    today = optInTimePeriod;
    outIdx = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_NATR,Natr);
-   while( (outIdx!=0) )
+   while( outIdx != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       outIdx -= 1;
    }
    outIdx = 1;
    tempValue = inClose[today];
-   if( !(TA_IS_ZERO(tempValue)) )
+   if( !TA_IS_ZERO(tempValue) )
    {
-      outReal[0] = ((prevATR/tempValue)*100.0);
+      outReal[0] = prevATR / tempValue * 100.0;
    } else 
    {
       outReal[0] = 0.0;
    }
-   nbATR = ((endIdx-startIdx)+1);
-   while( (--nbATR!=0) )
+   nbATR = endIdx - startIdx + 1;
+   while( --nbATR != 0 )
    {
-      prevATR *= (optInTimePeriod-1);
+      prevATR *= optInTimePeriod - 1;
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !(TA_IS_ZERO(tempValue)) )
+      if( !TA_IS_ZERO(tempValue) )
       {
-         outReal[outIdx] = ((prevATR/tempValue)*100.0);
+         outReal[outIdx] = prevATR / tempValue * 100.0;
       } else 
       {
          outReal[0] = 0.0;

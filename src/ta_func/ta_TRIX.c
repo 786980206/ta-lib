@@ -62,7 +62,7 @@ TA_LIB_API int TA_TRIX_Lookback( int optInTimePeriod )
 {
    int emaLookback;
    emaLookback = TA_EMA_Lookback(optInTimePeriod);
-   return ((emaLookback*3)+TA_ROCR_Lookback(1));
+   return emaLookback * 3 + TA_ROCR_Lookback(1);
 }
 
 TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
@@ -99,36 +99,36 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
    /* Adjust the startIdx to account for the lookback. */
    emaLookback = TA_EMA_Lookback(optInTimePeriod);
    rocLookback = TA_ROCR_Lookback(1);
-   totalLookback = ((emaLookback*3)+rocLookback);
-   if( (startIdx<totalLookback) )
+   totalLookback = emaLookback * 3 + rocLookback;
+   if( startIdx < totalLookback )
    {
       startIdx = totalLookback;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
+   nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
    /* Allocate a temporary buffer for performing
     * the calculation.
     */
-   tempBuffer = malloc((nbElementToOutput*sizeof(double)));
-   if( !(tempBuffer) )
+   tempBuffer = malloc(nbElementToOutput * sizeof(double));
+   if( !tempBuffer )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_ALLOC_ERR;
    }
    /* Calculate the first EMA */
-   retCode = TA_EMA_Unguarded((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_EMA_Unguarded(startIdx - totalLookback,endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
    /* Verify for failure or if not enough data after
     * calculating the EMA.
     */
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -143,7 +143,7 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
    /* Verify for failure or if not enough data after
     * calculating the EMA.
     */
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -156,7 +156,7 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
    /* Verify for failure or if not enough data after
     * calculating the EMA.
     */
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -170,7 +170,7 @@ TA_LIB_API TA_RetCode TA_TRIX( int    startIdx,
    /* Verify for failure or if not enough data after
     * calculating the rate-of-change.
     */
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -198,28 +198,28 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
 
    emaLookback = TA_EMA_Lookback(optInTimePeriod);
    rocLookback = TA_ROCR_Lookback(1);
-   totalLookback = ((emaLookback*3)+rocLookback);
-   if( (startIdx<totalLookback) )
+   totalLookback = emaLookback * 3 + rocLookback;
+   if( startIdx < totalLookback )
    {
       startIdx = totalLookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
-   tempBuffer = malloc((nbElementToOutput*sizeof(double)));
-   if( !(tempBuffer) )
+   nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
+   tempBuffer = malloc(nbElementToOutput * sizeof(double));
+   if( !tempBuffer )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA_Unguarded((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   retCode = TA_EMA_Unguarded(startIdx - totalLookback,endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -229,7 +229,7 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
    nbElementToOutput -= 1;
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -238,7 +238,7 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
    }
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -248,7 +248,7 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
    nbElementToOutput -= emaLookback;
    retCode = TA_ROC_Unguarded(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
    free(tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -290,28 +290,28 @@ TA_RetCode TA_S_TRIX( int    startIdx,
 
    emaLookback = TA_EMA_Lookback(optInTimePeriod);
    rocLookback = TA_ROCR_Lookback(1);
-   totalLookback = ((emaLookback*3)+rocLookback);
-   if( (startIdx<totalLookback) )
+   totalLookback = emaLookback * 3 + rocLookback;
+   if( startIdx < totalLookback )
    {
       startIdx = totalLookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
-   tempBuffer = malloc((nbElementToOutput*sizeof(double)));
-   if( !(tempBuffer) )
+   nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
+   tempBuffer = malloc(nbElementToOutput * sizeof(double));
+   if( !tempBuffer )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_ALLOC_ERR;
    }
-   retCode = TA_S_EMA_Unguarded((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   retCode = TA_S_EMA_Unguarded(startIdx - totalLookback,endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -321,7 +321,7 @@ TA_RetCode TA_S_TRIX( int    startIdx,
    nbElementToOutput -= 1;
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -330,7 +330,7 @@ TA_RetCode TA_S_TRIX( int    startIdx,
    }
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -340,7 +340,7 @@ TA_RetCode TA_S_TRIX( int    startIdx,
    nbElementToOutput -= emaLookback;
    retCode = TA_ROC_Unguarded(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
    free(tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -368,28 +368,28 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
 
    emaLookback = TA_EMA_Lookback(optInTimePeriod);
    rocLookback = TA_ROCR_Lookback(1);
-   totalLookback = ((emaLookback*3)+rocLookback);
-   if( (startIdx<totalLookback) )
+   totalLookback = emaLookback * 3 + rocLookback;
+   if( startIdx < totalLookback )
    {
       startIdx = totalLookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
-   tempBuffer = malloc((nbElementToOutput*sizeof(double)));
-   if( !(tempBuffer) )
+   nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
+   tempBuffer = malloc(nbElementToOutput * sizeof(double));
+   if( !tempBuffer )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_ALLOC_ERR;
    }
-   retCode = TA_S_EMA_Unguarded((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   retCode = TA_S_EMA_Unguarded(startIdx - totalLookback,endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -399,7 +399,7 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
    nbElementToOutput -= 1;
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -408,7 +408,7 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
    }
    nbElementToOutput -= emaLookback;
    retCode = TA_EMA_Unguarded(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
+   if( retCode != TA_SUCCESS || nbElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
@@ -418,7 +418,7 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
    nbElementToOutput -= emaLookback;
    retCode = TA_ROC_Unguarded(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
    free(tempBuffer);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       *outBegIdx= 0;

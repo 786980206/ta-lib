@@ -60,9 +60,9 @@
 
 TA_LIB_API int TA_ADXR_Lookback( int optInTimePeriod )
 {
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      return ((optInTimePeriod+TA_ADX_Lookback(optInTimePeriod))-1);
+      return optInTimePeriod + TA_ADX_Lookback(optInTimePeriod) - 1;
    } else 
    {
       return 3;
@@ -122,35 +122,35 @@ TA_LIB_API TA_RetCode TA_ADXR( int    startIdx,
     * Always one price bar gets consumed.
     */
    adxrLookback = TA_ADXR_Lookback(optInTimePeriod);
-   if( (startIdx<adxrLookback) )
+   if( startIdx < adxrLookback )
    {
       startIdx = adxrLookback;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   adx = malloc((((endIdx-startIdx)+optInTimePeriod)*sizeof(double)));
-   if( !(adx) )
+   adx = malloc((endIdx - startIdx + optInTimePeriod) * sizeof(double));
+   if( !adx )
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_ADX_Unguarded(startIdx - (optInTimePeriod - 1),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   if( retCode != TA_SUCCESS )
    {
       free(adx);
       return retCode;
    }
-   i = (optInTimePeriod-1);
+   i = optInTimePeriod - 1;
    j = 0;
    outIdx = 0;
-   nbElement = ((endIdx-startIdx)+2);
-   while( (--nbElement!=0) )
+   nbElement = endIdx - startIdx + 2;
+   while( --nbElement != 0 )
    {
-      outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
    }
    free(adx);
    *outBegIdx= startIdx;
@@ -177,34 +177,34 @@ TA_LIB_API TA_RetCode TA_ADXR_Unguarded( int    startIdx,
    TA_RetCode retCode;
 
    adxrLookback = TA_ADXR_Lookback(optInTimePeriod);
-   if( (startIdx<adxrLookback) )
+   if( startIdx < adxrLookback )
    {
       startIdx = adxrLookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   adx = malloc((((endIdx-startIdx)+optInTimePeriod)*sizeof(double)));
-   if( !(adx) )
+   adx = malloc((endIdx - startIdx + optInTimePeriod) * sizeof(double));
+   if( !adx )
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_ADX_Unguarded(startIdx - (optInTimePeriod - 1),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   if( retCode != TA_SUCCESS )
    {
       free(adx);
       return retCode;
    }
-   i = (optInTimePeriod-1);
+   i = optInTimePeriod - 1;
    j = 0;
    outIdx = 0;
-   nbElement = ((endIdx-startIdx)+2);
-   while( (--nbElement!=0) )
+   nbElement = endIdx - startIdx + 2;
+   while( --nbElement != 0 )
    {
-      outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
    }
    free(adx);
    *outBegIdx= startIdx;
@@ -249,34 +249,34 @@ TA_RetCode TA_S_ADXR( int    startIdx,
       return TA_BAD_PARAM;
 
    adxrLookback = TA_ADXR_Lookback(optInTimePeriod);
-   if( (startIdx<adxrLookback) )
+   if( startIdx < adxrLookback )
    {
       startIdx = adxrLookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   adx = malloc((((endIdx-startIdx)+optInTimePeriod)*sizeof(double)));
-   if( !(adx) )
+   adx = malloc((endIdx - startIdx + optInTimePeriod) * sizeof(double));
+   if( !adx )
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_S_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_S_ADX_Unguarded(startIdx - (optInTimePeriod - 1),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   if( retCode != TA_SUCCESS )
    {
       free(adx);
       return retCode;
    }
-   i = (optInTimePeriod-1);
+   i = optInTimePeriod - 1;
    j = 0;
    outIdx = 0;
-   nbElement = ((endIdx-startIdx)+2);
-   while( (--nbElement!=0) )
+   nbElement = endIdx - startIdx + 2;
+   while( --nbElement != 0 )
    {
-      outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
    }
    free(adx);
    *outBegIdx= startIdx;
@@ -303,34 +303,34 @@ TA_RetCode TA_S_ADXR_Unguarded( int    startIdx,
    TA_RetCode retCode;
 
    adxrLookback = TA_ADXR_Lookback(optInTimePeriod);
-   if( (startIdx<adxrLookback) )
+   if( startIdx < adxrLookback )
    {
       startIdx = adxrLookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   adx = malloc((((endIdx-startIdx)+optInTimePeriod)*sizeof(double)));
-   if( !(adx) )
+   adx = malloc((endIdx - startIdx + optInTimePeriod) * sizeof(double));
+   if( !adx )
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_S_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
-   if( (retCode!=TA_SUCCESS) )
+   retCode = TA_S_ADX_Unguarded(startIdx - (optInTimePeriod - 1),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   if( retCode != TA_SUCCESS )
    {
       free(adx);
       return retCode;
    }
-   i = (optInTimePeriod-1);
+   i = optInTimePeriod - 1;
    j = 0;
    outIdx = 0;
-   nbElement = ((endIdx-startIdx)+2);
-   while( (--nbElement!=0) )
+   nbElement = endIdx - startIdx + 2;
+   while( --nbElement != 0 )
    {
-      outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
    }
    free(adx);
    *outBegIdx= startIdx;

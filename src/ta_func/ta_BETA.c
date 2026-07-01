@@ -143,113 +143,113 @@ TA_LIB_API TA_RetCode TA_BETA( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    /* Consume first input. */
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    trailing_last_price_x = inReal0[trailingIdx];
    last_price_x = trailing_last_price_x;
    trailing_last_price_y = inReal1[trailingIdx];
    last_price_y = trailing_last_price_y;
    /* Process remaining of lookback until ready to output the first value. */
    i = ++trailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
    }
    outIdx = 0;
    /* First output always start at index zero */
-   n = ((double)optInTimePeriod);
+   n = (double)optInTimePeriod;
    do
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
       /* Always read the trailing before writing the output because the input and output
        * buffer can be the same.
        */
       tmp_real = inReal0[trailingIdx];
-      if( !(TA_IS_ZERO(trailing_last_price_x)) )
+      if( !TA_IS_ZERO(trailing_last_price_x) )
       {
-         x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
+         x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
       } else 
       {
          x = 0.0;
       }
       trailing_last_price_x = tmp_real;
       tmp_real = inReal1[trailingIdx++];
-      if( !(TA_IS_ZERO(trailing_last_price_y)) )
+      if( !TA_IS_ZERO(trailing_last_price_y) )
       {
-         y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
+         y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
       } else 
       {
          y = 0.0;
       }
       trailing_last_price_y = tmp_real;
       /* Write the output */
-      tmp_real = ((n*S_xx)-(S_x*S_x));
-      if( !(TA_IS_ZERO(tmp_real)) )
+      tmp_real = n * S_xx - S_x * S_x;
+      if( !TA_IS_ZERO(tmp_real) )
       {
-         outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
+         outReal[outIdx++] = (n * S_xy - S_x * S_y) / tmp_real;
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
       /* Remove the calculation starting with the trailingIdx. */
-      S_xx -= (x*x);
-      S_xy -= (x*y);
+      S_xx -= x * x;
+      S_xy -= x * y;
       S_x -= x;
       S_y -= y;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -293,104 +293,104 @@ TA_LIB_API TA_RetCode TA_BETA_Unguarded( int    startIdx,
    tmp_real = 0.0;
    n = 0.0;
    nbInitialElementNeeded = optInTimePeriod;
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    trailing_last_price_x = inReal0[trailingIdx];
    last_price_x = trailing_last_price_x;
    trailing_last_price_y = inReal1[trailingIdx];
    last_price_y = trailing_last_price_y;
    i = ++trailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
    }
    outIdx = 0;
-   n = ((double)optInTimePeriod);
+   n = (double)optInTimePeriod;
    do
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
       tmp_real = inReal0[trailingIdx];
-      if( !(TA_IS_ZERO(trailing_last_price_x)) )
+      if( !TA_IS_ZERO(trailing_last_price_x) )
       {
-         x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
+         x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
       } else 
       {
          x = 0.0;
       }
       trailing_last_price_x = tmp_real;
       tmp_real = inReal1[trailingIdx++];
-      if( !(TA_IS_ZERO(trailing_last_price_y)) )
+      if( !TA_IS_ZERO(trailing_last_price_y) )
       {
-         y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
+         y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
       } else 
       {
          y = 0.0;
       }
       trailing_last_price_y = tmp_real;
-      tmp_real = ((n*S_xx)-(S_x*S_x));
-      if( !(TA_IS_ZERO(tmp_real)) )
+      tmp_real = n * S_xx - S_x * S_x;
+      if( !TA_IS_ZERO(tmp_real) )
       {
-         outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
+         outReal[outIdx++] = (n * S_xy - S_x * S_y) / tmp_real;
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
-      S_xx -= (x*x);
-      S_xy -= (x*y);
+      S_xx -= x * x;
+      S_xy -= x * y;
       S_x -= x;
       S_y -= y;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -449,104 +449,104 @@ TA_RetCode TA_S_BETA( int    startIdx,
    tmp_real = 0.0;
    n = 0.0;
    nbInitialElementNeeded = optInTimePeriod;
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    trailing_last_price_x = inReal0[trailingIdx];
    last_price_x = trailing_last_price_x;
    trailing_last_price_y = inReal1[trailingIdx];
    last_price_y = trailing_last_price_y;
    i = ++trailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
    }
    outIdx = 0;
-   n = ((double)optInTimePeriod);
+   n = (double)optInTimePeriod;
    do
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
       tmp_real = inReal0[trailingIdx];
-      if( !(TA_IS_ZERO(trailing_last_price_x)) )
+      if( !TA_IS_ZERO(trailing_last_price_x) )
       {
-         x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
+         x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
       } else 
       {
          x = 0.0;
       }
       trailing_last_price_x = tmp_real;
       tmp_real = inReal1[trailingIdx++];
-      if( !(TA_IS_ZERO(trailing_last_price_y)) )
+      if( !TA_IS_ZERO(trailing_last_price_y) )
       {
-         y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
+         y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
       } else 
       {
          y = 0.0;
       }
       trailing_last_price_y = tmp_real;
-      tmp_real = ((n*S_xx)-(S_x*S_x));
-      if( !(TA_IS_ZERO(tmp_real)) )
+      tmp_real = n * S_xx - S_x * S_x;
+      if( !TA_IS_ZERO(tmp_real) )
       {
-         outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
+         outReal[outIdx++] = (n * S_xy - S_x * S_y) / tmp_real;
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
-      S_xx -= (x*x);
-      S_xy -= (x*y);
+      S_xx -= x * x;
+      S_xy -= x * y;
       S_x -= x;
       S_y -= y;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -589,104 +589,104 @@ TA_RetCode TA_S_BETA_Unguarded( int    startIdx,
    tmp_real = 0.0;
    n = 0.0;
    nbInitialElementNeeded = optInTimePeriod;
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   trailingIdx = (startIdx-nbInitialElementNeeded);
+   trailingIdx = startIdx - nbInitialElementNeeded;
    trailing_last_price_x = inReal0[trailingIdx];
    last_price_x = trailing_last_price_x;
    trailing_last_price_y = inReal1[trailingIdx];
    last_price_y = trailing_last_price_y;
    i = ++trailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
    }
    outIdx = 0;
-   n = ((double)optInTimePeriod);
+   n = (double)optInTimePeriod;
    do
    {
       tmp_real = inReal0[i];
-      if( !(TA_IS_ZERO(last_price_x)) )
+      if( !TA_IS_ZERO(last_price_x) )
       {
-         x = ((tmp_real-last_price_x)/last_price_x);
+         x = (tmp_real - last_price_x) / last_price_x;
       } else 
       {
          x = 0.0;
       }
       last_price_x = tmp_real;
       tmp_real = inReal1[i++];
-      if( !(TA_IS_ZERO(last_price_y)) )
+      if( !TA_IS_ZERO(last_price_y) )
       {
-         y = ((tmp_real-last_price_y)/last_price_y);
+         y = (tmp_real - last_price_y) / last_price_y;
       } else 
       {
          y = 0.0;
       }
       last_price_y = tmp_real;
-      S_xx += (x*x);
-      S_xy += (x*y);
+      S_xx += x * x;
+      S_xy += x * y;
       S_x += x;
       S_y += y;
       tmp_real = inReal0[trailingIdx];
-      if( !(TA_IS_ZERO(trailing_last_price_x)) )
+      if( !TA_IS_ZERO(trailing_last_price_x) )
       {
-         x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
+         x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
       } else 
       {
          x = 0.0;
       }
       trailing_last_price_x = tmp_real;
       tmp_real = inReal1[trailingIdx++];
-      if( !(TA_IS_ZERO(trailing_last_price_y)) )
+      if( !TA_IS_ZERO(trailing_last_price_y) )
       {
-         y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
+         y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
       } else 
       {
          y = 0.0;
       }
       trailing_last_price_y = tmp_real;
-      tmp_real = ((n*S_xx)-(S_x*S_x));
-      if( !(TA_IS_ZERO(tmp_real)) )
+      tmp_real = n * S_xx - S_x * S_x;
+      if( !TA_IS_ZERO(tmp_real) )
       {
-         outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
+         outReal[outIdx++] = (n * S_xy - S_x * S_y) / tmp_real;
       } else 
       {
          outReal[outIdx++] = 0.0;
       }
-      S_xx -= (x*x);
-      S_xy -= (x*y);
+      S_xx -= x * x;
+      S_xy -= x * y;
       S_x -= x;
       S_y -= y;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

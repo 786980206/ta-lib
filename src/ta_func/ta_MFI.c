@@ -62,7 +62,7 @@
 
 TA_LIB_API int TA_MFI_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi));
+   return optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi);
 }
 
 TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
@@ -138,13 +138,13 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    /* Adjust startIdx to account for the lookback period. */
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi));
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       if( mflow_positive != &local_mflow_positive[0] ) TA_Free( mflow_positive );
       if( mflow_negative != &local_mflow_negative[0] ) TA_Free( mflow_negative );
@@ -155,23 +155,23 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    /* Accumulate the positive and negative money flow
     * among the initial period.
     */
-   today = (startIdx-lookbackTotal);
-   prevValue = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
+   today = startIdx - lookbackTotal;
+   prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
    posSumMF = 0.0;
    negSumMF = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -189,35 +189,35 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
     *    MFI = 100 * (posSumMF/(posSumMF+negSumMF))
     * The second equation is used here for speed optimization.
     */
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
    } else 
    {
       /* Skip the unstable period. Do the processing
        * but do not write it in the output.
        */
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          posSumMF -= mflow_positive[mflow_Idx];
          negSumMF -= mflow_negative[mflow_Idx];
-         tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-         tempValue2 = (tempValue1-prevValue);
+         tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          tempValue1 *= inVolume[today++];
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             mflow_negative[mflow_Idx] = tempValue1;
             negSumMF += tempValue1;
             mflow_positive[mflow_Idx] = 0.0;
-         } else if( (tempValue2>0) )
+         } else if( tempValue2 > 0 )
          {
             mflow_positive[mflow_Idx] = tempValue1;
             posSumMF += tempValue1;
@@ -234,20 +234,20 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    /* Unstable period skipped... now continue
     * processing if needed.
     */
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       posSumMF -= mflow_positive[mflow_Idx];
       negSumMF -= mflow_negative[mflow_Idx];
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -257,13 +257,13 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
          mflow_positive[mflow_Idx] = 0.0;
          mflow_negative[mflow_Idx] = 0.0;
       }
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
@@ -326,35 +326,35 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
    mflow_Idx = 0;
    *outBegIdx= 0;
    *outNBElement= 0;
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi));
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       if( mflow_positive != &local_mflow_positive[0] ) TA_Free( mflow_positive );
       if( mflow_negative != &local_mflow_negative[0] ) TA_Free( mflow_negative );
       return TA_SUCCESS;
    }
    outIdx = 0;
-   today = (startIdx-lookbackTotal);
-   prevValue = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
+   today = startIdx - lookbackTotal;
+   prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
    posSumMF = 0.0;
    negSumMF = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -367,32 +367,32 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
    }
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
    } else 
    {
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          posSumMF -= mflow_positive[mflow_Idx];
          negSumMF -= mflow_negative[mflow_Idx];
-         tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-         tempValue2 = (tempValue1-prevValue);
+         tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          tempValue1 *= inVolume[today++];
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             mflow_negative[mflow_Idx] = tempValue1;
             negSumMF += tempValue1;
             mflow_positive[mflow_Idx] = 0.0;
-         } else if( (tempValue2>0) )
+         } else if( tempValue2 > 0 )
          {
             mflow_positive[mflow_Idx] = tempValue1;
             posSumMF += tempValue1;
@@ -406,20 +406,20 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
          if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
       }
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       posSumMF -= mflow_positive[mflow_Idx];
       negSumMF -= mflow_negative[mflow_Idx];
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -429,13 +429,13 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
          mflow_positive[mflow_Idx] = 0.0;
          mflow_negative[mflow_Idx] = 0.0;
       }
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
@@ -518,35 +518,35 @@ TA_RetCode TA_S_MFI( int    startIdx,
    mflow_Idx = 0;
    *outBegIdx= 0;
    *outNBElement= 0;
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi));
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       if( mflow_positive != &local_mflow_positive[0] ) TA_Free( mflow_positive );
       if( mflow_negative != &local_mflow_negative[0] ) TA_Free( mflow_negative );
       return TA_SUCCESS;
    }
    outIdx = 0;
-   today = (startIdx-lookbackTotal);
-   prevValue = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
+   today = startIdx - lookbackTotal;
+   prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
    posSumMF = 0.0;
    negSumMF = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -559,32 +559,32 @@ TA_RetCode TA_S_MFI( int    startIdx,
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
    }
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
    } else 
    {
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          posSumMF -= mflow_positive[mflow_Idx];
          negSumMF -= mflow_negative[mflow_Idx];
-         tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-         tempValue2 = (tempValue1-prevValue);
+         tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          tempValue1 *= inVolume[today++];
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             mflow_negative[mflow_Idx] = tempValue1;
             negSumMF += tempValue1;
             mflow_positive[mflow_Idx] = 0.0;
-         } else if( (tempValue2>0) )
+         } else if( tempValue2 > 0 )
          {
             mflow_positive[mflow_Idx] = tempValue1;
             posSumMF += tempValue1;
@@ -598,20 +598,20 @@ TA_RetCode TA_S_MFI( int    startIdx,
          if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
       }
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       posSumMF -= mflow_positive[mflow_Idx];
       negSumMF -= mflow_negative[mflow_Idx];
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -621,13 +621,13 @@ TA_RetCode TA_S_MFI( int    startIdx,
          mflow_positive[mflow_Idx] = 0.0;
          mflow_negative[mflow_Idx] = 0.0;
       }
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
@@ -690,35 +690,35 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
    mflow_Idx = 0;
    *outBegIdx= 0;
    *outNBElement= 0;
-   lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi));
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MFI,Mfi);
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       if( mflow_positive != &local_mflow_positive[0] ) TA_Free( mflow_positive );
       if( mflow_negative != &local_mflow_negative[0] ) TA_Free( mflow_negative );
       return TA_SUCCESS;
    }
    outIdx = 0;
-   today = (startIdx-lookbackTotal);
-   prevValue = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
+   today = startIdx - lookbackTotal;
+   prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
    posSumMF = 0.0;
    negSumMF = 0.0;
    today += 1;
-   for( i = optInTimePeriod; (i>0); i -= 1 )
+   for( i = optInTimePeriod; i > 0; i -= 1 )
    {
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -731,32 +731,32 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
    }
-   if( (today>startIdx) )
+   if( today > startIdx )
    {
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
    } else 
    {
-      while( (today<startIdx) )
+      while( today < startIdx )
       {
          posSumMF -= mflow_positive[mflow_Idx];
          negSumMF -= mflow_negative[mflow_Idx];
-         tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-         tempValue2 = (tempValue1-prevValue);
+         tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+         tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          tempValue1 *= inVolume[today++];
-         if( (tempValue2<0) )
+         if( tempValue2 < 0 )
          {
             mflow_negative[mflow_Idx] = tempValue1;
             negSumMF += tempValue1;
             mflow_positive[mflow_Idx] = 0.0;
-         } else if( (tempValue2>0) )
+         } else if( tempValue2 > 0 )
          {
             mflow_positive[mflow_Idx] = tempValue1;
             posSumMF += tempValue1;
@@ -770,20 +770,20 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
          if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;
       }
    }
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       posSumMF -= mflow_positive[mflow_Idx];
       negSumMF -= mflow_negative[mflow_Idx];
-      tempValue1 = (((inHigh[today]+inLow[today])+inClose[today])/3.0);
-      tempValue2 = (tempValue1-prevValue);
+      tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+      tempValue2 = tempValue1 - prevValue;
       prevValue = tempValue1;
       tempValue1 *= inVolume[today++];
-      if( (tempValue2<0) )
+      if( tempValue2 < 0 )
       {
          mflow_negative[mflow_Idx] = tempValue1;
          negSumMF += tempValue1;
          mflow_positive[mflow_Idx] = 0.0;
-      } else if( (tempValue2>0) )
+      } else if( tempValue2 > 0 )
       {
          mflow_positive[mflow_Idx] = tempValue1;
          posSumMF += tempValue1;
@@ -793,13 +793,13 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
          mflow_positive[mflow_Idx] = 0.0;
          mflow_negative[mflow_Idx] = 0.0;
       }
-      tempValue1 = (posSumMF+negSumMF);
-      if( (tempValue1<1.0) )
+      tempValue1 = posSumMF + negSumMF;
+      if( tempValue1 < 1.0 )
       {
          outReal[outIdx++] = 0.0;
       } else 
       {
-         outReal[outIdx++] = (100.0*(posSumMF/tempValue1));
+         outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
       }
       mflow_Idx++;
       if( mflow_Idx > maxIdx_mflow ) mflow_Idx = 0;

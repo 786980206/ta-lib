@@ -59,7 +59,7 @@
 
 TA_LIB_API int TA_WMA_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
@@ -95,16 +95,16 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookbackTotal = (optInTimePeriod-1);
+   lookbackTotal = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -115,18 +115,18 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
     * In that case outputs equals inputs for the requested
     * range.
     */
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      *outNBElement= ((endIdx-startIdx)+1);
-      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
+      *outNBElement= endIdx - startIdx + 1;
+      memmove(outReal,&inReal[startIdx],(int)*outNBElement * sizeof(double));
       return TA_SUCCESS;
    }
    /* Calculate the divider (always an integer value).
     * By induction: 1+2+3+4+'n' = n(n+1)/2
     * '>>1' is usually faster than '/2' for unsigned.
     */
-   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+   divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;
    /* The algo used here use a very basic property of
     * multiplication/addition: (x*2) = x+x
     *
@@ -155,22 +155,22 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
     * minimum with this algo.
     */
    outIdx = 0;
-   trailingIdx = (startIdx-lookbackTotal);
+   trailingIdx = startIdx - lookbackTotal;
    /* Evaluate the initial periodSum/periodSub and trailingValue. */
-   periodSub = ((double)0.0);
+   periodSub = (double)0.0;
    periodSum = periodSub;
    inIdx = trailingIdx;
    i = 1;
-   while( (inIdx<startIdx) )
+   while( inIdx < startIdx )
    {
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
-      periodSum += (tempReal*i);
+      periodSum += tempReal * i;
       i += 1;
    }
    trailingValue = 0.0;
    /* Tight loop for the requested range. */
-   while( (inIdx<=endIdx) )
+   while( inIdx <= endIdx )
    {
       /* Add the current price bar to the sum
        * who are carried through the iterations.
@@ -178,7 +178,7 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
       periodSub -= trailingValue;
-      periodSum += (tempReal*optInTimePeriod);
+      periodSum += tempReal * optInTimePeriod;
       /* Save the trailing value for being substract at
        * the next iteration.
        * (must be saved here just in case outReal and
@@ -186,7 +186,7 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
        */
       trailingValue = inReal[trailingIdx++];
       /* Calculate the WMA for this price bar. */
-      outReal[outIdx++] = (periodSum/divider);
+      outReal[outIdx++] = periodSum / divider;
       /* Prepare the periodSum for the next iteration. */
       periodSum -= periodSub;
    }
@@ -215,47 +215,47 @@ TA_LIB_API TA_RetCode TA_WMA_Unguarded( int    startIdx,
    double trailingValue;
    int lookbackTotal;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      *outNBElement= ((endIdx-startIdx)+1);
-      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
+      *outNBElement= endIdx - startIdx + 1;
+      memmove(outReal,&inReal[startIdx],(int)*outNBElement * sizeof(double));
       return TA_SUCCESS;
    }
-   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+   divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;
    outIdx = 0;
-   trailingIdx = (startIdx-lookbackTotal);
-   periodSub = ((double)0.0);
+   trailingIdx = startIdx - lookbackTotal;
+   periodSub = (double)0.0;
    periodSum = periodSub;
    inIdx = trailingIdx;
    i = 1;
-   while( (inIdx<startIdx) )
+   while( inIdx < startIdx )
    {
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
-      periodSum += (tempReal*i);
+      periodSum += tempReal * i;
       i += 1;
    }
    trailingValue = 0.0;
-   while( (inIdx<=endIdx) )
+   while( inIdx <= endIdx )
    {
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
       periodSub -= trailingValue;
-      periodSum += (tempReal*optInTimePeriod);
+      periodSum += tempReal * optInTimePeriod;
       trailingValue = inReal[trailingIdx++];
-      outReal[outIdx++] = (periodSum/divider);
+      outReal[outIdx++] = periodSum / divider;
       periodSum -= periodSub;
    }
    *outNBElement= outIdx;
@@ -296,47 +296,47 @@ TA_RetCode TA_S_WMA( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      *outNBElement= ((endIdx-startIdx)+1);
-      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
+      *outNBElement= endIdx - startIdx + 1;
+      memmove(outReal,&inReal[startIdx],(int)*outNBElement * sizeof(double));
       return TA_SUCCESS;
    }
-   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+   divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;
    outIdx = 0;
-   trailingIdx = (startIdx-lookbackTotal);
-   periodSub = ((double)0.0);
+   trailingIdx = startIdx - lookbackTotal;
+   periodSub = (double)0.0;
    periodSum = periodSub;
    inIdx = trailingIdx;
    i = 1;
-   while( (inIdx<startIdx) )
+   while( inIdx < startIdx )
    {
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
-      periodSum += (tempReal*i);
+      periodSum += tempReal * i;
       i += 1;
    }
    trailingValue = 0.0;
-   while( (inIdx<=endIdx) )
+   while( inIdx <= endIdx )
    {
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
       periodSub -= trailingValue;
-      periodSum += (tempReal*optInTimePeriod);
+      periodSum += tempReal * optInTimePeriod;
       trailingValue = inReal[trailingIdx++];
-      outReal[outIdx++] = (periodSum/divider);
+      outReal[outIdx++] = periodSum / divider;
       periodSum -= periodSub;
    }
    *outNBElement= outIdx;
@@ -363,47 +363,47 @@ TA_RetCode TA_S_WMA_Unguarded( int    startIdx,
    double trailingValue;
    int lookbackTotal;
 
-   lookbackTotal = (optInTimePeriod-1);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = optInTimePeriod - 1;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
       *outBegIdx= startIdx;
-      *outNBElement= ((endIdx-startIdx)+1);
-      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
+      *outNBElement= endIdx - startIdx + 1;
+      memmove(outReal,&inReal[startIdx],(int)*outNBElement * sizeof(double));
       return TA_SUCCESS;
    }
-   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+   divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;
    outIdx = 0;
-   trailingIdx = (startIdx-lookbackTotal);
-   periodSub = ((double)0.0);
+   trailingIdx = startIdx - lookbackTotal;
+   periodSub = (double)0.0;
    periodSum = periodSub;
    inIdx = trailingIdx;
    i = 1;
-   while( (inIdx<startIdx) )
+   while( inIdx < startIdx )
    {
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
-      periodSum += (tempReal*i);
+      periodSum += tempReal * i;
       i += 1;
    }
    trailingValue = 0.0;
-   while( (inIdx<=endIdx) )
+   while( inIdx <= endIdx )
    {
       tempReal = inReal[inIdx++];
       periodSub += tempReal;
       periodSub -= trailingValue;
-      periodSum += (tempReal*optInTimePeriod);
+      periodSum += tempReal * optInTimePeriod;
       trailingValue = inReal[trailingIdx++];
-      outReal[outIdx++] = (periodSum/divider);
+      outReal[outIdx++] = periodSum / divider;
       periodSum -= periodSub;
    }
    *outNBElement= outIdx;

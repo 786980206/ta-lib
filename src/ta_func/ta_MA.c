@@ -64,7 +64,7 @@
 TA_LIB_API int TA_MA_Lookback( int optInTimePeriod, TA_MAType optInMAType )
 {
    int retValue;
-   if( (optInTimePeriod<=1) )
+   if( optInTimePeriod <= 1 )
    {
       return 0;
    }
@@ -135,11 +135,11 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
-      nbElement = ((endIdx-startIdx)+1);
+      nbElement = endIdx - startIdx + 1;
       *outNBElement= nbElement;
-      for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 )
+      for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 )
       {
          outReal[outIdx] = inReal[todayIdx];
       }
@@ -174,8 +174,8 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
       /* The optInTimePeriod is ignored and the FAMA output of the MAMA
        * is ignored.
        */
-      dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-      if( !(dummyBuffer) )
+      dummyBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+      if( !dummyBuffer )
       {
          return TA_ALLOC_ERR;
       }
@@ -207,11 +207,11 @@ TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
    int outIdx;
    int todayIdx;
 
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
-      nbElement = ((endIdx-startIdx)+1);
+      nbElement = endIdx - startIdx + 1;
       *outNBElement= nbElement;
-      for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 )
+      for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 )
       {
          outReal[outIdx] = inReal[todayIdx];
       }
@@ -242,8 +242,8 @@ TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
       retCode = TA_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
-      dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-      if( !(dummyBuffer) )
+      dummyBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+      if( !dummyBuffer )
       {
          return TA_ALLOC_ERR;
       }
@@ -291,11 +291,11 @@ TA_RetCode TA_S_MA( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
-      nbElement = ((endIdx-startIdx)+1);
+      nbElement = endIdx - startIdx + 1;
       *outNBElement= nbElement;
-      for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 )
+      for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 )
       {
          outReal[outIdx] = inReal[todayIdx];
       }
@@ -326,8 +326,8 @@ TA_RetCode TA_S_MA( int    startIdx,
       retCode = TA_S_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
-      dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-      if( !(dummyBuffer) )
+      dummyBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+      if( !dummyBuffer )
       {
          return TA_ALLOC_ERR;
       }
@@ -359,11 +359,11 @@ TA_RetCode TA_S_MA_Unguarded( int    startIdx,
    int outIdx;
    int todayIdx;
 
-   if( (optInTimePeriod==1) )
+   if( optInTimePeriod == 1 )
    {
-      nbElement = ((endIdx-startIdx)+1);
+      nbElement = endIdx - startIdx + 1;
       *outNBElement= nbElement;
-      for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 )
+      for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 )
       {
          outReal[outIdx] = inReal[todayIdx];
       }
@@ -394,8 +394,8 @@ TA_RetCode TA_S_MA_Unguarded( int    startIdx,
       retCode = TA_S_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
-      dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
-      if( !(dummyBuffer) )
+      dummyBuffer = malloc((endIdx - startIdx + 1) * sizeof(double));
+      if( !dummyBuffer )
       {
          return TA_ALLOC_ERR;
       }

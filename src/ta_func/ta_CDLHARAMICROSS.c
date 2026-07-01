@@ -66,7 +66,7 @@ TA_LIB_API int TA_CDLHARAMICROSS_Lookback( void )
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
    int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
    double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
-   return (fmax(BodyDoji_avgPeriod,BodyLong_avgPeriod)+1);
+   return fmax(BodyDoji_avgPeriod,BodyLong_avgPeriod) + 1;
 }
 
 TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
@@ -116,12 +116,12 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -131,16 +131,16 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
    /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyDojiPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 1 - BodyLong_avgPeriod;
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-1)) )
+   while( i < startIdx - 1 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -158,21 +158,21 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) )
+      if( fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) )
       {
          /* 1st: long */
-         if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) )
+         if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) )
          {
             /* 2nd: doji */
-            if( (fmax(inClose[i],inOpen[i])<fmax(inClose[(i-1)],inOpen[(i-1)])) && /* 2nd is engulfed by 1st */
-                (fmin(inClose[i],inOpen[i])>fmin(inClose[(i-1)],inOpen[(i-1)])) )
+            if( fmax(inClose[i],inOpen[i]) < fmax(inClose[i - 1],inOpen[i - 1]) && /* 2nd is engulfed by 1st */
+                fmin(inClose[i],inOpen[i]) > fmin(inClose[i - 1],inOpen[i - 1]) )
             {
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
-            } else if( (fmax(inClose[i],inOpen[i])<=fmax(inClose[(i-1)],inOpen[(i-1)])) && /* 2nd is engulfed by 1st */
-                (fmin(inClose[i],inOpen[i])>=fmin(inClose[(i-1)],inOpen[(i-1)])) )  /* (one end of real body can match; */
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 100;
+            } else if( fmax(inClose[i],inOpen[i]) <= fmax(inClose[i - 1],inOpen[i - 1]) && /* 2nd is engulfed by 1st */
+                fmin(inClose[i],inOpen[i]) >= fmin(inClose[i - 1],inOpen[i - 1]) )  /* (one end of real body can match; */
             {
                /* engulfing guaranteed by "long" and "doji") */
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 80;
             } else 
             {
                outInteger[outIdx++] = 0;
@@ -188,12 +188,12 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyDojiTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -225,11 +225,11 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS_Unguarded( int    startIdx,
    double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
 
    lookbackTotal = TA_CDLHARAMICROSS_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -237,16 +237,16 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS_Unguarded( int    startIdx,
    }
    BodyLongPeriodTotal = 0;
    BodyDojiPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 1 - BodyLong_avgPeriod;
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-1)) )
+   while( i < startIdx - 1 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -255,16 +255,16 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) )
+      if( fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) )
       {
-         if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) )
+         if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) )
          {
-            if( ((fmax(inClose[i],inOpen[i])<fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+            if( fmax(inClose[i],inOpen[i]) < fmax(inClose[i - 1],inOpen[i - 1]) && fmin(inClose[i],inOpen[i]) > fmin(inClose[i - 1],inOpen[i - 1]) )
             {
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
-            } else if( ((fmax(inClose[i],inOpen[i])<=fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>=fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 100;
+            } else if( fmax(inClose[i],inOpen[i]) <= fmax(inClose[i - 1],inOpen[i - 1]) && fmin(inClose[i],inOpen[i]) >= fmin(inClose[i - 1],inOpen[i - 1]) )
             {
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 80;
             } else 
             {
                outInteger[outIdx++] = 0;
@@ -277,12 +277,12 @@ TA_LIB_API TA_RetCode TA_CDLHARAMICROSS_Unguarded( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyDojiTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -329,11 +329,11 @@ TA_RetCode TA_S_CDLHARAMICROSS( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLHARAMICROSS_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -341,16 +341,16 @@ TA_RetCode TA_S_CDLHARAMICROSS( int    startIdx,
    }
    BodyLongPeriodTotal = 0;
    BodyDojiPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 1 - BodyLong_avgPeriod;
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-1)) )
+   while( i < startIdx - 1 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -359,16 +359,16 @@ TA_RetCode TA_S_CDLHARAMICROSS( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) )
+      if( fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) )
       {
-         if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) )
+         if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) )
          {
-            if( ((fmax(inClose[i],inOpen[i])<fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+            if( fmax(inClose[i],inOpen[i]) < fmax(inClose[i - 1],inOpen[i - 1]) && fmin(inClose[i],inOpen[i]) > fmin(inClose[i - 1],inOpen[i - 1]) )
             {
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
-            } else if( ((fmax(inClose[i],inOpen[i])<=fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>=fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 100;
+            } else if( fmax(inClose[i],inOpen[i]) <= fmax(inClose[i - 1],inOpen[i - 1]) && fmin(inClose[i],inOpen[i]) >= fmin(inClose[i - 1],inOpen[i - 1]) )
             {
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 80;
             } else 
             {
                outInteger[outIdx++] = 0;
@@ -381,12 +381,12 @@ TA_RetCode TA_S_CDLHARAMICROSS( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyDojiTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -417,11 +417,11 @@ TA_RetCode TA_S_CDLHARAMICROSS_Unguarded( int    startIdx,
    double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
 
    lookbackTotal = TA_CDLHARAMICROSS_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -429,16 +429,16 @@ TA_RetCode TA_S_CDLHARAMICROSS_Unguarded( int    startIdx,
    }
    BodyLongPeriodTotal = 0;
    BodyDojiPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-1)-BodyLong_avgPeriod);
-   BodyDojiTrailingIdx = (startIdx-BodyDoji_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 1 - BodyLong_avgPeriod;
+   BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-1)) )
+   while( i < startIdx - 1 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyDojiTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i);
       i += 1;
@@ -447,16 +447,16 @@ TA_RetCode TA_S_CDLHARAMICROSS_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (fabs((inClose[(i-1)]-inOpen[(i-1)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-1))) )
+      if( fabs(inClose[i - 1] - inOpen[i - 1]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 1) )
       {
-         if( (fabs((inClose[i]-inOpen[i]))<=TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i)) )
+         if( fabs(inClose[i] - inOpen[i]) <= TA_CANDLEAVERAGE(BodyDoji,BodyDojiPeriodTotal,i) )
          {
-            if( ((fmax(inClose[i],inOpen[i])<fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+            if( fmax(inClose[i],inOpen[i]) < fmax(inClose[i - 1],inOpen[i - 1]) && fmin(inClose[i],inOpen[i]) > fmin(inClose[i - 1],inOpen[i - 1]) )
             {
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
-            } else if( ((fmax(inClose[i],inOpen[i])<=fmax(inClose[(i-1)],inOpen[(i-1)]))&&(fmin(inClose[i],inOpen[i])>=fmin(inClose[(i-1)],inOpen[(i-1)]))) )
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 100;
+            } else if( fmax(inClose[i],inOpen[i]) <= fmax(inClose[i - 1],inOpen[i - 1]) && fmin(inClose[i],inOpen[i]) >= fmin(inClose[i - 1],inOpen[i - 1]) )
             {
-               outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*80);
+               outInteger[outIdx++] = (0 - ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1)) * 80;
             } else 
             {
                outInteger[outIdx++] = 0;
@@ -469,12 +469,12 @@ TA_RetCode TA_S_CDLHARAMICROSS_Unguarded( int    startIdx,
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-1))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyDojiPeriodTotal += (TA_CANDLERANGE(BodyDoji,i)-TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 1) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyDojiPeriodTotal += TA_CANDLERANGE(BodyDoji,i) - TA_CANDLERANGE(BodyDoji,BodyDojiTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyDojiTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

@@ -62,9 +62,9 @@
 
 TA_LIB_API int TA_DX_Lookback( int optInTimePeriod )
 {
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      return (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx));
+      return optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx);
    } else 
    {
       return 2;
@@ -215,20 +215,20 @@ TA_LIB_API TA_RetCode TA_DX( int    startIdx,
     * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
     * you can comment out the following #undef/#define and rebuild the library.
     */
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx));
+      lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx);
    } else 
    {
       lookbackTotal = 2;
    }
    /* Adjust startIdx to account for the lookback period. */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -244,40 +244,40 @@ TA_LIB_API TA_RetCode TA_DX( int    startIdx,
    prevMinusDM = 0.0;
    prevPlusDM = 0.0;
    prevTR = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevHigh = inHigh[today];
    prevLow = inLow[today];
    prevClose = inClose[today];
-   i = (optInTimePeriod-1);
-   while( (i-->0) )
+   i = optInTimePeriod - 1;
+   while( i-- > 0 )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       /* Plus Delta */
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       /* Minus Delta */
       prevLow = tempReal;
-      if( ((diffM>0)&&(diffP<diffM)) )
+      if( diffM > 0 && diffP < diffM )
       {
          /* Case 2 and 4: +DM=0,-DM=diffM */
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          /* Case 1 and 3: +DM=diffP,-DM=0 */
          prevPlusDM += diffP;
       }
       double _true_range_0;
-      double range_0 = (prevHigh-prevLow);
-      double tmp_0 = fabs((prevHigh-prevClose));
-      if( (tmp_0>range_0) )
+      double range_0 = prevHigh - prevLow;
+      double tmp_0 = fabs(prevHigh - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
-      tmp_0 = fabs((prevLow-prevClose));
-      if( (tmp_0>range_0) )
+      tmp_0 = fabs(prevLow - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
@@ -289,57 +289,57 @@ TA_LIB_API TA_RetCode TA_DX( int    startIdx,
    /* Skip the unstable period. Note that this loop must be executed
     * at least ONCE to calculate the first DI.
     */
-   i = (TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx)+1);
-   while( (i--!=0) )
+   i = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx) + 1;
+   while( i-- != 0 )
    {
       /* Calculate the prevMinusDM and prevPlusDM */
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       /* Plus Delta */
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       /* Minus Delta */
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          /* Case 2 and 4: +DM=0,-DM=diffM */
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          /* Case 1 and 3: +DM=diffP,-DM=0 */
          prevPlusDM += diffP;
       }
       /* Calculate the prevTR */
       double _true_range_1;
-      double range_1 = (prevHigh-prevLow);
-      double tmp_1 = fabs((prevHigh-prevClose));
-      if( (tmp_1>range_1) )
+      double range_1 = prevHigh - prevLow;
+      double tmp_1 = fabs(prevHigh - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
-      tmp_1 = fabs((prevLow-prevClose));
-      if( (tmp_1>range_1) )
+      tmp_1 = fabs(prevLow - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
       _true_range_1 = range_1;
       tempReal = _true_range_1;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
    }
    /* Write the first DX output */
-   if( !(TA_IS_ZERO(prevTR)) )
+   if( !TA_IS_ZERO(prevTR) )
    {
-      minusDI = (100.0*(prevMinusDM/prevTR));
-      plusDI = (100.0*(prevPlusDM/prevTR));
-      tempReal = (minusDI+plusDI);
-      if( !(TA_IS_ZERO(tempReal)) )
+      minusDI = (100.0 * (prevMinusDM / prevTR));
+      plusDI = (100.0 * (prevPlusDM / prevTR));
+      tempReal = minusDI + plusDI;
+      if( !TA_IS_ZERO(tempReal) )
       {
-         outReal[0] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+         outReal[0] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
       } else 
       {
          outReal[0] = 0.0;
@@ -349,63 +349,63 @@ TA_LIB_API TA_RetCode TA_DX( int    startIdx,
       outReal[0] = 0.0;
    }
    outIdx = 1;
-   while( (today<endIdx) )
+   while( today < endIdx )
    {
       /* Calculate the prevMinusDM and prevPlusDM */
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       /* Plus Delta */
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       /* Minus Delta */
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          /* Case 2 and 4: +DM=0,-DM=diffM */
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          /* Case 1 and 3: +DM=diffP,-DM=0 */
          prevPlusDM += diffP;
       }
       /* Calculate the prevTR */
       double _true_range_2;
-      double range_2 = (prevHigh-prevLow);
-      double tmp_2 = fabs((prevHigh-prevClose));
-      if( (tmp_2>range_2) )
+      double range_2 = prevHigh - prevLow;
+      double tmp_2 = fabs(prevHigh - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
-      tmp_2 = fabs((prevLow-prevClose));
-      if( (tmp_2>range_2) )
+      tmp_2 = fabs(prevLow - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
       _true_range_2 = range_2;
       tempReal = _true_range_2;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
       /* Calculate the DX. The value is rounded (see Wilder book). */
-      if( !(TA_IS_ZERO(prevTR)) )
+      if( !TA_IS_ZERO(prevTR) )
       {
-         minusDI = (100.0*(prevMinusDM/prevTR));
-         plusDI = (100.0*(prevPlusDM/prevTR));
+         minusDI = (100.0 * (prevMinusDM / prevTR));
+         plusDI = (100.0 * (prevPlusDM / prevTR));
          /* This loop is just to accumulate the initial DX */
-         tempReal = (minusDI+plusDI);
-         if( !(TA_IS_ZERO(tempReal)) )
+         tempReal = minusDI + plusDI;
+         if( !TA_IS_ZERO(tempReal) )
          {
-            outReal[outIdx] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+            outReal[outIdx] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
          } else 
          {
-            outReal[outIdx] = outReal[(outIdx-1)];
+            outReal[outIdx] = outReal[outIdx - 1];
          }
       } else 
       {
-         outReal[outIdx] = outReal[(outIdx-1)];
+         outReal[outIdx] = outReal[outIdx - 1];
       }
       outIdx += 1;
    }
@@ -440,18 +440,18 @@ TA_LIB_API TA_RetCode TA_DX_Unguarded( int    startIdx,
    double plusDI;
    int i;
 
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx));
+      lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx);
    } else 
    {
       lookbackTotal = 2;
    }
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -463,36 +463,36 @@ TA_LIB_API TA_RetCode TA_DX_Unguarded( int    startIdx,
    prevMinusDM = 0.0;
    prevPlusDM = 0.0;
    prevTR = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevHigh = inHigh[today];
    prevLow = inLow[today];
    prevClose = inClose[today];
-   i = (optInTimePeriod-1);
-   while( (i-->0) )
+   i = optInTimePeriod - 1;
+   while( i-- > 0 )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      if( ((diffM>0)&&(diffP<diffM)) )
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_0;
-      double range_0 = (prevHigh-prevLow);
-      double tmp_0 = fabs((prevHigh-prevClose));
-      if( (tmp_0>range_0) )
+      double range_0 = prevHigh - prevLow;
+      double tmp_0 = fabs(prevHigh - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
-      tmp_0 = fabs((prevLow-prevClose));
-      if( (tmp_0>range_0) )
+      tmp_0 = fabs(prevLow - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
@@ -501,50 +501,50 @@ TA_LIB_API TA_RetCode TA_DX_Unguarded( int    startIdx,
       prevTR += tempReal;
       prevClose = inClose[today];
    }
-   i = (TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx)+1);
-   while( (i--!=0) )
+   i = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx) + 1;
+   while( i-- != 0 )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_1;
-      double range_1 = (prevHigh-prevLow);
-      double tmp_1 = fabs((prevHigh-prevClose));
-      if( (tmp_1>range_1) )
+      double range_1 = prevHigh - prevLow;
+      double tmp_1 = fabs(prevHigh - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
-      tmp_1 = fabs((prevLow-prevClose));
-      if( (tmp_1>range_1) )
+      tmp_1 = fabs(prevLow - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
       _true_range_1 = range_1;
       tempReal = _true_range_1;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
    }
-   if( !(TA_IS_ZERO(prevTR)) )
+   if( !TA_IS_ZERO(prevTR) )
    {
-      minusDI = (100.0*(prevMinusDM/prevTR));
-      plusDI = (100.0*(prevPlusDM/prevTR));
-      tempReal = (minusDI+plusDI);
-      if( !(TA_IS_ZERO(tempReal)) )
+      minusDI = (100.0 * (prevMinusDM / prevTR));
+      plusDI = (100.0 * (prevPlusDM / prevTR));
+      tempReal = minusDI + plusDI;
+      if( !TA_IS_ZERO(tempReal) )
       {
-         outReal[0] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+         outReal[0] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
       } else 
       {
          outReal[0] = 0.0;
@@ -554,55 +554,55 @@ TA_LIB_API TA_RetCode TA_DX_Unguarded( int    startIdx,
       outReal[0] = 0.0;
    }
    outIdx = 1;
-   while( (today<endIdx) )
+   while( today < endIdx )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_2;
-      double range_2 = (prevHigh-prevLow);
-      double tmp_2 = fabs((prevHigh-prevClose));
-      if( (tmp_2>range_2) )
+      double range_2 = prevHigh - prevLow;
+      double tmp_2 = fabs(prevHigh - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
-      tmp_2 = fabs((prevLow-prevClose));
-      if( (tmp_2>range_2) )
+      tmp_2 = fabs(prevLow - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
       _true_range_2 = range_2;
       tempReal = _true_range_2;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
-      if( !(TA_IS_ZERO(prevTR)) )
+      if( !TA_IS_ZERO(prevTR) )
       {
-         minusDI = (100.0*(prevMinusDM/prevTR));
-         plusDI = (100.0*(prevPlusDM/prevTR));
-         tempReal = (minusDI+plusDI);
-         if( !(TA_IS_ZERO(tempReal)) )
+         minusDI = (100.0 * (prevMinusDM / prevTR));
+         plusDI = (100.0 * (prevPlusDM / prevTR));
+         tempReal = minusDI + plusDI;
+         if( !TA_IS_ZERO(tempReal) )
          {
-            outReal[outIdx] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+            outReal[outIdx] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
          } else 
          {
-            outReal[outIdx] = outReal[(outIdx-1)];
+            outReal[outIdx] = outReal[outIdx - 1];
          }
       } else 
       {
-         outReal[outIdx] = outReal[(outIdx-1)];
+         outReal[outIdx] = outReal[outIdx - 1];
       }
       outIdx += 1;
    }
@@ -655,18 +655,18 @@ TA_RetCode TA_S_DX( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx));
+      lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx);
    } else 
    {
       lookbackTotal = 2;
    }
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -678,36 +678,36 @@ TA_RetCode TA_S_DX( int    startIdx,
    prevMinusDM = 0.0;
    prevPlusDM = 0.0;
    prevTR = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevHigh = inHigh[today];
    prevLow = inLow[today];
    prevClose = inClose[today];
-   i = (optInTimePeriod-1);
-   while( (i-->0) )
+   i = optInTimePeriod - 1;
+   while( i-- > 0 )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      if( ((diffM>0)&&(diffP<diffM)) )
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_0;
-      double range_0 = (prevHigh-prevLow);
-      double tmp_0 = fabs((prevHigh-prevClose));
-      if( (tmp_0>range_0) )
+      double range_0 = prevHigh - prevLow;
+      double tmp_0 = fabs(prevHigh - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
-      tmp_0 = fabs((prevLow-prevClose));
-      if( (tmp_0>range_0) )
+      tmp_0 = fabs(prevLow - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
@@ -716,50 +716,50 @@ TA_RetCode TA_S_DX( int    startIdx,
       prevTR += tempReal;
       prevClose = inClose[today];
    }
-   i = (TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx)+1);
-   while( (i--!=0) )
+   i = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx) + 1;
+   while( i-- != 0 )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_1;
-      double range_1 = (prevHigh-prevLow);
-      double tmp_1 = fabs((prevHigh-prevClose));
-      if( (tmp_1>range_1) )
+      double range_1 = prevHigh - prevLow;
+      double tmp_1 = fabs(prevHigh - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
-      tmp_1 = fabs((prevLow-prevClose));
-      if( (tmp_1>range_1) )
+      tmp_1 = fabs(prevLow - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
       _true_range_1 = range_1;
       tempReal = _true_range_1;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
    }
-   if( !(TA_IS_ZERO(prevTR)) )
+   if( !TA_IS_ZERO(prevTR) )
    {
-      minusDI = (100.0*(prevMinusDM/prevTR));
-      plusDI = (100.0*(prevPlusDM/prevTR));
-      tempReal = (minusDI+plusDI);
-      if( !(TA_IS_ZERO(tempReal)) )
+      minusDI = (100.0 * (prevMinusDM / prevTR));
+      plusDI = (100.0 * (prevPlusDM / prevTR));
+      tempReal = minusDI + plusDI;
+      if( !TA_IS_ZERO(tempReal) )
       {
-         outReal[0] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+         outReal[0] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
       } else 
       {
          outReal[0] = 0.0;
@@ -769,55 +769,55 @@ TA_RetCode TA_S_DX( int    startIdx,
       outReal[0] = 0.0;
    }
    outIdx = 1;
-   while( (today<endIdx) )
+   while( today < endIdx )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_2;
-      double range_2 = (prevHigh-prevLow);
-      double tmp_2 = fabs((prevHigh-prevClose));
-      if( (tmp_2>range_2) )
+      double range_2 = prevHigh - prevLow;
+      double tmp_2 = fabs(prevHigh - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
-      tmp_2 = fabs((prevLow-prevClose));
-      if( (tmp_2>range_2) )
+      tmp_2 = fabs(prevLow - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
       _true_range_2 = range_2;
       tempReal = _true_range_2;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
-      if( !(TA_IS_ZERO(prevTR)) )
+      if( !TA_IS_ZERO(prevTR) )
       {
-         minusDI = (100.0*(prevMinusDM/prevTR));
-         plusDI = (100.0*(prevPlusDM/prevTR));
-         tempReal = (minusDI+plusDI);
-         if( !(TA_IS_ZERO(tempReal)) )
+         minusDI = (100.0 * (prevMinusDM / prevTR));
+         plusDI = (100.0 * (prevPlusDM / prevTR));
+         tempReal = minusDI + plusDI;
+         if( !TA_IS_ZERO(tempReal) )
          {
-            outReal[outIdx] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+            outReal[outIdx] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
          } else 
          {
-            outReal[outIdx] = outReal[(outIdx-1)];
+            outReal[outIdx] = outReal[outIdx - 1];
          }
       } else 
       {
-         outReal[outIdx] = outReal[(outIdx-1)];
+         outReal[outIdx] = outReal[outIdx - 1];
       }
       outIdx += 1;
    }
@@ -852,18 +852,18 @@ TA_RetCode TA_S_DX_Unguarded( int    startIdx,
    double plusDI;
    int i;
 
-   if( (optInTimePeriod>1) )
+   if( optInTimePeriod > 1 )
    {
-      lookbackTotal = (optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx));
+      lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx);
    } else 
    {
       lookbackTotal = 2;
    }
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -875,36 +875,36 @@ TA_RetCode TA_S_DX_Unguarded( int    startIdx,
    prevMinusDM = 0.0;
    prevPlusDM = 0.0;
    prevTR = 0.0;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    prevHigh = inHigh[today];
    prevLow = inLow[today];
    prevClose = inClose[today];
-   i = (optInTimePeriod-1);
-   while( (i-->0) )
+   i = optInTimePeriod - 1;
+   while( i-- > 0 )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      if( ((diffM>0)&&(diffP<diffM)) )
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_0;
-      double range_0 = (prevHigh-prevLow);
-      double tmp_0 = fabs((prevHigh-prevClose));
-      if( (tmp_0>range_0) )
+      double range_0 = prevHigh - prevLow;
+      double tmp_0 = fabs(prevHigh - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
-      tmp_0 = fabs((prevLow-prevClose));
-      if( (tmp_0>range_0) )
+      tmp_0 = fabs(prevLow - prevClose);
+      if( tmp_0 > range_0 )
       {
          range_0 = tmp_0;
       }
@@ -913,50 +913,50 @@ TA_RetCode TA_S_DX_Unguarded( int    startIdx,
       prevTR += tempReal;
       prevClose = inClose[today];
    }
-   i = (TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx)+1);
-   while( (i--!=0) )
+   i = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_DX,Dx) + 1;
+   while( i-- != 0 )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_1;
-      double range_1 = (prevHigh-prevLow);
-      double tmp_1 = fabs((prevHigh-prevClose));
-      if( (tmp_1>range_1) )
+      double range_1 = prevHigh - prevLow;
+      double tmp_1 = fabs(prevHigh - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
-      tmp_1 = fabs((prevLow-prevClose));
-      if( (tmp_1>range_1) )
+      tmp_1 = fabs(prevLow - prevClose);
+      if( tmp_1 > range_1 )
       {
          range_1 = tmp_1;
       }
       _true_range_1 = range_1;
       tempReal = _true_range_1;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
    }
-   if( !(TA_IS_ZERO(prevTR)) )
+   if( !TA_IS_ZERO(prevTR) )
    {
-      minusDI = (100.0*(prevMinusDM/prevTR));
-      plusDI = (100.0*(prevPlusDM/prevTR));
-      tempReal = (minusDI+plusDI);
-      if( !(TA_IS_ZERO(tempReal)) )
+      minusDI = (100.0 * (prevMinusDM / prevTR));
+      plusDI = (100.0 * (prevPlusDM / prevTR));
+      tempReal = minusDI + plusDI;
+      if( !TA_IS_ZERO(tempReal) )
       {
-         outReal[0] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+         outReal[0] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
       } else 
       {
          outReal[0] = 0.0;
@@ -966,55 +966,55 @@ TA_RetCode TA_S_DX_Unguarded( int    startIdx,
       outReal[0] = 0.0;
    }
    outIdx = 1;
-   while( (today<endIdx) )
+   while( today < endIdx )
    {
       today += 1;
       tempReal = inHigh[today];
-      diffP = (tempReal-prevHigh);
+      diffP = tempReal - prevHigh;
       prevHigh = tempReal;
       tempReal = inLow[today];
-      diffM = (prevLow-tempReal);
+      diffM = prevLow - tempReal;
       prevLow = tempReal;
-      prevMinusDM -= (prevMinusDM/optInTimePeriod);
-      prevPlusDM -= (prevPlusDM/optInTimePeriod);
-      if( ((diffM>0)&&(diffP<diffM)) )
+      prevMinusDM -= prevMinusDM / optInTimePeriod;
+      prevPlusDM -= prevPlusDM / optInTimePeriod;
+      if( diffM > 0 && diffP < diffM )
       {
          prevMinusDM += diffM;
-      } else if( ((diffP>0)&&(diffP>diffM)) )
+      } else if( diffP > 0 && diffP > diffM )
       {
          prevPlusDM += diffP;
       }
       double _true_range_2;
-      double range_2 = (prevHigh-prevLow);
-      double tmp_2 = fabs((prevHigh-prevClose));
-      if( (tmp_2>range_2) )
+      double range_2 = prevHigh - prevLow;
+      double tmp_2 = fabs(prevHigh - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
-      tmp_2 = fabs((prevLow-prevClose));
-      if( (tmp_2>range_2) )
+      tmp_2 = fabs(prevLow - prevClose);
+      if( tmp_2 > range_2 )
       {
          range_2 = tmp_2;
       }
       _true_range_2 = range_2;
       tempReal = _true_range_2;
-      prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+      prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
       prevClose = inClose[today];
-      if( !(TA_IS_ZERO(prevTR)) )
+      if( !TA_IS_ZERO(prevTR) )
       {
-         minusDI = (100.0*(prevMinusDM/prevTR));
-         plusDI = (100.0*(prevPlusDM/prevTR));
-         tempReal = (minusDI+plusDI);
-         if( !(TA_IS_ZERO(tempReal)) )
+         minusDI = (100.0 * (prevMinusDM / prevTR));
+         plusDI = (100.0 * (prevPlusDM / prevTR));
+         tempReal = minusDI + plusDI;
+         if( !TA_IS_ZERO(tempReal) )
          {
-            outReal[outIdx] = (100.0*(fabs((minusDI-plusDI))/tempReal));
+            outReal[outIdx] = (100.0 * (fabs(minusDI - plusDI) / tempReal));
          } else 
          {
-            outReal[outIdx] = outReal[(outIdx-1)];
+            outReal[outIdx] = outReal[outIdx - 1];
          }
       } else 
       {
-         outReal[outIdx] = outReal[(outIdx-1)];
+         outReal[outIdx] = outReal[outIdx - 1];
       }
       outIdx += 1;
    }

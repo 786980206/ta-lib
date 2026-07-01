@@ -57,7 +57,7 @@
 
 TA_LIB_API int TA_IMI_Lookback( int optInTimePeriod )
 {
-   return ((optInTimePeriod+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_IMI,Imi))-1);
+   return optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_IMI,Imi) - 1;
 }
 
 TA_LIB_API TA_RetCode TA_IMI( int    startIdx,
@@ -90,35 +90,35 @@ TA_LIB_API TA_RetCode TA_IMI( int    startIdx,
 
    outIdx = 0;
    lookback = TA_IMI_Lookback(optInTimePeriod);
-   if( (startIdx<lookback) )
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   while( (startIdx<=endIdx) )
+   while( startIdx <= endIdx )
    {
       double upsum = 0.0;
       double downsum = 0.0;
       int i;
-      for( i = (startIdx-lookback); (i<=startIdx); i += 1 )
+      for( i = startIdx - lookback; i <= startIdx; i += 1 )
       {
          double close = inClose[i];
          double open = inOpen[i];
-         if( (close>open) )
+         if( close > open )
          {
-            upsum += (close-open);
+            upsum += close - open;
          } else 
          {
-            downsum += (open-close);
+            downsum += open - close;
          }
-         outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+         outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
       }
       startIdx += 1;
       outIdx += 1;
@@ -141,34 +141,34 @@ TA_LIB_API TA_RetCode TA_IMI_Unguarded( int    startIdx,
 
    outIdx = 0;
    lookback = TA_IMI_Lookback(optInTimePeriod);
-   if( (startIdx<lookback) )
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   while( (startIdx<=endIdx) )
+   while( startIdx <= endIdx )
    {
       double upsum = 0.0;
       double downsum = 0.0;
       int i;
-      for( i = (startIdx-lookback); (i<=startIdx); i += 1 )
+      for( i = startIdx - lookback; i <= startIdx; i += 1 )
       {
          double close = inClose[i];
          double open = inOpen[i];
-         if( (close>open) )
+         if( close > open )
          {
-            upsum += (close-open);
+            upsum += close - open;
          } else 
          {
-            downsum += (open-close);
+            downsum += open - close;
          }
-         outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+         outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
       }
       startIdx += 1;
       outIdx += 1;
@@ -207,34 +207,34 @@ TA_RetCode TA_S_IMI( int    startIdx,
 
    outIdx = 0;
    lookback = TA_IMI_Lookback(optInTimePeriod);
-   if( (startIdx<lookback) )
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   while( (startIdx<=endIdx) )
+   while( startIdx <= endIdx )
    {
       double upsum = 0.0;
       double downsum = 0.0;
       int i;
-      for( i = (startIdx-lookback); (i<=startIdx); i += 1 )
+      for( i = startIdx - lookback; i <= startIdx; i += 1 )
       {
          double close = inClose[i];
          double open = inOpen[i];
-         if( (close>open) )
+         if( close > open )
          {
-            upsum += (close-open);
+            upsum += close - open;
          } else 
          {
-            downsum += (open-close);
+            downsum += open - close;
          }
-         outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+         outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
       }
       startIdx += 1;
       outIdx += 1;
@@ -257,34 +257,34 @@ TA_RetCode TA_S_IMI_Unguarded( int    startIdx,
 
    outIdx = 0;
    lookback = TA_IMI_Lookback(optInTimePeriod);
-   if( (startIdx<lookback) )
+   if( startIdx < lookback )
    {
       startIdx = lookback;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   while( (startIdx<=endIdx) )
+   while( startIdx <= endIdx )
    {
       double upsum = 0.0;
       double downsum = 0.0;
       int i;
-      for( i = (startIdx-lookback); (i<=startIdx); i += 1 )
+      for( i = startIdx - lookback; i <= startIdx; i += 1 )
       {
          double close = inClose[i];
          double open = inOpen[i];
-         if( (close>open) )
+         if( close > open )
          {
-            upsum += (close-open);
+            upsum += close - open;
          } else 
          {
-            downsum += (open-close);
+            downsum += open - close;
          }
-         outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+         outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
       }
       startIdx += 1;
       outIdx += 1;

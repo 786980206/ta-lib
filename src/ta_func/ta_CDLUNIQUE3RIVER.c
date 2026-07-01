@@ -64,7 +64,7 @@ TA_LIB_API int TA_CDLUNIQUE3RIVER_Lookback( void )
    int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
    int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
    double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
-   return (fmax(BodyShort_avgPeriod,BodyLong_avgPeriod)+2);
+   return fmax(BodyShort_avgPeriod,BodyLong_avgPeriod) + 2;
 }
 
 TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER( int    startIdx,
@@ -114,12 +114,12 @@ TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -129,16 +129,16 @@ TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER( int    startIdx,
    /* Add-up the initial period, except for the last value. */
    BodyLongPeriodTotal = 0;
    BodyShortPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
-   BodyShortTrailingIdx = (startIdx-BodyShort_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 2 - BodyLong_avgPeriod;
+   BodyShortTrailingIdx = startIdx - BodyShort_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i);
       i += 1;
@@ -157,15 +157,15 @@ TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* black */
-          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 2nd: black */
-          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* white */
-          (inClose[(i-1)]>inClose[(i-2)]) &&
-          (inOpen[(i-1)]<=inOpen[(i-2)]) &&                               /* harami */
-          (inLow[(i-1)]<inLow[(i-2)]) &&                                  /* lower low */
-          (inOpen[i]>inLow[(i-1)]) &&                                     /* open not lower */
-          (fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))) && /* 1st: long */
-          (fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i)) ) /* 3rd: short */
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && /* black */
+          ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && /* 2nd: black */
+          ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 &&             /* white */
+          inClose[i - 1] > inClose[i - 2] &&
+          inOpen[i - 1] <= inOpen[i - 2] &&                           /* harami */
+          inLow[i - 1] < inLow[i - 2] &&                              /* lower low */
+          inOpen[i] > inLow[i - 1] &&                                 /* open not lower */
+          fabs(inClose[i - 2] - inOpen[i - 2]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 2) && /* 1st: long */
+          fabs(inClose[i] - inOpen[i]) < TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i) ) /* 3rd: short */
       {
          outInteger[outIdx++] = 100;
       } else 
@@ -175,12 +175,12 @@ TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-2))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyShortPeriodTotal += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 2) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i) - TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -212,11 +212,11 @@ TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER_Unguarded( int    startIdx,
    double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    lookbackTotal = TA_CDLUNIQUE3RIVER_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -224,16 +224,16 @@ TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER_Unguarded( int    startIdx,
    }
    BodyLongPeriodTotal = 0;
    BodyShortPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
-   BodyShortTrailingIdx = (startIdx-BodyShort_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 2 - BodyLong_avgPeriod;
+   BodyShortTrailingIdx = startIdx - BodyShort_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i);
       i += 1;
@@ -242,19 +242,19 @@ TA_LIB_API TA_RetCode TA_CDLUNIQUE3RIVER_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i))) )
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && inClose[i - 1] > inClose[i - 2] && inOpen[i - 1] <= inOpen[i - 2] && inLow[i - 1] < inLow[i - 2] && inOpen[i] > inLow[i - 1] && fabs(inClose[i - 2] - inOpen[i - 2]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 2) && fabs(inClose[i] - inOpen[i]) < TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-2))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyShortPeriodTotal += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 2) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i) - TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -301,11 +301,11 @@ TA_RetCode TA_S_CDLUNIQUE3RIVER( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLUNIQUE3RIVER_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -313,16 +313,16 @@ TA_RetCode TA_S_CDLUNIQUE3RIVER( int    startIdx,
    }
    BodyLongPeriodTotal = 0;
    BodyShortPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
-   BodyShortTrailingIdx = (startIdx-BodyShort_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 2 - BodyLong_avgPeriod;
+   BodyShortTrailingIdx = startIdx - BodyShort_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i);
       i += 1;
@@ -331,19 +331,19 @@ TA_RetCode TA_S_CDLUNIQUE3RIVER( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i))) )
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && inClose[i - 1] > inClose[i - 2] && inOpen[i - 1] <= inOpen[i - 2] && inLow[i - 1] < inLow[i - 2] && inOpen[i] > inLow[i - 1] && fabs(inClose[i - 2] - inOpen[i - 2]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 2) && fabs(inClose[i] - inOpen[i]) < TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-2))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyShortPeriodTotal += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 2) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i) - TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -374,11 +374,11 @@ TA_RetCode TA_S_CDLUNIQUE3RIVER_Unguarded( int    startIdx,
    double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    lookbackTotal = TA_CDLUNIQUE3RIVER_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -386,16 +386,16 @@ TA_RetCode TA_S_CDLUNIQUE3RIVER_Unguarded( int    startIdx,
    }
    BodyLongPeriodTotal = 0;
    BodyShortPeriodTotal = 0;
-   BodyLongTrailingIdx = ((startIdx-2)-BodyLong_avgPeriod);
-   BodyShortTrailingIdx = (startIdx-BodyShort_avgPeriod);
+   BodyLongTrailingIdx = startIdx - 2 - BodyLong_avgPeriod;
+   BodyShortTrailingIdx = startIdx - BodyShort_avgPeriod;
    i = BodyLongTrailingIdx;
-   while( (i<(startIdx-2)) )
+   while( i < startIdx - 2 )
    {
       BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i);
       i += 1;
    }
    i = BodyShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
       BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i);
       i += 1;
@@ -404,19 +404,19 @@ TA_RetCode TA_S_CDLUNIQUE3RIVER_Unguarded( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i))) )
+      if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && inClose[i - 1] > inClose[i - 2] && inOpen[i - 1] <= inOpen[i - 2] && inLow[i - 1] < inLow[i - 2] && inOpen[i] > inLow[i - 1] && fabs(inClose[i - 2] - inOpen[i - 2]) > TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,i - 2) && fabs(inClose[i] - inOpen[i]) < TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,i) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      BodyLongPeriodTotal += (TA_CANDLERANGE(BodyLong,(i-2))-TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx));
-      BodyShortPeriodTotal += (TA_CANDLERANGE(BodyShort,i)-TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx));
+      BodyLongPeriodTotal += TA_CANDLERANGE(BodyLong,i - 2) - TA_CANDLERANGE(BodyLong,BodyLongTrailingIdx);
+      BodyShortPeriodTotal += TA_CANDLERANGE(BodyShort,i) - TA_CANDLERANGE(BodyShort,BodyShortTrailingIdx);
       i += 1;
       BodyLongTrailingIdx += 1;
       BodyShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

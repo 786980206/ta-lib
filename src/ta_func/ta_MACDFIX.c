@@ -64,7 +64,7 @@ TA_LIB_API int TA_MACDFIX_Lookback( int optInSignalPeriod )
     * (must also account for the initial data consume
     *  by the fix 26 period EMA).
     */
-   return (TA_EMA_Lookback(26)+TA_EMA_Lookback(optInSignalPeriod));
+   return TA_EMA_Lookback(26) + TA_EMA_Lookback(optInSignalPeriod);
 }
 
 TA_LIB_API TA_RetCode TA_MACDFIX( int    startIdx,

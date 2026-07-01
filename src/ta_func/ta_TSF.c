@@ -58,7 +58,7 @@
 
 TA_LIB_API int TA_TSF_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_TSF( int    startIdx,
@@ -114,12 +114,12 @@ TA_LIB_API TA_RetCode TA_TSF( int    startIdx,
     */
    /* Adjust startIdx to account for the lookback period. */
    lookbackTotal = TA_TSF_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -128,22 +128,22 @@ TA_LIB_API TA_RetCode TA_TSF( int    startIdx,
    outIdx = 0;
    /* Index into the output. */
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      b = ((SumY-(m*SumX))/((double)optInTimePeriod));
-      outReal[outIdx++] = (b+(m*((double)optInTimePeriod)));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      b = (SumY - m * SumX) / (double)optInTimePeriod;
+      outReal[outIdx++] = b + m * (double)optInTimePeriod;
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -173,11 +173,11 @@ TA_LIB_API TA_RetCode TA_TSF_Unguarded( int    startIdx,
    double tempValue1;
 
    lookbackTotal = TA_TSF_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -185,22 +185,22 @@ TA_LIB_API TA_RetCode TA_TSF_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      b = ((SumY-(m*SumX))/((double)optInTimePeriod));
-      outReal[outIdx++] = (b+(m*((double)optInTimePeriod)));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      b = (SumY - m * SumX) / (double)optInTimePeriod;
+      outReal[outIdx++] = b + m * (double)optInTimePeriod;
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -244,11 +244,11 @@ TA_RetCode TA_S_TSF( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_TSF_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -256,22 +256,22 @@ TA_RetCode TA_S_TSF( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      b = ((SumY-(m*SumX))/((double)optInTimePeriod));
-      outReal[outIdx++] = (b+(m*((double)optInTimePeriod)));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      b = (SumY - m * SumX) / (double)optInTimePeriod;
+      outReal[outIdx++] = b + m * (double)optInTimePeriod;
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -301,11 +301,11 @@ TA_RetCode TA_S_TSF_Unguarded( int    startIdx,
    double tempValue1;
 
    lookbackTotal = TA_TSF_Lookback(optInTimePeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -313,22 +313,22 @@ TA_RetCode TA_S_TSF_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-   SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-   Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-   while( (today<=endIdx) )
+   SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+   SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+   Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+   while( today <= endIdx )
    {
       SumXY = 0;
       SumY = 0;
-      for( i = optInTimePeriod; (i--!=0);  )
+      for( i = optInTimePeriod; i-- != 0;  )
       {
-         tempValue1 = inReal[(today-i)];
+         tempValue1 = inReal[today - i];
          SumY += tempValue1;
-         SumXY += (((double)i)*tempValue1);
+         SumXY += (double)i * tempValue1;
       }
-      m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-      b = ((SumY-(m*SumX))/((double)optInTimePeriod));
-      outReal[outIdx++] = (b+(m*((double)optInTimePeriod)));
+      m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+      b = (SumY - m * SumX) / (double)optInTimePeriod;
+      outReal[outIdx++] = b + m * (double)optInTimePeriod;
       today += 1;
    }
    *outBegIdx= startIdx;

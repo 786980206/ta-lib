@@ -96,7 +96,7 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
 
    /* Calculate the variance. */
    retCode = TA_VAR_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       return retCode;
    }
@@ -105,30 +105,30 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
     *
     * Multiply also by the ratio specified.
     */
-   if( (optInNbDev!=1.0) )
+   if( optInNbDev != 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
-            outReal[i] = (sqrt(tempReal)*optInNbDev);
+            outReal[i] = sqrt(tempReal) * optInNbDev;
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    } else 
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
             outReal[i] = sqrt(tempReal);
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    }
@@ -149,34 +149,34 @@ TA_LIB_API TA_RetCode TA_STDDEV_Unguarded( int    startIdx,
    double tempReal;
 
    retCode = TA_VAR_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       return retCode;
    }
-   if( (optInNbDev!=1.0) )
+   if( optInNbDev != 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
-            outReal[i] = (sqrt(tempReal)*optInNbDev);
+            outReal[i] = sqrt(tempReal) * optInNbDev;
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    } else 
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
             outReal[i] = sqrt(tempReal);
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    }
@@ -213,34 +213,34 @@ TA_RetCode TA_S_STDDEV( int    startIdx,
       return TA_BAD_PARAM;
 
    retCode = TA_S_VAR_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       return retCode;
    }
-   if( (optInNbDev!=1.0) )
+   if( optInNbDev != 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
-            outReal[i] = (sqrt(tempReal)*optInNbDev);
+            outReal[i] = sqrt(tempReal) * optInNbDev;
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    } else 
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
             outReal[i] = sqrt(tempReal);
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    }
@@ -261,34 +261,34 @@ TA_RetCode TA_S_STDDEV_Unguarded( int    startIdx,
    double tempReal;
 
    retCode = TA_S_VAR_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
-   if( (retCode!=TA_SUCCESS) )
+   if( retCode != TA_SUCCESS )
    {
       return retCode;
    }
-   if( (optInNbDev!=1.0) )
+   if( optInNbDev != 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
-            outReal[i] = (sqrt(tempReal)*optInNbDev);
+            outReal[i] = sqrt(tempReal) * optInNbDev;
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    } else 
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = outReal[i];
-         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
+         if( !TA_IS_ZERO_OR_NEG(tempReal) )
          {
             outReal[i] = sqrt(tempReal);
          } else 
          {
-            outReal[i] = ((double)0.0);
+            outReal[i] = (double)0.0;
          }
       }
    }

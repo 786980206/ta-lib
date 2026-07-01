@@ -63,7 +63,7 @@
 TA_LIB_API int TA_STOCHRSI_Lookback( int optInTimePeriod, int optInFastK_Period, int optInFastD_Period, TA_MAType optInFastD_MAType )
 {
    int retValue;
-   retValue = (TA_RSI_Lookback(optInTimePeriod)+TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType));
+   retValue = TA_RSI_Lookback(optInTimePeriod) + TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType);
    return retValue;
 }
 
@@ -142,32 +142,32 @@ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
    *outNBElement= 0;
    /* Adjust startIdx to account for the lookback period. */
    lookbackSTOCHF = TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (TA_RSI_Lookback(optInTimePeriod)+lookbackSTOCHF);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = TA_RSI_Lookback(optInTimePeriod) + lookbackSTOCHF;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
-   tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_RSI_Unguarded((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
+   tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
+   tempRSIBuffer = malloc(tempArraySize * sizeof(double));
+   retCode = TA_RSI_Unguarded(startIdx - lookbackSTOCHF,endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   if( retCode != TA_SUCCESS || outNbElement1 == 0 )
    {
       free(tempRSIBuffer);
       *outBegIdx= 0;
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_STOCHF_Unguarded(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF_Unguarded(0,tempArraySize - 1,tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -200,31 +200,31 @@ TA_LIB_API TA_RetCode TA_STOCHRSI_Unguarded( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackSTOCHF = TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (TA_RSI_Lookback(optInTimePeriod)+lookbackSTOCHF);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = TA_RSI_Lookback(optInTimePeriod) + lookbackSTOCHF;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
-   tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_RSI_Unguarded((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
+   tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
+   tempRSIBuffer = malloc(tempArraySize * sizeof(double));
+   retCode = TA_RSI_Unguarded(startIdx - lookbackSTOCHF,endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   if( retCode != TA_SUCCESS || outNbElement1 == 0 )
    {
       free(tempRSIBuffer);
       *outBegIdx= 0;
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_STOCHF_Unguarded(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF_Unguarded(0,tempArraySize - 1,tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -283,31 +283,31 @@ TA_RetCode TA_S_STOCHRSI( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackSTOCHF = TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (TA_RSI_Lookback(optInTimePeriod)+lookbackSTOCHF);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = TA_RSI_Lookback(optInTimePeriod) + lookbackSTOCHF;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
-   tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_S_RSI_Unguarded((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
+   tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
+   tempRSIBuffer = malloc(tempArraySize * sizeof(double));
+   retCode = TA_S_RSI_Unguarded(startIdx - lookbackSTOCHF,endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   if( retCode != TA_SUCCESS || outNbElement1 == 0 )
    {
       free(tempRSIBuffer);
       *outBegIdx= 0;
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_STOCHF_Unguarded(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF_Unguarded(0,tempArraySize - 1,tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -340,31 +340,31 @@ TA_RetCode TA_S_STOCHRSI_Unguarded( int    startIdx,
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackSTOCHF = TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType);
-   lookbackTotal = (TA_RSI_Lookback(optInTimePeriod)+lookbackSTOCHF);
-   if( (startIdx<lookbackTotal) )
+   lookbackTotal = TA_RSI_Lookback(optInTimePeriod) + lookbackSTOCHF;
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
-   tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_S_RSI_Unguarded((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
+   tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
+   tempRSIBuffer = malloc(tempArraySize * sizeof(double));
+   retCode = TA_S_RSI_Unguarded(startIdx - lookbackSTOCHF,endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   if( retCode != TA_SUCCESS || outNbElement1 == 0 )
    {
       free(tempRSIBuffer);
       *outBegIdx= 0;
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_STOCHF_Unguarded(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF_Unguarded(0,tempArraySize - 1,tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outBegIdx= 0;
       *outNBElement= 0;

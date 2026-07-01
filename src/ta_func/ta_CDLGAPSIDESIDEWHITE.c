@@ -64,7 +64,7 @@ TA_LIB_API int TA_CDLGAPSIDESIDEWHITE_Lookback( void )
    int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
    int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
    double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
-   return (fmax(Near_avgPeriod,Equal_avgPeriod)+2);
+   return fmax(Near_avgPeriod,Equal_avgPeriod) + 2;
 }
 
 TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE( int    startIdx,
@@ -114,12 +114,12 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -129,18 +129,18 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE( int    startIdx,
    /* Add-up the initial period, except for the last value. */
    NearPeriodTotal = 0;
    EqualPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      NearPeriodTotal += TA_CANDLERANGE(Near,(i-1));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1);
       i += 1;
    }
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-1));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1);
       i += 1;
    }
    i = startIdx;
@@ -159,15 +159,15 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))||((((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))) && /* upside or downside gap between the 1st candle and both the next 2 candles */
-          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1) && /* 2nd: white */
-          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&         /* 3rd: white */
-          (fabs((inClose[i]-inOpen[i]))>=(fabs((inClose[(i-1)]-inOpen[(i-1)]))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))) && /* same size 2 and 3 */
-          (fabs((inClose[i]-inOpen[i]))<=(fabs((inClose[(i-1)]-inOpen[(i-1)]))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))) &&
-          (inOpen[i]>=(inOpen[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))) && /* same open 2 and 3 */
-          (inOpen[i]<=(inOpen[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))) )
+      if( (((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmin(inOpen[i],inClose[i]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) || ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmax(inOpen[i],inClose[i]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0)) && /* upside or downside gap between the 1st candle and both the next 2 candles */
+          ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && /* 2nd: white */
+          ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 &&         /* 3rd: white */
+          fabs(inClose[i] - inOpen[i]) >= fabs(inClose[i - 1] - inOpen[i - 1]) - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) && /* same size 2 and 3 */
+          fabs(inClose[i] - inOpen[i]) <= fabs(inClose[i - 1] - inOpen[i - 1]) + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) &&
+          inOpen[i] >= inOpen[i - 1] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) && /* same open 2 and 3 */
+          inOpen[i] <= inOpen[i - 1] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) )
       {
-         outInteger[outIdx++] = (((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+         outInteger[outIdx++] = ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) ? 100 : 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
@@ -175,12 +175,12 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      NearPeriodTotal += (TA_CANDLERANGE(Near,(i-1))-TA_CANDLERANGE(Near,(NearTrailingIdx-1)));
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-1))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-1)));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1) - TA_CANDLERANGE(Near,NearTrailingIdx - 1);
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 1);
       i += 1;
       NearTrailingIdx += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -212,11 +212,11 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE_Unguarded( int    startIdx,
    double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
 
    lookbackTotal = TA_CDLGAPSIDESIDEWHITE_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -224,37 +224,37 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE_Unguarded( int    startIdx,
    }
    NearPeriodTotal = 0;
    EqualPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      NearPeriodTotal += TA_CANDLERANGE(Near,(i-1));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1);
       i += 1;
    }
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-1));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))||((((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(fabs((inClose[i]-inOpen[i]))>=(fabs((inClose[(i-1)]-inOpen[(i-1)]))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))))&&(fabs((inClose[i]-inOpen[i]))<=(fabs((inClose[(i-1)]-inOpen[(i-1)]))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))))&&(inOpen[i]>=(inOpen[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))))&&(inOpen[i]<=(inOpen[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1))))) )
+      if( (((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmin(inOpen[i],inClose[i]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) || ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmax(inOpen[i],inClose[i]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0)) && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && fabs(inClose[i] - inOpen[i]) >= fabs(inClose[i - 1] - inOpen[i - 1]) - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) && fabs(inClose[i] - inOpen[i]) <= fabs(inClose[i - 1] - inOpen[i - 1]) + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) && inOpen[i] >= inOpen[i - 1] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) && inOpen[i] <= inOpen[i - 1] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) )
       {
-         outInteger[outIdx++] = (((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+         outInteger[outIdx++] = ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) ? 100 : 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      NearPeriodTotal += (TA_CANDLERANGE(Near,(i-1))-TA_CANDLERANGE(Near,(NearTrailingIdx-1)));
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-1))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-1)));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1) - TA_CANDLERANGE(Near,NearTrailingIdx - 1);
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 1);
       i += 1;
       NearTrailingIdx += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -301,11 +301,11 @@ TA_RetCode TA_S_CDLGAPSIDESIDEWHITE( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLGAPSIDESIDEWHITE_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -313,37 +313,37 @@ TA_RetCode TA_S_CDLGAPSIDESIDEWHITE( int    startIdx,
    }
    NearPeriodTotal = 0;
    EqualPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      NearPeriodTotal += TA_CANDLERANGE(Near,(i-1));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1);
       i += 1;
    }
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-1));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))||((((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(fabs((inClose[i]-inOpen[i]))>=(fabs((inClose[(i-1)]-inOpen[(i-1)]))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))))&&(fabs((inClose[i]-inOpen[i]))<=(fabs((inClose[(i-1)]-inOpen[(i-1)]))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))))&&(inOpen[i]>=(inOpen[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))))&&(inOpen[i]<=(inOpen[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1))))) )
+      if( (((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmin(inOpen[i],inClose[i]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) || ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmax(inOpen[i],inClose[i]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0)) && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && fabs(inClose[i] - inOpen[i]) >= fabs(inClose[i - 1] - inOpen[i - 1]) - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) && fabs(inClose[i] - inOpen[i]) <= fabs(inClose[i - 1] - inOpen[i - 1]) + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) && inOpen[i] >= inOpen[i - 1] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) && inOpen[i] <= inOpen[i - 1] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) )
       {
-         outInteger[outIdx++] = (((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+         outInteger[outIdx++] = ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) ? 100 : 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      NearPeriodTotal += (TA_CANDLERANGE(Near,(i-1))-TA_CANDLERANGE(Near,(NearTrailingIdx-1)));
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-1))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-1)));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1) - TA_CANDLERANGE(Near,NearTrailingIdx - 1);
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 1);
       i += 1;
       NearTrailingIdx += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -374,11 +374,11 @@ TA_RetCode TA_S_CDLGAPSIDESIDEWHITE_Unguarded( int    startIdx,
    double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
 
    lookbackTotal = TA_CDLGAPSIDESIDEWHITE_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -386,37 +386,37 @@ TA_RetCode TA_S_CDLGAPSIDESIDEWHITE_Unguarded( int    startIdx,
    }
    NearPeriodTotal = 0;
    EqualPeriodTotal = 0;
-   NearTrailingIdx = (startIdx-Near_avgPeriod);
-   EqualTrailingIdx = (startIdx-Equal_avgPeriod);
+   NearTrailingIdx = startIdx - Near_avgPeriod;
+   EqualTrailingIdx = startIdx - Equal_avgPeriod;
    i = NearTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      NearPeriodTotal += TA_CANDLERANGE(Near,(i-1));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1);
       i += 1;
    }
    i = EqualTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-1));
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmin(inOpen[i],inClose[i])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0)))||((((fmax(inOpen[(i-1)],inClose[(i-1)])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(fabs((inClose[i]-inOpen[i]))>=(fabs((inClose[(i-1)]-inOpen[(i-1)]))-TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))))&&(fabs((inClose[i]-inOpen[i]))<=(fabs((inClose[(i-1)]-inOpen[(i-1)]))+TA_CANDLEAVERAGE(Near,NearPeriodTotal,(i-1)))))&&(inOpen[i]>=(inOpen[(i-1)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1)))))&&(inOpen[i]<=(inOpen[(i-1)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-1))))) )
+      if( (((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmin(inOpen[i],inClose[i]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) || ((fmax(inOpen[i - 1],inClose[i - 1]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) && ((fmax(inOpen[i],inClose[i]) < fmin(inOpen[i - 2],inClose[i - 2])) ? 1 : 0)) && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && fabs(inClose[i] - inOpen[i]) >= fabs(inClose[i - 1] - inOpen[i - 1]) - TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) && fabs(inClose[i] - inOpen[i]) <= fabs(inClose[i - 1] - inOpen[i - 1]) + TA_CANDLEAVERAGE(Near,NearPeriodTotal,i - 1) && inOpen[i] >= inOpen[i - 1] - TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) && inOpen[i] <= inOpen[i - 1] + TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,i - 1) )
       {
-         outInteger[outIdx++] = (((((fmin(inOpen[(i-1)],inClose[(i-1)])>fmax(inOpen[(i-2)],inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+         outInteger[outIdx++] = ((fmin(inOpen[i - 1],inClose[i - 1]) > fmax(inOpen[i - 2],inClose[i - 2])) ? 1 : 0) ? 100 : 0 - 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      NearPeriodTotal += (TA_CANDLERANGE(Near,(i-1))-TA_CANDLERANGE(Near,(NearTrailingIdx-1)));
-      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-1))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-1)));
+      NearPeriodTotal += TA_CANDLERANGE(Near,i - 1) - TA_CANDLERANGE(Near,NearTrailingIdx - 1);
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,i - 1) - TA_CANDLERANGE(Equal,EqualTrailingIdx - 1);
       i += 1;
       NearTrailingIdx += 1;
       EqualTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

@@ -61,7 +61,7 @@
 
 TA_LIB_API int TA_MAX_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_MAX( int    startIdx,
@@ -99,16 +99,16 @@ TA_LIB_API TA_RetCode TA_MAX( int    startIdx,
     * to identify at least one output over the specified
     * period.
     */
-   nbInitialElementNeeded = (optInTimePeriod-1);
+   nbInitialElementNeeded = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -120,27 +120,27 @@ TA_LIB_API TA_RetCode TA_MAX( int    startIdx,
     */
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
@@ -174,12 +174,12 @@ TA_LIB_API TA_RetCode TA_MAX_Unguarded( int    startIdx,
    int i;
    int highestIdx;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -187,27 +187,27 @@ TA_LIB_API TA_RetCode TA_MAX_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
@@ -252,12 +252,12 @@ TA_RetCode TA_S_MAX( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -265,27 +265,27 @@ TA_RetCode TA_S_MAX( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;
@@ -316,12 +316,12 @@ TA_RetCode TA_S_MAX_Unguarded( int    startIdx,
    int i;
    int highestIdx;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -329,27 +329,27 @@ TA_RetCode TA_S_MAX_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmp = inReal[today];
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmp = inReal[i];
-            if( (tmp>highest) )
+            if( tmp > highest )
             {
                highestIdx = i;
                highest = tmp;
             }
          }
-      } else if( (tmp>=highest) )
+      } else if( tmp >= highest )
       {
          highestIdx = today;
          highest = tmp;

@@ -61,7 +61,7 @@ TA_LIB_API int TA_ADOSC_Lookback( int optInFastPeriod, int optInSlowPeriod )
 {
    int slowestPeriod;
    /* Use the slowest EMA period to evaluate the total lookback. */
-   if( (optInFastPeriod<optInSlowPeriod) )
+   if( optInFastPeriod < optInSlowPeriod )
    {
       slowestPeriod = optInSlowPeriod;
    } else 
@@ -150,7 +150,7 @@ TA_LIB_API TA_RetCode TA_ADOSC( int    startIdx,
     * This infomration is used soleley to bootstrap
     * the algorithm (skip the lookback period).
     */
-   if( (optInFastPeriod<optInSlowPeriod) )
+   if( optInFastPeriod < optInSlowPeriod )
    {
       slowestPeriod = optInSlowPeriod;
    } else 
@@ -159,28 +159,28 @@ TA_LIB_API TA_RetCode TA_ADOSC( int    startIdx,
    }
    /* Adjust startIdx to account for the lookback period. */
    lookbackTotal = TA_EMA_Lookback(slowestPeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    /* The following variables are used to
     * calculate the "ad".
     */
    ad = 0.0;
    /* Constants for EMA */
-   fastk = (2.0/(((double)optInFastPeriod)+1.0));
-   one_minus_fastk = (1.0-fastk);
-   slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-   one_minus_slowk = (1.0-slowk);
+   fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+   one_minus_fastk = 1.0 - fastk;
+   slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+   one_minus_slowk = 1.0 - slowk;
    /* Initialize the two EMA
     *
     * Use the same range of initialization inputs for
@@ -190,46 +190,46 @@ TA_LIB_API TA_RetCode TA_ADOSC( int    startIdx,
     */
    high = inHigh[today];
    low = inLow[today];
-   tmp = (high-low);
+   tmp = high - low;
    close = inClose[today];
-   if( (tmp>0.0) )
+   if( tmp > 0.0 )
    {
-      ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
    }
    today += 1;
    fastEMA = ad;
    slowEMA = ad;
    /* Initialize the EMA and skip the unstable period. */
-   while( (today<startIdx) )
+   while( today < startIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
    }
    /* Perform the calculation for the requested range */
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-      outReal[outIdx++] = (fastEMA-slowEMA);
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+      outReal[outIdx++] = fastEMA - slowEMA;
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -263,7 +263,7 @@ TA_LIB_API TA_RetCode TA_ADOSC_Unguarded( int    startIdx,
    double one_minus_fastk;
    double ad;
 
-   if( (optInFastPeriod<optInSlowPeriod) )
+   if( optInFastPeriod < optInSlowPeriod )
    {
       slowestPeriod = optInSlowPeriod;
    } else 
@@ -271,63 +271,63 @@ TA_LIB_API TA_RetCode TA_ADOSC_Unguarded( int    startIdx,
       slowestPeriod = optInFastPeriod;
    }
    lookbackTotal = TA_EMA_Lookback(slowestPeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    ad = 0.0;
-   fastk = (2.0/(((double)optInFastPeriod)+1.0));
-   one_minus_fastk = (1.0-fastk);
-   slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-   one_minus_slowk = (1.0-slowk);
+   fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+   one_minus_fastk = 1.0 - fastk;
+   slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+   one_minus_slowk = 1.0 - slowk;
    high = inHigh[today];
    low = inLow[today];
-   tmp = (high-low);
+   tmp = high - low;
    close = inClose[today];
-   if( (tmp>0.0) )
+   if( tmp > 0.0 )
    {
-      ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
    }
    today += 1;
    fastEMA = ad;
    slowEMA = ad;
-   while( (today<startIdx) )
+   while( today < startIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
    }
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-      outReal[outIdx++] = (fastEMA-slowEMA);
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+      outReal[outIdx++] = fastEMA - slowEMA;
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -385,7 +385,7 @@ TA_RetCode TA_S_ADOSC( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   if( (optInFastPeriod<optInSlowPeriod) )
+   if( optInFastPeriod < optInSlowPeriod )
    {
       slowestPeriod = optInSlowPeriod;
    } else 
@@ -393,63 +393,63 @@ TA_RetCode TA_S_ADOSC( int    startIdx,
       slowestPeriod = optInFastPeriod;
    }
    lookbackTotal = TA_EMA_Lookback(slowestPeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    ad = 0.0;
-   fastk = (2.0/(((double)optInFastPeriod)+1.0));
-   one_minus_fastk = (1.0-fastk);
-   slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-   one_minus_slowk = (1.0-slowk);
+   fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+   one_minus_fastk = 1.0 - fastk;
+   slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+   one_minus_slowk = 1.0 - slowk;
    high = inHigh[today];
    low = inLow[today];
-   tmp = (high-low);
+   tmp = high - low;
    close = inClose[today];
-   if( (tmp>0.0) )
+   if( tmp > 0.0 )
    {
-      ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
    }
    today += 1;
    fastEMA = ad;
    slowEMA = ad;
-   while( (today<startIdx) )
+   while( today < startIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
    }
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-      outReal[outIdx++] = (fastEMA-slowEMA);
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+      outReal[outIdx++] = fastEMA - slowEMA;
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -483,7 +483,7 @@ TA_RetCode TA_S_ADOSC_Unguarded( int    startIdx,
    double one_minus_fastk;
    double ad;
 
-   if( (optInFastPeriod<optInSlowPeriod) )
+   if( optInFastPeriod < optInSlowPeriod )
    {
       slowestPeriod = optInSlowPeriod;
    } else 
@@ -491,63 +491,63 @@ TA_RetCode TA_S_ADOSC_Unguarded( int    startIdx,
       slowestPeriod = optInFastPeriod;
    }
    lookbackTotal = TA_EMA_Lookback(slowestPeriod);
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
+   today = startIdx - lookbackTotal;
    ad = 0.0;
-   fastk = (2.0/(((double)optInFastPeriod)+1.0));
-   one_minus_fastk = (1.0-fastk);
-   slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-   one_minus_slowk = (1.0-slowk);
+   fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+   one_minus_fastk = 1.0 - fastk;
+   slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+   one_minus_slowk = 1.0 - slowk;
    high = inHigh[today];
    low = inLow[today];
-   tmp = (high-low);
+   tmp = high - low;
    close = inClose[today];
-   if( (tmp>0.0) )
+   if( tmp > 0.0 )
    {
-      ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
    }
    today += 1;
    fastEMA = ad;
    slowEMA = ad;
-   while( (today<startIdx) )
+   while( today < startIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
    }
    outIdx = 0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) )
+      if( tmp > 0.0 )
       {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
-      fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-      slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-      outReal[outIdx++] = (fastEMA-slowEMA);
+      fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+      slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+      outReal[outIdx++] = fastEMA - slowEMA;
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;

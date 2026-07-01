@@ -59,7 +59,7 @@
 
 TA_LIB_API int TA_MIDPOINT_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_MIDPOINT( int    startIdx,
@@ -104,16 +104,16 @@ TA_LIB_API TA_RetCode TA_MIDPOINT( int    startIdx,
     * to identify at least one output over the specified
     * period.
     */
-   nbInitialElementNeeded = (optInTimePeriod-1);
+   nbInitialElementNeeded = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -125,23 +125,23 @@ TA_LIB_API TA_RetCode TA_MIDPOINT( int    startIdx,
     */
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   while( (today<=endIdx) )
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   while( today <= endIdx )
    {
       lowest = inReal[trailingIdx++];
       highest = lowest;
-      for( i = trailingIdx; (i<=today); i += 1 )
+      for( i = trailingIdx; i <= today; i += 1 )
       {
          tmp = inReal[i];
-         if( (tmp<lowest) )
+         if( tmp < lowest )
          {
             lowest = tmp;
-         } else if( (tmp>highest) )
+         } else if( tmp > highest )
          {
             highest = tmp;
          }
       }
-      outReal[outIdx++] = ((highest+lowest)/2.0);
+      outReal[outIdx++] = (highest + lowest) / 2.0;
       today += 1;
    }
    /* Keep the outBegIdx relative to the
@@ -169,12 +169,12 @@ TA_LIB_API TA_RetCode TA_MIDPOINT_Unguarded( int    startIdx,
    int today;
    int i;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -182,23 +182,23 @@ TA_LIB_API TA_RetCode TA_MIDPOINT_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   while( (today<=endIdx) )
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   while( today <= endIdx )
    {
       lowest = inReal[trailingIdx++];
       highest = lowest;
-      for( i = trailingIdx; (i<=today); i += 1 )
+      for( i = trailingIdx; i <= today; i += 1 )
       {
          tmp = inReal[i];
-         if( (tmp<lowest) )
+         if( tmp < lowest )
          {
             lowest = tmp;
-         } else if( (tmp>highest) )
+         } else if( tmp > highest )
          {
             highest = tmp;
          }
       }
-      outReal[outIdx++] = ((highest+lowest)/2.0);
+      outReal[outIdx++] = (highest + lowest) / 2.0;
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -237,12 +237,12 @@ TA_RetCode TA_S_MIDPOINT( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -250,23 +250,23 @@ TA_RetCode TA_S_MIDPOINT( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   while( (today<=endIdx) )
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   while( today <= endIdx )
    {
       lowest = inReal[trailingIdx++];
       highest = lowest;
-      for( i = trailingIdx; (i<=today); i += 1 )
+      for( i = trailingIdx; i <= today; i += 1 )
       {
          tmp = inReal[i];
-         if( (tmp<lowest) )
+         if( tmp < lowest )
          {
             lowest = tmp;
-         } else if( (tmp>highest) )
+         } else if( tmp > highest )
          {
             highest = tmp;
          }
       }
-      outReal[outIdx++] = ((highest+lowest)/2.0);
+      outReal[outIdx++] = (highest + lowest) / 2.0;
       today += 1;
    }
    *outBegIdx= startIdx;
@@ -291,12 +291,12 @@ TA_RetCode TA_S_MIDPOINT_Unguarded( int    startIdx,
    int today;
    int i;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -304,23 +304,23 @@ TA_RetCode TA_S_MIDPOINT_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   while( (today<=endIdx) )
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   while( today <= endIdx )
    {
       lowest = inReal[trailingIdx++];
       highest = lowest;
-      for( i = trailingIdx; (i<=today); i += 1 )
+      for( i = trailingIdx; i <= today; i += 1 )
       {
          tmp = inReal[i];
-         if( (tmp<lowest) )
+         if( tmp < lowest )
          {
             lowest = tmp;
-         } else if( (tmp>highest) )
+         } else if( tmp > highest )
          {
             highest = tmp;
          }
       }
-      outReal[outIdx++] = ((highest+lowest)/2.0);
+      outReal[outIdx++] = (highest + lowest) / 2.0;
       today += 1;
    }
    *outBegIdx= startIdx;

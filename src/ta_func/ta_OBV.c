@@ -94,13 +94,13 @@ TA_LIB_API TA_RetCode TA_OBV( int    startIdx,
    prevOBV = inVolume[startIdx];
    prevReal = inReal[startIdx];
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
       tempReal = inReal[i];
-      if( (tempReal>prevReal) )
+      if( tempReal > prevReal )
       {
          prevOBV += inVolume[i];
-      } else if( (tempReal<prevReal) )
+      } else if( tempReal < prevReal )
       {
          prevOBV -= inVolume[i];
       }
@@ -129,13 +129,13 @@ TA_LIB_API TA_RetCode TA_OBV_Unguarded( int    startIdx,
    prevOBV = inVolume[startIdx];
    prevReal = inReal[startIdx];
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
       tempReal = inReal[i];
-      if( (tempReal>prevReal) )
+      if( tempReal > prevReal )
       {
          prevOBV += inVolume[i];
-      } else if( (tempReal<prevReal) )
+      } else if( tempReal < prevReal )
       {
          prevOBV -= inVolume[i];
       }
@@ -176,13 +176,13 @@ TA_RetCode TA_S_OBV( int    startIdx,
    prevOBV = inVolume[startIdx];
    prevReal = inReal[startIdx];
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
       tempReal = inReal[i];
-      if( (tempReal>prevReal) )
+      if( tempReal > prevReal )
       {
          prevOBV += inVolume[i];
-      } else if( (tempReal<prevReal) )
+      } else if( tempReal < prevReal )
       {
          prevOBV -= inVolume[i];
       }
@@ -211,13 +211,13 @@ TA_RetCode TA_S_OBV_Unguarded( int    startIdx,
    prevOBV = inVolume[startIdx];
    prevReal = inReal[startIdx];
    outIdx = 0;
-   for( i = startIdx; (i<=endIdx); i += 1 )
+   for( i = startIdx; i <= endIdx; i += 1 )
    {
       tempReal = inReal[i];
-      if( (tempReal>prevReal) )
+      if( tempReal > prevReal )
       {
          prevOBV += inVolume[i];
-      } else if( (tempReal<prevReal) )
+      } else if( tempReal < prevReal )
       {
          prevOBV -= inVolume[i];
       }

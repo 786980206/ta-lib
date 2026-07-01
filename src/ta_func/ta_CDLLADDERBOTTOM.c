@@ -62,7 +62,7 @@ TA_LIB_API int TA_CDLLADDERBOTTOM_Lookback( void )
    int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
    int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
    double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
-   return (ShadowVeryShort_avgPeriod+4);
+   return ShadowVeryShort_avgPeriod + 4;
 }
 
 TA_LIB_API TA_RetCode TA_CDLLADDERBOTTOM( int    startIdx,
@@ -107,12 +107,12 @@ TA_LIB_API TA_RetCode TA_CDLLADDERBOTTOM( int    startIdx,
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -121,11 +121,11 @@ TA_LIB_API TA_RetCode TA_CDLLADDERBOTTOM( int    startIdx,
    /* Do the calculation using tight loops. */
    /* Add-up the initial period, except for the last value. */
    ShadowVeryShortPeriodTotal = 0;
-   ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
+   ShadowVeryShortTrailingIdx = startIdx - ShadowVeryShort_avgPeriod;
    i = ShadowVeryShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,(i-1));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1);
       i += 1;
    }
    i = startIdx;
@@ -142,18 +142,18 @@ TA_LIB_API TA_RetCode TA_CDLLADDERBOTTOM( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1)) &&
-          ((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)) &&
-          ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)) && /* 3 black candlesticks */
-          (inOpen[(i-4)]>inOpen[(i-3)]) &&
-          (inOpen[(i-3)]>inOpen[(i-2)]) &&                                /* with consecutively lower opens */
-          (inClose[(i-4)]>inClose[(i-3)]) &&
-          (inClose[(i-3)]>inClose[(i-2)]) &&                              /* and closes */
-          ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)) && /* 4th: black with an upper shadow */
-          ((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,(i-1))) &&
-          ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1) &&             /* 5th: white */
-          (inOpen[i]>inOpen[(i-1)]) &&                                    /* that opens above prior candle's body */
-          (inClose[i]>inHigh[(i-1)]) )                                    /* and closes above prior candle's high */
+      if( ((inClose[i - 4] >= inOpen[i - 4]) ? 1 : 0 - 1) == 0 - 1 &&
+          ((inClose[i - 3] >= inOpen[i - 3]) ? 1 : 0 - 1) == 0 - 1 &&
+          ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && /* 3 black candlesticks */
+          inOpen[i - 4] > inOpen[i - 3] &&
+          inOpen[i - 3] > inOpen[i - 2] &&                            /* with consecutively lower opens */
+          inClose[i - 4] > inClose[i - 3] &&
+          inClose[i - 3] > inClose[i - 2] &&                          /* and closes */
+          ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && /* 4th: black with an upper shadow */
+          (inHigh[i - 1] - ((inClose[i - 1] >= inOpen[i - 1]) ? inClose[i - 1] : inOpen[i - 1])) > TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i - 1) &&
+          ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 &&             /* 5th: white */
+          inOpen[i] > inOpen[i - 1] &&                                /* that opens above prior candle's body */
+          inClose[i] > inHigh[i - 1] )                                /* and closes above prior candle's high */
       {
          outInteger[outIdx++] = 100;
       } else 
@@ -163,10 +163,10 @@ TA_LIB_API TA_RetCode TA_CDLLADDERBOTTOM( int    startIdx,
       /* add the current range and subtract the first range: this is done after the pattern recognition
        * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
        */
-      ShadowVeryShortPeriodTotal += (TA_CANDLERANGE(ShadowVeryShort,(i-1))-TA_CANDLERANGE(ShadowVeryShort,(ShadowVeryShortTrailingIdx-1)));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1) - TA_CANDLERANGE(ShadowVeryShort,ShadowVeryShortTrailingIdx - 1);
       i += 1;
       ShadowVeryShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    /* All done. Indicate the output limits and return. */
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -193,39 +193,39 @@ TA_LIB_API TA_RetCode TA_CDLLADDERBOTTOM_Unguarded( int    startIdx,
    double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDLLADDERBOTTOM_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    ShadowVeryShortPeriodTotal = 0;
-   ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
+   ShadowVeryShortTrailingIdx = startIdx - ShadowVeryShort_avgPeriod;
    i = ShadowVeryShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,(i-1));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[(i-4)]>inOpen[(i-3)]))&&(inOpen[(i-3)]>inOpen[(i-2)]))&&(inClose[(i-4)]>inClose[(i-3)]))&&(inClose[(i-3)]>inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]>inHigh[(i-1)])) )
+      if( ((inClose[i - 4] >= inOpen[i - 4]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 3] >= inOpen[i - 3]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] && inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && (inHigh[i - 1] - ((inClose[i - 1] >= inOpen[i - 1]) ? inClose[i - 1] : inOpen[i - 1])) > TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i - 1) && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && inOpen[i] > inOpen[i - 1] && inClose[i] > inHigh[i - 1] )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      ShadowVeryShortPeriodTotal += (TA_CANDLERANGE(ShadowVeryShort,(i-1))-TA_CANDLERANGE(ShadowVeryShort,(ShadowVeryShortTrailingIdx-1)));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1) - TA_CANDLERANGE(ShadowVeryShort,ShadowVeryShortTrailingIdx - 1);
       i += 1;
       ShadowVeryShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -267,39 +267,39 @@ TA_RetCode TA_S_CDLLADDERBOTTOM( int    startIdx,
       return TA_BAD_PARAM;
 
    lookbackTotal = TA_CDLLADDERBOTTOM_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    ShadowVeryShortPeriodTotal = 0;
-   ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
+   ShadowVeryShortTrailingIdx = startIdx - ShadowVeryShort_avgPeriod;
    i = ShadowVeryShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,(i-1));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[(i-4)]>inOpen[(i-3)]))&&(inOpen[(i-3)]>inOpen[(i-2)]))&&(inClose[(i-4)]>inClose[(i-3)]))&&(inClose[(i-3)]>inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]>inHigh[(i-1)])) )
+      if( ((inClose[i - 4] >= inOpen[i - 4]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 3] >= inOpen[i - 3]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] && inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && (inHigh[i - 1] - ((inClose[i - 1] >= inOpen[i - 1]) ? inClose[i - 1] : inOpen[i - 1])) > TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i - 1) && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && inOpen[i] > inOpen[i - 1] && inClose[i] > inHigh[i - 1] )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      ShadowVeryShortPeriodTotal += (TA_CANDLERANGE(ShadowVeryShort,(i-1))-TA_CANDLERANGE(ShadowVeryShort,(ShadowVeryShortTrailingIdx-1)));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1) - TA_CANDLERANGE(ShadowVeryShort,ShadowVeryShortTrailingIdx - 1);
       i += 1;
       ShadowVeryShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;
@@ -325,39 +325,39 @@ TA_RetCode TA_S_CDLLADDERBOTTOM_Unguarded( int    startIdx,
    double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDLLADDERBOTTOM_Lookback();
-   if( (startIdx<lookbackTotal) )
+   if( startIdx < lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
       return TA_SUCCESS;
    }
    ShadowVeryShortPeriodTotal = 0;
-   ShadowVeryShortTrailingIdx = (startIdx-ShadowVeryShort_avgPeriod);
+   ShadowVeryShortTrailingIdx = startIdx - ShadowVeryShort_avgPeriod;
    i = ShadowVeryShortTrailingIdx;
-   while( (i<startIdx) )
+   while( i < startIdx )
    {
-      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,(i-1));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1);
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      if( (((((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[(i-4)]>inOpen[(i-3)]))&&(inOpen[(i-3)]>inOpen[(i-2)]))&&(inClose[(i-4)]>inClose[(i-3)]))&&(inClose[(i-3)]>inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,(i-1))))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]>inHigh[(i-1)])) )
+      if( ((inClose[i - 4] >= inOpen[i - 4]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 3] >= inOpen[i - 3]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] && inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && (inHigh[i - 1] - ((inClose[i - 1] >= inOpen[i - 1]) ? inClose[i - 1] : inOpen[i - 1])) > TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i - 1) && ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && inOpen[i] > inOpen[i - 1] && inClose[i] > inHigh[i - 1] )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      ShadowVeryShortPeriodTotal += (TA_CANDLERANGE(ShadowVeryShort,(i-1))-TA_CANDLERANGE(ShadowVeryShort,(ShadowVeryShortTrailingIdx-1)));
+      ShadowVeryShortPeriodTotal += TA_CANDLERANGE(ShadowVeryShort,i - 1) - TA_CANDLERANGE(ShadowVeryShort,ShadowVeryShortTrailingIdx - 1);
       i += 1;
       ShadowVeryShortTrailingIdx += 1;
-   } while( (i<=endIdx) );
+   } while( i <= endIdx );
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
    return TA_SUCCESS;

@@ -57,7 +57,7 @@
 
 TA_LIB_API int TA_MINMAX_Lookback( int optInTimePeriod )
 {
-   return (optInTimePeriod-1);
+   return optInTimePeriod - 1;
 }
 
 TA_LIB_API TA_RetCode TA_MINMAX( int    startIdx,
@@ -101,16 +101,16 @@ TA_LIB_API TA_RetCode TA_MINMAX( int    startIdx,
     * to identify at least one output over the specified
     * period.
     */
-   nbInitialElementNeeded = (optInTimePeriod-1);
+   nbInitialElementNeeded = optInTimePeriod - 1;
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( (startIdx<nbInitialElementNeeded) )
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -122,49 +122,49 @@ TA_LIB_API TA_RetCode TA_MINMAX( int    startIdx,
     */
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   lowestIdx = (0-1);
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmpHigh = inReal[today];
       tmpLow = tmpHigh;
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpHigh = inReal[i];
-            if( (tmpHigh>highest) )
+            if( tmpHigh > highest )
             {
                highestIdx = i;
                highest = tmpHigh;
             }
          }
-      } else if( (tmpHigh>=highest) )
+      } else if( tmpHigh >= highest )
       {
          highestIdx = today;
          highest = tmpHigh;
       }
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpLow = inReal[i];
-            if( (tmpLow<lowest) )
+            if( tmpLow < lowest )
             {
                lowestIdx = i;
                lowest = tmpLow;
             }
          }
-      } else if( (tmpLow<=lowest) )
+      } else if( tmpLow <= lowest )
       {
          lowestIdx = today;
          lowest = tmpLow;
@@ -204,12 +204,12 @@ TA_LIB_API TA_RetCode TA_MINMAX_Unguarded( int    startIdx,
    int highestIdx;
    int lowestIdx;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -217,49 +217,49 @@ TA_LIB_API TA_RetCode TA_MINMAX_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   lowestIdx = (0-1);
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmpHigh = inReal[today];
       tmpLow = tmpHigh;
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpHigh = inReal[i];
-            if( (tmpHigh>highest) )
+            if( tmpHigh > highest )
             {
                highestIdx = i;
                highest = tmpHigh;
             }
          }
-      } else if( (tmpHigh>=highest) )
+      } else if( tmpHigh >= highest )
       {
          highestIdx = today;
          highest = tmpHigh;
       }
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpLow = inReal[i];
-            if( (tmpLow<lowest) )
+            if( tmpLow < lowest )
             {
                lowestIdx = i;
                lowest = tmpLow;
             }
          }
-      } else if( (tmpLow<=lowest) )
+      } else if( tmpLow <= lowest )
       {
          lowestIdx = today;
          lowest = tmpLow;
@@ -312,12 +312,12 @@ TA_RetCode TA_S_MINMAX( int    startIdx,
    if( !outMax )
       return TA_BAD_PARAM;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -325,49 +325,49 @@ TA_RetCode TA_S_MINMAX( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   lowestIdx = (0-1);
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmpHigh = inReal[today];
       tmpLow = tmpHigh;
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpHigh = inReal[i];
-            if( (tmpHigh>highest) )
+            if( tmpHigh > highest )
             {
                highestIdx = i;
                highest = tmpHigh;
             }
          }
-      } else if( (tmpHigh>=highest) )
+      } else if( tmpHigh >= highest )
       {
          highestIdx = today;
          highest = tmpHigh;
       }
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpLow = inReal[i];
-            if( (tmpLow<lowest) )
+            if( tmpLow < lowest )
             {
                lowestIdx = i;
                lowest = tmpLow;
             }
          }
-      } else if( (tmpLow<=lowest) )
+      } else if( tmpLow <= lowest )
       {
          lowestIdx = today;
          lowest = tmpLow;
@@ -404,12 +404,12 @@ TA_RetCode TA_S_MINMAX_Unguarded( int    startIdx,
    int highestIdx;
    int lowestIdx;
 
-   nbInitialElementNeeded = (optInTimePeriod-1);
-   if( (startIdx<nbInitialElementNeeded) )
+   nbInitialElementNeeded = optInTimePeriod - 1;
+   if( startIdx < nbInitialElementNeeded )
    {
       startIdx = nbInitialElementNeeded;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outBegIdx= 0;
       *outNBElement= 0;
@@ -417,49 +417,49 @@ TA_RetCode TA_S_MINMAX_Unguarded( int    startIdx,
    }
    outIdx = 0;
    today = startIdx;
-   trailingIdx = (startIdx-nbInitialElementNeeded);
-   highestIdx = (0-1);
+   trailingIdx = startIdx - nbInitialElementNeeded;
+   highestIdx = 0 - 1;
    highest = 0.0;
-   lowestIdx = (0-1);
+   lowestIdx = 0 - 1;
    lowest = 0.0;
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
       tmpHigh = inReal[today];
       tmpLow = tmpHigh;
-      if( (highestIdx<trailingIdx) )
+      if( highestIdx < trailingIdx )
       {
          highestIdx = trailingIdx;
          highest = inReal[highestIdx];
          i = highestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpHigh = inReal[i];
-            if( (tmpHigh>highest) )
+            if( tmpHigh > highest )
             {
                highestIdx = i;
                highest = tmpHigh;
             }
          }
-      } else if( (tmpHigh>=highest) )
+      } else if( tmpHigh >= highest )
       {
          highestIdx = today;
          highest = tmpHigh;
       }
-      if( (lowestIdx<trailingIdx) )
+      if( lowestIdx < trailingIdx )
       {
          lowestIdx = trailingIdx;
          lowest = inReal[lowestIdx];
          i = lowestIdx;
-         while( (++i<=today) )
+         while( ++i <= today )
          {
             tmpLow = inReal[i];
-            if( (tmpLow<lowest) )
+            if( tmpLow < lowest )
             {
                lowestIdx = i;
                lowest = tmpLow;
             }
          }
-      } else if( (tmpLow<=lowest) )
+      } else if( tmpLow <= lowest )
       {
          lowestIdx = today;
          lowest = tmpLow;

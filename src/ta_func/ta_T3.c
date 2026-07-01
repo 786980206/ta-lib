@@ -64,7 +64,7 @@
 
 TA_LIB_API int TA_T3_Lookback( int optInTimePeriod, double optInVFactor )
 {
-   return ((6*(optInTimePeriod-1))+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3));
+   return 6 * (optInTimePeriod - 1) + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3);
 }
 
 TA_LIB_API TA_RetCode TA_T3( int    startIdx,
@@ -128,109 +128,109 @@ TA_LIB_API TA_RetCode TA_T3( int    startIdx,
     * Do not confuse a T3 with EMA3. Both are called "Triple EMA"
     * in the litterature.
     */
-   lookbackTotal = ((6*(optInTimePeriod-1))+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3));
-   if( (startIdx<=lookbackTotal) )
+   lookbackTotal = 6 * (optInTimePeriod - 1) + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3);
+   if( startIdx <= lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
    /* Make sure there is still something to evaluate. */
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
-   k = (2.0/(optInTimePeriod+1.0));
-   one_minus_k = (1.0-k);
+   today = startIdx - lookbackTotal;
+   k = 2.0 / (optInTimePeriod + 1.0);
+   one_minus_k = 1.0 - k;
    /* Initialize e1 */
    tempReal = inReal[today++];
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
       tempReal += inReal[today++];
    }
-   e1 = (tempReal/optInTimePeriod);
+   e1 = tempReal / optInTimePeriod;
    /* Initialize e2 */
    tempReal = e1;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
+      e1 = k * inReal[today++] + one_minus_k * e1;
       tempReal += e1;
    }
-   e2 = (tempReal/optInTimePeriod);
+   e2 = tempReal / optInTimePeriod;
    /* Initialize e3 */
    tempReal = e2;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
       tempReal += e2;
    }
-   e3 = (tempReal/optInTimePeriod);
+   e3 = tempReal / optInTimePeriod;
    /* Initialize e4 */
    tempReal = e3;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
       tempReal += e3;
    }
-   e4 = (tempReal/optInTimePeriod);
+   e4 = tempReal / optInTimePeriod;
    /* Initialize e5 */
    tempReal = e4;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
       tempReal += e4;
    }
-   e5 = (tempReal/optInTimePeriod);
+   e5 = tempReal / optInTimePeriod;
    /* Initialize e6 */
    tempReal = e5;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
       tempReal += e5;
    }
-   e6 = (tempReal/optInTimePeriod);
+   e6 = tempReal / optInTimePeriod;
    /* Skip the unstable period */
-   while( (today<=startIdx) )
+   while( today <= startIdx )
    {
       /* Do the calculation but do not write the output */
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
    }
    /* Calculate the constants */
-   tempReal = (optInVFactor*optInVFactor);
-   c1 = (0-(tempReal*optInVFactor));
-   c2 = (3.0*(tempReal-c1));
-   c3 = (((0-6.0)*tempReal)-(3.0*(optInVFactor-c1)));
-   c4 = (((1.0+(3.0*optInVFactor))-c1)+(3.0*tempReal));
+   tempReal = optInVFactor * optInVFactor;
+   c1 = 0 - tempReal * optInVFactor;
+   c2 = 3.0 * (tempReal - c1);
+   c3 = (0 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
+   c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
    /* Write the first output */
    outIdx = 0;
-   outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
+   outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
    /* Calculate and output the remaining of the range. */
-   while( (today<=endIdx) )
+   while( today <= endIdx )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
-      outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
+      outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
    }
    /* Indicates to the caller the number of output
     * successfully calculated.
@@ -266,97 +266,97 @@ TA_LIB_API TA_RetCode TA_T3_Unguarded( int    startIdx,
    double c4;
    double tempReal;
 
-   lookbackTotal = ((6*(optInTimePeriod-1))+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3));
-   if( (startIdx<=lookbackTotal) )
+   lookbackTotal = 6 * (optInTimePeriod - 1) + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3);
+   if( startIdx <= lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
-   k = (2.0/(optInTimePeriod+1.0));
-   one_minus_k = (1.0-k);
+   today = startIdx - lookbackTotal;
+   k = 2.0 / (optInTimePeriod + 1.0);
+   one_minus_k = 1.0 - k;
    tempReal = inReal[today++];
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
       tempReal += inReal[today++];
    }
-   e1 = (tempReal/optInTimePeriod);
+   e1 = tempReal / optInTimePeriod;
    tempReal = e1;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
+      e1 = k * inReal[today++] + one_minus_k * e1;
       tempReal += e1;
    }
-   e2 = (tempReal/optInTimePeriod);
+   e2 = tempReal / optInTimePeriod;
    tempReal = e2;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
       tempReal += e2;
    }
-   e3 = (tempReal/optInTimePeriod);
+   e3 = tempReal / optInTimePeriod;
    tempReal = e3;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
       tempReal += e3;
    }
-   e4 = (tempReal/optInTimePeriod);
+   e4 = tempReal / optInTimePeriod;
    tempReal = e4;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
       tempReal += e4;
    }
-   e5 = (tempReal/optInTimePeriod);
+   e5 = tempReal / optInTimePeriod;
    tempReal = e5;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
       tempReal += e5;
    }
-   e6 = (tempReal/optInTimePeriod);
-   while( (today<=startIdx) )
+   e6 = tempReal / optInTimePeriod;
+   while( today <= startIdx )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
    }
-   tempReal = (optInVFactor*optInVFactor);
-   c1 = (0-(tempReal*optInVFactor));
-   c2 = (3.0*(tempReal-c1));
-   c3 = (((0-6.0)*tempReal)-(3.0*(optInVFactor-c1)));
-   c4 = (((1.0+(3.0*optInVFactor))-c1)+(3.0*tempReal));
+   tempReal = optInVFactor * optInVFactor;
+   c1 = 0 - tempReal * optInVFactor;
+   c2 = 3.0 * (tempReal - c1);
+   c3 = (0 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
+   c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
    outIdx = 0;
-   outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
-   while( (today<=endIdx) )
+   outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+   while( today <= endIdx )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
-      outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
+      outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -407,97 +407,97 @@ TA_RetCode TA_S_T3( int    startIdx,
    if( !outReal )
       return TA_BAD_PARAM;
 
-   lookbackTotal = ((6*(optInTimePeriod-1))+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3));
-   if( (startIdx<=lookbackTotal) )
+   lookbackTotal = 6 * (optInTimePeriod - 1) + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3);
+   if( startIdx <= lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
-   k = (2.0/(optInTimePeriod+1.0));
-   one_minus_k = (1.0-k);
+   today = startIdx - lookbackTotal;
+   k = 2.0 / (optInTimePeriod + 1.0);
+   one_minus_k = 1.0 - k;
    tempReal = inReal[today++];
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
       tempReal += inReal[today++];
    }
-   e1 = (tempReal/optInTimePeriod);
+   e1 = tempReal / optInTimePeriod;
    tempReal = e1;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
+      e1 = k * inReal[today++] + one_minus_k * e1;
       tempReal += e1;
    }
-   e2 = (tempReal/optInTimePeriod);
+   e2 = tempReal / optInTimePeriod;
    tempReal = e2;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
       tempReal += e2;
    }
-   e3 = (tempReal/optInTimePeriod);
+   e3 = tempReal / optInTimePeriod;
    tempReal = e3;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
       tempReal += e3;
    }
-   e4 = (tempReal/optInTimePeriod);
+   e4 = tempReal / optInTimePeriod;
    tempReal = e4;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
       tempReal += e4;
    }
-   e5 = (tempReal/optInTimePeriod);
+   e5 = tempReal / optInTimePeriod;
    tempReal = e5;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
       tempReal += e5;
    }
-   e6 = (tempReal/optInTimePeriod);
-   while( (today<=startIdx) )
+   e6 = tempReal / optInTimePeriod;
+   while( today <= startIdx )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
    }
-   tempReal = (optInVFactor*optInVFactor);
-   c1 = (0-(tempReal*optInVFactor));
-   c2 = (3.0*(tempReal-c1));
-   c3 = (((0-6.0)*tempReal)-(3.0*(optInVFactor-c1)));
-   c4 = (((1.0+(3.0*optInVFactor))-c1)+(3.0*tempReal));
+   tempReal = optInVFactor * optInVFactor;
+   c1 = 0 - tempReal * optInVFactor;
+   c2 = 3.0 * (tempReal - c1);
+   c3 = (0 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
+   c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
    outIdx = 0;
-   outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
-   while( (today<=endIdx) )
+   outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+   while( today <= endIdx )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
-      outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
+      outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
@@ -530,97 +530,97 @@ TA_RetCode TA_S_T3_Unguarded( int    startIdx,
    double c4;
    double tempReal;
 
-   lookbackTotal = ((6*(optInTimePeriod-1))+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3));
-   if( (startIdx<=lookbackTotal) )
+   lookbackTotal = 6 * (optInTimePeriod - 1) + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3);
+   if( startIdx <= lookbackTotal )
    {
       startIdx = lookbackTotal;
    }
-   if( (startIdx>endIdx) )
+   if( startIdx > endIdx )
    {
       *outNBElement= 0;
       *outBegIdx= 0;
       return TA_SUCCESS;
    }
    *outBegIdx= startIdx;
-   today = (startIdx-lookbackTotal);
-   k = (2.0/(optInTimePeriod+1.0));
-   one_minus_k = (1.0-k);
+   today = startIdx - lookbackTotal;
+   k = 2.0 / (optInTimePeriod + 1.0);
+   one_minus_k = 1.0 - k;
    tempReal = inReal[today++];
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
       tempReal += inReal[today++];
    }
-   e1 = (tempReal/optInTimePeriod);
+   e1 = tempReal / optInTimePeriod;
    tempReal = e1;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
+      e1 = k * inReal[today++] + one_minus_k * e1;
       tempReal += e1;
    }
-   e2 = (tempReal/optInTimePeriod);
+   e2 = tempReal / optInTimePeriod;
    tempReal = e2;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
       tempReal += e2;
    }
-   e3 = (tempReal/optInTimePeriod);
+   e3 = tempReal / optInTimePeriod;
    tempReal = e3;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
       tempReal += e3;
    }
-   e4 = (tempReal/optInTimePeriod);
+   e4 = tempReal / optInTimePeriod;
    tempReal = e4;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
       tempReal += e4;
    }
-   e5 = (tempReal/optInTimePeriod);
+   e5 = tempReal / optInTimePeriod;
    tempReal = e5;
-   for( i = (optInTimePeriod-1); (i>0); i -= 1 )
+   for( i = optInTimePeriod - 1; i > 0; i -= 1 )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
       tempReal += e5;
    }
-   e6 = (tempReal/optInTimePeriod);
-   while( (today<=startIdx) )
+   e6 = tempReal / optInTimePeriod;
+   while( today <= startIdx )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
    }
-   tempReal = (optInVFactor*optInVFactor);
-   c1 = (0-(tempReal*optInVFactor));
-   c2 = (3.0*(tempReal-c1));
-   c3 = (((0-6.0)*tempReal)-(3.0*(optInVFactor-c1)));
-   c4 = (((1.0+(3.0*optInVFactor))-c1)+(3.0*tempReal));
+   tempReal = optInVFactor * optInVFactor;
+   c1 = 0 - tempReal * optInVFactor;
+   c2 = 3.0 * (tempReal - c1);
+   c3 = (0 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
+   c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
    outIdx = 0;
-   outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
-   while( (today<=endIdx) )
+   outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+   while( today <= endIdx )
    {
-      e1 = ((k*inReal[today++])+(one_minus_k*e1));
-      e2 = ((k*e1)+(one_minus_k*e2));
-      e3 = ((k*e2)+(one_minus_k*e3));
-      e4 = ((k*e3)+(one_minus_k*e4));
-      e5 = ((k*e4)+(one_minus_k*e5));
-      e6 = ((k*e5)+(one_minus_k*e6));
-      outReal[outIdx++] = ((((c1*e6)+(c2*e5))+(c3*e4))+(c4*e3));
+      e1 = k * inReal[today++] + one_minus_k * e1;
+      e2 = k * e1 + one_minus_k * e2;
+      e3 = k * e2 + one_minus_k * e3;
+      e4 = k * e3 + one_minus_k * e4;
+      e5 = k * e4 + one_minus_k * e5;
+      e6 = k * e5 + one_minus_k * e6;
+      outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;

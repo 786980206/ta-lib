@@ -117,15 +117,15 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
     * Whenever possible, make the tempBuffer1 be the
     * middle band output. This will save one copy operation.
     */
-   if( (inReal==outRealUpperBand) )
+   if( inReal == outRealUpperBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealLowerBand;
-   } else if( (inReal==outRealLowerBand) )
+   } else if( inReal == outRealLowerBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
-   } else if( (inReal==outRealMiddleBand) )
+   } else if( inReal == outRealMiddleBand )
    {
       tempBuffer1 = outRealLowerBand;
       tempBuffer2 = outRealUpperBand;
@@ -137,7 +137,7 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
    /* Check that the caller is not doing tricky things.
     * (like using the input buffer in two output!)
     */
-   if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) )
+   if( tempBuffer1 == inReal || tempBuffer2 == inReal )
    {
       return TA_BAD_PARAM;
    }
@@ -146,13 +146,13 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
     * standard deviation from this middle band.
     */
    retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       return retCode;
    }
    /* Calculate the standard deviation into tempBuffer2. */
-   if( (optInMAType==TA_MAType_SMA) )
+   if( optInMAType == TA_MAType_SMA )
    {
       /* A small speed optimization by re-using the
        * already calculated SMA.
@@ -164,28 +164,28 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
       int _outIdx;
       int _startSum;
       int _endSum;
-      _startSum = ((1+((int)*outBegIdx))-optInTimePeriod);
-      _endSum = ((int)*outBegIdx);
+      _startSum = 1 + (int)*outBegIdx - optInTimePeriod;
+      _endSum = (int)*outBegIdx;
       _periodTotal2 = 0;
-      for( _outIdx = _startSum; (_outIdx<_endSum); _outIdx += 1 )
+      for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
       {
          _tempReal = inReal[_outIdx];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
       }
-      for( _outIdx = 0; (_outIdx<((int)*outNBElement)); _outIdx += 1, _startSum += 1, _endSum += 1 )
+      for( _outIdx = 0; _outIdx < (int)*outNBElement; _outIdx += 1, _startSum += 1, _endSum += 1 )
       {
          _tempReal = inReal[_endSum];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
-         _meanValue2 = (_periodTotal2/optInTimePeriod);
+         _meanValue2 = _periodTotal2 / optInTimePeriod;
          _tempReal = inReal[_startSum];
          _tempReal *= _tempReal;
          _periodTotal2 -= _tempReal;
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
+         if( !TA_IS_ZERO_OR_NEG(_meanValue2) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 
@@ -196,8 +196,8 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
    } else 
    {
       /* Calculate the Standard Deviation */
-      retCode = TA_STDDEV_Unguarded(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
-      if( (retCode!=TA_SUCCESS) )
+      retCode = TA_STDDEV_Unguarded((int)*outBegIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
+      if( retCode != TA_SUCCESS )
       {
          *outNBElement= 0;
          return retCode;
@@ -206,9 +206,9 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
    /* Copy the MA calculation into the middle band ouput, unless
     * the calculation was done into it already!
     */
-   if( (tempBuffer1!=outRealMiddleBand) )
+   if( tempBuffer1 != outRealMiddleBand )
    {
-      memcpy(outRealMiddleBand,tempBuffer1,(*outNBElement*sizeof(double)));
+      memcpy(outRealMiddleBand,tempBuffer1,*outNBElement * sizeof(double));
    }
    /* Now do a tight loop to calculate the upper/lower band at
     * the same time.
@@ -217,58 +217,58 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
     * is an attempt to speed optimize by eliminating uneeded
     * multiplication.
     */
-   if( (optInNbDevUp==optInNbDevDn) )
+   if( optInNbDevUp == optInNbDevDn )
    {
-      if( (optInNbDevUp==1.0) )
+      if( optInNbDevUp == 1.0 )
       {
          /* No standard deviation multiplier needed. */
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       } else 
       {
          /* Upper/lower band use the same standard deviation multiplier. */
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
-            tempReal = (tempBuffer2[i]*optInNbDevUp);
+            tempReal = tempBuffer2[i] * optInNbDevUp;
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       }
-   } else if( (optInNbDevUp==1.0) )
+   } else if( optInNbDevUp == 1.0 )
    {
       /* Only lower band has a standard deviation multiplier. */
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+tempReal);
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
-   } else if( (optInNbDevDn==1.0) )
+   } else if( optInNbDevDn == 1.0 )
    {
       /* Only upper band has a standard deviation multiplier. */
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealLowerBand[i] = (tempReal2-tempReal);
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
+         outRealLowerBand[i] = tempReal2 - tempReal;
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
       }
    } else 
    {
       /* Upper/lower band have distinctive standard deviation multiplier. */
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
    }
    return TA_SUCCESS;
@@ -294,15 +294,15 @@ TA_LIB_API TA_RetCode TA_BBANDS_Unguarded( int    startIdx,
    double *tempBuffer1;
    double *tempBuffer2;
 
-   if( (inReal==outRealUpperBand) )
+   if( inReal == outRealUpperBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealLowerBand;
-   } else if( (inReal==outRealLowerBand) )
+   } else if( inReal == outRealLowerBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
-   } else if( (inReal==outRealMiddleBand) )
+   } else if( inReal == outRealMiddleBand )
    {
       tempBuffer1 = outRealLowerBand;
       tempBuffer2 = outRealUpperBand;
@@ -311,17 +311,17 @@ TA_LIB_API TA_RetCode TA_BBANDS_Unguarded( int    startIdx,
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
    }
-   if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) )
+   if( tempBuffer1 == inReal || tempBuffer2 == inReal )
    {
       return TA_BAD_PARAM;
    }
    retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       return retCode;
    }
-   if( (optInMAType==TA_MAType_SMA) )
+   if( optInMAType == TA_MAType_SMA )
    {
       double _tempReal;
       double _periodTotal2;
@@ -329,28 +329,28 @@ TA_LIB_API TA_RetCode TA_BBANDS_Unguarded( int    startIdx,
       int _outIdx;
       int _startSum;
       int _endSum;
-      _startSum = ((1+((int)*outBegIdx))-optInTimePeriod);
-      _endSum = ((int)*outBegIdx);
+      _startSum = 1 + (int)*outBegIdx - optInTimePeriod;
+      _endSum = (int)*outBegIdx;
       _periodTotal2 = 0;
-      for( _outIdx = _startSum; (_outIdx<_endSum); _outIdx += 1 )
+      for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
       {
          _tempReal = inReal[_outIdx];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
       }
-      for( _outIdx = 0; (_outIdx<((int)*outNBElement)); _outIdx += 1, _startSum += 1, _endSum += 1 )
+      for( _outIdx = 0; _outIdx < (int)*outNBElement; _outIdx += 1, _startSum += 1, _endSum += 1 )
       {
          _tempReal = inReal[_endSum];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
-         _meanValue2 = (_periodTotal2/optInTimePeriod);
+         _meanValue2 = _periodTotal2 / optInTimePeriod;
          _tempReal = inReal[_startSum];
          _tempReal *= _tempReal;
          _periodTotal2 -= _tempReal;
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
+         if( !TA_IS_ZERO_OR_NEG(_meanValue2) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 
@@ -360,64 +360,64 @@ TA_LIB_API TA_RetCode TA_BBANDS_Unguarded( int    startIdx,
       }
    } else 
    {
-      retCode = TA_STDDEV_Unguarded(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
-      if( (retCode!=TA_SUCCESS) )
+      retCode = TA_STDDEV_Unguarded((int)*outBegIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
+      if( retCode != TA_SUCCESS )
       {
          *outNBElement= 0;
          return retCode;
       }
    }
-   if( (tempBuffer1!=outRealMiddleBand) )
+   if( tempBuffer1 != outRealMiddleBand )
    {
-      memcpy(outRealMiddleBand,tempBuffer1,(*outNBElement*sizeof(double)));
+      memcpy(outRealMiddleBand,tempBuffer1,*outNBElement * sizeof(double));
    }
-   if( (optInNbDevUp==optInNbDevDn) )
+   if( optInNbDevUp == optInNbDevDn )
    {
-      if( (optInNbDevUp==1.0) )
+      if( optInNbDevUp == 1.0 )
       {
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       } else 
       {
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
-            tempReal = (tempBuffer2[i]*optInNbDevUp);
+            tempReal = tempBuffer2[i] * optInNbDevUp;
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       }
-   } else if( (optInNbDevUp==1.0) )
+   } else if( optInNbDevUp == 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+tempReal);
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
-   } else if( (optInNbDevDn==1.0) )
+   } else if( optInNbDevDn == 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealLowerBand[i] = (tempReal2-tempReal);
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
+         outRealLowerBand[i] = tempReal2 - tempReal;
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
       }
    } else 
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
    }
    return TA_SUCCESS;
@@ -467,15 +467,15 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
    if( !outRealLowerBand )
       return TA_BAD_PARAM;
 
-   if( ((void *)inReal==(void *)outRealUpperBand) )
+   if( (void *)inReal == (void *)outRealUpperBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealLowerBand;
-   } else if( ((void *)inReal==(void *)outRealLowerBand) )
+   } else if( (void *)inReal == (void *)outRealLowerBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
-   } else if( ((void *)inReal==(void *)outRealMiddleBand) )
+   } else if( (void *)inReal == (void *)outRealMiddleBand )
    {
       tempBuffer1 = outRealLowerBand;
       tempBuffer2 = outRealUpperBand;
@@ -484,17 +484,17 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
    }
-   if( (((void *)tempBuffer1==(void *)inReal)||((void *)tempBuffer2==(void *)inReal)) )
+   if( (void *)tempBuffer1 == (void *)inReal || (void *)tempBuffer2 == (void *)inReal )
    {
       return TA_BAD_PARAM;
    }
    retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       return retCode;
    }
-   if( (optInMAType==TA_MAType_SMA) )
+   if( optInMAType == TA_MAType_SMA )
    {
       double _tempReal;
       double _periodTotal2;
@@ -502,28 +502,28 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
       int _outIdx;
       int _startSum;
       int _endSum;
-      _startSum = ((1+((int)*outBegIdx))-optInTimePeriod);
-      _endSum = ((int)*outBegIdx);
+      _startSum = 1 + (int)*outBegIdx - optInTimePeriod;
+      _endSum = (int)*outBegIdx;
       _periodTotal2 = 0;
-      for( _outIdx = _startSum; (_outIdx<_endSum); _outIdx += 1 )
+      for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
       {
          _tempReal = inReal[_outIdx];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
       }
-      for( _outIdx = 0; (_outIdx<((int)*outNBElement)); _outIdx += 1, _startSum += 1, _endSum += 1 )
+      for( _outIdx = 0; _outIdx < (int)*outNBElement; _outIdx += 1, _startSum += 1, _endSum += 1 )
       {
          _tempReal = inReal[_endSum];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
-         _meanValue2 = (_periodTotal2/optInTimePeriod);
+         _meanValue2 = _periodTotal2 / optInTimePeriod;
          _tempReal = inReal[_startSum];
          _tempReal *= _tempReal;
          _periodTotal2 -= _tempReal;
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
+         if( !TA_IS_ZERO_OR_NEG(_meanValue2) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 
@@ -533,64 +533,64 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
       }
    } else 
    {
-      retCode = TA_S_STDDEV_Unguarded(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
-      if( (retCode!=TA_SUCCESS) )
+      retCode = TA_S_STDDEV_Unguarded((int)*outBegIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
+      if( retCode != TA_SUCCESS )
       {
          *outNBElement= 0;
          return retCode;
       }
    }
-   if( ((void *)tempBuffer1!=(void *)outRealMiddleBand) )
+   if( (void *)tempBuffer1 != (void *)outRealMiddleBand )
    {
-      memcpy(outRealMiddleBand,tempBuffer1,(*outNBElement*sizeof(double)));
+      memcpy(outRealMiddleBand,tempBuffer1,*outNBElement * sizeof(double));
    }
-   if( (optInNbDevUp==optInNbDevDn) )
+   if( optInNbDevUp == optInNbDevDn )
    {
-      if( (optInNbDevUp==1.0) )
+      if( optInNbDevUp == 1.0 )
       {
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       } else 
       {
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
-            tempReal = (tempBuffer2[i]*optInNbDevUp);
+            tempReal = tempBuffer2[i] * optInNbDevUp;
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       }
-   } else if( (optInNbDevUp==1.0) )
+   } else if( optInNbDevUp == 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+tempReal);
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
-   } else if( (optInNbDevDn==1.0) )
+   } else if( optInNbDevDn == 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealLowerBand[i] = (tempReal2-tempReal);
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
+         outRealLowerBand[i] = tempReal2 - tempReal;
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
       }
    } else 
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
    }
    return TA_SUCCESS;
@@ -616,15 +616,15 @@ TA_RetCode TA_S_BBANDS_Unguarded( int    startIdx,
    double *tempBuffer1;
    double *tempBuffer2;
 
-   if( ((void *)inReal==(void *)outRealUpperBand) )
+   if( (void *)inReal == (void *)outRealUpperBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealLowerBand;
-   } else if( ((void *)inReal==(void *)outRealLowerBand) )
+   } else if( (void *)inReal == (void *)outRealLowerBand )
    {
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
-   } else if( ((void *)inReal==(void *)outRealMiddleBand) )
+   } else if( (void *)inReal == (void *)outRealMiddleBand )
    {
       tempBuffer1 = outRealLowerBand;
       tempBuffer2 = outRealUpperBand;
@@ -633,17 +633,17 @@ TA_RetCode TA_S_BBANDS_Unguarded( int    startIdx,
       tempBuffer1 = outRealMiddleBand;
       tempBuffer2 = outRealUpperBand;
    }
-   if( (((void *)tempBuffer1==(void *)inReal)||((void *)tempBuffer2==(void *)inReal)) )
+   if( (void *)tempBuffer1 == (void *)inReal || (void *)tempBuffer2 == (void *)inReal )
    {
       return TA_BAD_PARAM;
    }
    retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
-   if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
+   if( retCode != TA_SUCCESS || (int)*outNBElement == 0 )
    {
       *outNBElement= 0;
       return retCode;
    }
-   if( (optInMAType==TA_MAType_SMA) )
+   if( optInMAType == TA_MAType_SMA )
    {
       double _tempReal;
       double _periodTotal2;
@@ -651,28 +651,28 @@ TA_RetCode TA_S_BBANDS_Unguarded( int    startIdx,
       int _outIdx;
       int _startSum;
       int _endSum;
-      _startSum = ((1+((int)*outBegIdx))-optInTimePeriod);
-      _endSum = ((int)*outBegIdx);
+      _startSum = 1 + (int)*outBegIdx - optInTimePeriod;
+      _endSum = (int)*outBegIdx;
       _periodTotal2 = 0;
-      for( _outIdx = _startSum; (_outIdx<_endSum); _outIdx += 1 )
+      for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
       {
          _tempReal = inReal[_outIdx];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
       }
-      for( _outIdx = 0; (_outIdx<((int)*outNBElement)); _outIdx += 1, _startSum += 1, _endSum += 1 )
+      for( _outIdx = 0; _outIdx < (int)*outNBElement; _outIdx += 1, _startSum += 1, _endSum += 1 )
       {
          _tempReal = inReal[_endSum];
          _tempReal *= _tempReal;
          _periodTotal2 += _tempReal;
-         _meanValue2 = (_periodTotal2/optInTimePeriod);
+         _meanValue2 = _periodTotal2 / optInTimePeriod;
          _tempReal = inReal[_startSum];
          _tempReal *= _tempReal;
          _periodTotal2 -= _tempReal;
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
+         if( !TA_IS_ZERO_OR_NEG(_meanValue2) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 
@@ -682,64 +682,64 @@ TA_RetCode TA_S_BBANDS_Unguarded( int    startIdx,
       }
    } else 
    {
-      retCode = TA_S_STDDEV_Unguarded(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
-      if( (retCode!=TA_SUCCESS) )
+      retCode = TA_S_STDDEV_Unguarded((int)*outBegIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
+      if( retCode != TA_SUCCESS )
       {
          *outNBElement= 0;
          return retCode;
       }
    }
-   if( ((void *)tempBuffer1!=(void *)outRealMiddleBand) )
+   if( (void *)tempBuffer1 != (void *)outRealMiddleBand )
    {
-      memcpy(outRealMiddleBand,tempBuffer1,(*outNBElement*sizeof(double)));
+      memcpy(outRealMiddleBand,tempBuffer1,*outNBElement * sizeof(double));
    }
-   if( (optInNbDevUp==optInNbDevDn) )
+   if( optInNbDevUp == optInNbDevDn )
    {
-      if( (optInNbDevUp==1.0) )
+      if( optInNbDevUp == 1.0 )
       {
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
             tempReal = tempBuffer2[i];
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       } else 
       {
-         for( i = 0; (i<((int)*outNBElement)); i += 1 )
+         for( i = 0; i < (int)*outNBElement; i += 1 )
          {
-            tempReal = (tempBuffer2[i]*optInNbDevUp);
+            tempReal = tempBuffer2[i] * optInNbDevUp;
             tempReal2 = outRealMiddleBand[i];
-            outRealUpperBand[i] = (tempReal2+tempReal);
-            outRealLowerBand[i] = (tempReal2-tempReal);
+            outRealUpperBand[i] = tempReal2 + tempReal;
+            outRealLowerBand[i] = tempReal2 - tempReal;
          }
       }
-   } else if( (optInNbDevUp==1.0) )
+   } else if( optInNbDevUp == 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+tempReal);
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
-   } else if( (optInNbDevDn==1.0) )
+   } else if( optInNbDevDn == 1.0 )
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealLowerBand[i] = (tempReal2-tempReal);
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
+         outRealLowerBand[i] = tempReal2 - tempReal;
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
       }
    } else 
    {
-      for( i = 0; (i<((int)*outNBElement)); i += 1 )
+      for( i = 0; i < (int)*outNBElement; i += 1 )
       {
          tempReal = tempBuffer2[i];
          tempReal2 = outRealMiddleBand[i];
-         outRealUpperBand[i] = (tempReal2+(tempReal*optInNbDevUp));
-         outRealLowerBand[i] = (tempReal2-(tempReal*optInNbDevDn));
+         outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+         outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
       }
    }
    return TA_SUCCESS;
