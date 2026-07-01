@@ -456,7 +456,7 @@ static ErrorNumber compare_output(const char *funcName,
         for( int outIdx = 0; outReal[outIdx] != NULL; outIdx++ )
         {
             const char *key;
-            char keyBuf[16];
+            char keyBuf[32];
             if( outIdx == 0 )
                 key = "outReal";
             else
@@ -495,7 +495,7 @@ static ErrorNumber compare_output(const char *funcName,
         for( int outIdx = 0; outInteger[outIdx] != NULL; outIdx++ )
         {
             const char *key;
-            char keyBuf[16];
+            char keyBuf[32];
             if( outIdx == 0 )
                 key = "outInteger";
             else

@@ -165,13 +165,19 @@ fn gen_header() -> String {
          */\n\n",
     );
 
-    // Match the exact includes from the c-ref (gen_code output).
+    // Match the c-ref (gen_code output) includes, plus ta_func_unguarded.h so
+    // cross-indicator `TA_*_Unguarded` / `TA_*_Private` calls have a visible
+    // prototype in separate-compilation (library) builds — otherwise each
+    // src/ta_func/*.c hits -Wimplicit-function-declaration. That header is
+    // guarded, shipped (in the dist), and pure declarations, so it is a no-op in
+    // the single-TU server/bench builds.
     out.push_str(
         "#include <string.h>\n\
          #include <math.h>\n\
          #include \"ta_func.h\"\n\
          #include \"ta_utility.h\"\n\
-         #include \"ta_memory.h\"\n\n",
+         #include \"ta_memory.h\"\n\
+         #include \"ta_func_unguarded.h\"\n\n",
     );
 
     out

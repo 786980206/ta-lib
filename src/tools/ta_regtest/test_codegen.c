@@ -1382,7 +1382,7 @@ static void write_timing_report(const char *filepath)
     /* Get git SHA */
     char gitSha[64] = "unknown";
     FILE *git = popen("git rev-parse --short HEAD 2>/dev/null", "r");
-    if( git ) { fgets(gitSha, sizeof(gitSha), git); pclose(git); }
+    if( git ) { if( fgets(gitSha, sizeof(gitSha), git) == NULL ) strcpy(gitSha, "unknown"); pclose(git); }
     char *nl = strchr(gitSha, '\n');
     if( nl ) *nl = '\0';
 
@@ -1460,7 +1460,7 @@ static void write_markdown_report(const char *filepath, const char *languageFilt
     /* Git SHA */
     char gitSha[64] = "unknown";
     FILE *git = popen("git rev-parse --short HEAD 2>/dev/null", "r");
-    if( git ) { fgets(gitSha, sizeof(gitSha), git); pclose(git); }
+    if( git ) { if( fgets(gitSha, sizeof(gitSha), git) == NULL ) strcpy(gitSha, "unknown"); pclose(git); }
     char *nl = strchr(gitSha, '\n');
     if( nl ) *nl = '\0';
 
@@ -1538,8 +1538,8 @@ static void write_markdown_report(const char *filepath, const char *languageFilt
         char avgStr[32], vsStr[32];
         if( langMeasured[li] < total / 2 ) {
             fmt_ns(avgStr, sizeof(avgStr), avg);
-            char tmp[16]; snprintf(tmp, sizeof(tmp), "~%s*", avgStr);
-            strncpy(avgStr, tmp, sizeof(avgStr));
+            char tmp[40]; snprintf(tmp, sizeof(tmp), "~%s*", avgStr);
+            avgStr[0] = '\0'; strncat(avgStr, tmp, sizeof(avgStr) - 1);
             snprintf(vsStr, sizeof(vsStr), "*%d/%d measured", langMeasured[li], total);
         } else {
             fmt_ns(avgStr, sizeof(avgStr), avg);
@@ -1742,8 +1742,8 @@ ErrorNumber test_codegen(const TA_History *history,
             char avgStr[32], vsStr[32];
             if( langMeasured[li] < total / 2 ) {
                 fmt_ns(avgStr, sizeof(avgStr), avg);
-                char tmp[16]; snprintf(tmp, sizeof(tmp), "~%s*", avgStr);
-                strncpy(avgStr, tmp, sizeof(avgStr));
+                char tmp[40]; snprintf(tmp, sizeof(tmp), "~%s*", avgStr);
+                avgStr[0] = '\0'; strncat(avgStr, tmp, sizeof(avgStr) - 1);
                 snprintf(vsStr, sizeof(vsStr), "*%d/%d measured", langMeasured[li], total);
             } else {
                 fmt_ns(avgStr, sizeof(avgStr), avg);

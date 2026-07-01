@@ -40,6 +40,7 @@
 #include "ta_func.h"
 #include "ta_utility.h"
 #include "ta_memory.h"
+#include "ta_func_unguarded.h"
 
 /* List of contributors:
  *
