@@ -69,7 +69,6 @@ class Core {
         new CandleSetting(RangeType.HighLow,  5,  0.05),  // Equal
     };
 
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -395,7 +394,6 @@ class Core {
           outNBElement.value = outputSize;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -490,7 +488,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -692,7 +689,6 @@ class Core {
           }
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -791,7 +787,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -1221,7 +1216,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -2221,7 +2215,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -2444,7 +2437,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -2644,7 +2636,6 @@ class Core {
           }
           return retCode ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -3016,7 +3007,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -3403,7 +3393,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -3498,7 +3487,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -3594,7 +3582,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -3908,7 +3895,6 @@ class Core {
           outNBElement.value = outIdx;
           return retCode ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -4109,7 +4095,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -4225,7 +4210,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -4785,7 +4769,6 @@ class Core {
           }
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -5336,7 +5319,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -5473,7 +5455,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -5818,7 +5799,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -6086,7 +6066,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -6387,7 +6366,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -6709,7 +6687,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -6996,7 +6973,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -7195,7 +7171,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -7667,7 +7642,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -8180,7 +8154,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -8569,7 +8542,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -9153,7 +9125,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -9465,7 +9436,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -9730,7 +9700,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -10042,7 +10011,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -10342,7 +10310,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -10682,7 +10649,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -10951,7 +10917,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -11203,7 +11168,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -11520,7 +11484,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -11833,7 +11796,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -12050,7 +12012,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -12440,7 +12401,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -12787,7 +12747,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -13113,7 +13072,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -13426,7 +13384,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -13865,7 +13822,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -14304,7 +14260,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -14672,7 +14627,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -15037,7 +14991,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -15348,7 +15301,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -15632,7 +15584,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -15992,7 +15943,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -16314,7 +16264,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -16692,7 +16641,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -17014,7 +16962,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -17391,7 +17338,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -17742,7 +17688,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -18094,7 +18039,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -18365,7 +18309,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -18676,7 +18619,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -18986,7 +18928,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -19296,7 +19237,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -19555,7 +19495,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -19925,7 +19864,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -20315,7 +20253,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -20662,7 +20599,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -20984,7 +20920,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -21269,7 +21204,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -21644,7 +21578,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -22017,7 +21950,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -22397,7 +22329,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -22774,7 +22705,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -23085,7 +23015,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -23337,7 +23266,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -23823,7 +23751,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -24087,7 +24014,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -24459,7 +24385,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -24733,7 +24658,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -25057,7 +24981,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -25349,7 +25272,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -25675,7 +25597,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -26003,7 +25924,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -26209,7 +26129,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -26304,7 +26223,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -26946,7 +26864,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -27324,7 +27241,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -27419,7 +27335,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -27514,7 +27429,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -27839,7 +27753,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -27938,7 +27851,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -28777,7 +28689,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -29071,7 +28982,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -29166,7 +29076,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -29261,7 +29170,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -30475,7 +30383,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -31926,7 +31833,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -33153,7 +33059,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -34620,7 +34525,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -35991,7 +35895,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -37686,7 +37589,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -37886,7 +37788,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -38359,7 +38260,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -38614,7 +38514,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -38863,7 +38762,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -39110,7 +39008,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -39349,7 +39246,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -39444,7 +39340,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -39539,7 +39434,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -39853,7 +39747,6 @@ class Core {
           }
           return retCode ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -40377,7 +40270,6 @@ class Core {
           outNBElement.value = outNbElement2.value;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -40801,7 +40693,6 @@ class Core {
           outNBElement.value = outNbElement2.value;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -40889,7 +40780,6 @@ class Core {
        {
           return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -42261,7 +42151,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -42620,7 +42509,6 @@ class Core {
           outNBElement.value = outputSize;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -42890,7 +42778,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -43156,7 +43043,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -43269,7 +43155,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -43831,7 +43716,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -44070,7 +43954,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -44323,7 +44206,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -44593,7 +44475,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -44859,7 +44740,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -45221,7 +45101,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -45583,7 +45462,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -46488,7 +46366,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -47051,7 +46928,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -47240,7 +47116,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -47355,7 +47230,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -47730,7 +47604,6 @@ class Core {
           outNBElement.value = outIdx;
           return retCode ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -47886,7 +47759,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -48791,7 +48663,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -49355,7 +49226,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -49578,7 +49448,6 @@ class Core {
           }
           return retCode ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -49792,7 +49661,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -50006,7 +49874,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -50220,7 +50087,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -50434,7 +50300,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -51104,7 +50969,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -51812,7 +51676,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -52701,7 +52564,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -52796,7 +52658,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -52891,7 +52752,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -53122,7 +52982,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -53217,7 +53076,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -53407,7 +53265,6 @@ class Core {
           }
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -54033,7 +53890,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -54633,7 +54489,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -54893,7 +54748,6 @@ class Core {
           }
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -54993,7 +54847,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -55207,7 +55060,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -55720,7 +55572,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -55815,7 +55666,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -55910,7 +55760,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -56231,7 +56080,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -56471,7 +56319,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -57102,7 +56949,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -57400,7 +57246,6 @@ class Core {
           }
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -57655,7 +57500,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -57767,7 +57611,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -58719,7 +58562,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -59002,7 +58844,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -59114,7 +58955,6 @@ class Core {
           outBegIdx.value = startIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description
@@ -59517,7 +59357,6 @@ class Core {
           outNBElement.value = outIdx;
           return RetCode.Success ;
        }
-
     /* List of contributors:
      *
      *  Initial  Name/description

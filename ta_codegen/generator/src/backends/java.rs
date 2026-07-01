@@ -296,7 +296,6 @@ pub fn generate(
     helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
-    out.push_str("/* Generated */\n");
     // File-level comments carried from the input .c (e.g. contributors/history).
     for block in &func.header_comments {
         out.push_str(&super::stmt_walk::block_comment(block, 0));

@@ -1,4 +1,3 @@
-/* Generated */
 /* List of contributors:
  *
  *  Initial  Name/description
