@@ -138,7 +138,7 @@ impl Core {
             (*outBegIdx) = startIdx;
             (*outNBElement) = endIdx - startIdx + 1;
             {
-            let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
+            let _n = ((((*outNBElement) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;
             let _si = (startIdx) as usize;
             outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
@@ -178,7 +178,7 @@ impl Core {
         outIdx = 0;
         trailingIdx = startIdx - lookbackTotal;
         // Evaluate the initial periodSum/periodSub and trailingValue.
-        periodSub = (0.0) as f64;
+        periodSub = 0.0 as f64;
         periodSum = periodSub;
         inIdx = trailingIdx;
         i = 1;
@@ -250,7 +250,7 @@ impl Core {
             (*outBegIdx) = startIdx;
             (*outNBElement) = endIdx - startIdx + 1;
             {
-            let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
+            let _n = ((((*outNBElement) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;
             let _si = (startIdx) as usize;
             outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
@@ -260,7 +260,7 @@ impl Core {
         divider = (optInTimePeriod * (optInTimePeriod + 1) >> 1) as usize;
         outIdx = 0;
         trailingIdx = startIdx - lookbackTotal;
-        periodSub = (0.0) as f64;
+        periodSub = 0.0 as f64;
         periodSum = periodSub;
         inIdx = trailingIdx;
         i = 1;

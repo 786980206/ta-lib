@@ -127,26 +127,26 @@ impl Core {
         //
         // Multiply also by the ratio specified.
         if optInNbDev != 1.0 {
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = outReal[i];
                 if !((tempReal) < 1e-14) {
                     outReal[i] = (tempReal).sqrt() * optInNbDev;
                 } else {
-                    outReal[i] = (0.0) as f64;
+                    outReal[i] = 0.0 as f64;
                 }
                 i += 1;
             }
         } else {
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = outReal[i];
                 if !((tempReal) < 1e-14) {
                     outReal[i] = (tempReal).sqrt();
                 } else {
-                    outReal[i] = (0.0) as f64;
+                    outReal[i] = 0.0 as f64;
                 }
                 i += 1;
             }
@@ -176,26 +176,26 @@ impl Core {
             return retCode;
         }
         if optInNbDev != 1.0 {
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = *outReal.as_ptr().add(i);
                 if !((tempReal) < 1e-14) {
                     *outReal.as_mut_ptr().add(i) = (tempReal).sqrt() * optInNbDev;
                 } else {
-                    *outReal.as_mut_ptr().add(i) = (0.0) as f64;
+                    *outReal.as_mut_ptr().add(i) = 0.0 as f64;
                 }
                 i += 1;
             }
         } else {
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = *outReal.as_ptr().add(i);
                 if !((tempReal) < 1e-14) {
                     *outReal.as_mut_ptr().add(i) = (tempReal).sqrt();
                 } else {
-                    *outReal.as_mut_ptr().add(i) = (0.0) as f64;
+                    *outReal.as_mut_ptr().add(i) = 0.0 as f64;
                 }
                 i += 1;
             }

@@ -13,7 +13,7 @@
 
    public int minIndexLookback( int optInTimePeriod )
    {
-      return (optInTimePeriod-1) ;
+      return optInTimePeriod - 1 ;
 
    }
    public RetCode minIndex( int startIdx,
@@ -42,15 +42,15 @@
        * to identify at least one output over the specified
        * period.
        */
-      nbInitialElementNeeded = (optInTimePeriod-1);
+      nbInitialElementNeeded = optInTimePeriod - 1;
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<nbInitialElementNeeded) ) {
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -61,23 +61,23 @@
        */
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      lowestIdx = (0-1);
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      lowestIdx = 0 - 1;
       lowest = 0.0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tmp = inReal[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inReal[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inReal[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }
@@ -108,34 +108,34 @@
       int lowestIdx = 0;
       int today = 0;
       int i = 0;
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      lowestIdx = (0-1);
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      lowestIdx = 0 - 1;
       lowest = 0.0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tmp = inReal[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inReal[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inReal[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }
@@ -169,34 +169,34 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      lowestIdx = (0-1);
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      lowestIdx = 0 - 1;
       lowest = 0.0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tmp = inReal[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inReal[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inReal[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }
@@ -224,34 +224,34 @@
       int lowestIdx = 0;
       int today = 0;
       int i = 0;
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      lowestIdx = (0-1);
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      lowestIdx = 0 - 1;
       lowest = 0.0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tmp = inReal[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inReal[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inReal[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }

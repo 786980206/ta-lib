@@ -57,30 +57,30 @@
        * enough initial data.
        * Always one price bar gets consumed.
        */
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          /* Find the greatest of the 3 values. */
          tempLT = inLow[today];
          tempHT = inHigh[today];
-         tempCY = inClose[(today-1)];
-         greatest = (tempHT-tempLT);
+         tempCY = inClose[today - 1];
+         greatest = tempHT - tempLT;
          /* val1 */
-         val2 = Math.abs((tempCY-tempHT));
-         if( (val2>greatest) ) {
+         val2 = Math.abs(tempCY - tempHT);
+         if( val2 > greatest ) {
             greatest = val2;
          }
-         val3 = Math.abs((tempCY-tempLT));
-         if( (val3>greatest) ) {
+         val3 = Math.abs(tempCY - tempLT);
+         if( val3 > greatest ) {
             greatest = val3;
          }
          outReal[outIdx++] = greatest;
@@ -107,27 +107,27 @@
       double tempCY = 0;
       double tempLT = 0;
       double tempHT = 0;
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tempLT = inLow[today];
          tempHT = inHigh[today];
-         tempCY = inClose[(today-1)];
-         greatest = (tempHT-tempLT);
-         val2 = Math.abs((tempCY-tempHT));
-         if( (val2>greatest) ) {
+         tempCY = inClose[today - 1];
+         greatest = tempHT - tempLT;
+         val2 = Math.abs(tempCY - tempHT);
+         if( val2 > greatest ) {
             greatest = val2;
          }
-         val3 = Math.abs((tempCY-tempLT));
-         if( (val3>greatest) ) {
+         val3 = Math.abs(tempCY - tempLT);
+         if( val3 > greatest ) {
             greatest = val3;
          }
          outReal[outIdx++] = greatest;
@@ -160,27 +160,27 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tempLT = inLow[today];
          tempHT = inHigh[today];
-         tempCY = inClose[(today-1)];
-         greatest = (tempHT-tempLT);
-         val2 = Math.abs((tempCY-tempHT));
-         if( (val2>greatest) ) {
+         tempCY = inClose[today - 1];
+         greatest = tempHT - tempLT;
+         val2 = Math.abs(tempCY - tempHT);
+         if( val2 > greatest ) {
             greatest = val2;
          }
-         val3 = Math.abs((tempCY-tempLT));
-         if( (val3>greatest) ) {
+         val3 = Math.abs(tempCY - tempLT);
+         if( val3 > greatest ) {
             greatest = val3;
          }
          outReal[outIdx++] = greatest;
@@ -207,27 +207,27 @@
       double tempCY = 0;
       double tempLT = 0;
       double tempHT = 0;
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tempLT = inLow[today];
          tempHT = inHigh[today];
-         tempCY = inClose[(today-1)];
-         greatest = (tempHT-tempLT);
-         val2 = Math.abs((tempCY-tempHT));
-         if( (val2>greatest) ) {
+         tempCY = inClose[today - 1];
+         greatest = tempHT - tempLT;
+         val2 = Math.abs(tempCY - tempHT);
+         if( val2 > greatest ) {
             greatest = val2;
          }
-         val3 = Math.abs((tempCY-tempLT));
-         if( (val3>greatest) ) {
+         val3 = Math.abs(tempCY - tempLT);
+         if( val3 > greatest ) {
             greatest = val3;
          }
          outReal[outIdx++] = greatest;

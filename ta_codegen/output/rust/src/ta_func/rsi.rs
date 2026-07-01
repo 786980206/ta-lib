@@ -139,7 +139,7 @@ impl Core {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         // Adjust startIdx to account for the lookback period.
-        lookbackTotal = ((self.rsi_lookback(optInTimePeriod)) as usize) as usize;
+        lookbackTotal = (self.rsi_lookback(optInTimePeriod) as usize) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -155,7 +155,7 @@ impl Core {
         if optInTimePeriod == 1 {
             (*outBegIdx) = startIdx;
             i = ((endIdx - startIdx + 1) as usize) as usize;
-            (*outNBElement) = (i) as usize;
+            (*outNBElement) = i as usize;
             {
             let _n = (i * 1) as usize;
             let _di = (0) as usize;
@@ -167,7 +167,7 @@ impl Core {
         // Accumulate Wilder's "Average Gain" and "Average Loss"
         // among the initial period.
         today = startIdx - lookbackTotal;
-        prevValue = (inReal[today]) as f64;
+        prevValue = inReal[today] as f64;
         unstablePeriod = (self.unstable_period[FuncUnstId::Rsi as usize]) as usize;
         // If there is no unstable period,
         // calculate the 'additional' initial
@@ -191,7 +191,7 @@ impl Core {
             // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
             i = (optInTimePeriod) as usize;
             while i > 0 {
-                tempValue1 = (inReal[today]) as f64;
+                tempValue1 = inReal[today] as f64;
                 today = today + 1;
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
@@ -202,8 +202,8 @@ impl Core {
                 }
                 i -= 1;
             }
-            tempValue1 = prevLoss / ((optInTimePeriod) as f64);
-            tempValue2 = prevGain / ((optInTimePeriod) as f64);
+            tempValue1 = prevLoss / (optInTimePeriod as f64);
+            tempValue2 = prevGain / (optInTimePeriod as f64);
             // Write the output.
             tempValue1 = tempValue2 + tempValue1;
             if !((tempValue1).abs() < 1e-14) {
@@ -220,7 +220,7 @@ impl Core {
                 return RetCode::Success;
             }
             // Start over for the next price bar.
-            today = today - ((optInTimePeriod) as usize);
+            today = today - (optInTimePeriod as usize);
             prevValue = savePrevValue;
         }
         // Remaining of the processing is identical
@@ -231,7 +231,7 @@ impl Core {
         // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = (inReal[today]) as f64;
+            tempValue1 = inReal[today] as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
@@ -247,8 +247,8 @@ impl Core {
         //  1) Multiply the previous by 'period-1'.
         //  2) Add today value.
         //  3) Divide by 'period'.
-        prevLoss /= (optInTimePeriod) as f64;
-        prevGain /= (optInTimePeriod) as f64;
+        prevLoss /= optInTimePeriod as f64;
+        prevGain /= optInTimePeriod as f64;
         // Often documentation present the RSI calculation as follow:
         //    RSI = 100 - (100 / 1 + (prevGain/prevLoss))
         //
@@ -269,7 +269,7 @@ impl Core {
             // Skip the unstable period. Do the processing
             // but do not write it in the output.
             while today < startIdx {
-                tempValue1 = (inReal[today]) as f64;
+                tempValue1 = inReal[today] as f64;
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
                 prevLoss *= (optInTimePeriod - 1) as f64;
@@ -279,15 +279,15 @@ impl Core {
                 } else {
                     prevGain += tempValue2;
                 }
-                prevLoss /= (optInTimePeriod) as f64;
-                prevGain /= (optInTimePeriod) as f64;
+                prevLoss /= optInTimePeriod as f64;
+                prevGain /= optInTimePeriod as f64;
                 today = today + 1;
             }
         }
         // Unstable period skipped... now continue
         // processing if needed.
         while today <= endIdx {
-            tempValue1 = (inReal[today]) as f64;
+            tempValue1 = inReal[today] as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
@@ -298,8 +298,8 @@ impl Core {
             } else {
                 prevGain += tempValue2;
             }
-            prevLoss /= (optInTimePeriod) as f64;
-            prevGain /= (optInTimePeriod) as f64;
+            prevLoss /= optInTimePeriod as f64;
+            prevGain /= optInTimePeriod as f64;
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
                 outReal[outIdx] = 100.0 * (prevGain / tempValue1);
@@ -340,7 +340,7 @@ impl Core {
         assert!(endIdx - startIdx < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        lookbackTotal = ((self.rsi_lookback(optInTimePeriod)) as usize) as usize;
+        lookbackTotal = (self.rsi_lookback(optInTimePeriod) as usize) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -351,7 +351,7 @@ impl Core {
         if optInTimePeriod == 1 {
             (*outBegIdx) = startIdx;
             i = ((endIdx - startIdx + 1) as usize) as usize;
-            (*outNBElement) = (i) as usize;
+            (*outNBElement) = i as usize;
             {
             let _n = (i * 1) as usize;
             let _di = (0) as usize;
@@ -361,7 +361,7 @@ impl Core {
             return RetCode::Success;
         }
         today = startIdx - lookbackTotal;
-        prevValue = (*inReal.as_ptr().add(today)) as f64;
+        prevValue = *inReal.as_ptr().add(today) as f64;
         unstablePeriod = (self.unstable_period[FuncUnstId::Rsi as usize]) as usize;
         if unstablePeriod == 0 && self.compatibility == Compatibility::Metastock {
             savePrevValue = prevValue;
@@ -370,7 +370,7 @@ impl Core {
             // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
             i = (optInTimePeriod) as usize;
             while i > 0 {
-                tempValue1 = (*inReal.as_ptr().add(today)) as f64;
+                tempValue1 = *inReal.as_ptr().add(today) as f64;
                 today = today + 1;
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
@@ -381,8 +381,8 @@ impl Core {
                 }
                 i -= 1;
             }
-            tempValue1 = prevLoss / ((optInTimePeriod) as f64);
-            tempValue2 = prevGain / ((optInTimePeriod) as f64);
+            tempValue1 = prevLoss / (optInTimePeriod as f64);
+            tempValue2 = prevGain / (optInTimePeriod as f64);
             tempValue1 = tempValue2 + tempValue1;
             if !((tempValue1).abs() < 1e-14) {
                 *outReal.as_mut_ptr().add(outIdx) = 100.0 * (tempValue2 / tempValue1);
@@ -396,7 +396,7 @@ impl Core {
                 (*outNBElement) = outIdx;
                 return RetCode::Success;
             }
-            today = today - ((optInTimePeriod) as usize);
+            today = today - (optInTimePeriod as usize);
             prevValue = savePrevValue;
         }
         prevGain = 0.0;
@@ -405,7 +405,7 @@ impl Core {
         // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = (*inReal.as_ptr().add(today)) as f64;
+            tempValue1 = *inReal.as_ptr().add(today) as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
@@ -416,8 +416,8 @@ impl Core {
             }
             i -= 1;
         }
-        prevLoss /= (optInTimePeriod) as f64;
-        prevGain /= (optInTimePeriod) as f64;
+        prevLoss /= optInTimePeriod as f64;
+        prevGain /= optInTimePeriod as f64;
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
@@ -429,7 +429,7 @@ impl Core {
             }
         } else {
             while today < startIdx {
-                tempValue1 = (*inReal.as_ptr().add(today)) as f64;
+                tempValue1 = *inReal.as_ptr().add(today) as f64;
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
                 prevLoss *= (optInTimePeriod - 1) as f64;
@@ -439,13 +439,13 @@ impl Core {
                 } else {
                     prevGain += tempValue2;
                 }
-                prevLoss /= (optInTimePeriod) as f64;
-                prevGain /= (optInTimePeriod) as f64;
+                prevLoss /= optInTimePeriod as f64;
+                prevGain /= optInTimePeriod as f64;
                 today = today + 1;
             }
         }
         while today <= endIdx {
-            tempValue1 = (*inReal.as_ptr().add(today)) as f64;
+            tempValue1 = *inReal.as_ptr().add(today) as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
@@ -456,8 +456,8 @@ impl Core {
             } else {
                 prevGain += tempValue2;
             }
-            prevLoss /= (optInTimePeriod) as f64;
-            prevGain /= (optInTimePeriod) as f64;
+            prevLoss /= optInTimePeriod as f64;
+            prevGain /= optInTimePeriod as f64;
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
                 *outReal.as_mut_ptr().add(outIdx) = 100.0 * (prevGain / tempValue1);

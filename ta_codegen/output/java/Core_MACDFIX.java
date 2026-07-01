@@ -20,7 +20,7 @@
        * (must also account for the initial data consume
        *  by the fix 26 period EMA).
        */
-      return (emaLookback(26)+emaLookback(optInSignalPeriod)) ;
+      return emaLookback(26) + emaLookback(optInSignalPeriod) ;
 
    }
    public RetCode macdFix( int startIdx,

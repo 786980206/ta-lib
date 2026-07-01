@@ -159,10 +159,10 @@ impl Core {
             while { let _v = i; i -= 1; _v } != 0 {
                 tempValue1 = inReal[today - i];
                 SumY += tempValue1;
-                SumXY += ((i) as f64) * tempValue1;
+                SumXY += (i as f64) * tempValue1;
             }
             m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
-            b = (SumY - m * SumX) / ((optInTimePeriod) as f64);
+            b = (SumY - m * SumX) / (optInTimePeriod as f64);
             outReal[outIdx] = (m as f64).mul_add((optInTimePeriod - 1) as f64, b);
             outIdx += 1;
             today += 1;
@@ -219,10 +219,10 @@ impl Core {
             while { let _v = i; i -= 1; _v } != 0 {
                 tempValue1 = *inReal.as_ptr().add(today - i);
                 SumY += tempValue1;
-                SumXY += ((i) as f64) * tempValue1;
+                SumXY += (i as f64) * tempValue1;
             }
             m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
-            b = (SumY - m * SumX) / ((optInTimePeriod) as f64);
+            b = (SumY - m * SumX) / (optInTimePeriod as f64);
             *outReal.as_mut_ptr().add(outIdx) = (m as f64).mul_add((optInTimePeriod - 1) as f64, b);
             outIdx += 1;
             today += 1;

@@ -61,11 +61,11 @@
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -76,44 +76,44 @@
        */
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      lowestIdx = (0-1);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - optInTimePeriod;
+      lowestIdx = 0 - 1;
+      highestIdx = 0 - 1;
       lowest = 0.0;
       highest = 0.0;
-      factor = (((double)100.0)/((double)optInTimePeriod));
-      while( (today<=endIdx) ) {
+      factor = (double)100.0 / (double)optInTimePeriod;
+      while( today <= endIdx ) {
          /* Keep track of the lowestIdx */
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<=lowest) ) {
+               if( tmp <= lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }
          /* Keep track of the highestIdx */
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>=highest) ) {
+               if( tmp >= highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-         } else if( (tmp>=highest) ) {
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
          }
@@ -125,7 +125,7 @@
           * An arithmetic simplification give us:
           *  Aroon = factor*(highestIdx-lowestIdx)
           */
-         aroon = (factor*(highestIdx-lowestIdx));
+         aroon = factor * (highestIdx - lowestIdx);
          /* Note: Do not forget that input and output buffer can be the same,
           *       so writing to the output is the last thing being done here.
           */
@@ -161,56 +161,56 @@
       int highestIdx = 0;
       int today = 0;
       int i = 0;
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      lowestIdx = (0-1);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - optInTimePeriod;
+      lowestIdx = 0 - 1;
+      highestIdx = 0 - 1;
       lowest = 0.0;
       highest = 0.0;
-      factor = (((double)100.0)/((double)optInTimePeriod));
-      while( (today<=endIdx) ) {
+      factor = (double)100.0 / (double)optInTimePeriod;
+      while( today <= endIdx ) {
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<=lowest) ) {
+               if( tmp <= lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>=highest) ) {
+               if( tmp >= highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-         } else if( (tmp>=highest) ) {
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
          }
-         aroon = (factor*(highestIdx-lowestIdx));
+         aroon = factor * (highestIdx - lowestIdx);
          outReal[outIdx] = aroon;
          outIdx += 1;
          trailingIdx += 1;
@@ -246,56 +246,56 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      lowestIdx = (0-1);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - optInTimePeriod;
+      lowestIdx = 0 - 1;
+      highestIdx = 0 - 1;
       lowest = 0.0;
       highest = 0.0;
-      factor = (((double)100.0)/((double)optInTimePeriod));
-      while( (today<=endIdx) ) {
+      factor = (double)100.0 / (double)optInTimePeriod;
+      while( today <= endIdx ) {
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<=lowest) ) {
+               if( tmp <= lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>=highest) ) {
+               if( tmp >= highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-         } else if( (tmp>=highest) ) {
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
          }
-         aroon = (factor*(highestIdx-lowestIdx));
+         aroon = factor * (highestIdx - lowestIdx);
          outReal[outIdx] = aroon;
          outIdx += 1;
          trailingIdx += 1;
@@ -325,56 +325,56 @@
       int highestIdx = 0;
       int today = 0;
       int i = 0;
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      lowestIdx = (0-1);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - optInTimePeriod;
+      lowestIdx = 0 - 1;
+      highestIdx = 0 - 1;
       lowest = 0.0;
       highest = 0.0;
-      factor = (((double)100.0)/((double)optInTimePeriod));
-      while( (today<=endIdx) ) {
+      factor = (double)100.0 / (double)optInTimePeriod;
+      while( today <= endIdx ) {
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<=lowest) ) {
+               if( tmp <= lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-         } else if( (tmp<=lowest) ) {
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
          }
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>=highest) ) {
+               if( tmp >= highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-         } else if( (tmp>=highest) ) {
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
          }
-         aroon = (factor*(highestIdx-lowestIdx));
+         aroon = factor * (highestIdx - lowestIdx);
          outReal[outIdx] = aroon;
          outIdx += 1;
          trailingIdx += 1;

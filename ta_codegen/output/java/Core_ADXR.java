@@ -16,8 +16,8 @@
 
    public int adxrLookback( int optInTimePeriod )
    {
-      if( (optInTimePeriod>1) ) {
-         return ((optInTimePeriod+adxLookback(optInTimePeriod))-1) ;
+      if( optInTimePeriod > 1 ) {
+         return optInTimePeriod + adxLookback(optInTimePeriod) - 1 ;
       } else {
          return 3 ;
       }
@@ -63,26 +63,26 @@
        * Always one price bar gets consumed.
        */
       adxrLookback = adxrLookback(optInTimePeriod);
-      if( (startIdx<adxrLookback) ) {
+      if( startIdx < adxrLookback ) {
          startIdx = adxrLookback;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
-      if( (retCode!=RetCode.Success) ) {
+      adx = new double[(int)((endIdx - startIdx + optInTimePeriod) * 1)];
+      retCode = adxUnguarded(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
-      i = (optInTimePeriod-1);
+      i = optInTimePeriod - 1;
       j = 0;
       outIdx = 0;
-      nbElement = ((endIdx-startIdx)+2);
-      while( (--nbElement!=0) ) {
-         outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      nbElement = endIdx - startIdx + 2;
+      while( --nbElement != 0 ) {
+         outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
@@ -106,25 +106,25 @@
       int nbElement = 0;
       RetCode retCode;
       adxrLookback = adxrLookback(optInTimePeriod);
-      if( (startIdx<adxrLookback) ) {
+      if( startIdx < adxrLookback ) {
          startIdx = adxrLookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
-      if( (retCode!=RetCode.Success) ) {
+      adx = new double[(int)((endIdx - startIdx + optInTimePeriod) * 1)];
+      retCode = adxUnguarded(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
-      i = (optInTimePeriod-1);
+      i = optInTimePeriod - 1;
       j = 0;
       outIdx = 0;
-      nbElement = ((endIdx-startIdx)+2);
-      while( (--nbElement!=0) ) {
-         outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      nbElement = endIdx - startIdx + 2;
+      while( --nbElement != 0 ) {
+         outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
@@ -154,25 +154,25 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       adxrLookback = adxrLookback(optInTimePeriod);
-      if( (startIdx<adxrLookback) ) {
+      if( startIdx < adxrLookback ) {
          startIdx = adxrLookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
-      if( (retCode!=RetCode.Success) ) {
+      adx = new double[(int)((endIdx - startIdx + optInTimePeriod) * 1)];
+      retCode = adxUnguarded(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
-      i = (optInTimePeriod-1);
+      i = optInTimePeriod - 1;
       j = 0;
       outIdx = 0;
-      nbElement = ((endIdx-startIdx)+2);
-      while( (--nbElement!=0) ) {
-         outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      nbElement = endIdx - startIdx + 2;
+      while( --nbElement != 0 ) {
+         outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
@@ -196,25 +196,25 @@
       int nbElement = 0;
       RetCode retCode;
       adxrLookback = adxrLookback(optInTimePeriod);
-      if( (startIdx<adxrLookback) ) {
+      if( startIdx < adxrLookback ) {
          startIdx = adxrLookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adxUnguarded((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
-      if( (retCode!=RetCode.Success) ) {
+      adx = new double[(int)((endIdx - startIdx + optInTimePeriod) * 1)];
+      retCode = adxUnguarded(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
-      i = (optInTimePeriod-1);
+      i = optInTimePeriod - 1;
       j = 0;
       outIdx = 0;
-      nbElement = ((endIdx-startIdx)+2);
-      while( (--nbElement!=0) ) {
-         outReal[outIdx++] = ((adx[i++]+adx[j++])/2.0);
+      nbElement = endIdx - startIdx + 2;
+      while( --nbElement != 0 ) {
+         outReal[outIdx++] = ((adx[i++] + adx[j++]) / 2.0);
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;

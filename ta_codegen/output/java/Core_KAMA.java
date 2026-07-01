@@ -18,7 +18,7 @@
 
    public int kamaLookback( int optInTimePeriod )
    {
-      return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Kama.ordinal()]) ;
+      return optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()] ;
 
    }
    public RetCode kama( int startIdx,
@@ -48,23 +48,23 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      constMax = (2.0/(30.0+1.0));
-      constDiff = ((2.0/(2.0+1.0))-constMax);
+      constMax = 2.0 / (30.0 + 1.0);
+      constDiff = 2.0 / (2.0 + 1.0) - constMax;
       /* Default return values */
       outBegIdx.value = 0;
       outNBElement.value = 0;
       /* Identify the minimum number of price bar needed
        * to calculate at least one output.
        */
-      lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Kama.ordinal()]);
+      lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()];
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -73,10 +73,10 @@
        * the lookback period.
        */
       sumROC1 = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       trailingIdx = today;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          tempReal = inReal[today++];
          tempReal -= inReal[today];
          sumROC1 += Math.abs(tempReal);
@@ -87,93 +87,93 @@
        */
       /* Calculate the first KAMA */
       /* The yesterday price is used here as the previous KAMA. */
-      prevKAMA = inReal[(today-1)];
+      prevKAMA = inReal[today - 1];
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
+      periodROC = tempReal - tempReal2;
       /* Save the trailing value. Do this because inReal
        * and outReal can be pointers to the same buffer.
        */
       trailingValue = tempReal2;
       /* Calculate the efficiency ratio */
-      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+      if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
          tempReal = 1.0;
       } else {
-         tempReal = Math.abs((periodROC/sumROC1));
+         tempReal = Math.abs(periodROC / sumROC1);
       }
       /* Calculate the smoothing constant */
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
       /* Calculate the KAMA like an EMA, using the
        * smoothing constant as the adaptive factor.
        */
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       /* 'today' keep track of where the processing is within the
        * input.
        */
       /* Skip the unstable period. Do the whole processing
        * needed for KAMA, but do not write it in the output.
        */
-      while( (today<=startIdx) ) {
+      while( today <= startIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
+         periodROC = tempReal - tempReal2;
          /* Adjust sumROC1:
           *  - Remove trailing ROC1
           *  - Add new ROC1
           */
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          /* Save the trailing value. Do this because inReal
           * and outReal can be pointers to the same buffer.
           */
          trailingValue = tempReal2;
          /* Calculate the efficiency ratio */
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
          /* Calculate the smoothing constant */
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
          /* Calculate the KAMA like an EMA, using the
           * smoothing constant as the adaptive factor.
           */
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       }
       /* Write the first value. */
       outReal[0] = prevKAMA;
       outIdx = 1;
-      outBegIdx.value = (today-1);
+      outBegIdx.value = today - 1;
       /* Do the KAMA calculation for the requested range. */
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
+         periodROC = tempReal - tempReal2;
          /* Adjust sumROC1:
           *  - Remove trailing ROC1
           *  - Add new ROC1
           */
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          /* Save the trailing value. Do this because inReal
           * and outReal can be pointers to the same buffer.
           */
          trailingValue = tempReal2;
          /* Calculate the efficiency ratio */
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
          /* Calculate the smoothing constant */
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
          /* Calculate the KAMA like an EMA, using the
           * smoothing constant as the adaptive factor.
           */
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
          outReal[outIdx++] = prevKAMA;
       }
       outNBElement.value = outIdx;
@@ -200,75 +200,75 @@
       int lookbackTotal = 0;
       int trailingIdx = 0;
       double trailingValue = 0;
-      constMax = (2.0/(30.0+1.0));
-      constDiff = ((2.0/(2.0+1.0))-constMax);
+      constMax = 2.0 / (30.0 + 1.0);
+      constDiff = 2.0 / (2.0 + 1.0) - constMax;
       outBegIdx.value = 0;
       outNBElement.value = 0;
-      lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Kama.ordinal()]);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()];
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       sumROC1 = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       trailingIdx = today;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          tempReal = inReal[today++];
          tempReal -= inReal[today];
          sumROC1 += Math.abs(tempReal);
       }
-      prevKAMA = inReal[(today-1)];
+      prevKAMA = inReal[today - 1];
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
+      periodROC = tempReal - tempReal2;
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+      if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
          tempReal = 1.0;
       } else {
-         tempReal = Math.abs((periodROC/sumROC1));
+         tempReal = Math.abs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
-      while( (today<=startIdx) ) {
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+      while( today <= startIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         periodROC = tempReal - tempReal2;
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       }
       outReal[0] = prevKAMA;
       outIdx = 1;
-      outBegIdx.value = (today-1);
-      while( (today<=endIdx) ) {
+      outBegIdx.value = today - 1;
+      while( today <= endIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         periodROC = tempReal - tempReal2;
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
          outReal[outIdx++] = prevKAMA;
       }
       outNBElement.value = outIdx;
@@ -301,75 +301,75 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      constMax = (2.0/(30.0+1.0));
-      constDiff = ((2.0/(2.0+1.0))-constMax);
+      constMax = 2.0 / (30.0 + 1.0);
+      constDiff = 2.0 / (2.0 + 1.0) - constMax;
       outBegIdx.value = 0;
       outNBElement.value = 0;
-      lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Kama.ordinal()]);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()];
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       sumROC1 = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       trailingIdx = today;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          tempReal = inReal[today++];
          tempReal -= inReal[today];
          sumROC1 += Math.abs(tempReal);
       }
-      prevKAMA = inReal[(today-1)];
+      prevKAMA = inReal[today - 1];
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
+      periodROC = tempReal - tempReal2;
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+      if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
          tempReal = 1.0;
       } else {
-         tempReal = Math.abs((periodROC/sumROC1));
+         tempReal = Math.abs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
-      while( (today<=startIdx) ) {
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+      while( today <= startIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         periodROC = tempReal - tempReal2;
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       }
       outReal[0] = prevKAMA;
       outIdx = 1;
-      outBegIdx.value = (today-1);
-      while( (today<=endIdx) ) {
+      outBegIdx.value = today - 1;
+      while( today <= endIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         periodROC = tempReal - tempReal2;
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
          outReal[outIdx++] = prevKAMA;
       }
       outNBElement.value = outIdx;
@@ -396,75 +396,75 @@
       int lookbackTotal = 0;
       int trailingIdx = 0;
       double trailingValue = 0;
-      constMax = (2.0/(30.0+1.0));
-      constDiff = ((2.0/(2.0+1.0))-constMax);
+      constMax = 2.0 / (30.0 + 1.0);
+      constDiff = 2.0 / (2.0 + 1.0) - constMax;
       outBegIdx.value = 0;
       outNBElement.value = 0;
-      lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Kama.ordinal()]);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()];
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       sumROC1 = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       trailingIdx = today;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          tempReal = inReal[today++];
          tempReal -= inReal[today];
          sumROC1 += Math.abs(tempReal);
       }
-      prevKAMA = inReal[(today-1)];
+      prevKAMA = inReal[today - 1];
       tempReal = inReal[today];
       tempReal2 = inReal[trailingIdx++];
-      periodROC = (tempReal-tempReal2);
+      periodROC = tempReal - tempReal2;
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+      if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
          tempReal = 1.0;
       } else {
-         tempReal = Math.abs((periodROC/sumROC1));
+         tempReal = Math.abs(periodROC / sumROC1);
       }
-      tempReal = ((tempReal*constDiff)+constMax);
+      tempReal = tempReal * constDiff + constMax;
       tempReal *= tempReal;
-      prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
-      while( (today<=startIdx) ) {
+      prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+      while( today <= startIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         periodROC = tempReal - tempReal2;
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
       }
       outReal[0] = prevKAMA;
       outIdx = 1;
-      outBegIdx.value = (today-1);
-      while( (today<=endIdx) ) {
+      outBegIdx.value = today - 1;
+      while( today <= endIdx ) {
          tempReal = inReal[today];
          tempReal2 = inReal[trailingIdx++];
-         periodROC = (tempReal-tempReal2);
-         sumROC1 -= Math.abs((trailingValue-tempReal2));
-         sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
+         periodROC = tempReal - tempReal2;
+         sumROC1 -= Math.abs(trailingValue - tempReal2);
+         sumROC1 += Math.abs(tempReal - inReal[today - 1]);
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
+         if( sumROC1 <= periodROC || ((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001)) ) {
             tempReal = 1.0;
          } else {
-            tempReal = Math.abs((periodROC/sumROC1));
+            tempReal = Math.abs(periodROC / sumROC1);
          }
-         tempReal = ((tempReal*constDiff)+constMax);
+         tempReal = tempReal * constDiff + constMax;
          tempReal *= tempReal;
-         prevKAMA = (((inReal[today++]-prevKAMA)*tempReal)+prevKAMA);
+         prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
          outReal[outIdx++] = prevKAMA;
       }
       outNBElement.value = outIdx;

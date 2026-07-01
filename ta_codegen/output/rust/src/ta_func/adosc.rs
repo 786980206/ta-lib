@@ -196,9 +196,9 @@ impl Core {
         // calculate the "ad".
         ad = 0.0;
         // Constants for EMA
-        fastk = 2.0 / (((optInFastPeriod) as f64) + 1.0);
+        fastk = 2.0 / ((optInFastPeriod as f64) + 1.0);
         one_minus_fastk = 1.0 - fastk;
-        slowk = 2.0 / (((optInSlowPeriod) as f64) + 1.0);
+        slowk = 2.0 / ((optInSlowPeriod as f64) + 1.0);
         one_minus_slowk = 1.0 - slowk;
         // Initialize the two EMA
         //
@@ -211,7 +211,7 @@ impl Core {
         tmp = high - low;
         close = inClose[today];
         if tmp > 0.0 {
-            ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
+            ad += (close - low - (high - close)) / tmp * (inVolume[today] as f64);
         }
         today += 1;
         fastEMA = ad;
@@ -223,7 +223,7 @@ impl Core {
             tmp = high - low;
             close = inClose[today];
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
+                ad += (close - low - (high - close)) / tmp * (inVolume[today] as f64);
             }
             today += 1;
             fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
@@ -237,7 +237,7 @@ impl Core {
             tmp = high - low;
             close = inClose[today];
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
+                ad += (close - low - (high - close)) / tmp * (inVolume[today] as f64);
             }
             today += 1;
             fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
@@ -301,16 +301,16 @@ impl Core {
         (*outBegIdx) = startIdx;
         today = startIdx - lookbackTotal;
         ad = 0.0;
-        fastk = 2.0 / (((optInFastPeriod) as f64) + 1.0);
+        fastk = 2.0 / ((optInFastPeriod as f64) + 1.0);
         one_minus_fastk = 1.0 - fastk;
-        slowk = 2.0 / (((optInSlowPeriod) as f64) + 1.0);
+        slowk = 2.0 / ((optInSlowPeriod as f64) + 1.0);
         one_minus_slowk = 1.0 - slowk;
         high = *inHigh.as_ptr().add(today);
         low = *inLow.as_ptr().add(today);
         tmp = high - low;
         close = *inClose.as_ptr().add(today);
         if tmp > 0.0 {
-            ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(today)) as f64);
+            ad += (close - low - (high - close)) / tmp * (*inVolume.as_ptr().add(today) as f64);
         }
         today += 1;
         fastEMA = ad;
@@ -321,7 +321,7 @@ impl Core {
             tmp = high - low;
             close = *inClose.as_ptr().add(today);
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(today)) as f64);
+                ad += (close - low - (high - close)) / tmp * (*inVolume.as_ptr().add(today) as f64);
             }
             today += 1;
             fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
@@ -334,7 +334,7 @@ impl Core {
             tmp = high - low;
             close = *inClose.as_ptr().add(today);
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(today)) as f64);
+                ad += (close - low - (high - close)) / tmp * (*inVolume.as_ptr().add(today) as f64);
             }
             today += 1;
             fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);

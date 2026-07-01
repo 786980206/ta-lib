@@ -20,7 +20,7 @@
 
    public int adxLookback( int optInTimePeriod )
    {
-      return (((2*optInTimePeriod)+this.unstablePeriod[FuncUnstId.Adx.ordinal()])-1) ;
+      return 2 * optInTimePeriod + this.unstablePeriod[FuncUnstId.Adx.ordinal()] - 1 ;
 
    }
    public RetCode adx( int startIdx,
@@ -170,13 +170,13 @@
        * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
        * you can comment out the following #undef/#define and rebuild the library.
        */
-      lookbackTotal = (((2*optInTimePeriod)+this.unstablePeriod[FuncUnstId.Adx.ordinal()])-1);
+      lookbackTotal = 2 * optInTimePeriod + this.unstablePeriod[FuncUnstId.Adx.ordinal()] - 1;
       /* Adjust startIdx to account for the lookback period. */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -191,37 +191,37 @@
       prevMinusDM = 0.0;
       prevPlusDM = 0.0;
       prevTR = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
       prevClose = inClose[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          /* Minus Delta */
          prevLow = tempReal;
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         if( diffM > 0 && diffP < diffM ) {
             /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
          double _true_range_0;
-         double range_0 = (prevHigh-prevLow);
-         double tmp_0 = Math.abs((prevHigh-prevClose));
-         if( (tmp_0>range_0) ) {
+         double range_0 = prevHigh - prevLow;
+         double tmp_0 = Math.abs(prevHigh - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
-         tmp_0 = Math.abs((prevLow-prevClose));
-         if( (tmp_0>range_0) ) {
+         tmp_0 = Math.abs(prevLow - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
          _true_range_0 = range_0;
@@ -232,100 +232,100 @@
       /* Add up all the initial DX. */
       sumDX = 0.0;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          /* Minus Delta */
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
          /* Calculate the prevTR */
          double _true_range_1;
-         double range_1 = (prevHigh-prevLow);
-         double tmp_1 = Math.abs((prevHigh-prevClose));
-         if( (tmp_1>range_1) ) {
+         double range_1 = prevHigh - prevLow;
+         double tmp_1 = Math.abs(prevHigh - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
-         tmp_1 = Math.abs((prevLow-prevClose));
-         if( (tmp_1>range_1) ) {
+         tmp_1 = Math.abs(prevLow - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
          _true_range_1 = range_1;
          tempReal = _true_range_1;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
          /* Calculate the DX. The value is rounded (see Wilder book). */
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
             /* This loop is just to accumulate the initial DX */
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               sumDX += (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
             }
          }
       }
       /* Calculate the first ADX */
-      prevADX = (sumDX/optInTimePeriod);
+      prevADX = (sumDX / optInTimePeriod);
       /* Skip the unstable period */
       i = this.unstablePeriod[FuncUnstId.Adx.ordinal()];
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          /* Minus Delta */
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
          /* Calculate the prevTR */
          double _true_range_2;
-         double range_2 = (prevHigh-prevLow);
-         double tmp_2 = Math.abs((prevHigh-prevClose));
-         if( (tmp_2>range_2) ) {
+         double range_2 = prevHigh - prevLow;
+         double tmp_2 = Math.abs(prevHigh - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
-         tmp_2 = Math.abs((prevLow-prevClose));
-         if( (tmp_2>range_2) ) {
+         tmp_2 = Math.abs(prevLow - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
          _true_range_2 = range_2;
          tempReal = _true_range_2;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
             /* Calculate the DX. The value is rounded (see Wilder book). */
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
                /* Calculate the ADX */
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
       }
@@ -333,50 +333,50 @@
       outReal[0] = prevADX;
       outIdx = 1;
       /* Calculate and output subsequent ADX */
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          /* Calculate the prevMinusDM and prevPlusDM */
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          /* Minus Delta */
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             /* Case 2 and 4: +DM=0,-DM=diffM */
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
          /* Calculate the prevTR */
          double _true_range_3;
-         double range_3 = (prevHigh-prevLow);
-         double tmp_3 = Math.abs((prevHigh-prevClose));
-         if( (tmp_3>range_3) ) {
+         double range_3 = prevHigh - prevLow;
+         double tmp_3 = Math.abs(prevHigh - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
-         tmp_3 = Math.abs((prevLow-prevClose));
-         if( (tmp_3>range_3) ) {
+         tmp_3 = Math.abs(prevLow - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
          _true_range_3 = range_3;
          tempReal = _true_range_3;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
             /* Calculate the DX. The value is rounded (see Wilder book). */
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
                /* Calculate the ADX */
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
          /* Output the ADX */
@@ -413,11 +413,11 @@
       double sumDX = 0;
       double prevADX = 0;
       int i = 0;
-      lookbackTotal = (((2*optInTimePeriod)+this.unstablePeriod[FuncUnstId.Adx.ordinal()])-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = 2 * optInTimePeriod + this.unstablePeriod[FuncUnstId.Adx.ordinal()] - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -428,32 +428,32 @@
       prevMinusDM = 0.0;
       prevPlusDM = 0.0;
       prevTR = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
       prevClose = inClose[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_0;
-         double range_0 = (prevHigh-prevLow);
-         double tmp_0 = Math.abs((prevHigh-prevClose));
-         if( (tmp_0>range_0) ) {
+         double range_0 = prevHigh - prevLow;
+         double tmp_0 = Math.abs(prevHigh - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
-         tmp_0 = Math.abs((prevLow-prevClose));
-         if( (tmp_0>range_0) ) {
+         tmp_0 = Math.abs(prevLow - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
          _true_range_0 = range_0;
@@ -463,123 +463,123 @@
       }
       sumDX = 0.0;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_1;
-         double range_1 = (prevHigh-prevLow);
-         double tmp_1 = Math.abs((prevHigh-prevClose));
-         if( (tmp_1>range_1) ) {
+         double range_1 = prevHigh - prevLow;
+         double tmp_1 = Math.abs(prevHigh - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
-         tmp_1 = Math.abs((prevLow-prevClose));
-         if( (tmp_1>range_1) ) {
+         tmp_1 = Math.abs(prevLow - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
          _true_range_1 = range_1;
          tempReal = _true_range_1;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               sumDX += (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
             }
          }
       }
-      prevADX = (sumDX/optInTimePeriod);
+      prevADX = (sumDX / optInTimePeriod);
       i = this.unstablePeriod[FuncUnstId.Adx.ordinal()];
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_2;
-         double range_2 = (prevHigh-prevLow);
-         double tmp_2 = Math.abs((prevHigh-prevClose));
-         if( (tmp_2>range_2) ) {
+         double range_2 = prevHigh - prevLow;
+         double tmp_2 = Math.abs(prevHigh - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
-         tmp_2 = Math.abs((prevLow-prevClose));
-         if( (tmp_2>range_2) ) {
+         tmp_2 = Math.abs(prevLow - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
          _true_range_2 = range_2;
          tempReal = _true_range_2;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
       }
       outReal[0] = prevADX;
       outIdx = 1;
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_3;
-         double range_3 = (prevHigh-prevLow);
-         double tmp_3 = Math.abs((prevHigh-prevClose));
-         if( (tmp_3>range_3) ) {
+         double range_3 = prevHigh - prevLow;
+         double tmp_3 = Math.abs(prevHigh - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
-         tmp_3 = Math.abs((prevLow-prevClose));
-         if( (tmp_3>range_3) ) {
+         tmp_3 = Math.abs(prevLow - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
          _true_range_3 = range_3;
          tempReal = _true_range_3;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
          outReal[outIdx++] = prevADX;
@@ -621,11 +621,11 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = (((2*optInTimePeriod)+this.unstablePeriod[FuncUnstId.Adx.ordinal()])-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = 2 * optInTimePeriod + this.unstablePeriod[FuncUnstId.Adx.ordinal()] - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -636,32 +636,32 @@
       prevMinusDM = 0.0;
       prevPlusDM = 0.0;
       prevTR = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
       prevClose = inClose[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_0;
-         double range_0 = (prevHigh-prevLow);
-         double tmp_0 = Math.abs((prevHigh-prevClose));
-         if( (tmp_0>range_0) ) {
+         double range_0 = prevHigh - prevLow;
+         double tmp_0 = Math.abs(prevHigh - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
-         tmp_0 = Math.abs((prevLow-prevClose));
-         if( (tmp_0>range_0) ) {
+         tmp_0 = Math.abs(prevLow - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
          _true_range_0 = range_0;
@@ -671,123 +671,123 @@
       }
       sumDX = 0.0;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_1;
-         double range_1 = (prevHigh-prevLow);
-         double tmp_1 = Math.abs((prevHigh-prevClose));
-         if( (tmp_1>range_1) ) {
+         double range_1 = prevHigh - prevLow;
+         double tmp_1 = Math.abs(prevHigh - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
-         tmp_1 = Math.abs((prevLow-prevClose));
-         if( (tmp_1>range_1) ) {
+         tmp_1 = Math.abs(prevLow - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
          _true_range_1 = range_1;
          tempReal = _true_range_1;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               sumDX += (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
             }
          }
       }
-      prevADX = (sumDX/optInTimePeriod);
+      prevADX = (sumDX / optInTimePeriod);
       i = this.unstablePeriod[FuncUnstId.Adx.ordinal()];
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_2;
-         double range_2 = (prevHigh-prevLow);
-         double tmp_2 = Math.abs((prevHigh-prevClose));
-         if( (tmp_2>range_2) ) {
+         double range_2 = prevHigh - prevLow;
+         double tmp_2 = Math.abs(prevHigh - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
-         tmp_2 = Math.abs((prevLow-prevClose));
-         if( (tmp_2>range_2) ) {
+         tmp_2 = Math.abs(prevLow - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
          _true_range_2 = range_2;
          tempReal = _true_range_2;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
       }
       outReal[0] = prevADX;
       outIdx = 1;
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_3;
-         double range_3 = (prevHigh-prevLow);
-         double tmp_3 = Math.abs((prevHigh-prevClose));
-         if( (tmp_3>range_3) ) {
+         double range_3 = prevHigh - prevLow;
+         double tmp_3 = Math.abs(prevHigh - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
-         tmp_3 = Math.abs((prevLow-prevClose));
-         if( (tmp_3>range_3) ) {
+         tmp_3 = Math.abs(prevLow - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
          _true_range_3 = range_3;
          tempReal = _true_range_3;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
          outReal[outIdx++] = prevADX;
@@ -823,11 +823,11 @@
       double sumDX = 0;
       double prevADX = 0;
       int i = 0;
-      lookbackTotal = (((2*optInTimePeriod)+this.unstablePeriod[FuncUnstId.Adx.ordinal()])-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = 2 * optInTimePeriod + this.unstablePeriod[FuncUnstId.Adx.ordinal()] - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -838,32 +838,32 @@
       prevMinusDM = 0.0;
       prevPlusDM = 0.0;
       prevTR = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
       prevClose = inClose[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_0;
-         double range_0 = (prevHigh-prevLow);
-         double tmp_0 = Math.abs((prevHigh-prevClose));
-         if( (tmp_0>range_0) ) {
+         double range_0 = prevHigh - prevLow;
+         double tmp_0 = Math.abs(prevHigh - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
-         tmp_0 = Math.abs((prevLow-prevClose));
-         if( (tmp_0>range_0) ) {
+         tmp_0 = Math.abs(prevLow - prevClose);
+         if( tmp_0 > range_0 ) {
             range_0 = tmp_0;
          }
          _true_range_0 = range_0;
@@ -873,123 +873,123 @@
       }
       sumDX = 0.0;
       i = optInTimePeriod;
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_1;
-         double range_1 = (prevHigh-prevLow);
-         double tmp_1 = Math.abs((prevHigh-prevClose));
-         if( (tmp_1>range_1) ) {
+         double range_1 = prevHigh - prevLow;
+         double tmp_1 = Math.abs(prevHigh - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
-         tmp_1 = Math.abs((prevLow-prevClose));
-         if( (tmp_1>range_1) ) {
+         tmp_1 = Math.abs(prevLow - prevClose);
+         if( tmp_1 > range_1 ) {
             range_1 = tmp_1;
          }
          _true_range_1 = range_1;
          tempReal = _true_range_1;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               sumDX += (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
             }
          }
       }
-      prevADX = (sumDX/optInTimePeriod);
+      prevADX = (sumDX / optInTimePeriod);
       i = this.unstablePeriod[FuncUnstId.Adx.ordinal()];
-      while( (i-->0) ) {
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_2;
-         double range_2 = (prevHigh-prevLow);
-         double tmp_2 = Math.abs((prevHigh-prevClose));
-         if( (tmp_2>range_2) ) {
+         double range_2 = prevHigh - prevLow;
+         double tmp_2 = Math.abs(prevHigh - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
-         tmp_2 = Math.abs((prevLow-prevClose));
-         if( (tmp_2>range_2) ) {
+         tmp_2 = Math.abs(prevLow - prevClose);
+         if( tmp_2 > range_2 ) {
             range_2 = tmp_2;
          }
          _true_range_2 = range_2;
          tempReal = _true_range_2;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
       }
       outReal[0] = prevADX;
       outIdx = 1;
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         prevMinusDM -= (prevMinusDM/optInTimePeriod);
-         prevPlusDM -= (prevPlusDM/optInTimePeriod);
-         if( ((diffM>0)&&(diffP<diffM)) ) {
+         prevMinusDM -= prevMinusDM / optInTimePeriod;
+         prevPlusDM -= prevPlusDM / optInTimePeriod;
+         if( diffM > 0 && diffP < diffM ) {
             prevMinusDM += diffM;
-         } else if( ((diffP>0)&&(diffP>diffM)) ) {
+         } else if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
          double _true_range_3;
-         double range_3 = (prevHigh-prevLow);
-         double tmp_3 = Math.abs((prevHigh-prevClose));
-         if( (tmp_3>range_3) ) {
+         double range_3 = prevHigh - prevLow;
+         double tmp_3 = Math.abs(prevHigh - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
-         tmp_3 = Math.abs((prevLow-prevClose));
-         if( (tmp_3>range_3) ) {
+         tmp_3 = Math.abs(prevLow - prevClose);
+         if( tmp_3 > range_3 ) {
             range_3 = tmp_3;
          }
          _true_range_3 = range_3;
          tempReal = _true_range_3;
-         prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
+         prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
          prevClose = inClose[today];
-         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
-            minusDI = (100.0*(prevMinusDM/prevTR));
-            plusDI = (100.0*(prevPlusDM/prevTR));
-            tempReal = (minusDI+plusDI);
-            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-               tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
-               prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+         if( !((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001)) ) {
+            minusDI = (100.0 * (prevMinusDM / prevTR));
+            plusDI = (100.0 * (prevPlusDM / prevTR));
+            tempReal = minusDI + plusDI;
+            if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+               tempReal = (100.0 * (Math.abs(minusDI - plusDI) / tempReal));
+               prevADX = ((prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod);
             }
          }
          outReal[outIdx++] = prevADX;

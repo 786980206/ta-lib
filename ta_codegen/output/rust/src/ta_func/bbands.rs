@@ -157,7 +157,7 @@ impl Core {
         // The other two bands will simply add/substract the
         // standard deviation from this middle band.
         retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             (*outNBElement) = 0;
             return retCode;
         }
@@ -172,8 +172,8 @@ impl Core {
             let mut _outIdx: usize = 0_usize;
             let mut _startSum: usize = 0_usize;
             let mut _endSum: usize = 0_usize;
-            _startSum = (1 + (((*outBegIdx)) as usize) - (optInTimePeriod) as usize) as usize;
-            _endSum = (((*outBegIdx)) as usize) as usize;
+            _startSum = (1 + ((*outBegIdx) as usize) - (optInTimePeriod) as usize) as usize;
+            _endSum = ((*outBegIdx) as usize) as usize;
             _periodTotal2 = 0.0;
             // for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
             _outIdx = _startSum;
@@ -183,9 +183,9 @@ impl Core {
                 _periodTotal2 += _tempReal;
                 _outIdx += 1;
             }
-            // for( _outIdx = 0; _outIdx < ((((*outNBElement)) as usize)) as usize; _outIdx += 1, _startSum += 1, _endSum += 1 )
+            // for( _outIdx = 0; _outIdx < (((*outNBElement) as usize)) as usize; _outIdx += 1, _startSum += 1, _endSum += 1 )
             _outIdx = 0;
-            while _outIdx < ((((*outNBElement)) as usize)) as usize {
+            while _outIdx < (((*outNBElement) as usize)) as usize {
                 _tempReal = inReal[_endSum];
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
@@ -207,7 +207,7 @@ impl Core {
             }
         } else {
             // Calculate the Standard Deviation
-            retCode = self.stddev_unguarded((((*outBegIdx)) as usize) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
+            retCode = self.stddev_unguarded(((*outBegIdx) as usize) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
             if retCode != RetCode::Success {
                 (*outNBElement) = 0;
                 return retCode;
@@ -232,9 +232,9 @@ impl Core {
         if optInNbDevUp == optInNbDevDn {
             if optInNbDevUp == 1.0 {
                 // No standard deviation multiplier needed.
-                // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+                // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
                 i = 0;
-                while i < ((((*outNBElement)) as usize)) as usize {
+                while i < (((*outNBElement) as usize)) as usize {
                     tempReal = tempBuffer2[i];
                     tempReal2 = outRealMiddleBand[i];
                     outRealUpperBand[i] = tempReal2 + tempReal;
@@ -243,9 +243,9 @@ impl Core {
                 }
             } else {
                 // Upper/lower band use the same standard deviation multiplier.
-                // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+                // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
                 i = 0;
-                while i < ((((*outNBElement)) as usize)) as usize {
+                while i < (((*outNBElement) as usize)) as usize {
                     tempReal = tempBuffer2[i] * optInNbDevUp;
                     tempReal2 = outRealMiddleBand[i];
                     outRealUpperBand[i] = tempReal2 + tempReal;
@@ -255,9 +255,9 @@ impl Core {
             }
         } else if optInNbDevUp == 1.0 {
             // Only lower band has a standard deviation multiplier.
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealUpperBand[i] = tempReal2 + tempReal;
@@ -266,9 +266,9 @@ impl Core {
             }
         } else if optInNbDevDn == 1.0 {
             // Only upper band has a standard deviation multiplier.
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealLowerBand[i] = tempReal2 - tempReal;
@@ -277,9 +277,9 @@ impl Core {
             }
         } else {
             // Upper/lower band have distinctive standard deviation multiplier.
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealUpperBand[i] = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
@@ -333,7 +333,7 @@ impl Core {
             return RetCode::BadParam;
         }
         retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             (*outNBElement) = 0;
             return retCode;
         }
@@ -344,8 +344,8 @@ impl Core {
             let mut _outIdx: usize = 0_usize;
             let mut _startSum: usize = 0_usize;
             let mut _endSum: usize = 0_usize;
-            _startSum = (1 + (((*outBegIdx)) as usize) - (optInTimePeriod) as usize) as usize;
-            _endSum = (((*outBegIdx)) as usize) as usize;
+            _startSum = (1 + ((*outBegIdx) as usize) - (optInTimePeriod) as usize) as usize;
+            _endSum = ((*outBegIdx) as usize) as usize;
             _periodTotal2 = 0.0;
             // for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
             _outIdx = _startSum;
@@ -355,9 +355,9 @@ impl Core {
                 _periodTotal2 += _tempReal;
                 _outIdx += 1;
             }
-            // for( _outIdx = 0; _outIdx < ((((*outNBElement)) as usize)) as usize; _outIdx += 1, _startSum += 1, _endSum += 1 )
+            // for( _outIdx = 0; _outIdx < (((*outNBElement) as usize)) as usize; _outIdx += 1, _startSum += 1, _endSum += 1 )
             _outIdx = 0;
-            while _outIdx < ((((*outNBElement)) as usize)) as usize {
+            while _outIdx < (((*outNBElement) as usize)) as usize {
                 _tempReal = *inReal.as_ptr().add(_endSum);
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
@@ -378,7 +378,7 @@ impl Core {
                 _endSum += 1;
             }
         } else {
-            retCode = self.stddev_unguarded((((*outBegIdx)) as usize) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
+            retCode = self.stddev_unguarded(((*outBegIdx) as usize) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
             if retCode != RetCode::Success {
                 (*outNBElement) = 0;
                 return retCode;
@@ -394,9 +394,9 @@ impl Core {
         }
         if optInNbDevUp == optInNbDevDn {
             if optInNbDevUp == 1.0 {
-                // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+                // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
                 i = 0;
-                while i < ((((*outNBElement)) as usize)) as usize {
+                while i < (((*outNBElement) as usize)) as usize {
                     tempReal = *tempBuffer2.as_ptr().add(i);
                     tempReal2 = *outRealMiddleBand.as_ptr().add(i);
                     *outRealUpperBand.as_mut_ptr().add(i) = tempReal2 + tempReal;
@@ -404,9 +404,9 @@ impl Core {
                     i += 1;
                 }
             } else {
-                // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+                // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
                 i = 0;
-                while i < ((((*outNBElement)) as usize)) as usize {
+                while i < (((*outNBElement) as usize)) as usize {
                     tempReal = *tempBuffer2.as_ptr().add(i) * optInNbDevUp;
                     tempReal2 = *outRealMiddleBand.as_ptr().add(i);
                     *outRealUpperBand.as_mut_ptr().add(i) = tempReal2 + tempReal;
@@ -415,9 +415,9 @@ impl Core {
                 }
             }
         } else if optInNbDevUp == 1.0 {
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = *tempBuffer2.as_ptr().add(i);
                 tempReal2 = *outRealMiddleBand.as_ptr().add(i);
                 *outRealUpperBand.as_mut_ptr().add(i) = tempReal2 + tempReal;
@@ -425,9 +425,9 @@ impl Core {
                 i += 1;
             }
         } else if optInNbDevDn == 1.0 {
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = *tempBuffer2.as_ptr().add(i);
                 tempReal2 = *outRealMiddleBand.as_ptr().add(i);
                 *outRealLowerBand.as_mut_ptr().add(i) = tempReal2 - tempReal;
@@ -435,9 +435,9 @@ impl Core {
                 i += 1;
             }
         } else {
-            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            // for( i = 0; i < (((*outNBElement) as usize)) as usize; i += 1 )
             i = 0;
-            while i < ((((*outNBElement)) as usize)) as usize {
+            while i < (((*outNBElement) as usize)) as usize {
                 tempReal = *tempBuffer2.as_ptr().add(i);
                 tempReal2 = *outRealMiddleBand.as_ptr().add(i);
                 *outRealUpperBand.as_mut_ptr().add(i) = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);

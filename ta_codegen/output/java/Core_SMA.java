@@ -15,7 +15,7 @@
 
    public int smaLookback( int optInTimePeriod )
    {
-      return (optInTimePeriod-1) ;
+      return optInTimePeriod - 1 ;
 
    }
    public RetCode sma( int startIdx,
@@ -41,15 +41,15 @@
       /* Identify the minimum number of price bar needed
        * to calculate at least one output.
        */
-      lookbackTotal = ((int)(optInTimePeriod-1));
+      lookbackTotal = (int)(optInTimePeriod - 1);
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -57,12 +57,12 @@
       /* Do the MA calculation using tight loops. */
       /* Add-up the initial period, except for the last value. */
       periodTotal = 0.0;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
-            periodTotal += ((double)inReal[i]);
-            i = (i+1);
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
+            periodTotal += (double)inReal[i];
+            i = i + 1;
          }
       }
       /* Proceed with the calculation for the requested range.
@@ -70,14 +70,14 @@
        * outReal to be the same buffer.
        */
       outIdx = 0;
-      while( (i<=endIdx) ) {
-         periodTotal += ((double)inReal[i]);
-         i = (i+1);
+      while( i <= endIdx ) {
+         periodTotal += (double)inReal[i];
+         i = i + 1;
          tempReal = periodTotal;
-         periodTotal -= ((double)inReal[trailingIdx]);
-         trailingIdx = (trailingIdx+1);
-         outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-         outIdx = (outIdx+1);
+         periodTotal -= (double)inReal[trailingIdx];
+         trailingIdx = trailingIdx + 1;
+         outReal[outIdx] = tempReal / (double)optInTimePeriod;
+         outIdx = outIdx + 1;
       }
       /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
@@ -98,33 +98,33 @@
       int outIdx = 0;
       int trailingIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = ((int)(optInTimePeriod-1));
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = (int)(optInTimePeriod - 1);
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       periodTotal = 0.0;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
-            periodTotal += ((double)inReal[i]);
-            i = (i+1);
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
+            periodTotal += (double)inReal[i];
+            i = i + 1;
          }
       }
       outIdx = 0;
-      while( (i<=endIdx) ) {
-         periodTotal += ((double)inReal[i]);
-         i = (i+1);
+      while( i <= endIdx ) {
+         periodTotal += (double)inReal[i];
+         i = i + 1;
          tempReal = periodTotal;
-         periodTotal -= ((double)inReal[trailingIdx]);
-         trailingIdx = (trailingIdx+1);
-         outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-         outIdx = (outIdx+1);
+         periodTotal -= (double)inReal[trailingIdx];
+         trailingIdx = trailingIdx + 1;
+         outReal[outIdx] = tempReal / (double)optInTimePeriod;
+         outIdx = outIdx + 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -150,33 +150,33 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = ((int)(optInTimePeriod-1));
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = (int)(optInTimePeriod - 1);
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       periodTotal = 0.0;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
-            periodTotal += ((double)inReal[i]);
-            i = (i+1);
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
+            periodTotal += (double)inReal[i];
+            i = i + 1;
          }
       }
       outIdx = 0;
-      while( (i<=endIdx) ) {
-         periodTotal += ((double)inReal[i]);
-         i = (i+1);
+      while( i <= endIdx ) {
+         periodTotal += (double)inReal[i];
+         i = i + 1;
          tempReal = periodTotal;
-         periodTotal -= ((double)inReal[trailingIdx]);
-         trailingIdx = (trailingIdx+1);
-         outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-         outIdx = (outIdx+1);
+         periodTotal -= (double)inReal[trailingIdx];
+         trailingIdx = trailingIdx + 1;
+         outReal[outIdx] = tempReal / (double)optInTimePeriod;
+         outIdx = outIdx + 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -196,33 +196,33 @@
       int outIdx = 0;
       int trailingIdx = 0;
       int lookbackTotal = 0;
-      lookbackTotal = ((int)(optInTimePeriod-1));
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = (int)(optInTimePeriod - 1);
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       periodTotal = 0.0;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
-            periodTotal += ((double)inReal[i]);
-            i = (i+1);
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
+            periodTotal += (double)inReal[i];
+            i = i + 1;
          }
       }
       outIdx = 0;
-      while( (i<=endIdx) ) {
-         periodTotal += ((double)inReal[i]);
-         i = (i+1);
+      while( i <= endIdx ) {
+         periodTotal += (double)inReal[i];
+         i = i + 1;
          tempReal = periodTotal;
-         periodTotal -= ((double)inReal[trailingIdx]);
-         trailingIdx = (trailingIdx+1);
-         outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-         outIdx = (outIdx+1);
+         periodTotal -= (double)inReal[trailingIdx];
+         trailingIdx = trailingIdx + 1;
+         outReal[outIdx] = tempReal / (double)optInTimePeriod;
+         outIdx = outIdx + 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;

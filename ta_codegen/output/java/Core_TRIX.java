@@ -18,7 +18,7 @@
    {
       int emaLookback;
       emaLookback = emaLookback(optInTimePeriod);
-      return ((emaLookback*3)+rocRLookback(1)) ;
+      return emaLookback * 3 + rocRLookback(1) ;
 
    }
    public RetCode trix( int startIdx,
@@ -46,28 +46,28 @@
       /* Adjust the startIdx to account for the lookback. */
       emaLookback = emaLookback(optInTimePeriod);
       rocLookback = rocRLookback(1);
-      totalLookback = ((emaLookback*3)+rocLookback);
-      if( (startIdx<totalLookback) ) {
+      totalLookback = emaLookback * 3 + rocLookback;
+      if( startIdx < totalLookback ) {
          startIdx = totalLookback;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
+      nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
       /* Allocate a temporary buffer for performing
        * the calculation.
        */
-      tempBuffer = new double[(int)((nbElementToOutput*1))];
+      tempBuffer = new double[(int)(nbElementToOutput * 1)];
       /* Calculate the first EMA */
-      retCode = emaUnguarded((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      retCode = emaUnguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
       /* Verify for failure or if not enough data after
        * calculating the EMA.
        */
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -80,7 +80,7 @@
       /* Verify for failure or if not enough data after
        * calculating the EMA.
        */
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -91,7 +91,7 @@
       /* Verify for failure or if not enough data after
        * calculating the EMA.
        */
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -102,7 +102,7 @@
       /* Verify for failure or if not enough data after
        * calculating the rate-of-change.
        */
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -127,20 +127,20 @@
       int nbElementToOutput = 0;
       emaLookback = emaLookback(optInTimePeriod);
       rocLookback = rocRLookback(1);
-      totalLookback = ((emaLookback*3)+rocLookback);
-      if( (startIdx<totalLookback) ) {
+      totalLookback = emaLookback * 3 + rocLookback;
+      if( startIdx < totalLookback ) {
          startIdx = totalLookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
-      tempBuffer = new double[(int)((nbElementToOutput*1))];
-      retCode = emaUnguarded((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
+      tempBuffer = new double[(int)(nbElementToOutput * 1)];
+      retCode = emaUnguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -148,21 +148,21 @@
       nbElementToOutput -= 1;
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
       retCode = rocUnguarded(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -193,20 +193,20 @@
       }
       emaLookback = emaLookback(optInTimePeriod);
       rocLookback = rocRLookback(1);
-      totalLookback = ((emaLookback*3)+rocLookback);
-      if( (startIdx<totalLookback) ) {
+      totalLookback = emaLookback * 3 + rocLookback;
+      if( startIdx < totalLookback ) {
          startIdx = totalLookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
-      tempBuffer = new double[(int)((nbElementToOutput*1))];
-      retCode = emaUnguarded((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
+      tempBuffer = new double[(int)(nbElementToOutput * 1)];
+      retCode = emaUnguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -214,21 +214,21 @@
       nbElementToOutput -= 1;
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
       retCode = rocUnguarded(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -253,20 +253,20 @@
       int nbElementToOutput = 0;
       emaLookback = emaLookback(optInTimePeriod);
       rocLookback = rocRLookback(1);
-      totalLookback = ((emaLookback*3)+rocLookback);
-      if( (startIdx<totalLookback) ) {
+      totalLookback = emaLookback * 3 + rocLookback;
+      if( startIdx < totalLookback ) {
          startIdx = totalLookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
-      tempBuffer = new double[(int)((nbElementToOutput*1))];
-      retCode = emaUnguarded((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
+      tempBuffer = new double[(int)(nbElementToOutput * 1)];
+      retCode = emaUnguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
@@ -274,21 +274,21 @@
       nbElementToOutput -= 1;
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
       retCode = emaUnguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
+      if( retCode != RetCode.Success || nbElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
       retCode = rocUnguarded(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;

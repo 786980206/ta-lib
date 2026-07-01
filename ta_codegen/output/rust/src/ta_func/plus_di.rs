@@ -279,14 +279,14 @@ impl Core {
                     _true_range_0 = range_0;
                     tempReal = _true_range_0;
                     if (tempReal).abs() < 1e-14 {
-                        outReal[outIdx] = (0.0) as f64;
+                        outReal[outIdx] = 0.0 as f64;
                         outIdx += 1;
                     } else {
                         outReal[outIdx] = diffP / tempReal;
                         outIdx += 1;
                     }
                 } else {
-                    outReal[outIdx] = (0.0) as f64;
+                    outReal[outIdx] = 0.0 as f64;
                     outIdx += 1;
                 }
                 prevClose = inClose[today];
@@ -497,14 +497,14 @@ impl Core {
                     _true_range_0 = range_0;
                     tempReal = _true_range_0;
                     if (tempReal).abs() < 1e-14 {
-                        *outReal.as_mut_ptr().add(outIdx) = (0.0) as f64;
+                        *outReal.as_mut_ptr().add(outIdx) = 0.0 as f64;
                         outIdx += 1;
                     } else {
                         *outReal.as_mut_ptr().add(outIdx) = diffP / tempReal;
                         outIdx += 1;
                     }
                 } else {
-                    *outReal.as_mut_ptr().add(outIdx) = (0.0) as f64;
+                    *outReal.as_mut_ptr().add(outIdx) = 0.0 as f64;
                     outIdx += 1;
                 }
                 prevClose = *inClose.as_ptr().add(today);

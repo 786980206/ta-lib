@@ -168,7 +168,7 @@ impl Core {
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            tempInt = ((inPeriods[startIdx + i]) as usize) as usize;
+            tempInt = (inPeriods[startIdx + i] as usize) as usize;
             if tempInt < (optInMinPeriod) as usize {
                 tempInt = (optInMinPeriod) as usize;
             } else if tempInt > (optInMaxPeriod) as usize {
@@ -272,7 +272,7 @@ impl Core {
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            tempInt = ((*inPeriods.as_ptr().add(startIdx + i)) as usize) as usize;
+            tempInt = (*inPeriods.as_ptr().add(startIdx + i) as usize) as usize;
             if tempInt < (optInMinPeriod) as usize {
                 tempInt = (optInMinPeriod) as usize;
             } else if tempInt > (optInMaxPeriod) as usize {

@@ -157,7 +157,7 @@ impl Core {
             while { let _v = i; i -= 1; _v } != 0 {
                 tempValue1 = inReal[today - i];
                 SumY += tempValue1;
-                SumXY += ((i) as f64) * tempValue1;
+                SumXY += (i as f64) * tempValue1;
             }
             outReal[outIdx] = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
             outIdx += 1;
@@ -213,7 +213,7 @@ impl Core {
             while { let _v = i; i -= 1; _v } != 0 {
                 tempValue1 = *inReal.as_ptr().add(today - i);
                 SumY += tempValue1;
-                SumXY += ((i) as f64) * tempValue1;
+                SumXY += (i as f64) * tempValue1;
             }
             *outReal.as_mut_ptr().add(outIdx) = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
             outIdx += 1;

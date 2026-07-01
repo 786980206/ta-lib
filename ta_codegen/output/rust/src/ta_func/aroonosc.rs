@@ -154,7 +154,7 @@ impl Core {
         highestIdx = 0 - 1;
         lowest = 0.0;
         highest = 0.0;
-        factor = ((100.0) as f64) / ((optInTimePeriod) as f64);
+        factor = (100.0 as f64) / (optInTimePeriod as f64);
         while today <= endIdx {
             // Keep track of the lowestIdx
             tmp = inLow[today];
@@ -253,7 +253,7 @@ impl Core {
         highestIdx = 0 - 1;
         lowest = 0.0;
         highest = 0.0;
-        factor = ((100.0) as f64) / ((optInTimePeriod) as f64);
+        factor = (100.0 as f64) / (optInTimePeriod as f64);
         while today <= endIdx {
             tmp = *inLow.as_ptr().add(today);
             if lowestIdx < (trailingIdx) as i32 {

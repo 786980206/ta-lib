@@ -32,7 +32,7 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       /* Default return values */
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
          outReal[outIdx] = Math.atan(inReal[i]);
       }
       outNBElement.value = outIdx;
@@ -48,7 +48,7 @@
    {
       int outIdx = 0;
       int i = 0;
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
          outReal[outIdx] = Math.atan(inReal[i]);
       }
       outNBElement.value = outIdx;
@@ -70,7 +70,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
          outReal[outIdx] = Math.atan(inReal[i]);
       }
       outNBElement.value = outIdx;
@@ -86,7 +86,7 @@
    {
       int outIdx = 0;
       int i = 0;
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
          outReal[outIdx] = Math.atan(inReal[i]);
       }
       outNBElement.value = outIdx;

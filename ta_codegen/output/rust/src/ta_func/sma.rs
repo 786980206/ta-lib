@@ -135,7 +135,7 @@ impl Core {
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += (inReal[i]) as f64;
+                periodTotal += inReal[i] as f64;
                 i = i + 1;
             }
         }
@@ -144,12 +144,12 @@ impl Core {
         // outReal to be the same buffer.
         outIdx = 0;
         while i <= endIdx {
-            periodTotal += (inReal[i]) as f64;
+            periodTotal += inReal[i] as f64;
             i = i + 1;
             tempReal = periodTotal;
-            periodTotal -= (inReal[trailingIdx]) as f64;
+            periodTotal -= inReal[trailingIdx] as f64;
             trailingIdx = trailingIdx + 1;
-            outReal[outIdx] = tempReal / ((optInTimePeriod) as f64);
+            outReal[outIdx] = tempReal / (optInTimePeriod as f64);
             outIdx = outIdx + 1;
         }
         // All done. Indicate the output limits and return.
@@ -191,18 +191,18 @@ impl Core {
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += (*inReal.as_ptr().add(i)) as f64;
+                periodTotal += *inReal.as_ptr().add(i) as f64;
                 i = i + 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
-            periodTotal += (*inReal.as_ptr().add(i)) as f64;
+            periodTotal += *inReal.as_ptr().add(i) as f64;
             i = i + 1;
             tempReal = periodTotal;
-            periodTotal -= (*inReal.as_ptr().add(trailingIdx)) as f64;
+            periodTotal -= *inReal.as_ptr().add(trailingIdx) as f64;
             trailingIdx = trailingIdx + 1;
-            *outReal.as_mut_ptr().add(outIdx) = tempReal / ((optInTimePeriod) as f64);
+            *outReal.as_mut_ptr().add(outIdx) = tempReal / (optInTimePeriod as f64);
             outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;

@@ -20,11 +20,11 @@
       /* Find the MA with the largest lookback */
       lookbackLargest = movingAverageLookback(optInFastPeriod, optInFastMAType);
       tempInteger = movingAverageLookback(optInSlowPeriod, optInSlowMAType);
-      if( (tempInteger>lookbackLargest) ) {
+      if( tempInteger > lookbackLargest ) {
          lookbackLargest = tempInteger;
       }
       /* Add to the largest MA lookback the signal line lookback */
-      return (lookbackLargest+movingAverageLookback(optInSignalPeriod, optInSignalMAType)) ;
+      return lookbackLargest + movingAverageLookback(optInSignalPeriod, optInSignalMAType) ;
 
    }
    public RetCode macdExt( int startIdx,
@@ -64,7 +64,7 @@
       /* Make sure slow is really slower than
        * the fast period! if not, swap...
        */
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      if( optInSlowPeriod < optInFastPeriod ) {
          /* swap period */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
@@ -77,28 +77,28 @@
       /* Find the MA with the largest lookback */
       lookbackLargest = movingAverageLookback(optInFastPeriod, optInFastMAType);
       tempInteger = movingAverageLookback(optInSlowPeriod, optInSlowMAType);
-      if( (tempInteger>lookbackLargest) ) {
+      if( tempInteger > lookbackLargest ) {
          lookbackLargest = tempInteger;
       }
       /* Add the lookback needed for the signal line */
       lookbackSignal = movingAverageLookback(optInSignalPeriod, optInSignalMAType);
-      lookbackTotal = (lookbackSignal+lookbackLargest);
+      lookbackTotal = lookbackSignal + lookbackLargest;
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       /* Allocate intermediate buffer for fast/slow MA. */
-      tempInteger = (((endIdx-startIdx)+1)+lookbackSignal);
-      fastMABuffer = new double[(int)((tempInteger*1))];
-      slowMABuffer = new double[(int)((tempInteger*1))];
+      tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+      fastMABuffer = new double[(int)(tempInteger * 1)];
+      slowMABuffer = new double[(int)(tempInteger * 1)];
       /* Calculate the slow MA.
        *
        * Move back the startIdx to get enough data
@@ -106,42 +106,42 @@
        * signal calculation is done, all the output
        * will start at the requested 'startIdx'.
        */
-      tempInteger = (startIdx-lookbackSignal);
+      tempInteger = startIdx - lookbackSignal;
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       /* Calculate the fast MA. */
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       /* Parano tests. Will be removed eventually. */
-      if( ((((outBegIdx1.value!=tempInteger)||(outBegIdx2.value!=tempInteger))||(outNbElement1.value!=outNbElement2.value))||(outNbElement1.value!=(((endIdx-startIdx)+1)+lookbackSignal))) ) {
+      if( outBegIdx1.value != tempInteger || outBegIdx2.value != tempInteger || outNbElement1.value != outNbElement2.value || outNbElement1.value != endIdx - startIdx + 1 + lookbackSignal ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.BadParam ;
       }
       /* Calculate (fast MA) - (slow MA). */
-      for( i = 0; (i<outNbElement1.value); i += 1 ) {
-         fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
+      for( i = 0; i < outNbElement1.value; i += 1 ) {
+         fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
       }
       /* Copy the result into the output for the caller. */
-      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
+      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (endIdx - startIdx + 1) * 1);
       /* Calculate the signal/trigger line. */
-      retCode = movingAverageUnguarded(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
-      if( (retCode!=RetCode.Success) ) {
+      retCode = movingAverageUnguarded(0, outNbElement1.value - 1, fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       /* Calculate the histogram. */
-      for( i = 0; (i<outNbElement2.value); i += 1 ) {
-         outMACDHist[i] = (outMACD[i]-outMACDSignal[i]);
+      for( i = 0; i < outNbElement2.value; i += 1 ) {
+         outMACDHist[i] = outMACD[i] - outMACDSignal[i];
       }
       /* All done! Indicate the output limits and return success. */
       outBegIdx.value = startIdx;
@@ -176,7 +176,7 @@
       int lookbackLargest = 0;
       int i = 0;
       MAType tempMAType;
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      if( optInSlowPeriod < optInFastPeriod ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
@@ -186,52 +186,52 @@
       }
       lookbackLargest = movingAverageLookback(optInFastPeriod, optInFastMAType);
       tempInteger = movingAverageLookback(optInSlowPeriod, optInSlowMAType);
-      if( (tempInteger>lookbackLargest) ) {
+      if( tempInteger > lookbackLargest ) {
          lookbackLargest = tempInteger;
       }
       lookbackSignal = movingAverageLookback(optInSignalPeriod, optInSignalMAType);
-      lookbackTotal = (lookbackSignal+lookbackLargest);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackSignal + lookbackLargest;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      tempInteger = (((endIdx-startIdx)+1)+lookbackSignal);
-      fastMABuffer = new double[(int)((tempInteger*1))];
-      slowMABuffer = new double[(int)((tempInteger*1))];
-      tempInteger = (startIdx-lookbackSignal);
+      tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+      fastMABuffer = new double[(int)(tempInteger * 1)];
+      slowMABuffer = new double[(int)(tempInteger * 1)];
+      tempInteger = startIdx - lookbackSignal;
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      if( ((((outBegIdx1.value!=tempInteger)||(outBegIdx2.value!=tempInteger))||(outNbElement1.value!=outNbElement2.value))||(outNbElement1.value!=(((endIdx-startIdx)+1)+lookbackSignal))) ) {
+      if( outBegIdx1.value != tempInteger || outBegIdx2.value != tempInteger || outNbElement1.value != outNbElement2.value || outNbElement1.value != endIdx - startIdx + 1 + lookbackSignal ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.BadParam ;
       }
-      for( i = 0; (i<outNbElement1.value); i += 1 ) {
-         fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
+      for( i = 0; i < outNbElement1.value; i += 1 ) {
+         fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
       }
-      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = movingAverageUnguarded(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
-      if( (retCode!=RetCode.Success) ) {
+      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (endIdx - startIdx + 1) * 1);
+      retCode = movingAverageUnguarded(0, outNbElement1.value - 1, fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      for( i = 0; (i<outNbElement2.value); i += 1 ) {
-         outMACDHist[i] = (outMACD[i]-outMACDSignal[i]);
+      for( i = 0; i < outNbElement2.value; i += 1 ) {
+         outMACDHist[i] = outMACD[i] - outMACDSignal[i];
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outNbElement2.value;
@@ -271,7 +271,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      if( optInSlowPeriod < optInFastPeriod ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
@@ -281,52 +281,52 @@
       }
       lookbackLargest = movingAverageLookback(optInFastPeriod, optInFastMAType);
       tempInteger = movingAverageLookback(optInSlowPeriod, optInSlowMAType);
-      if( (tempInteger>lookbackLargest) ) {
+      if( tempInteger > lookbackLargest ) {
          lookbackLargest = tempInteger;
       }
       lookbackSignal = movingAverageLookback(optInSignalPeriod, optInSignalMAType);
-      lookbackTotal = (lookbackSignal+lookbackLargest);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackSignal + lookbackLargest;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      tempInteger = (((endIdx-startIdx)+1)+lookbackSignal);
-      fastMABuffer = new double[(int)((tempInteger*1))];
-      slowMABuffer = new double[(int)((tempInteger*1))];
-      tempInteger = (startIdx-lookbackSignal);
+      tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+      fastMABuffer = new double[(int)(tempInteger * 1)];
+      slowMABuffer = new double[(int)(tempInteger * 1)];
+      tempInteger = startIdx - lookbackSignal;
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      if( ((((outBegIdx1.value!=tempInteger)||(outBegIdx2.value!=tempInteger))||(outNbElement1.value!=outNbElement2.value))||(outNbElement1.value!=(((endIdx-startIdx)+1)+lookbackSignal))) ) {
+      if( outBegIdx1.value != tempInteger || outBegIdx2.value != tempInteger || outNbElement1.value != outNbElement2.value || outNbElement1.value != endIdx - startIdx + 1 + lookbackSignal ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.BadParam ;
       }
-      for( i = 0; (i<outNbElement1.value); i += 1 ) {
-         fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
+      for( i = 0; i < outNbElement1.value; i += 1 ) {
+         fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
       }
-      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = movingAverageUnguarded(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
-      if( (retCode!=RetCode.Success) ) {
+      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (endIdx - startIdx + 1) * 1);
+      retCode = movingAverageUnguarded(0, outNbElement1.value - 1, fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      for( i = 0; (i<outNbElement2.value); i += 1 ) {
-         outMACDHist[i] = (outMACD[i]-outMACDSignal[i]);
+      for( i = 0; i < outNbElement2.value; i += 1 ) {
+         outMACDHist[i] = outMACD[i] - outMACDSignal[i];
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outNbElement2.value;
@@ -360,7 +360,7 @@
       int lookbackLargest = 0;
       int i = 0;
       MAType tempMAType;
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      if( optInSlowPeriod < optInFastPeriod ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
@@ -370,52 +370,52 @@
       }
       lookbackLargest = movingAverageLookback(optInFastPeriod, optInFastMAType);
       tempInteger = movingAverageLookback(optInSlowPeriod, optInSlowMAType);
-      if( (tempInteger>lookbackLargest) ) {
+      if( tempInteger > lookbackLargest ) {
          lookbackLargest = tempInteger;
       }
       lookbackSignal = movingAverageLookback(optInSignalPeriod, optInSignalMAType);
-      lookbackTotal = (lookbackSignal+lookbackLargest);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackSignal + lookbackLargest;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
-      tempInteger = (((endIdx-startIdx)+1)+lookbackSignal);
-      fastMABuffer = new double[(int)((tempInteger*1))];
-      slowMABuffer = new double[(int)((tempInteger*1))];
-      tempInteger = (startIdx-lookbackSignal);
+      tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+      fastMABuffer = new double[(int)(tempInteger * 1)];
+      slowMABuffer = new double[(int)(tempInteger * 1)];
+      tempInteger = startIdx - lookbackSignal;
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       retCode = movingAverageUnguarded(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      if( ((((outBegIdx1.value!=tempInteger)||(outBegIdx2.value!=tempInteger))||(outNbElement1.value!=outNbElement2.value))||(outNbElement1.value!=(((endIdx-startIdx)+1)+lookbackSignal))) ) {
+      if( outBegIdx1.value != tempInteger || outBegIdx2.value != tempInteger || outNbElement1.value != outNbElement2.value || outNbElement1.value != endIdx - startIdx + 1 + lookbackSignal ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.BadParam ;
       }
-      for( i = 0; (i<outNbElement1.value); i += 1 ) {
-         fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
+      for( i = 0; i < outNbElement1.value; i += 1 ) {
+         fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
       }
-      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = movingAverageUnguarded(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
-      if( (retCode!=RetCode.Success) ) {
+      System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (endIdx - startIdx + 1) * 1);
+      retCode = movingAverageUnguarded(0, outNbElement1.value - 1, fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      for( i = 0; (i<outNbElement2.value); i += 1 ) {
-         outMACDHist[i] = (outMACD[i]-outMACDSignal[i]);
+      for( i = 0; i < outNbElement2.value; i += 1 ) {
+         outMACDHist[i] = outMACD[i] - outMACDSignal[i];
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outNbElement2.value;

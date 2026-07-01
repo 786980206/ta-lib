@@ -20,7 +20,7 @@
    public int movingAverageLookback( int optInTimePeriod, MAType optInMAType )
    {
       int retValue;
-      if( (optInTimePeriod<=1) ) {
+      if( optInTimePeriod <= 1 ) {
          return 0 ;
       }
       switch( optInMAType )
@@ -79,10 +79,10 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (optInTimePeriod==1) ) {
-         nbElement = ((endIdx-startIdx)+1);
+      if( optInTimePeriod == 1 ) {
+         nbElement = endIdx - startIdx + 1;
          outNBElement.value = nbElement;
-         for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 ) {
+         for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 ) {
             outReal[outIdx] = inReal[todayIdx];
          }
          outBegIdx.value = startIdx;
@@ -116,7 +116,7 @@
          /* The optInTimePeriod is ignored and the FAMA output of the MAMA
           * is ignored.
           */
-         dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+         dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
          retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:
@@ -142,10 +142,10 @@
       int nbElement = 0;
       int outIdx = 0;
       int todayIdx = 0;
-      if( (optInTimePeriod==1) ) {
-         nbElement = ((endIdx-startIdx)+1);
+      if( optInTimePeriod == 1 ) {
+         nbElement = endIdx - startIdx + 1;
          outNBElement.value = nbElement;
-         for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 ) {
+         for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 ) {
             outReal[outIdx] = inReal[todayIdx];
          }
          outBegIdx.value = startIdx;
@@ -175,7 +175,7 @@
          retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
-         dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+         dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
          retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:
@@ -207,10 +207,10 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (optInTimePeriod==1) ) {
-         nbElement = ((endIdx-startIdx)+1);
+      if( optInTimePeriod == 1 ) {
+         nbElement = endIdx - startIdx + 1;
          outNBElement.value = nbElement;
-         for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 ) {
+         for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 ) {
             outReal[outIdx] = inReal[todayIdx];
          }
          outBegIdx.value = startIdx;
@@ -240,7 +240,7 @@
          retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
-         dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+         dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
          retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:
@@ -266,10 +266,10 @@
       int nbElement = 0;
       int outIdx = 0;
       int todayIdx = 0;
-      if( (optInTimePeriod==1) ) {
-         nbElement = ((endIdx-startIdx)+1);
+      if( optInTimePeriod == 1 ) {
+         nbElement = endIdx - startIdx + 1;
          outNBElement.value = nbElement;
-         for( todayIdx = startIdx, outIdx = 0; (outIdx<nbElement); outIdx += 1, todayIdx += 1 ) {
+         for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 ) {
             outReal[outIdx] = inReal[todayIdx];
          }
          outBegIdx.value = startIdx;
@@ -299,7 +299,7 @@
          retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Mama:
-         dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+         dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
          retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
       case MAType.T3:

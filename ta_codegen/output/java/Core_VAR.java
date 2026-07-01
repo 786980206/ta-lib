@@ -16,7 +16,7 @@
 
    public int varianceLookback( int optInTimePeriod, double optInNbDev )
    {
-      return (optInTimePeriod-1) ;
+      return optInTimePeriod - 1 ;
 
    }
    public RetCode variance( int startIdx,
@@ -47,15 +47,15 @@
        * identify the minimum number of price bar needed
        * to calculate at least one output.
        */
-      nbInitialElementNeeded = (optInTimePeriod-1);
+      nbInitialElementNeeded = optInTimePeriod - 1;
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<nbInitialElementNeeded) ) {
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -64,10 +64,10 @@
       /* Add-up the initial periods, except for the last value. */
       periodTotal1 = 0;
       periodTotal2 = 0;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
+      trailingIdx = startIdx - nbInitialElementNeeded;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
             tempReal = inReal[i++];
             periodTotal1 += tempReal;
             tempReal *= tempReal;
@@ -90,14 +90,14 @@
          /* Square and add all the deviation over
           * the same period.
           */
-         meanValue1 = (periodTotal1/optInTimePeriod);
-         meanValue2 = (periodTotal2/optInTimePeriod);
+         meanValue1 = periodTotal1 / optInTimePeriod;
+         meanValue2 = periodTotal2 / optInTimePeriod;
          tempReal = inReal[trailingIdx++];
          periodTotal1 -= tempReal;
          tempReal *= tempReal;
          periodTotal2 -= tempReal;
-         outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-      } while( (i<=endIdx) );
+         outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+      } while( i <= endIdx );
       /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -121,21 +121,21 @@
       int outIdx = 0;
       int trailingIdx = 0;
       int nbInitialElementNeeded = 0;
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       periodTotal1 = 0;
       periodTotal2 = 0;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
+      trailingIdx = startIdx - nbInitialElementNeeded;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
             tempReal = inReal[i++];
             periodTotal1 += tempReal;
             tempReal *= tempReal;
@@ -148,14 +148,14 @@
          periodTotal1 += tempReal;
          tempReal *= tempReal;
          periodTotal2 += tempReal;
-         meanValue1 = (periodTotal1/optInTimePeriod);
-         meanValue2 = (periodTotal2/optInTimePeriod);
+         meanValue1 = periodTotal1 / optInTimePeriod;
+         meanValue2 = periodTotal2 / optInTimePeriod;
          tempReal = inReal[trailingIdx++];
          periodTotal1 -= tempReal;
          tempReal *= tempReal;
          periodTotal2 -= tempReal;
-         outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-      } while( (i<=endIdx) );
+         outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -184,21 +184,21 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       periodTotal1 = 0;
       periodTotal2 = 0;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
+      trailingIdx = startIdx - nbInitialElementNeeded;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
             tempReal = inReal[i++];
             periodTotal1 += tempReal;
             tempReal *= tempReal;
@@ -211,14 +211,14 @@
          periodTotal1 += tempReal;
          tempReal *= tempReal;
          periodTotal2 += tempReal;
-         meanValue1 = (periodTotal1/optInTimePeriod);
-         meanValue2 = (periodTotal2/optInTimePeriod);
+         meanValue1 = periodTotal1 / optInTimePeriod;
+         meanValue2 = periodTotal2 / optInTimePeriod;
          tempReal = inReal[trailingIdx++];
          periodTotal1 -= tempReal;
          tempReal *= tempReal;
          periodTotal2 -= tempReal;
-         outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-      } while( (i<=endIdx) );
+         outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -241,21 +241,21 @@
       int outIdx = 0;
       int trailingIdx = 0;
       int nbInitialElementNeeded = 0;
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       periodTotal1 = 0;
       periodTotal2 = 0;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
+      trailingIdx = startIdx - nbInitialElementNeeded;
       i = trailingIdx;
-      if( (optInTimePeriod>1) ) {
-         while( (i<startIdx) ) {
+      if( optInTimePeriod > 1 ) {
+         while( i < startIdx ) {
             tempReal = inReal[i++];
             periodTotal1 += tempReal;
             tempReal *= tempReal;
@@ -268,14 +268,14 @@
          periodTotal1 += tempReal;
          tempReal *= tempReal;
          periodTotal2 += tempReal;
-         meanValue1 = (periodTotal1/optInTimePeriod);
-         meanValue2 = (periodTotal2/optInTimePeriod);
+         meanValue1 = periodTotal1 / optInTimePeriod;
+         meanValue2 = periodTotal2 / optInTimePeriod;
          tempReal = inReal[trailingIdx++];
          periodTotal1 -= tempReal;
          tempReal *= tempReal;
          periodTotal2 -= tempReal;
-         outReal[outIdx++] = (meanValue2-(meanValue1*meanValue1));
-      } while( (i<=endIdx) );
+         outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;

@@ -45,11 +45,11 @@
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -70,19 +70,19 @@
        */
       outIdx = 0;
       do {
-         if( (((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((inClose[i]>=inOpen[(i-1)])&&(inOpen[i]<inClose[(i-1)]))||((inClose[i]>inOpen[(i-1)])&&(inOpen[i]<=inClose[(i-1)]))))||((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&(((inOpen[i]>=inClose[(i-1)])&&(inClose[i]<inOpen[(i-1)]))||((inOpen[i]>inClose[(i-1)])&&(inClose[i]<=inOpen[(i-1)]))))) ) {
+         if( ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] || inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]) || ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] || inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]) ) {
             /* white engulfs black */
             /* black engulfs white */
-            if( ((inOpen[i]!=inClose[(i-1)])&&(inClose[i]!=inOpen[(i-1)])) ) {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
+            if( inOpen[i] != inClose[i - 1] && inClose[i] != inOpen[i - 1] ) {
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 100;
             } else {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*80);
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 80;
             }
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -102,10 +102,10 @@
       int outIdx = 0;
       int lookbackTotal = 0;
       lookbackTotal = cdlEngulfingLookback();
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -113,17 +113,17 @@
       i = startIdx;
       outIdx = 0;
       do {
-         if( (((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((inClose[i]>=inOpen[(i-1)])&&(inOpen[i]<inClose[(i-1)]))||((inClose[i]>inOpen[(i-1)])&&(inOpen[i]<=inClose[(i-1)]))))||((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&(((inOpen[i]>=inClose[(i-1)])&&(inClose[i]<inOpen[(i-1)]))||((inOpen[i]>inClose[(i-1)])&&(inClose[i]<=inOpen[(i-1)]))))) ) {
-            if( ((inOpen[i]!=inClose[(i-1)])&&(inClose[i]!=inOpen[(i-1)])) ) {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
+         if( ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] || inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]) || ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] || inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]) ) {
+            if( inOpen[i] != inClose[i - 1] && inClose[i] != inOpen[i - 1] ) {
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 100;
             } else {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*80);
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 80;
             }
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -148,10 +148,10 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       lookbackTotal = cdlEngulfingLookback();
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -159,17 +159,17 @@
       i = startIdx;
       outIdx = 0;
       do {
-         if( (((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((inClose[i]>=inOpen[(i-1)])&&(inOpen[i]<inClose[(i-1)]))||((inClose[i]>inOpen[(i-1)])&&(inOpen[i]<=inClose[(i-1)]))))||((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&(((inOpen[i]>=inClose[(i-1)])&&(inClose[i]<inOpen[(i-1)]))||((inOpen[i]>inClose[(i-1)])&&(inClose[i]<=inOpen[(i-1)]))))) ) {
-            if( ((inOpen[i]!=inClose[(i-1)])&&(inClose[i]!=inOpen[(i-1)])) ) {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
+         if( ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] || inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]) || ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] || inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]) ) {
+            if( inOpen[i] != inClose[i - 1] && inClose[i] != inOpen[i - 1] ) {
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 100;
             } else {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*80);
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 80;
             }
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -188,10 +188,10 @@
       int outIdx = 0;
       int lookbackTotal = 0;
       lookbackTotal = cdlEngulfingLookback();
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -199,17 +199,17 @@
       i = startIdx;
       outIdx = 0;
       do {
-         if( (((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((inClose[i]>=inOpen[(i-1)])&&(inOpen[i]<inClose[(i-1)]))||((inClose[i]>inOpen[(i-1)])&&(inOpen[i]<=inClose[(i-1)]))))||((((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&(((inOpen[i]>=inClose[(i-1)])&&(inClose[i]<inOpen[(i-1)]))||((inOpen[i]>inClose[(i-1)])&&(inClose[i]<=inOpen[(i-1)]))))) ) {
-            if( ((inOpen[i]!=inClose[(i-1)])&&(inClose[i]!=inOpen[(i-1)])) ) {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
+         if( ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - 1 && (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] || inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]) || ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 0 - 1 && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 1 && (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] || inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]) ) {
+            if( inOpen[i] != inClose[i - 1] && inClose[i] != inOpen[i - 1] ) {
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 100;
             } else {
-               outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*80);
+               outInteger[outIdx++] = ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) * 80;
             }
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;

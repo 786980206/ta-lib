@@ -15,7 +15,7 @@
 
    public int midPointLookback( int optInTimePeriod )
    {
-      return (optInTimePeriod-1) ;
+      return optInTimePeriod - 1 ;
 
    }
    public RetCode midPoint( int startIdx,
@@ -51,15 +51,15 @@
        * to identify at least one output over the specified
        * period.
        */
-      nbInitialElementNeeded = (optInTimePeriod-1);
+      nbInitialElementNeeded = optInTimePeriod - 1;
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<nbInitialElementNeeded) ) {
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -70,19 +70,19 @@
        */
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      while( (today<=endIdx) ) {
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      while( today <= endIdx ) {
          lowest = inReal[trailingIdx++];
          highest = lowest;
-         for( i = trailingIdx; (i<=today); i += 1 ) {
+         for( i = trailingIdx; i <= today; i += 1 ) {
             tmp = inReal[i];
-            if( (tmp<lowest) ) {
+            if( tmp < lowest ) {
                lowest = tmp;
-            } else if( (tmp>highest) ) {
+            } else if( tmp > highest ) {
                highest = tmp;
             }
          }
-         outReal[outIdx++] = ((highest+lowest)/2.0);
+         outReal[outIdx++] = (highest + lowest) / 2.0;
          today += 1;
       }
       /* Keep the outBegIdx relative to the
@@ -108,30 +108,30 @@
       int trailingIdx = 0;
       int today = 0;
       int i = 0;
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      while( (today<=endIdx) ) {
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      while( today <= endIdx ) {
          lowest = inReal[trailingIdx++];
          highest = lowest;
-         for( i = trailingIdx; (i<=today); i += 1 ) {
+         for( i = trailingIdx; i <= today; i += 1 ) {
             tmp = inReal[i];
-            if( (tmp<lowest) ) {
+            if( tmp < lowest ) {
                lowest = tmp;
-            } else if( (tmp>highest) ) {
+            } else if( tmp > highest ) {
                highest = tmp;
             }
          }
-         outReal[outIdx++] = ((highest+lowest)/2.0);
+         outReal[outIdx++] = (highest + lowest) / 2.0;
          today += 1;
       }
       outBegIdx.value = startIdx;
@@ -160,30 +160,30 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      while( (today<=endIdx) ) {
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      while( today <= endIdx ) {
          lowest = inReal[trailingIdx++];
          highest = lowest;
-         for( i = trailingIdx; (i<=today); i += 1 ) {
+         for( i = trailingIdx; i <= today; i += 1 ) {
             tmp = inReal[i];
-            if( (tmp<lowest) ) {
+            if( tmp < lowest ) {
                lowest = tmp;
-            } else if( (tmp>highest) ) {
+            } else if( tmp > highest ) {
                highest = tmp;
             }
          }
-         outReal[outIdx++] = ((highest+lowest)/2.0);
+         outReal[outIdx++] = (highest + lowest) / 2.0;
          today += 1;
       }
       outBegIdx.value = startIdx;
@@ -206,30 +206,30 @@
       int trailingIdx = 0;
       int today = 0;
       int i = 0;
-      nbInitialElementNeeded = (optInTimePeriod-1);
-      if( (startIdx<nbInitialElementNeeded) ) {
+      nbInitialElementNeeded = optInTimePeriod - 1;
+      if( startIdx < nbInitialElementNeeded ) {
          startIdx = nbInitialElementNeeded;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      trailingIdx = (startIdx-nbInitialElementNeeded);
-      while( (today<=endIdx) ) {
+      trailingIdx = startIdx - nbInitialElementNeeded;
+      while( today <= endIdx ) {
          lowest = inReal[trailingIdx++];
          highest = lowest;
-         for( i = trailingIdx; (i<=today); i += 1 ) {
+         for( i = trailingIdx; i <= today; i += 1 ) {
             tmp = inReal[i];
-            if( (tmp<lowest) ) {
+            if( tmp < lowest ) {
                lowest = tmp;
-            } else if( (tmp>highest) ) {
+            } else if( tmp > highest ) {
                highest = tmp;
             }
          }
-         outReal[outIdx++] = ((highest+lowest)/2.0);
+         outReal[outIdx++] = (highest + lowest) / 2.0;
          today += 1;
       }
       outBegIdx.value = startIdx;

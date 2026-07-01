@@ -124,11 +124,11 @@
        * Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -141,39 +141,39 @@
        */
       afLong = optInAccelerationInitLong;
       afShort = optInAccelerationInitShort;
-      if( (afLong>optInAccelerationMaxLong) ) {
+      if( afLong > optInAccelerationMaxLong ) {
          optInAccelerationInitLong = optInAccelerationMaxLong;
          afLong = optInAccelerationInitLong;
       }
-      if( (optInAccelerationLong>optInAccelerationMaxLong) ) {
+      if( optInAccelerationLong > optInAccelerationMaxLong ) {
          optInAccelerationLong = optInAccelerationMaxLong;
       }
-      if( (afShort>optInAccelerationMaxShort) ) {
+      if( afShort > optInAccelerationMaxShort ) {
          optInAccelerationInitShort = optInAccelerationMaxShort;
          afShort = optInAccelerationInitShort;
       }
-      if( (optInAccelerationShort>optInAccelerationMaxShort) ) {
+      if( optInAccelerationShort > optInAccelerationMaxShort ) {
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       /* Initialise SAR calculations */
-      if( (optInStartValue==0) ) {
+      if( optInStartValue == 0 ) {
          /* Default action */
          /* Identify if the initial direction is long or short.
           * (ep is just used as a temp buffer here, the name
           *  of the parameter is not significant).
           */
          retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
-         if( (ep_temp[0]>0) ) {
+         if( ep_temp[0] > 0 ) {
             isLong = 0;
          } else {
             isLong = 1;
          }
-         if( (retCode!=RetCode.Success) ) {
+         if( retCode != RetCode.Success ) {
             outBegIdx.value = 0;
             outNBElement.value = 0;
             return retCode ;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          /* Start Long */
          isLong = 1;
       } else {
@@ -184,18 +184,18 @@
       outIdx = 0;
       /* Write the first SAR. */
       todayIdx = startIdx;
-      newHigh = inHigh[(todayIdx-1)];
-      newLow = inLow[(todayIdx-1)];
-      if( (optInStartValue==0) ) {
+      newHigh = inHigh[todayIdx - 1];
+      newLow = inLow[todayIdx - 1];
+      if( optInStartValue == 0 ) {
          /* Default action */
-         if( (isLong==1) ) {
+         if( isLong == 1 ) {
             ep = inHigh[todayIdx];
             sar = newLow;
          } else {
             ep = inLow[todayIdx];
             sar = newHigh;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          /* Start Long at specified value. */
          ep = inHigh[todayIdx];
          sar = optInStartValue;
@@ -209,44 +209,44 @@
        */
       newLow = inLow[todayIdx];
       newHigh = inHigh[todayIdx];
-      while( (todayIdx<=endIdx) ) {
+      while( todayIdx <= endIdx ) {
          prevLow = newLow;
          prevHigh = newHigh;
          newLow = inLow[todayIdx];
          newHigh = inHigh[todayIdx];
          todayIdx += 1;
-         if( (isLong==1) ) {
+         if( isLong == 1 ) {
             /* Switch to short if the low penetrates the SAR value. */
-            if( (newLow<=sar) ) {
+            if( newLow <= sar ) {
                /* Switch and Overide the SAR with the ep */
                isLong = 0;
                sar = ep;
                /* Make sure the overide SAR is within
                 * yesterday's and today's range.
                 */
-               if( (sar<prevHigh) ) {
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
                /* Output the overide SAR */
-               if( (optInOffsetOnReverse!=0.0) ) {
-                  sar += (sar*optInOffsetOnReverse);
+               if( optInOffsetOnReverse != 0.0 ) {
+                  sar += sar * optInOffsetOnReverse;
                }
-               outReal[outIdx++] = (0-sar);
+               outReal[outIdx++] = 0 - sar;
                /* Adjust afShort and ep */
                afShort = optInAccelerationInitShort;
                ep = newLow;
                /* Calculate the new SAR */
-               sar = (sar+(afShort*(ep-sar)));
+               sar = sar + afShort * (ep - sar);
                /* Make sure the new SAR is within
                 * yesterday's and today's range.
                 */
-               if( (sar<prevHigh) ) {
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
             } else {
@@ -254,79 +254,79 @@
                /* Output the SAR (was calculated in the previous iteration) */
                outReal[outIdx++] = sar;
                /* Adjust afLong and ep. */
-               if( (newHigh>ep) ) {
+               if( newHigh > ep ) {
                   ep = newHigh;
                   afLong += optInAccelerationLong;
-                  if( (afLong>optInAccelerationMaxLong) ) {
+                  if( afLong > optInAccelerationMaxLong ) {
                      afLong = optInAccelerationMaxLong;
                   }
                }
                /* Calculate the new SAR */
-               sar = (sar+(afLong*(ep-sar)));
+               sar = sar + afLong * (ep - sar);
                /* Make sure the new SAR is within
                 * yesterday's and today's range.
                 */
-               if( (sar>prevLow) ) {
+               if( sar > prevLow ) {
                   sar = prevLow;
                }
-               if( (sar>newLow) ) {
+               if( sar > newLow ) {
                   sar = newLow;
                }
             }
          /* Switch to long if the high penetrates the SAR value. */
-         } else if( (newHigh>=sar) ) {
+         } else if( newHigh >= sar ) {
             /* Switch and Overide the SAR with the ep */
             isLong = 1;
             sar = ep;
             /* Make sure the overide SAR is within
              * yesterday's and today's range.
              */
-            if( (sar>prevLow) ) {
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
             /* Output the overide SAR */
-            if( (optInOffsetOnReverse!=0.0) ) {
-               sar -= (sar*optInOffsetOnReverse);
+            if( optInOffsetOnReverse != 0.0 ) {
+               sar -= sar * optInOffsetOnReverse;
             }
             outReal[outIdx++] = sar;
             /* Adjust afLong and ep */
             afLong = optInAccelerationInitLong;
             ep = newHigh;
             /* Calculate the new SAR */
-            sar = (sar+(afLong*(ep-sar)));
+            sar = sar + afLong * (ep - sar);
             /* Make sure the new SAR is within
              * yesterday's and today's range.
              */
-            if( (sar>prevLow) ) {
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
          } else {
             /* No switch */
             /* Output the SAR (was calculated in the previous iteration) */
-            outReal[outIdx++] = (0-sar);
+            outReal[outIdx++] = 0 - sar;
             /* Adjust afShort and ep. */
-            if( (newLow<ep) ) {
+            if( newLow < ep ) {
                ep = newLow;
                afShort += optInAccelerationShort;
-               if( (afShort>optInAccelerationMaxShort) ) {
+               if( afShort > optInAccelerationMaxShort ) {
                   afShort = optInAccelerationMaxShort;
                }
             }
             /* Calculate the new SAR */
-            sar = (sar+(afShort*(ep-sar)));
+            sar = sar + afShort * (ep - sar);
             /* Make sure the new SAR is within
              * yesterday's and today's range.
              */
-            if( (sar<prevHigh) ) {
+            if( sar < prevHigh ) {
                sar = prevHigh;
             }
-            if( (sar<newHigh) ) {
+            if( sar < newHigh ) {
                sar = newHigh;
             }
          }
@@ -364,43 +364,43 @@
       double ep = 0;
       double sar = 0;
       double[] ep_temp = new double[1];
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       afLong = optInAccelerationInitLong;
       afShort = optInAccelerationInitShort;
-      if( (afLong>optInAccelerationMaxLong) ) {
+      if( afLong > optInAccelerationMaxLong ) {
          optInAccelerationInitLong = optInAccelerationMaxLong;
          afLong = optInAccelerationInitLong;
       }
-      if( (optInAccelerationLong>optInAccelerationMaxLong) ) {
+      if( optInAccelerationLong > optInAccelerationMaxLong ) {
          optInAccelerationLong = optInAccelerationMaxLong;
       }
-      if( (afShort>optInAccelerationMaxShort) ) {
+      if( afShort > optInAccelerationMaxShort ) {
          optInAccelerationInitShort = optInAccelerationMaxShort;
          afShort = optInAccelerationInitShort;
       }
-      if( (optInAccelerationShort>optInAccelerationMaxShort) ) {
+      if( optInAccelerationShort > optInAccelerationMaxShort ) {
          optInAccelerationShort = optInAccelerationMaxShort;
       }
-      if( (optInStartValue==0) ) {
+      if( optInStartValue == 0 ) {
          retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
-         if( (ep_temp[0]>0) ) {
+         if( ep_temp[0] > 0 ) {
             isLong = 0;
          } else {
             isLong = 1;
          }
-         if( (retCode!=RetCode.Success) ) {
+         if( retCode != RetCode.Success ) {
             outBegIdx.value = 0;
             outNBElement.value = 0;
             return retCode ;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          isLong = 1;
       } else {
          isLong = 0;
@@ -408,17 +408,17 @@
       outBegIdx.value = startIdx;
       outIdx = 0;
       todayIdx = startIdx;
-      newHigh = inHigh[(todayIdx-1)];
-      newLow = inLow[(todayIdx-1)];
-      if( (optInStartValue==0) ) {
-         if( (isLong==1) ) {
+      newHigh = inHigh[todayIdx - 1];
+      newLow = inLow[todayIdx - 1];
+      if( optInStartValue == 0 ) {
+         if( isLong == 1 ) {
             ep = inHigh[todayIdx];
             sar = newLow;
          } else {
             ep = inLow[todayIdx];
             sar = newHigh;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          ep = inHigh[todayIdx];
          sar = optInStartValue;
       } else {
@@ -427,88 +427,88 @@
       }
       newLow = inLow[todayIdx];
       newHigh = inHigh[todayIdx];
-      while( (todayIdx<=endIdx) ) {
+      while( todayIdx <= endIdx ) {
          prevLow = newLow;
          prevHigh = newHigh;
          newLow = inLow[todayIdx];
          newHigh = inHigh[todayIdx];
          todayIdx += 1;
-         if( (isLong==1) ) {
-            if( (newLow<=sar) ) {
+         if( isLong == 1 ) {
+            if( newLow <= sar ) {
                isLong = 0;
                sar = ep;
-               if( (sar<prevHigh) ) {
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
-               if( (optInOffsetOnReverse!=0.0) ) {
-                  sar += (sar*optInOffsetOnReverse);
+               if( optInOffsetOnReverse != 0.0 ) {
+                  sar += sar * optInOffsetOnReverse;
                }
-               outReal[outIdx++] = (0-sar);
+               outReal[outIdx++] = 0 - sar;
                afShort = optInAccelerationInitShort;
                ep = newLow;
-               sar = (sar+(afShort*(ep-sar)));
-               if( (sar<prevHigh) ) {
+               sar = sar + afShort * (ep - sar);
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
             } else {
                outReal[outIdx++] = sar;
-               if( (newHigh>ep) ) {
+               if( newHigh > ep ) {
                   ep = newHigh;
                   afLong += optInAccelerationLong;
-                  if( (afLong>optInAccelerationMaxLong) ) {
+                  if( afLong > optInAccelerationMaxLong ) {
                      afLong = optInAccelerationMaxLong;
                   }
                }
-               sar = (sar+(afLong*(ep-sar)));
-               if( (sar>prevLow) ) {
+               sar = sar + afLong * (ep - sar);
+               if( sar > prevLow ) {
                   sar = prevLow;
                }
-               if( (sar>newLow) ) {
+               if( sar > newLow ) {
                   sar = newLow;
                }
             }
-         } else if( (newHigh>=sar) ) {
+         } else if( newHigh >= sar ) {
             isLong = 1;
             sar = ep;
-            if( (sar>prevLow) ) {
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
-            if( (optInOffsetOnReverse!=0.0) ) {
-               sar -= (sar*optInOffsetOnReverse);
+            if( optInOffsetOnReverse != 0.0 ) {
+               sar -= sar * optInOffsetOnReverse;
             }
             outReal[outIdx++] = sar;
             afLong = optInAccelerationInitLong;
             ep = newHigh;
-            sar = (sar+(afLong*(ep-sar)));
-            if( (sar>prevLow) ) {
+            sar = sar + afLong * (ep - sar);
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
          } else {
-            outReal[outIdx++] = (0-sar);
-            if( (newLow<ep) ) {
+            outReal[outIdx++] = 0 - sar;
+            if( newLow < ep ) {
                ep = newLow;
                afShort += optInAccelerationShort;
-               if( (afShort>optInAccelerationMaxShort) ) {
+               if( afShort > optInAccelerationMaxShort ) {
                   afShort = optInAccelerationMaxShort;
                }
             }
-            sar = (sar+(afShort*(ep-sar)));
-            if( (sar<prevHigh) ) {
+            sar = sar + afShort * (ep - sar);
+            if( sar < prevHigh ) {
                sar = prevHigh;
             }
-            if( (sar<newHigh) ) {
+            if( sar < newHigh ) {
                sar = newHigh;
             }
          }
@@ -552,43 +552,43 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       afLong = optInAccelerationInitLong;
       afShort = optInAccelerationInitShort;
-      if( (afLong>optInAccelerationMaxLong) ) {
+      if( afLong > optInAccelerationMaxLong ) {
          optInAccelerationInitLong = optInAccelerationMaxLong;
          afLong = optInAccelerationInitLong;
       }
-      if( (optInAccelerationLong>optInAccelerationMaxLong) ) {
+      if( optInAccelerationLong > optInAccelerationMaxLong ) {
          optInAccelerationLong = optInAccelerationMaxLong;
       }
-      if( (afShort>optInAccelerationMaxShort) ) {
+      if( afShort > optInAccelerationMaxShort ) {
          optInAccelerationInitShort = optInAccelerationMaxShort;
          afShort = optInAccelerationInitShort;
       }
-      if( (optInAccelerationShort>optInAccelerationMaxShort) ) {
+      if( optInAccelerationShort > optInAccelerationMaxShort ) {
          optInAccelerationShort = optInAccelerationMaxShort;
       }
-      if( (optInStartValue==0) ) {
+      if( optInStartValue == 0 ) {
          retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
-         if( (ep_temp[0]>0) ) {
+         if( ep_temp[0] > 0 ) {
             isLong = 0;
          } else {
             isLong = 1;
          }
-         if( (retCode!=RetCode.Success) ) {
+         if( retCode != RetCode.Success ) {
             outBegIdx.value = 0;
             outNBElement.value = 0;
             return retCode ;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          isLong = 1;
       } else {
          isLong = 0;
@@ -596,17 +596,17 @@
       outBegIdx.value = startIdx;
       outIdx = 0;
       todayIdx = startIdx;
-      newHigh = inHigh[(todayIdx-1)];
-      newLow = inLow[(todayIdx-1)];
-      if( (optInStartValue==0) ) {
-         if( (isLong==1) ) {
+      newHigh = inHigh[todayIdx - 1];
+      newLow = inLow[todayIdx - 1];
+      if( optInStartValue == 0 ) {
+         if( isLong == 1 ) {
             ep = inHigh[todayIdx];
             sar = newLow;
          } else {
             ep = inLow[todayIdx];
             sar = newHigh;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          ep = inHigh[todayIdx];
          sar = optInStartValue;
       } else {
@@ -615,88 +615,88 @@
       }
       newLow = inLow[todayIdx];
       newHigh = inHigh[todayIdx];
-      while( (todayIdx<=endIdx) ) {
+      while( todayIdx <= endIdx ) {
          prevLow = newLow;
          prevHigh = newHigh;
          newLow = inLow[todayIdx];
          newHigh = inHigh[todayIdx];
          todayIdx += 1;
-         if( (isLong==1) ) {
-            if( (newLow<=sar) ) {
+         if( isLong == 1 ) {
+            if( newLow <= sar ) {
                isLong = 0;
                sar = ep;
-               if( (sar<prevHigh) ) {
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
-               if( (optInOffsetOnReverse!=0.0) ) {
-                  sar += (sar*optInOffsetOnReverse);
+               if( optInOffsetOnReverse != 0.0 ) {
+                  sar += sar * optInOffsetOnReverse;
                }
-               outReal[outIdx++] = (0-sar);
+               outReal[outIdx++] = 0 - sar;
                afShort = optInAccelerationInitShort;
                ep = newLow;
-               sar = (sar+(afShort*(ep-sar)));
-               if( (sar<prevHigh) ) {
+               sar = sar + afShort * (ep - sar);
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
             } else {
                outReal[outIdx++] = sar;
-               if( (newHigh>ep) ) {
+               if( newHigh > ep ) {
                   ep = newHigh;
                   afLong += optInAccelerationLong;
-                  if( (afLong>optInAccelerationMaxLong) ) {
+                  if( afLong > optInAccelerationMaxLong ) {
                      afLong = optInAccelerationMaxLong;
                   }
                }
-               sar = (sar+(afLong*(ep-sar)));
-               if( (sar>prevLow) ) {
+               sar = sar + afLong * (ep - sar);
+               if( sar > prevLow ) {
                   sar = prevLow;
                }
-               if( (sar>newLow) ) {
+               if( sar > newLow ) {
                   sar = newLow;
                }
             }
-         } else if( (newHigh>=sar) ) {
+         } else if( newHigh >= sar ) {
             isLong = 1;
             sar = ep;
-            if( (sar>prevLow) ) {
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
-            if( (optInOffsetOnReverse!=0.0) ) {
-               sar -= (sar*optInOffsetOnReverse);
+            if( optInOffsetOnReverse != 0.0 ) {
+               sar -= sar * optInOffsetOnReverse;
             }
             outReal[outIdx++] = sar;
             afLong = optInAccelerationInitLong;
             ep = newHigh;
-            sar = (sar+(afLong*(ep-sar)));
-            if( (sar>prevLow) ) {
+            sar = sar + afLong * (ep - sar);
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
          } else {
-            outReal[outIdx++] = (0-sar);
-            if( (newLow<ep) ) {
+            outReal[outIdx++] = 0 - sar;
+            if( newLow < ep ) {
                ep = newLow;
                afShort += optInAccelerationShort;
-               if( (afShort>optInAccelerationMaxShort) ) {
+               if( afShort > optInAccelerationMaxShort ) {
                   afShort = optInAccelerationMaxShort;
                }
             }
-            sar = (sar+(afShort*(ep-sar)));
-            if( (sar<prevHigh) ) {
+            sar = sar + afShort * (ep - sar);
+            if( sar < prevHigh ) {
                sar = prevHigh;
             }
-            if( (sar<newHigh) ) {
+            if( sar < newHigh ) {
                sar = newHigh;
             }
          }
@@ -734,43 +734,43 @@
       double ep = 0;
       double sar = 0;
       double[] ep_temp = new double[1];
-      if( (startIdx<1) ) {
+      if( startIdx < 1 ) {
          startIdx = 1;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       afLong = optInAccelerationInitLong;
       afShort = optInAccelerationInitShort;
-      if( (afLong>optInAccelerationMaxLong) ) {
+      if( afLong > optInAccelerationMaxLong ) {
          optInAccelerationInitLong = optInAccelerationMaxLong;
          afLong = optInAccelerationInitLong;
       }
-      if( (optInAccelerationLong>optInAccelerationMaxLong) ) {
+      if( optInAccelerationLong > optInAccelerationMaxLong ) {
          optInAccelerationLong = optInAccelerationMaxLong;
       }
-      if( (afShort>optInAccelerationMaxShort) ) {
+      if( afShort > optInAccelerationMaxShort ) {
          optInAccelerationInitShort = optInAccelerationMaxShort;
          afShort = optInAccelerationInitShort;
       }
-      if( (optInAccelerationShort>optInAccelerationMaxShort) ) {
+      if( optInAccelerationShort > optInAccelerationMaxShort ) {
          optInAccelerationShort = optInAccelerationMaxShort;
       }
-      if( (optInStartValue==0) ) {
+      if( optInStartValue == 0 ) {
          retCode = minusDMUnguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
-         if( (ep_temp[0]>0) ) {
+         if( ep_temp[0] > 0 ) {
             isLong = 0;
          } else {
             isLong = 1;
          }
-         if( (retCode!=RetCode.Success) ) {
+         if( retCode != RetCode.Success ) {
             outBegIdx.value = 0;
             outNBElement.value = 0;
             return retCode ;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          isLong = 1;
       } else {
          isLong = 0;
@@ -778,17 +778,17 @@
       outBegIdx.value = startIdx;
       outIdx = 0;
       todayIdx = startIdx;
-      newHigh = inHigh[(todayIdx-1)];
-      newLow = inLow[(todayIdx-1)];
-      if( (optInStartValue==0) ) {
-         if( (isLong==1) ) {
+      newHigh = inHigh[todayIdx - 1];
+      newLow = inLow[todayIdx - 1];
+      if( optInStartValue == 0 ) {
+         if( isLong == 1 ) {
             ep = inHigh[todayIdx];
             sar = newLow;
          } else {
             ep = inLow[todayIdx];
             sar = newHigh;
          }
-      } else if( (optInStartValue>0) ) {
+      } else if( optInStartValue > 0 ) {
          ep = inHigh[todayIdx];
          sar = optInStartValue;
       } else {
@@ -797,88 +797,88 @@
       }
       newLow = inLow[todayIdx];
       newHigh = inHigh[todayIdx];
-      while( (todayIdx<=endIdx) ) {
+      while( todayIdx <= endIdx ) {
          prevLow = newLow;
          prevHigh = newHigh;
          newLow = inLow[todayIdx];
          newHigh = inHigh[todayIdx];
          todayIdx += 1;
-         if( (isLong==1) ) {
-            if( (newLow<=sar) ) {
+         if( isLong == 1 ) {
+            if( newLow <= sar ) {
                isLong = 0;
                sar = ep;
-               if( (sar<prevHigh) ) {
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
-               if( (optInOffsetOnReverse!=0.0) ) {
-                  sar += (sar*optInOffsetOnReverse);
+               if( optInOffsetOnReverse != 0.0 ) {
+                  sar += sar * optInOffsetOnReverse;
                }
-               outReal[outIdx++] = (0-sar);
+               outReal[outIdx++] = 0 - sar;
                afShort = optInAccelerationInitShort;
                ep = newLow;
-               sar = (sar+(afShort*(ep-sar)));
-               if( (sar<prevHigh) ) {
+               sar = sar + afShort * (ep - sar);
+               if( sar < prevHigh ) {
                   sar = prevHigh;
                }
-               if( (sar<newHigh) ) {
+               if( sar < newHigh ) {
                   sar = newHigh;
                }
             } else {
                outReal[outIdx++] = sar;
-               if( (newHigh>ep) ) {
+               if( newHigh > ep ) {
                   ep = newHigh;
                   afLong += optInAccelerationLong;
-                  if( (afLong>optInAccelerationMaxLong) ) {
+                  if( afLong > optInAccelerationMaxLong ) {
                      afLong = optInAccelerationMaxLong;
                   }
                }
-               sar = (sar+(afLong*(ep-sar)));
-               if( (sar>prevLow) ) {
+               sar = sar + afLong * (ep - sar);
+               if( sar > prevLow ) {
                   sar = prevLow;
                }
-               if( (sar>newLow) ) {
+               if( sar > newLow ) {
                   sar = newLow;
                }
             }
-         } else if( (newHigh>=sar) ) {
+         } else if( newHigh >= sar ) {
             isLong = 1;
             sar = ep;
-            if( (sar>prevLow) ) {
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
-            if( (optInOffsetOnReverse!=0.0) ) {
-               sar -= (sar*optInOffsetOnReverse);
+            if( optInOffsetOnReverse != 0.0 ) {
+               sar -= sar * optInOffsetOnReverse;
             }
             outReal[outIdx++] = sar;
             afLong = optInAccelerationInitLong;
             ep = newHigh;
-            sar = (sar+(afLong*(ep-sar)));
-            if( (sar>prevLow) ) {
+            sar = sar + afLong * (ep - sar);
+            if( sar > prevLow ) {
                sar = prevLow;
             }
-            if( (sar>newLow) ) {
+            if( sar > newLow ) {
                sar = newLow;
             }
          } else {
-            outReal[outIdx++] = (0-sar);
-            if( (newLow<ep) ) {
+            outReal[outIdx++] = 0 - sar;
+            if( newLow < ep ) {
                ep = newLow;
                afShort += optInAccelerationShort;
-               if( (afShort>optInAccelerationMaxShort) ) {
+               if( afShort > optInAccelerationMaxShort ) {
                   afShort = optInAccelerationMaxShort;
                }
             }
-            sar = (sar+(afShort*(ep-sar)));
-            if( (sar<prevHigh) ) {
+            sar = sar + afShort * (ep - sar);
+            if( sar < prevHigh ) {
                sar = prevHigh;
             }
-            if( (sar<newHigh) ) {
+            if( sar < newHigh ) {
                sar = newHigh;
             }
          }

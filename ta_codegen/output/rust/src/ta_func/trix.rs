@@ -173,7 +173,7 @@ impl Core {
         retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
         // Verify for failure or if not enough data after
         // calculating the rate-of-change.
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
@@ -239,7 +239,7 @@ impl Core {
         }
         nbElementToOutput -= emaLookback;
         retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;

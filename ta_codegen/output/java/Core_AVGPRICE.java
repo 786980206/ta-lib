@@ -40,8 +40,8 @@
       }
       /* Average price = (High + Low + Open + Close) / 4 */
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
-         outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      for( i = startIdx; i <= endIdx; i += 1 ) {
+         outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -60,8 +60,8 @@
       int outIdx = 0;
       int i = 0;
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
-         outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      for( i = startIdx; i <= endIdx; i += 1 ) {
+         outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -86,8 +86,8 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
-         outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      for( i = startIdx; i <= endIdx; i += 1 ) {
+         outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -106,8 +106,8 @@
       int outIdx = 0;
       int i = 0;
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
-         outReal[outIdx++] = ((((inHigh[i]+inLow[i])+inClose[i])+inOpen[i])/4);
+      for( i = startIdx; i <= endIdx; i += 1 ) {
+         outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / 4;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;

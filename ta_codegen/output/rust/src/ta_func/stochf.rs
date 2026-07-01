@@ -285,7 +285,7 @@ impl Core {
         // Fast-K calculation completed. This K calculation is returned
         // to the caller. It is smoothed to become Fast-D.
         retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
             // Something wrong happen? No further data?
@@ -298,7 +298,7 @@ impl Core {
         //  caller buffer because more input data then the
         //  requested range was needed for doing %D).
         {
-            let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
+            let _n = ((((*outNBElement) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;
             let _si = (lookbackFastD) as usize;
             outFastK[_di.._di + _n].copy_from_slice(&tempBuffer[_si.._si + _n]);
@@ -431,7 +431,7 @@ impl Core {
             today += 1;
         }
         retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
             (*outBegIdx) = 0;
@@ -439,7 +439,7 @@ impl Core {
             return retCode;
         }
         {
-            let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
+            let _n = ((((*outNBElement) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;
             let _si = (lookbackFastD) as usize;
             outFastK[_di.._di + _n].copy_from_slice(&tempBuffer[_si.._si + _n]);

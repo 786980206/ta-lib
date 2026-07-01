@@ -43,11 +43,11 @@
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -67,15 +67,15 @@
        */
       outIdx = 0;
       do {
-         if( ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))) && /* 1st and 2nd of same color */
-             ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))) && /* 3rd opposite color */
-             (inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])) &&  /* 3rd opens within 2nd rb */
-             (inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])) &&
-             (inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])) && /* 3rd closes within 1st rb */
-             (inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])) &&
-             ((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))) ) /* when 1st is white upside gap when 1st is black downside gap */
+         if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) && /* 1st and 2nd of same color */
+             ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) && /* 3rd opposite color */
+             inOpen[i] < Math.max(inClose[i - 1], inOpen[i - 1]) &&  /* 3rd opens within 2nd rb */
+             inOpen[i] > Math.min(inClose[i - 1], inOpen[i - 1]) &&
+             inClose[i] < Math.max(inClose[i - 2], inOpen[i - 2]) && /* 3rd closes within 1st rb */
+             inClose[i] > Math.min(inClose[i - 2], inOpen[i - 2]) &&
+             (((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 1 && (Math.min(inOpen[i - 1], inClose[i - 1]) > Math.max(inOpen[i - 2], inClose[i - 2])) || ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && (Math.max(inOpen[i - 1], inClose[i - 1]) < Math.min(inOpen[i - 2], inClose[i - 2]))) ) /* when 1st is white upside gap when 1st is black downside gap */
          {
-            outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
+            outInteger[outIdx++] = ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) * 100;
          } else {
             outInteger[outIdx++] = 0;
          }
@@ -83,7 +83,7 @@
           * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
           */
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       /* All done. Indicate the output limits and return. */
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -103,10 +103,10 @@
       int outIdx = 0;
       int lookbackTotal = 0;
       lookbackTotal = cdlXSideGap3MethodsLookback();
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -114,13 +114,13 @@
       i = startIdx;
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
-            outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
+         if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) && inOpen[i] < Math.max(inClose[i - 1], inOpen[i - 1]) && inOpen[i] > Math.min(inClose[i - 1], inOpen[i - 1]) && inClose[i] < Math.max(inClose[i - 2], inOpen[i - 2]) && inClose[i] > Math.min(inClose[i - 2], inOpen[i - 2]) && (((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 1 && (Math.min(inOpen[i - 1], inClose[i - 1]) > Math.max(inOpen[i - 2], inClose[i - 2])) || ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && (Math.max(inOpen[i - 1], inClose[i - 1]) < Math.min(inOpen[i - 2], inClose[i - 2]))) ) {
+            outInteger[outIdx++] = ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) * 100;
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -145,10 +145,10 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       lookbackTotal = cdlXSideGap3MethodsLookback();
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -156,13 +156,13 @@
       i = startIdx;
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
-            outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
+         if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) && inOpen[i] < Math.max(inClose[i - 1], inOpen[i - 1]) && inOpen[i] > Math.min(inClose[i - 1], inOpen[i - 1]) && inClose[i] < Math.max(inClose[i - 2], inOpen[i - 2]) && inClose[i] > Math.min(inClose[i - 2], inOpen[i - 2]) && (((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 1 && (Math.min(inOpen[i - 1], inClose[i - 1]) > Math.max(inOpen[i - 2], inClose[i - 2])) || ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && (Math.max(inOpen[i - 1], inClose[i - 1]) < Math.min(inOpen[i - 2], inClose[i - 2]))) ) {
+            outInteger[outIdx++] = ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) * 100;
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -181,10 +181,10 @@
       int outIdx = 0;
       int lookbackTotal = 0;
       lookbackTotal = cdlXSideGap3MethodsLookback();
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -192,13 +192,13 @@
       i = startIdx;
       outIdx = 0;
       do {
-         if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
-            outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
+         if( ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) && ((inClose[i - 1] >= inOpen[i - 1]) ? 1 : 0 - 1) == 0 - ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) && inOpen[i] < Math.max(inClose[i - 1], inOpen[i - 1]) && inOpen[i] > Math.min(inClose[i - 1], inOpen[i - 1]) && inClose[i] < Math.max(inClose[i - 2], inOpen[i - 2]) && inClose[i] > Math.min(inClose[i - 2], inOpen[i - 2]) && (((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 1 && (Math.min(inOpen[i - 1], inClose[i - 1]) > Math.max(inOpen[i - 2], inClose[i - 2])) || ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) == 0 - 1 && (Math.max(inOpen[i - 1], inClose[i - 1]) < Math.min(inOpen[i - 2], inClose[i - 2]))) ) {
+            outInteger[outIdx++] = ((inClose[i - 2] >= inOpen[i - 2]) ? 1 : 0 - 1) * 100;
          } else {
             outInteger[outIdx++] = 0;
          }
          i += 1;
-      } while( (i<=endIdx) );
+      } while( i <= endIdx );
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;

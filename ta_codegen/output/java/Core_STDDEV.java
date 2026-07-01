@@ -41,7 +41,7 @@
       }
       /* Calculate the variance. */
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
       /* Calculate the square root of each variance, this
@@ -49,22 +49,22 @@
        *
        * Multiply also by the ratio specified.
        */
-      if( (optInNbDev!=1.0) ) {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+      if( optInNbDev != 1.0 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
-               outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
+            if( !(tempReal < 0.00000000000001) ) {
+               outReal[i] = Math.sqrt(tempReal) * optInNbDev;
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       } else {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
+            if( !(tempReal < 0.00000000000001) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       }
@@ -83,25 +83,25 @@
       RetCode retCode;
       double tempReal = 0;
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
-      if( (optInNbDev!=1.0) ) {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+      if( optInNbDev != 1.0 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
-               outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
+            if( !(tempReal < 0.00000000000001) ) {
+               outReal[i] = Math.sqrt(tempReal) * optInNbDev;
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       } else {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
+            if( !(tempReal < 0.00000000000001) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       }
@@ -126,25 +126,25 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
-      if( (optInNbDev!=1.0) ) {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+      if( optInNbDev != 1.0 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
-               outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
+            if( !(tempReal < 0.00000000000001) ) {
+               outReal[i] = Math.sqrt(tempReal) * optInNbDev;
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       } else {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
+            if( !(tempReal < 0.00000000000001) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       }
@@ -163,25 +163,25 @@
       RetCode retCode;
       double tempReal = 0;
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          return retCode ;
       }
-      if( (optInNbDev!=1.0) ) {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+      if( optInNbDev != 1.0 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
-               outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
+            if( !(tempReal < 0.00000000000001) ) {
+               outReal[i] = Math.sqrt(tempReal) * optInNbDev;
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       } else {
-         for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
+         for( i = 0; i < (int)outNBElement.value; i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal < 0.00000000000001)) ) {
+            if( !(tempReal < 0.00000000000001) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
-               outReal[i] = ((double)0.0);
+               outReal[i] = (double)0.0;
             }
          }
       }

@@ -13,7 +13,7 @@
 
    public int imiLookback( int optInTimePeriod )
    {
-      return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Imi.ordinal()])-1) ;
+      return optInTimePeriod + this.unstablePeriod[FuncUnstId.Imi.ordinal()] - 1 ;
 
    }
    public RetCode imi( int startIdx,
@@ -35,29 +35,29 @@
       }
       outIdx = 0;
       lookback = imiLookback(optInTimePeriod);
-      if( (startIdx<lookback) ) {
+      if( startIdx < lookback ) {
          startIdx = lookback;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      while( (startIdx<=endIdx) ) {
+      while( startIdx <= endIdx ) {
          double upsum = 0.0;
          double downsum = 0.0;
          int i;
-         for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+         for( i = startIdx - lookback; i <= startIdx; i += 1 ) {
             double close = inClose[i];
             double open = inOpen[i];
-            if( (close>open) ) {
-               upsum += (close-open);
+            if( close > open ) {
+               upsum += close - open;
             } else {
-               downsum += (open-close);
+               downsum += open - close;
             }
-            outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+            outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
          }
          startIdx += 1;
          outIdx += 1;
@@ -78,28 +78,28 @@
       int outIdx = 0;
       outIdx = 0;
       lookback = imiLookback(optInTimePeriod);
-      if( (startIdx<lookback) ) {
+      if( startIdx < lookback ) {
          startIdx = lookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      while( (startIdx<=endIdx) ) {
+      while( startIdx <= endIdx ) {
          double upsum = 0.0;
          double downsum = 0.0;
          int i;
-         for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+         for( i = startIdx - lookback; i <= startIdx; i += 1 ) {
             double close = inClose[i];
             double open = inOpen[i];
-            if( (close>open) ) {
-               upsum += (close-open);
+            if( close > open ) {
+               upsum += close - open;
             } else {
-               downsum += (open-close);
+               downsum += open - close;
             }
-            outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+            outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
          }
          startIdx += 1;
          outIdx += 1;
@@ -126,28 +126,28 @@
       }
       outIdx = 0;
       lookback = imiLookback(optInTimePeriod);
-      if( (startIdx<lookback) ) {
+      if( startIdx < lookback ) {
          startIdx = lookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      while( (startIdx<=endIdx) ) {
+      while( startIdx <= endIdx ) {
          double upsum = 0.0;
          double downsum = 0.0;
          int i;
-         for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+         for( i = startIdx - lookback; i <= startIdx; i += 1 ) {
             double close = inClose[i];
             double open = inOpen[i];
-            if( (close>open) ) {
-               upsum += (close-open);
+            if( close > open ) {
+               upsum += close - open;
             } else {
-               downsum += (open-close);
+               downsum += open - close;
             }
-            outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+            outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
          }
          startIdx += 1;
          outIdx += 1;
@@ -168,28 +168,28 @@
       int outIdx = 0;
       outIdx = 0;
       lookback = imiLookback(optInTimePeriod);
-      if( (startIdx<lookback) ) {
+      if( startIdx < lookback ) {
          startIdx = lookback;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      while( (startIdx<=endIdx) ) {
+      while( startIdx <= endIdx ) {
          double upsum = 0.0;
          double downsum = 0.0;
          int i;
-         for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+         for( i = startIdx - lookback; i <= startIdx; i += 1 ) {
             double close = inClose[i];
             double open = inOpen[i];
-            if( (close>open) ) {
-               upsum += (close-open);
+            if( close > open ) {
+               upsum += close - open;
             } else {
-               downsum += (open-close);
+               downsum += open - close;
             }
-            outReal[outIdx] = (100.0*(upsum/(upsum+downsum)));
+            outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
          }
          startIdx += 1;
          outIdx += 1;

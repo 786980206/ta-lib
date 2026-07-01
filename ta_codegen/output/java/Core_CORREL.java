@@ -16,7 +16,7 @@
 
    public int correlLookback( int optInTimePeriod )
    {
-      return (optInTimePeriod-1) ;
+      return optInTimePeriod - 1 ;
 
    }
    public RetCode correl( int startIdx,
@@ -51,32 +51,32 @@
       /* Move up the start index if there is not
        * enough initial data.
        */
-      lookbackTotal = (optInTimePeriod-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       /* Calculate the initial values. */
       sumY2 = 0.0;
       sumX2 = sumY2;
       sumY = sumX2;
       sumX = sumY;
       sumXY = sumX;
-      for( today = trailingIdx; (today<=startIdx); today += 1 ) {
+      for( today = trailingIdx; today <= startIdx; today += 1 ) {
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
       }
       /* Write the first output.
        * Save first the trailing values since the input
@@ -84,38 +84,38 @@
        */
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal < 0.00000000000001)) ) {
-         outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !(tempReal < 0.00000000000001) ) {
+         outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
       } else {
          outReal[0] = 0.0;
       }
       /* Tight loop to do subsequent values. */
       outIdx = 1;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          /* Remove trailing values */
          sumX -= trailingX;
-         sumX2 -= (trailingX*trailingX);
-         sumXY -= (trailingX*trailingY);
+         sumX2 -= trailingX * trailingX;
+         sumXY -= trailingX * trailingY;
          sumY -= trailingY;
-         sumY2 -= (trailingY*trailingY);
+         sumY2 -= trailingY * trailingY;
          /* Add new values */
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today++];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
          /* Output new coefficient.
           * Save first the trailing values since the input
           * and output might be the same array,
           */
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
-         tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal < 0.00000000000001)) ) {
-            outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+         tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+         if( !(tempReal < 0.00000000000001) ) {
+            outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
          } else {
             outReal[outIdx++] = 0.0;
          }
@@ -146,58 +146,58 @@
       int today = 0;
       int trailingIdx = 0;
       int outIdx = 0;
-      lookbackTotal = (optInTimePeriod-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       sumY2 = 0.0;
       sumX2 = sumY2;
       sumY = sumX2;
       sumX = sumY;
       sumXY = sumX;
-      for( today = trailingIdx; (today<=startIdx); today += 1 ) {
+      for( today = trailingIdx; today <= startIdx; today += 1 ) {
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
       }
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal < 0.00000000000001)) ) {
-         outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !(tempReal < 0.00000000000001) ) {
+         outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
       } else {
          outReal[0] = 0.0;
       }
       outIdx = 1;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          sumX -= trailingX;
-         sumX2 -= (trailingX*trailingX);
-         sumXY -= (trailingX*trailingY);
+         sumX2 -= trailingX * trailingX;
+         sumXY -= trailingX * trailingY;
          sumY -= trailingY;
-         sumY2 -= (trailingY*trailingY);
+         sumY2 -= trailingY * trailingY;
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today++];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
-         tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal < 0.00000000000001)) ) {
-            outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+         tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+         if( !(tempReal < 0.00000000000001) ) {
+            outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
          } else {
             outReal[outIdx++] = 0.0;
          }
@@ -234,58 +234,58 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = (optInTimePeriod-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       sumY2 = 0.0;
       sumX2 = sumY2;
       sumY = sumX2;
       sumX = sumY;
       sumXY = sumX;
-      for( today = trailingIdx; (today<=startIdx); today += 1 ) {
+      for( today = trailingIdx; today <= startIdx; today += 1 ) {
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
       }
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal < 0.00000000000001)) ) {
-         outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !(tempReal < 0.00000000000001) ) {
+         outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
       } else {
          outReal[0] = 0.0;
       }
       outIdx = 1;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          sumX -= trailingX;
-         sumX2 -= (trailingX*trailingX);
-         sumXY -= (trailingX*trailingY);
+         sumX2 -= trailingX * trailingX;
+         sumXY -= trailingX * trailingY;
          sumY -= trailingY;
-         sumY2 -= (trailingY*trailingY);
+         sumY2 -= trailingY * trailingY;
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today++];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
-         tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal < 0.00000000000001)) ) {
-            outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+         tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+         if( !(tempReal < 0.00000000000001) ) {
+            outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
          } else {
             outReal[outIdx++] = 0.0;
          }
@@ -316,58 +316,58 @@
       int today = 0;
       int trailingIdx = 0;
       int outIdx = 0;
-      lookbackTotal = (optInTimePeriod-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      trailingIdx = (startIdx-lookbackTotal);
+      trailingIdx = startIdx - lookbackTotal;
       sumY2 = 0.0;
       sumX2 = sumY2;
       sumY = sumX2;
       sumX = sumY;
       sumXY = sumX;
-      for( today = trailingIdx; (today<=startIdx); today += 1 ) {
+      for( today = trailingIdx; today <= startIdx; today += 1 ) {
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
       }
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
-      tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal < 0.00000000000001)) ) {
-         outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+      tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+      if( !(tempReal < 0.00000000000001) ) {
+         outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
       } else {
          outReal[0] = 0.0;
       }
       outIdx = 1;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          sumX -= trailingX;
-         sumX2 -= (trailingX*trailingX);
-         sumXY -= (trailingX*trailingY);
+         sumX2 -= trailingX * trailingX;
+         sumXY -= trailingX * trailingY;
          sumY -= trailingY;
-         sumY2 -= (trailingY*trailingY);
+         sumY2 -= trailingY * trailingY;
          x = inReal0[today];
          sumX += x;
-         sumX2 += (x*x);
+         sumX2 += x * x;
          y = inReal1[today++];
-         sumXY += (x*y);
+         sumXY += x * y;
          sumY += y;
-         sumY2 += (y*y);
+         sumY2 += y * y;
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
-         tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal < 0.00000000000001)) ) {
-            outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
+         tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+         if( !(tempReal < 0.00000000000001) ) {
+            outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / Math.sqrt(tempReal);
          } else {
             outReal[outIdx++] = 0.0;
          }

@@ -17,7 +17,7 @@
 
    public int trimaLookback( int optInTimePeriod )
    {
-      return (optInTimePeriod-1) ;
+      return optInTimePeriod - 1 ;
 
    }
    public RetCode trima( int startIdx,
@@ -48,15 +48,15 @@
       /* Identify the minimum number of price bar needed
        * to calculate at least one output.
        */
-      lookbackTotal = (optInTimePeriod-1);
+      lookbackTotal = optInTimePeriod - 1;
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -147,7 +147,7 @@
        * the middleIdx and todayIdx.
        */
       outIdx = 0;
-      if( ((optInTimePeriod%2)==1) ) {
+      if( optInTimePeriod % 2 == 1 ) {
          /* Logic for Odd period */
          /* Calculate the factor which is 1 divided by the
           * sumation of the weight.
@@ -176,25 +176,25 @@
          /* Note: entirely done with int and becomes double only
           *       on assignement to the factor variable.
           */
-         i = (optInTimePeriod>>1);
-         factor = ((i+1)*(i+1));
-         factor = (1.0/factor);
+         i = optInTimePeriod >> 1;
+         factor = (i + 1) * (i + 1);
+         factor = 1.0 / factor;
          /* Initialize all the variable before
           * starting to iterate for each output.
           */
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = (trailingIdx+i);
-         todayIdx = (middleIdx+i);
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
@@ -202,7 +202,7 @@
          /* Write the first output */
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
          /* Note: The value at the trailingIdx was saved
           *       in tempReal to account for the case where
@@ -210,7 +210,7 @@
           *       buffer.
           */
          /* Iterate for remaining output */
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             /* Step (1) */
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
@@ -225,7 +225,7 @@
             numerator += tempReal;
             /* Step (4) */
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       } else {
          /* Even logic.
@@ -236,25 +236,25 @@
           *    slightly different.
           *  - Adjustment of numeratorAdd is different. See Step (2).
           */
-         i = (optInTimePeriod>>1);
-         factor = (i*(i+1));
-         factor = (1.0/factor);
+         i = optInTimePeriod >> 1;
+         factor = i * (i + 1);
+         factor = 1.0 / factor;
          /* Initialize all the variable before
           * starting to iterate for each output.
           */
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = ((trailingIdx+i)-1);
-         todayIdx = (middleIdx+i);
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i - 1;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
@@ -262,7 +262,7 @@
          /* Write the first output */
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
          /* Note: The value at the trailingIdx was saved
           *       in tempReal to account for the case where
@@ -270,7 +270,7 @@
           *       buffer.
           */
          /* Iterate for remaining output */
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             /* Step (1) */
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
@@ -285,7 +285,7 @@
             numerator += tempReal;
             /* Step (4) */
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       }
       outNBElement.value = outIdx;
@@ -311,42 +311,42 @@
       int middleIdx = 0;
       double factor = 0;
       double tempReal = 0;
-      lookbackTotal = (optInTimePeriod-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      if( ((optInTimePeriod%2)==1) ) {
-         i = (optInTimePeriod>>1);
-         factor = ((i+1)*(i+1));
-         factor = (1.0/factor);
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = (trailingIdx+i);
-         todayIdx = (middleIdx+i);
+      if( optInTimePeriod % 2 == 1 ) {
+         i = optInTimePeriod >> 1;
+         factor = (i + 1) * (i + 1);
+         factor = 1.0 / factor;
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
@@ -357,34 +357,34 @@
             numeratorAdd += tempReal;
             numerator += tempReal;
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       } else {
-         i = (optInTimePeriod>>1);
-         factor = (i*(i+1));
-         factor = (1.0/factor);
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = ((trailingIdx+i)-1);
-         todayIdx = (middleIdx+i);
+         i = optInTimePeriod >> 1;
+         factor = i * (i + 1);
+         factor = 1.0 / factor;
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i - 1;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
@@ -395,7 +395,7 @@
             numeratorAdd += tempReal;
             numerator += tempReal;
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       }
       outNBElement.value = outIdx;
@@ -427,42 +427,42 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackTotal = (optInTimePeriod-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      if( ((optInTimePeriod%2)==1) ) {
-         i = (optInTimePeriod>>1);
-         factor = ((i+1)*(i+1));
-         factor = (1.0/factor);
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = (trailingIdx+i);
-         todayIdx = (middleIdx+i);
+      if( optInTimePeriod % 2 == 1 ) {
+         i = optInTimePeriod >> 1;
+         factor = (i + 1) * (i + 1);
+         factor = 1.0 / factor;
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
@@ -473,34 +473,34 @@
             numeratorAdd += tempReal;
             numerator += tempReal;
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       } else {
-         i = (optInTimePeriod>>1);
-         factor = (i*(i+1));
-         factor = (1.0/factor);
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = ((trailingIdx+i)-1);
-         todayIdx = (middleIdx+i);
+         i = optInTimePeriod >> 1;
+         factor = i * (i + 1);
+         factor = 1.0 / factor;
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i - 1;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
@@ -511,7 +511,7 @@
             numeratorAdd += tempReal;
             numerator += tempReal;
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       }
       outNBElement.value = outIdx;
@@ -537,42 +537,42 @@
       int middleIdx = 0;
       double factor = 0;
       double tempReal = 0;
-      lookbackTotal = (optInTimePeriod-1);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = optInTimePeriod - 1;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      if( ((optInTimePeriod%2)==1) ) {
-         i = (optInTimePeriod>>1);
-         factor = ((i+1)*(i+1));
-         factor = (1.0/factor);
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = (trailingIdx+i);
-         todayIdx = (middleIdx+i);
+      if( optInTimePeriod % 2 == 1 ) {
+         i = optInTimePeriod >> 1;
+         factor = (i + 1) * (i + 1);
+         factor = 1.0 / factor;
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
@@ -583,34 +583,34 @@
             numeratorAdd += tempReal;
             numerator += tempReal;
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       } else {
-         i = (optInTimePeriod>>1);
-         factor = (i*(i+1));
-         factor = (1.0/factor);
-         trailingIdx = (startIdx-lookbackTotal);
-         middleIdx = ((trailingIdx+i)-1);
-         todayIdx = (middleIdx+i);
+         i = optInTimePeriod >> 1;
+         factor = i * (i + 1);
+         factor = 1.0 / factor;
+         trailingIdx = startIdx - lookbackTotal;
+         middleIdx = trailingIdx + i - 1;
+         todayIdx = middleIdx + i;
          numerator = 0.0;
          numeratorSub = 0.0;
-         for( i = middleIdx; (i>=trailingIdx); i -= 1 ) {
+         for( i = middleIdx; i >= trailingIdx; i -= 1 ) {
             tempReal = inReal[i];
             numeratorSub += tempReal;
             numerator += numeratorSub;
          }
          numeratorAdd = 0.0;
          middleIdx += 1;
-         for( i = middleIdx; (i<=todayIdx); i += 1 ) {
+         for( i = middleIdx; i <= todayIdx; i += 1 ) {
             tempReal = inReal[i];
             numeratorAdd += tempReal;
             numerator += numeratorAdd;
          }
          outIdx = 0;
          tempReal = inReal[trailingIdx++];
-         outReal[outIdx++] = (numerator*factor);
+         outReal[outIdx++] = numerator * factor;
          todayIdx += 1;
-         while( (todayIdx<=endIdx) ) {
+         while( todayIdx <= endIdx ) {
             numerator -= numeratorSub;
             numeratorSub -= tempReal;
             tempReal = inReal[middleIdx++];
@@ -621,7 +621,7 @@
             numeratorAdd += tempReal;
             numerator += tempReal;
             tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = (numerator*factor);
+            outReal[outIdx++] = numerator * factor;
          }
       }
       outNBElement.value = outIdx;

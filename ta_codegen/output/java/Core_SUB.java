@@ -33,8 +33,8 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       /* Default return values */
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
-         outReal[outIdx] = (inReal0[i]-inReal1[i]);
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
+         outReal[outIdx] = inReal0[i] - inReal1[i];
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -50,8 +50,8 @@
    {
       int outIdx = 0;
       int i = 0;
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
-         outReal[outIdx] = (inReal0[i]-inReal1[i]);
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
+         outReal[outIdx] = inReal0[i] - inReal1[i];
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -73,8 +73,8 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
-         outReal[outIdx] = (inReal0[i]-inReal1[i]);
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
+         outReal[outIdx] = inReal0[i] - inReal1[i];
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
@@ -90,8 +90,8 @@
    {
       int outIdx = 0;
       int i = 0;
-      for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 ) {
-         outReal[outIdx] = (inReal0[i]-inReal1[i]);
+      for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 ) {
+         outReal[outIdx] = inReal0[i] - inReal1[i];
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;

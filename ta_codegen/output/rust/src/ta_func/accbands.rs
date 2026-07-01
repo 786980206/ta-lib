@@ -168,21 +168,21 @@ impl Core {
         }
         // Calculate the middle band, which is a moving average of the close.
         retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
-        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+        if retCode != RetCode::Success || ((outNbElementDummy as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         // Now let's take the SMA for the upper band.
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
-        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+        if retCode != RetCode::Success || ((outNbElementDummy as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         // Now let's take the SMA for the lower band.
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
-        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+        if retCode != RetCode::Success || ((outNbElementDummy as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
@@ -254,19 +254,19 @@ impl Core {
             j += 1;
         }
         retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
-        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+        if retCode != RetCode::Success || ((outNbElementDummy as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
-        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+        if retCode != RetCode::Success || ((outNbElementDummy as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
-        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+        if retCode != RetCode::Success || ((outNbElementDummy as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;

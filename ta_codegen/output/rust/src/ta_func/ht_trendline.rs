@@ -443,7 +443,7 @@ impl Core {
             smoothPeriod = (0.33 as f64).mul_add(period, 0.67 * smoothPeriod);
             // Compute Trendline
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             // idx is used to iterate for up to 50 of the last
             // value of smoothPrice.
             idx = today;
@@ -455,7 +455,7 @@ impl Core {
                 i += 1;
             }
             if DCPeriodInt > 0 {
-                tempReal = tempReal / ((DCPeriodInt) as f64);
+                tempReal = tempReal / (DCPeriodInt as f64);
             }
             tempReal2 = ((2.0 as f64).mul_add(iTrend2, (4.0 as f64).mul_add(tempReal, 3.0 * iTrend1)) + iTrend3) / 10.0;
             iTrend3 = iTrend2;
@@ -777,7 +777,7 @@ impl Core {
             period = (0.2 as f64).mul_add(period, 0.8 * tempReal);
             smoothPeriod = (0.33 as f64).mul_add(period, 0.67 * smoothPeriod);
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             idx = today;
             tempReal = 0.0;
             // for( i = 0; i < DCPeriodInt; i += 1 )
@@ -787,7 +787,7 @@ impl Core {
                 i += 1;
             }
             if DCPeriodInt > 0 {
-                tempReal = tempReal / ((DCPeriodInt) as f64);
+                tempReal = tempReal / (DCPeriodInt as f64);
             }
             tempReal2 = ((2.0 as f64).mul_add(iTrend2, (4.0 as f64).mul_add(tempReal, 3.0 * iTrend1)) + iTrend3) / 10.0;
             iTrend3 = iTrend2;

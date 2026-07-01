@@ -43,11 +43,11 @@
       prevOBV = inVolume[startIdx];
       prevReal = inReal[startIdx];
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
+      for( i = startIdx; i <= endIdx; i += 1 ) {
          tempReal = inReal[i];
-         if( (tempReal>prevReal) ) {
+         if( tempReal > prevReal ) {
             prevOBV += inVolume[i];
-         } else if( (tempReal<prevReal) ) {
+         } else if( tempReal < prevReal ) {
             prevOBV -= inVolume[i];
          }
          outReal[outIdx++] = prevOBV;
@@ -73,11 +73,11 @@
       prevOBV = inVolume[startIdx];
       prevReal = inReal[startIdx];
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
+      for( i = startIdx; i <= endIdx; i += 1 ) {
          tempReal = inReal[i];
-         if( (tempReal>prevReal) ) {
+         if( tempReal > prevReal ) {
             prevOBV += inVolume[i];
-         } else if( (tempReal<prevReal) ) {
+         } else if( tempReal < prevReal ) {
             prevOBV -= inVolume[i];
          }
          outReal[outIdx++] = prevOBV;
@@ -109,11 +109,11 @@
       prevOBV = inVolume[startIdx];
       prevReal = inReal[startIdx];
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
+      for( i = startIdx; i <= endIdx; i += 1 ) {
          tempReal = inReal[i];
-         if( (tempReal>prevReal) ) {
+         if( tempReal > prevReal ) {
             prevOBV += inVolume[i];
-         } else if( (tempReal<prevReal) ) {
+         } else if( tempReal < prevReal ) {
             prevOBV -= inVolume[i];
          }
          outReal[outIdx++] = prevOBV;
@@ -139,11 +139,11 @@
       prevOBV = inVolume[startIdx];
       prevReal = inReal[startIdx];
       outIdx = 0;
-      for( i = startIdx; (i<=endIdx); i += 1 ) {
+      for( i = startIdx; i <= endIdx; i += 1 ) {
          tempReal = inReal[i];
-         if( (tempReal>prevReal) ) {
+         if( tempReal > prevReal ) {
             prevOBV += inVolume[i];
-         } else if( (tempReal<prevReal) ) {
+         } else if( tempReal < prevReal ) {
             prevOBV -= inVolume[i];
          }
          outReal[outIdx++] = prevOBV;

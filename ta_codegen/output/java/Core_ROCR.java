@@ -70,11 +70,11 @@
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -82,11 +82,11 @@
       /* Calculate Rate of change Ratio: (price / prevPrice) */
       outIdx = 0;
       inIdx = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      while( (inIdx<=endIdx) ) {
+      trailingIdx = startIdx - optInTimePeriod;
+      while( inIdx <= endIdx ) {
          tempReal = inReal[trailingIdx++];
-         if( (tempReal!=0.0) ) {
-            outReal[outIdx++] = (inReal[inIdx]/tempReal);
+         if( tempReal != 0.0 ) {
+            outReal[outIdx++] = inReal[inIdx] / tempReal;
          } else {
             outReal[outIdx++] = 0.0;
          }
@@ -109,21 +109,21 @@
       int outIdx = 0;
       int trailingIdx = 0;
       double tempReal = 0;
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       inIdx = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      while( (inIdx<=endIdx) ) {
+      trailingIdx = startIdx - optInTimePeriod;
+      while( inIdx <= endIdx ) {
          tempReal = inReal[trailingIdx++];
-         if( (tempReal!=0.0) ) {
-            outReal[outIdx++] = (inReal[inIdx]/tempReal);
+         if( tempReal != 0.0 ) {
+            outReal[outIdx++] = inReal[inIdx] / tempReal;
          } else {
             outReal[outIdx++] = 0.0;
          }
@@ -151,21 +151,21 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       inIdx = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      while( (inIdx<=endIdx) ) {
+      trailingIdx = startIdx - optInTimePeriod;
+      while( inIdx <= endIdx ) {
          tempReal = inReal[trailingIdx++];
-         if( (tempReal!=0.0) ) {
-            outReal[outIdx++] = (inReal[inIdx]/tempReal);
+         if( tempReal != 0.0 ) {
+            outReal[outIdx++] = inReal[inIdx] / tempReal;
          } else {
             outReal[outIdx++] = 0.0;
          }
@@ -187,21 +187,21 @@
       int outIdx = 0;
       int trailingIdx = 0;
       double tempReal = 0;
-      if( (startIdx<optInTimePeriod) ) {
+      if( startIdx < optInTimePeriod ) {
          startIdx = optInTimePeriod;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       inIdx = startIdx;
-      trailingIdx = (startIdx-optInTimePeriod);
-      while( (inIdx<=endIdx) ) {
+      trailingIdx = startIdx - optInTimePeriod;
+      while( inIdx <= endIdx ) {
          tempReal = inReal[trailingIdx++];
-         if( (tempReal!=0.0) ) {
-            outReal[outIdx++] = (inReal[inIdx]/tempReal);
+         if( tempReal != 0.0 ) {
+            outReal[outIdx++] = inReal[inIdx] / tempReal;
          } else {
             outReal[outIdx++] = 0.0;
          }

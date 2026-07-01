@@ -17,7 +17,7 @@
    {
       int retValue;
       /* Account for the initial data needed for Fast-K. */
-      retValue = (optInFastK_Period-1);
+      retValue = optInFastK_Period - 1;
       /* Add the smoothing being done for %K slow */
       retValue += movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
       /* Add the smoothing being done for %D slow. */
@@ -94,18 +94,18 @@
        * used because its higher volatility cause often whipsaws.
        */
       /* Identify the lookback needed. */
-      lookbackK = (optInFastK_Period-1);
+      lookbackK = optInFastK_Period - 1;
       lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
       lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
-      lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
+      lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
       /* Move up the start index if there is not
        * enough initial data.
        */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          /* Succeed... but no data in the output. */
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -129,9 +129,9 @@
        * requested range. (The range of k must consider all
        * the lookback involve with the smoothing).
        */
-      trailingIdx = (startIdx-lookbackTotal);
-      today = (trailingIdx+lookbackK);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - lookbackTotal;
+      today = trailingIdx + lookbackK;
+      highestIdx = 0 - 1;
       lowestIdx = highestIdx;
       lowest = 0.0;
       highest = lowest;
@@ -143,57 +143,57 @@
        * we just save ourself one memory allocation.
        */
       bufferIsAllocated = 0;
-      if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) ) {
+      if( outSlowK == inHigh || outSlowK == inLow || outSlowK == inClose ) {
          tempBuffer = outSlowK;
-      } else if( (((outSlowD==inHigh)||(outSlowD==inLow))||(outSlowD==inClose)) ) {
+      } else if( outSlowD == inHigh || outSlowD == inLow || outSlowD == inClose ) {
          tempBuffer = outSlowD;
       } else {
          bufferIsAllocated = 1;
-         tempBuffer = new double[(int)((((endIdx-today)+1)*1))];
+         tempBuffer = new double[(int)((endIdx - today + 1) * 1)];
       }
       /* Do the K calculation */
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          /* Set the lowest low */
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp<=lowest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
          /* Set the highest high */
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>highest) ) {
+               if( tmp > highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp>=highest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
          /* Calculate stochastic. */
-         if( (diff!=0.0) ) {
-            tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         if( diff != 0.0 ) {
+            tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
          } else {
             tempBuffer[outIdx++] = 0.0;
          }
@@ -205,8 +205,8 @@
        * Some documentation will refer to the smoothed version as being
        * "K-Slow", but often this end up to be shorten to "K".
        */
-      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      retCode = movingAverageUnguarded(0, outIdx - 1, tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          if( (bufferIsAllocated) != 0 ) {
          }
          /* Something wrong happen? No further data? */
@@ -217,17 +217,17 @@
       /* Calculate the %D which is simply a moving average of
        * the already smoothed %K.
        */
-      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      retCode = movingAverageUnguarded(0, (int)outNBElement.value - 1, tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       /* Copy tempBuffer into the caller buffer.
        * (Calculation could not be done directly in the
        *  caller buffer because more input data then the
        *  requested range was needed for doing %D).
        */
-      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
+      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (int)outNBElement.value * 1);
       /* Don't need K anymore, free it if it was allocated here. */
       if( (bufferIsAllocated) != 0 ) {
       }
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          /* Something wrong happen while processing %D? */
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -271,93 +271,93 @@
       int today = 0;
       int i = 0;
       int bufferIsAllocated = 0;
-      lookbackK = (optInFastK_Period-1);
+      lookbackK = optInFastK_Period - 1;
       lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
       lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
-      lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      trailingIdx = (startIdx-lookbackTotal);
-      today = (trailingIdx+lookbackK);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - lookbackTotal;
+      today = trailingIdx + lookbackK;
+      highestIdx = 0 - 1;
       lowestIdx = highestIdx;
       lowest = 0.0;
       highest = lowest;
       diff = highest;
       bufferIsAllocated = 0;
-      if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) ) {
+      if( outSlowK == inHigh || outSlowK == inLow || outSlowK == inClose ) {
          tempBuffer = outSlowK;
-      } else if( (((outSlowD==inHigh)||(outSlowD==inLow))||(outSlowD==inClose)) ) {
+      } else if( outSlowD == inHigh || outSlowD == inLow || outSlowD == inClose ) {
          tempBuffer = outSlowD;
       } else {
          bufferIsAllocated = 1;
-         tempBuffer = new double[(int)((((endIdx-today)+1)*1))];
+         tempBuffer = new double[(int)((endIdx - today + 1) * 1)];
       }
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp<=lowest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>highest) ) {
+               if( tmp > highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp>=highest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
-         if( (diff!=0.0) ) {
-            tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         if( diff != 0.0 ) {
+            tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
          } else {
             tempBuffer[outIdx++] = 0.0;
          }
          trailingIdx += 1;
          today += 1;
       }
-      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      retCode = movingAverageUnguarded(0, outIdx - 1, tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
-      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
+      retCode = movingAverageUnguarded(0, (int)outNBElement.value - 1, tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (int)outNBElement.value * 1);
       if( (bufferIsAllocated) != 0 ) {
       }
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
@@ -403,93 +403,93 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      lookbackK = (optInFastK_Period-1);
+      lookbackK = optInFastK_Period - 1;
       lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
       lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
-      lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      trailingIdx = (startIdx-lookbackTotal);
-      today = (trailingIdx+lookbackK);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - lookbackTotal;
+      today = trailingIdx + lookbackK;
+      highestIdx = 0 - 1;
       lowestIdx = highestIdx;
       lowest = 0.0;
       highest = lowest;
       diff = highest;
       bufferIsAllocated = 0;
-      if( ((false||false)||false) ) {
+      if( false || false || false ) {
          tempBuffer = outSlowK;
-      } else if( ((false||false)||false) ) {
+      } else if( false || false || false ) {
          tempBuffer = outSlowD;
       } else {
          bufferIsAllocated = 1;
-         tempBuffer = new double[(int)((((endIdx-today)+1)*1))];
+         tempBuffer = new double[(int)((endIdx - today + 1) * 1)];
       }
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp<=lowest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>highest) ) {
+               if( tmp > highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp>=highest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
-         if( (diff!=0.0) ) {
-            tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         if( diff != 0.0 ) {
+            tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
          } else {
             tempBuffer[outIdx++] = 0.0;
          }
          trailingIdx += 1;
          today += 1;
       }
-      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      retCode = movingAverageUnguarded(0, outIdx - 1, tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
-      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
+      retCode = movingAverageUnguarded(0, (int)outNBElement.value - 1, tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (int)outNBElement.value * 1);
       if( (bufferIsAllocated) != 0 ) {
       }
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
@@ -529,93 +529,93 @@
       int today = 0;
       int i = 0;
       int bufferIsAllocated = 0;
-      lookbackK = (optInFastK_Period-1);
+      lookbackK = optInFastK_Period - 1;
       lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
       lookbackDSlow = movingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
-      lookbackTotal = ((lookbackK+lookbackDSlow)+lookbackKSlow);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      trailingIdx = (startIdx-lookbackTotal);
-      today = (trailingIdx+lookbackK);
-      highestIdx = (0-1);
+      trailingIdx = startIdx - lookbackTotal;
+      today = trailingIdx + lookbackK;
+      highestIdx = 0 - 1;
       lowestIdx = highestIdx;
       lowest = 0.0;
       highest = lowest;
       diff = highest;
       bufferIsAllocated = 0;
-      if( ((false||false)||false) ) {
+      if( false || false || false ) {
          tempBuffer = outSlowK;
-      } else if( ((false||false)||false) ) {
+      } else if( false || false || false ) {
          tempBuffer = outSlowD;
       } else {
          bufferIsAllocated = 1;
-         tempBuffer = new double[(int)((((endIdx-today)+1)*1))];
+         tempBuffer = new double[(int)((endIdx - today + 1) * 1)];
       }
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          tmp = inLow[today];
-         if( (lowestIdx<trailingIdx) ) {
+         if( lowestIdx < trailingIdx ) {
             lowestIdx = trailingIdx;
             lowest = inLow[lowestIdx];
             i = lowestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inLow[i];
-               if( (tmp<lowest) ) {
+               if( tmp < lowest ) {
                   lowestIdx = i;
                   lowest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp<=lowest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp <= lowest ) {
             lowestIdx = today;
             lowest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
          tmp = inHigh[today];
-         if( (highestIdx<trailingIdx) ) {
+         if( highestIdx < trailingIdx ) {
             highestIdx = trailingIdx;
             highest = inHigh[highestIdx];
             i = highestIdx;
-            while( (++i<=today) ) {
+            while( ++i <= today ) {
                tmp = inHigh[i];
-               if( (tmp>highest) ) {
+               if( tmp > highest ) {
                   highestIdx = i;
                   highest = tmp;
                }
             }
-            diff = ((highest-lowest)/100.0);
-         } else if( (tmp>=highest) ) {
+            diff = (highest - lowest) / 100.0;
+         } else if( tmp >= highest ) {
             highestIdx = today;
             highest = tmp;
-            diff = ((highest-lowest)/100.0);
+            diff = (highest - lowest) / 100.0;
          }
-         if( (diff!=0.0) ) {
-            tempBuffer[outIdx++] = ((inClose[today]-lowest)/diff);
+         if( diff != 0.0 ) {
+            tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
          } else {
             tempBuffer[outIdx++] = 0.0;
          }
          trailingIdx += 1;
          today += 1;
       }
-      retCode = movingAverageUnguarded(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
-      if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
+      retCode = movingAverageUnguarded(0, outIdx - 1, tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+      if( retCode != RetCode.Success || (int)outNBElement.value == 0 ) {
          if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = movingAverageUnguarded(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
-      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
+      retCode = movingAverageUnguarded(0, (int)outNBElement.value - 1, tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+      System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (int)outNBElement.value * 1);
       if( (bufferIsAllocated) != 0 ) {
       }
-      if( (retCode!=RetCode.Success) ) {
+      if( retCode != RetCode.Success ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;

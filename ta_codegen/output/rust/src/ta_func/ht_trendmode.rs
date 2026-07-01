@@ -468,7 +468,7 @@ impl Core {
             // Compute Dominant Cycle Phase
             prevDCPhase = DCPhase;
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             realPart = 0.0;
             imagPart = 0.0;
             // idx is used to iterate for up to 50 of the last
@@ -477,7 +477,7 @@ impl Core {
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
             while i < DCPeriodInt {
-                tempReal = ((i) as f64) * constDeg2RadBy360 / ((DCPeriodInt) as f64);
+                tempReal = (i as f64) * constDeg2RadBy360 / (DCPeriodInt as f64);
                 tempReal2 = smoothPrice[idx];
                 realPart += (tempReal).sin() * tempReal2;
                 imagPart += (tempReal).cos() * tempReal2;
@@ -513,7 +513,7 @@ impl Core {
             leadSine = ((DCPhase + 45_f64) * deg2Rad).sin();
             // Compute Trendline
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             // idx is used to iterate for up to 50 of the last
             // value of smoothPrice.
             idx = today;
@@ -525,7 +525,7 @@ impl Core {
                 i += 1;
             }
             if DCPeriodInt > 0 {
-                tempReal = tempReal / ((DCPeriodInt) as f64);
+                tempReal = tempReal / (DCPeriodInt as f64);
             }
             trendline = ((2.0 as f64).mul_add(iTrend2, (4.0 as f64).mul_add(tempReal, 3.0 * iTrend1)) + iTrend3) / 10.0;
             iTrend3 = iTrend2;
@@ -890,14 +890,14 @@ impl Core {
             smoothPeriod = (0.33 as f64).mul_add(period, 0.67 * smoothPeriod);
             prevDCPhase = DCPhase;
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             realPart = 0.0;
             imagPart = 0.0;
             idx = smoothPrice_Idx;
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
             while i < DCPeriodInt {
-                tempReal = ((i) as f64) * constDeg2RadBy360 / ((DCPeriodInt) as f64);
+                tempReal = (i as f64) * constDeg2RadBy360 / (DCPeriodInt as f64);
                 tempReal2 = *smoothPrice.as_ptr().add(idx);
                 realPart += (tempReal).sin() * tempReal2;
                 imagPart += (tempReal).cos() * tempReal2;
@@ -931,7 +931,7 @@ impl Core {
             sine = (DCPhase * deg2Rad).sin();
             leadSine = ((DCPhase + 45_f64) * deg2Rad).sin();
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             idx = today;
             tempReal = 0.0;
             // for( i = 0; i < DCPeriodInt; i += 1 )
@@ -941,7 +941,7 @@ impl Core {
                 i += 1;
             }
             if DCPeriodInt > 0 {
-                tempReal = tempReal / ((DCPeriodInt) as f64);
+                tempReal = tempReal / (DCPeriodInt as f64);
             }
             trendline = ((2.0 as f64).mul_add(iTrend2, (4.0 as f64).mul_add(tempReal, 3.0 * iTrend1)) + iTrend3) / 10.0;
             iTrend3 = iTrend2;

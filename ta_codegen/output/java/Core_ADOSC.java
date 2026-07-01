@@ -17,7 +17,7 @@
    {
       int slowestPeriod;
       /* Use the slowest EMA period to evaluate the total lookback. */
-      if( (optInFastPeriod<optInSlowPeriod) ) {
+      if( optInFastPeriod < optInSlowPeriod ) {
          slowestPeriod = optInSlowPeriod;
       } else {
          slowestPeriod = optInFastPeriod;
@@ -85,33 +85,33 @@
        * This infomration is used soleley to bootstrap
        * the algorithm (skip the lookback period).
        */
-      if( (optInFastPeriod<optInSlowPeriod) ) {
+      if( optInFastPeriod < optInSlowPeriod ) {
          slowestPeriod = optInSlowPeriod;
       } else {
          slowestPeriod = optInFastPeriod;
       }
       /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = emaLookback(slowestPeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       /* The following variables are used to
        * calculate the "ad".
        */
       ad = 0.0;
       /* Constants for EMA */
-      fastk = (2.0/(((double)optInFastPeriod)+1.0));
-      one_minus_fastk = (1.0-fastk);
-      slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-      one_minus_slowk = (1.0-slowk);
+      fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+      one_minus_fastk = 1.0 - fastk;
+      slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+      one_minus_slowk = 1.0 - slowk;
       /* Initialize the two EMA
        *
        * Use the same range of initialization inputs for
@@ -121,41 +121,41 @@
        */
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) ) {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      if( tmp > 0.0 ) {
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
       fastEMA = ad;
       slowEMA = ad;
       /* Initialize the EMA and skip the unstable period. */
-      while( (today<startIdx) ) {
+      while( today < startIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
       }
       /* Perform the calculation for the requested range */
       outIdx = 0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-         outReal[outIdx++] = (fastEMA-slowEMA);
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+         outReal[outIdx++] = fastEMA - slowEMA;
       }
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -187,62 +187,62 @@
       double fastk = 0;
       double one_minus_fastk = 0;
       double ad = 0;
-      if( (optInFastPeriod<optInSlowPeriod) ) {
+      if( optInFastPeriod < optInSlowPeriod ) {
          slowestPeriod = optInSlowPeriod;
       } else {
          slowestPeriod = optInFastPeriod;
       }
       lookbackTotal = emaLookback(slowestPeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       ad = 0.0;
-      fastk = (2.0/(((double)optInFastPeriod)+1.0));
-      one_minus_fastk = (1.0-fastk);
-      slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-      one_minus_slowk = (1.0-slowk);
+      fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+      one_minus_fastk = 1.0 - fastk;
+      slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+      one_minus_slowk = 1.0 - slowk;
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) ) {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      if( tmp > 0.0 ) {
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
       fastEMA = ad;
       slowEMA = ad;
-      while( (today<startIdx) ) {
+      while( today < startIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
       }
       outIdx = 0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-         outReal[outIdx++] = (fastEMA-slowEMA);
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+         outReal[outIdx++] = fastEMA - slowEMA;
       }
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -280,62 +280,62 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (optInFastPeriod<optInSlowPeriod) ) {
+      if( optInFastPeriod < optInSlowPeriod ) {
          slowestPeriod = optInSlowPeriod;
       } else {
          slowestPeriod = optInFastPeriod;
       }
       lookbackTotal = emaLookback(slowestPeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       ad = 0.0;
-      fastk = (2.0/(((double)optInFastPeriod)+1.0));
-      one_minus_fastk = (1.0-fastk);
-      slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-      one_minus_slowk = (1.0-slowk);
+      fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+      one_minus_fastk = 1.0 - fastk;
+      slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+      one_minus_slowk = 1.0 - slowk;
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) ) {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      if( tmp > 0.0 ) {
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
       fastEMA = ad;
       slowEMA = ad;
-      while( (today<startIdx) ) {
+      while( today < startIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
       }
       outIdx = 0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-         outReal[outIdx++] = (fastEMA-slowEMA);
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+         outReal[outIdx++] = fastEMA - slowEMA;
       }
       outNBElement.value = outIdx;
       return RetCode.Success ;
@@ -367,62 +367,62 @@
       double fastk = 0;
       double one_minus_fastk = 0;
       double ad = 0;
-      if( (optInFastPeriod<optInSlowPeriod) ) {
+      if( optInFastPeriod < optInSlowPeriod ) {
          slowestPeriod = optInSlowPeriod;
       } else {
          slowestPeriod = optInFastPeriod;
       }
       lookbackTotal = emaLookback(slowestPeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       ad = 0.0;
-      fastk = (2.0/(((double)optInFastPeriod)+1.0));
-      one_minus_fastk = (1.0-fastk);
-      slowk = (2.0/(((double)optInSlowPeriod)+1.0));
-      one_minus_slowk = (1.0-slowk);
+      fastk = 2.0 / ((double)optInFastPeriod + 1.0);
+      one_minus_fastk = 1.0 - fastk;
+      slowk = 2.0 / ((double)optInSlowPeriod + 1.0);
+      one_minus_slowk = 1.0 - slowk;
       high = inHigh[today];
       low = inLow[today];
-      tmp = (high-low);
+      tmp = high - low;
       close = inClose[today];
-      if( (tmp>0.0) ) {
-         ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+      if( tmp > 0.0 ) {
+         ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
       }
       today += 1;
       fastEMA = ad;
       slowEMA = ad;
-      while( (today<startIdx) ) {
+      while( today < startIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
       }
       outIdx = 0;
-      while( (today<=endIdx) ) {
+      while( today <= endIdx ) {
          high = inHigh[today];
          low = inLow[today];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[today];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[today]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[today];
          }
          today += 1;
-         fastEMA = ((fastk*ad)+(one_minus_fastk*fastEMA));
-         slowEMA = ((slowk*ad)+(one_minus_slowk*slowEMA));
-         outReal[outIdx++] = (fastEMA-slowEMA);
+         fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+         slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+         outReal[outIdx++] = fastEMA - slowEMA;
       }
       outNBElement.value = outIdx;
       return RetCode.Success ;

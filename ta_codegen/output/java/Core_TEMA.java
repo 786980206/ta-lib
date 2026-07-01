@@ -18,7 +18,7 @@
       int retValue;
       /* Get lookack for one EMA. */
       retValue = emaLookback(optInTimePeriod);
-      return (retValue*3) ;
+      return retValue * 3 ;
 
    }
    public RetCode tema( int startIdx,
@@ -78,55 +78,55 @@
       outBegIdx.value = 0;
       /* Adjust startIdx to account for the lookback period. */
       lookbackEMA = emaLookback(optInTimePeriod);
-      lookbackTotal = (lookbackEMA*3);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackEMA * 3;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          return RetCode.Success ;
       }
       /* Allocate a temporary buffer for the firstEMA. */
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = new double[(int)((tempInt*1))];
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = new double[(int)(tempInt * 1)];
       /* Calculate the first EMA */
-      retCode = emaUnguarded((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      retCode = emaUnguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
       /* Verify for failure or if not enough data after
        * calculating the first EMA.
        */
-      if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
+      if( retCode != RetCode.Success || firstEMANbElement.value == 0 ) {
          return retCode ;
       }
       /* Allocate a temporary buffer for storing the EMA2 */
-      secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaUnguarded(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      secondEMA = new double[(int)(firstEMANbElement.value * 1)];
+      retCode = emaUnguarded(0, firstEMANbElement.value - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
       /* Return empty output on failure or if not enough data after
        * calculating the second EMA.
        */
-      if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
+      if( retCode != RetCode.Success || secondEMANbElement.value == 0 ) {
          return retCode ;
       }
       /* Calculate the EMA3 into the caller provided output. */
-      retCode = emaUnguarded(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      retCode = emaUnguarded(0, secondEMANbElement.value - 1, secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
       /* Return empty output on failure or if not enough data after
        * calculating the third EMA.
        */
-      if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
+      if( retCode != RetCode.Success || thirdEMANbElement.value == 0 ) {
          return retCode ;
       }
       /* Indicate where the output starts relative to
        * the caller input.
        */
-      firstEMAIdx = (thirdEMABegIdx.value+secondEMABegIdx.value);
+      firstEMAIdx = thirdEMABegIdx.value + secondEMABegIdx.value;
       secondEMAIdx = thirdEMABegIdx.value;
-      outBegIdx.value = (firstEMAIdx+firstEMABegIdx.value);
+      outBegIdx.value = firstEMAIdx + firstEMABegIdx.value;
       /* Do the TEMA:
        *  Iterate through the EMA3 (output buffer) and adjust
        *  the value by using the EMA2 and EMA1.
        */
       outIdx = 0;
-      while( (outIdx<thirdEMANbElement.value) ) {
-         outReal[outIdx] = (outReal[outIdx]+((3.0*firstEMA[firstEMAIdx++])-(3.0*secondEMA[secondEMAIdx++])));
+      while( outIdx < thirdEMANbElement.value ) {
+         outReal[outIdx] = outReal[outIdx] + (3.0 * firstEMA[firstEMAIdx++] - 3.0 * secondEMA[secondEMAIdx++]);
          outIdx += 1;
       }
       /* Indicates to the caller the number of output
@@ -161,34 +161,34 @@
       outNBElement.value = 0;
       outBegIdx.value = 0;
       lookbackEMA = emaLookback(optInTimePeriod);
-      lookbackTotal = (lookbackEMA*3);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackEMA * 3;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          return RetCode.Success ;
       }
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = new double[(int)((tempInt*1))];
-      retCode = emaUnguarded((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
-      if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = new double[(int)(tempInt * 1)];
+      retCode = emaUnguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      if( retCode != RetCode.Success || firstEMANbElement.value == 0 ) {
          return retCode ;
       }
-      secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaUnguarded(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
-      if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
+      secondEMA = new double[(int)(firstEMANbElement.value * 1)];
+      retCode = emaUnguarded(0, firstEMANbElement.value - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      if( retCode != RetCode.Success || secondEMANbElement.value == 0 ) {
          return retCode ;
       }
-      retCode = emaUnguarded(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
-      if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
+      retCode = emaUnguarded(0, secondEMANbElement.value - 1, secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      if( retCode != RetCode.Success || thirdEMANbElement.value == 0 ) {
          return retCode ;
       }
-      firstEMAIdx = (thirdEMABegIdx.value+secondEMABegIdx.value);
+      firstEMAIdx = thirdEMABegIdx.value + secondEMABegIdx.value;
       secondEMAIdx = thirdEMABegIdx.value;
-      outBegIdx.value = (firstEMAIdx+firstEMABegIdx.value);
+      outBegIdx.value = firstEMAIdx + firstEMABegIdx.value;
       outIdx = 0;
-      while( (outIdx<thirdEMANbElement.value) ) {
-         outReal[outIdx] = (outReal[outIdx]+((3.0*firstEMA[firstEMAIdx++])-(3.0*secondEMA[secondEMAIdx++])));
+      while( outIdx < thirdEMANbElement.value ) {
+         outReal[outIdx] = outReal[outIdx] + (3.0 * firstEMA[firstEMAIdx++] - 3.0 * secondEMA[secondEMAIdx++]);
          outIdx += 1;
       }
       outNBElement.value = outIdx;
@@ -226,34 +226,34 @@
       outNBElement.value = 0;
       outBegIdx.value = 0;
       lookbackEMA = emaLookback(optInTimePeriod);
-      lookbackTotal = (lookbackEMA*3);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackEMA * 3;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          return RetCode.Success ;
       }
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = new double[(int)((tempInt*1))];
-      retCode = emaUnguarded((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
-      if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = new double[(int)(tempInt * 1)];
+      retCode = emaUnguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      if( retCode != RetCode.Success || firstEMANbElement.value == 0 ) {
          return retCode ;
       }
-      secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaUnguarded(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
-      if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
+      secondEMA = new double[(int)(firstEMANbElement.value * 1)];
+      retCode = emaUnguarded(0, firstEMANbElement.value - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      if( retCode != RetCode.Success || secondEMANbElement.value == 0 ) {
          return retCode ;
       }
-      retCode = emaUnguarded(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
-      if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
+      retCode = emaUnguarded(0, secondEMANbElement.value - 1, secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      if( retCode != RetCode.Success || thirdEMANbElement.value == 0 ) {
          return retCode ;
       }
-      firstEMAIdx = (thirdEMABegIdx.value+secondEMABegIdx.value);
+      firstEMAIdx = thirdEMABegIdx.value + secondEMABegIdx.value;
       secondEMAIdx = thirdEMABegIdx.value;
-      outBegIdx.value = (firstEMAIdx+firstEMABegIdx.value);
+      outBegIdx.value = firstEMAIdx + firstEMABegIdx.value;
       outIdx = 0;
-      while( (outIdx<thirdEMANbElement.value) ) {
-         outReal[outIdx] = (outReal[outIdx]+((3.0*firstEMA[firstEMAIdx++])-(3.0*secondEMA[secondEMAIdx++])));
+      while( outIdx < thirdEMANbElement.value ) {
+         outReal[outIdx] = outReal[outIdx] + (3.0 * firstEMA[firstEMAIdx++] - 3.0 * secondEMA[secondEMAIdx++]);
          outIdx += 1;
       }
       outNBElement.value = outIdx;
@@ -285,34 +285,34 @@
       outNBElement.value = 0;
       outBegIdx.value = 0;
       lookbackEMA = emaLookback(optInTimePeriod);
-      lookbackTotal = (lookbackEMA*3);
-      if( (startIdx<lookbackTotal) ) {
+      lookbackTotal = lookbackEMA * 3;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          return RetCode.Success ;
       }
-      tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
-      firstEMA = new double[(int)((tempInt*1))];
-      retCode = emaUnguarded((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
-      if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
+      tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+      firstEMA = new double[(int)(tempInt * 1)];
+      retCode = emaUnguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      if( retCode != RetCode.Success || firstEMANbElement.value == 0 ) {
          return retCode ;
       }
-      secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaUnguarded(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
-      if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
+      secondEMA = new double[(int)(firstEMANbElement.value * 1)];
+      retCode = emaUnguarded(0, firstEMANbElement.value - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      if( retCode != RetCode.Success || secondEMANbElement.value == 0 ) {
          return retCode ;
       }
-      retCode = emaUnguarded(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
-      if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
+      retCode = emaUnguarded(0, secondEMANbElement.value - 1, secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      if( retCode != RetCode.Success || thirdEMANbElement.value == 0 ) {
          return retCode ;
       }
-      firstEMAIdx = (thirdEMABegIdx.value+secondEMABegIdx.value);
+      firstEMAIdx = thirdEMABegIdx.value + secondEMABegIdx.value;
       secondEMAIdx = thirdEMABegIdx.value;
-      outBegIdx.value = (firstEMAIdx+firstEMABegIdx.value);
+      outBegIdx.value = firstEMAIdx + firstEMABegIdx.value;
       outIdx = 0;
-      while( (outIdx<thirdEMANbElement.value) ) {
-         outReal[outIdx] = (outReal[outIdx]+((3.0*firstEMA[firstEMAIdx++])-(3.0*secondEMA[secondEMAIdx++])));
+      while( outIdx < thirdEMANbElement.value ) {
+         outReal[outIdx] = outReal[outIdx] + (3.0 * firstEMA[firstEMAIdx++] - 3.0 * secondEMA[secondEMAIdx++]);
          outIdx += 1;
       }
       outNBElement.value = outIdx;

@@ -197,7 +197,7 @@ impl Core {
             return retCode;
         }
         retCode = self.stochf_unguarded(0, tempArraySize - 1, &tempRSIBuffer, &tempRSIBuffer, &tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, &mut outBegIdx2, outNBElement, outFastK, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
@@ -253,7 +253,7 @@ impl Core {
             return retCode;
         }
         retCode = self.stochf_unguarded(0, tempArraySize - 1, &tempRSIBuffer, &tempRSIBuffer, &tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, &mut outBegIdx2, outNBElement, outFastK, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;

@@ -47,11 +47,11 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       /* Allocate an intermediate buffer. */
-      tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
+      tempBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
       /* Make sure slow is really slower than
        * the fast period! if not, swap...
        */
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      if( optInSlowPeriod < optInFastPeriod ) {
          /* swap */
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
@@ -59,16 +59,16 @@
       }
       /* Calculate the fast MA into the tempBuffer. */
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
-      if( (retCode==RetCode.Success) ) {
+      if( retCode == RetCode.Success ) {
          /* Calculate the slow MA into the output. */
          retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
-         if( (retCode==RetCode.Success) ) {
-            tempInteger = (outBegIdx1.value-outBegIdx2.value);
+         if( retCode == RetCode.Success ) {
+            tempInteger = outBegIdx1.value - outBegIdx2.value;
             /* Calculate ((fast MA)-(slow MA))/(slow MA) in the output. */
-            for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
+            for( i = 0, j = tempInteger; i < outNbElement1.value; i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-                  outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+                  outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
                } else {
                   outReal[i] = 0.0;
                }
@@ -99,21 +99,21 @@
       MInteger outNbElement2 = new MInteger();
       int i = 0;
       int j = 0;
-      tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      tempBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
+      if( optInSlowPeriod < optInFastPeriod ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
-      if( (retCode==RetCode.Success) ) {
+      if( retCode == RetCode.Success ) {
          retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
-         if( (retCode==RetCode.Success) ) {
-            tempInteger = (outBegIdx1.value-outBegIdx2.value);
-            for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
+         if( retCode == RetCode.Success ) {
+            tempInteger = outBegIdx1.value - outBegIdx2.value;
+            for( i = 0, j = tempInteger; i < outNbElement1.value; i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-                  outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+                  outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
                } else {
                   outReal[i] = 0.0;
                }
@@ -150,21 +150,21 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      tempBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
+      if( optInSlowPeriod < optInFastPeriod ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
-      if( (retCode==RetCode.Success) ) {
+      if( retCode == RetCode.Success ) {
          retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
-         if( (retCode==RetCode.Success) ) {
-            tempInteger = (outBegIdx1.value-outBegIdx2.value);
-            for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
+         if( retCode == RetCode.Success ) {
+            tempInteger = outBegIdx1.value - outBegIdx2.value;
+            for( i = 0, j = tempInteger; i < outNbElement1.value; i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-                  outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+                  outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
                } else {
                   outReal[i] = 0.0;
                }
@@ -195,21 +195,21 @@
       MInteger outNbElement2 = new MInteger();
       int i = 0;
       int j = 0;
-      tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-      if( (optInSlowPeriod<optInFastPeriod) ) {
+      tempBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
+      if( optInSlowPeriod < optInFastPeriod ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
       retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
-      if( (retCode==RetCode.Success) ) {
+      if( retCode == RetCode.Success ) {
          retCode = movingAverageUnguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
-         if( (retCode==RetCode.Success) ) {
-            tempInteger = (outBegIdx1.value-outBegIdx2.value);
-            for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
+         if( retCode == RetCode.Success ) {
+            tempInteger = outBegIdx1.value - outBegIdx2.value;
+            for( i = 0, j = tempInteger; i < outNbElement1.value; i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
-                  outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
+               if( !((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
+                  outReal[i] = (tempBuffer[j] - tempReal) / tempReal * 100.0;
                } else {
                   outReal[i] = 0.0;
                }

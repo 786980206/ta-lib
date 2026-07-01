@@ -59,19 +59,19 @@
        *       its calculations.
        */
       /* Default return values */
-      nbBar = ((endIdx-startIdx)+1);
+      nbBar = endIdx - startIdx + 1;
       outNBElement.value = nbBar;
       outBegIdx.value = startIdx;
       currentBar = startIdx;
       outIdx = 0;
       ad = 0.0;
-      while( (nbBar!=0) ) {
+      while( nbBar != 0 ) {
          high = inHigh[currentBar];
          low = inLow[currentBar];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[currentBar];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
          }
          outReal[outIdx++] = ad;
          currentBar += 1;
@@ -97,19 +97,19 @@
       double close = 0;
       double tmp = 0;
       double ad = 0;
-      nbBar = ((endIdx-startIdx)+1);
+      nbBar = endIdx - startIdx + 1;
       outNBElement.value = nbBar;
       outBegIdx.value = startIdx;
       currentBar = startIdx;
       outIdx = 0;
       ad = 0.0;
-      while( (nbBar!=0) ) {
+      while( nbBar != 0 ) {
          high = inHigh[currentBar];
          low = inLow[currentBar];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[currentBar];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
          }
          outReal[outIdx++] = ad;
          currentBar += 1;
@@ -141,19 +141,19 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      nbBar = ((endIdx-startIdx)+1);
+      nbBar = endIdx - startIdx + 1;
       outNBElement.value = nbBar;
       outBegIdx.value = startIdx;
       currentBar = startIdx;
       outIdx = 0;
       ad = 0.0;
-      while( (nbBar!=0) ) {
+      while( nbBar != 0 ) {
          high = inHigh[currentBar];
          low = inLow[currentBar];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[currentBar];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
          }
          outReal[outIdx++] = ad;
          currentBar += 1;
@@ -179,19 +179,19 @@
       double close = 0;
       double tmp = 0;
       double ad = 0;
-      nbBar = ((endIdx-startIdx)+1);
+      nbBar = endIdx - startIdx + 1;
       outNBElement.value = nbBar;
       outBegIdx.value = startIdx;
       currentBar = startIdx;
       outIdx = 0;
       ad = 0.0;
-      while( (nbBar!=0) ) {
+      while( nbBar != 0 ) {
          high = inHigh[currentBar];
          low = inLow[currentBar];
-         tmp = (high-low);
+         tmp = high - low;
          close = inClose[currentBar];
-         if( (tmp>0.0) ) {
-            ad += ((((close-low)-(high-close))/tmp)*((double)inVolume[currentBar]));
+         if( tmp > 0.0 ) {
+            ad += (close - low - (high - close)) / tmp * (double)inVolume[currentBar];
          }
          outReal[outIdx++] = ad;
          currentBar += 1;

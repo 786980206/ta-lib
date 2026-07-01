@@ -14,7 +14,7 @@
 
    public int linearRegInterceptLookback( int optInTimePeriod )
    {
-      return (optInTimePeriod-1) ;
+      return optInTimePeriod - 1 ;
 
    }
    public RetCode linearRegIntercept( int startIdx,
@@ -60,11 +60,11 @@
        */
       /* Adjust startIdx to account for the lookback period. */
       lookbackTotal = linearRegInterceptLookback(optInTimePeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -72,19 +72,19 @@
       outIdx = 0;
       /* Index into the output. */
       today = startIdx;
-      SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-      SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-      Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-      while( (today<=endIdx) ) {
+      SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+      SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+      Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+      while( today <= endIdx ) {
          SumXY = 0;
          SumY = 0;
-         for( i = optInTimePeriod; (i--!=0);  ) {
-            tempValue1 = inReal[(today-i)];
+         for( i = optInTimePeriod; i-- != 0;  ) {
+            tempValue1 = inReal[today - i];
             SumY += tempValue1;
-            SumXY += (((double)i)*tempValue1);
+            SumXY += (double)i * tempValue1;
          }
-         m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-         outReal[outIdx++] = ((SumY-(m*SumX))/((double)optInTimePeriod));
+         m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+         outReal[outIdx++] = (SumY - m * SumX) / (double)optInTimePeriod;
          today += 1;
       }
       outBegIdx.value = startIdx;
@@ -111,29 +111,29 @@
       int i = 0;
       double tempValue1 = 0;
       lookbackTotal = linearRegInterceptLookback(optInTimePeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-      SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-      Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-      while( (today<=endIdx) ) {
+      SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+      SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+      Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+      while( today <= endIdx ) {
          SumXY = 0;
          SumY = 0;
-         for( i = optInTimePeriod; (i--!=0);  ) {
-            tempValue1 = inReal[(today-i)];
+         for( i = optInTimePeriod; i-- != 0;  ) {
+            tempValue1 = inReal[today - i];
             SumY += tempValue1;
-            SumXY += (((double)i)*tempValue1);
+            SumXY += (double)i * tempValue1;
          }
-         m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-         outReal[outIdx++] = ((SumY-(m*SumX))/((double)optInTimePeriod));
+         m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+         outReal[outIdx++] = (SumY - m * SumX) / (double)optInTimePeriod;
          today += 1;
       }
       outBegIdx.value = startIdx;
@@ -166,29 +166,29 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       lookbackTotal = linearRegInterceptLookback(optInTimePeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-      SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-      Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-      while( (today<=endIdx) ) {
+      SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+      SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+      Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+      while( today <= endIdx ) {
          SumXY = 0;
          SumY = 0;
-         for( i = optInTimePeriod; (i--!=0);  ) {
-            tempValue1 = inReal[(today-i)];
+         for( i = optInTimePeriod; i-- != 0;  ) {
+            tempValue1 = inReal[today - i];
             SumY += tempValue1;
-            SumXY += (((double)i)*tempValue1);
+            SumXY += (double)i * tempValue1;
          }
-         m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-         outReal[outIdx++] = ((SumY-(m*SumX))/((double)optInTimePeriod));
+         m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+         outReal[outIdx++] = (SumY - m * SumX) / (double)optInTimePeriod;
          today += 1;
       }
       outBegIdx.value = startIdx;
@@ -215,29 +215,29 @@
       int i = 0;
       double tempValue1 = 0;
       lookbackTotal = linearRegInterceptLookback(optInTimePeriod);
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
       today = startIdx;
-      SumX = ((optInTimePeriod*(optInTimePeriod-1))*0.5);
-      SumXSqr = (((optInTimePeriod*(optInTimePeriod-1))*((2*optInTimePeriod)-1))/6);
-      Divisor = ((SumX*SumX)-(optInTimePeriod*SumXSqr));
-      while( (today<=endIdx) ) {
+      SumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+      SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
+      Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+      while( today <= endIdx ) {
          SumXY = 0;
          SumY = 0;
-         for( i = optInTimePeriod; (i--!=0);  ) {
-            tempValue1 = inReal[(today-i)];
+         for( i = optInTimePeriod; i-- != 0;  ) {
+            tempValue1 = inReal[today - i];
             SumY += tempValue1;
-            SumXY += (((double)i)*tempValue1);
+            SumXY += (double)i * tempValue1;
          }
-         m = (((optInTimePeriod*SumXY)-(SumX*SumY))/Divisor);
-         outReal[outIdx++] = ((SumY-(m*SumX))/((double)optInTimePeriod));
+         m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
+         outReal[outIdx++] = (SumY - m * SumX) / (double)optInTimePeriod;
          today += 1;
       }
       outBegIdx.value = startIdx;

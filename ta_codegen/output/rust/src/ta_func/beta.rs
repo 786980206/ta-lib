@@ -200,7 +200,7 @@ impl Core {
         }
         outIdx = 0;
         // First output always start at index zero
-        n = (optInTimePeriod) as f64;
+        n = optInTimePeriod as f64;
         loop {
             tmp_real = inReal0[i];
             if !((last_price_x).abs() < 1e-14) {
@@ -334,7 +334,7 @@ impl Core {
             S_y += y;
         }
         outIdx = 0;
-        n = (optInTimePeriod) as f64;
+        n = optInTimePeriod as f64;
         loop {
             tmp_real = *inReal0.as_ptr().add(i);
             if !((last_price_x).abs() < 1e-14) {

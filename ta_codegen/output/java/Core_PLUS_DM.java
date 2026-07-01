@@ -16,8 +16,8 @@
 
    public int plusDMLookback( int optInTimePeriod )
    {
-      if( (optInTimePeriod>1) ) {
-         return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1) ;
+      if( optInTimePeriod > 1 ) {
+         return optInTimePeriod + this.unstablePeriod[FuncUnstId.PlusDM.ordinal()] - 1 ;
       } else {
          return 1 ;
       }
@@ -113,17 +113,17 @@
        * Reference:
        *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
        */
-      if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
+      if( optInTimePeriod > 1 ) {
+         lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.PlusDM.ordinal()] - 1;
       } else {
          lookbackTotal = 1;
       }
       /* Adjust startIdx to account for the lookback period. */
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
       /* Make sure there is still something to evaluate. */
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
@@ -133,25 +133,25 @@
        */
       outIdx = 0;
       /* Trap the case where no smoothing is needed. */
-      if( (optInTimePeriod<=1) ) {
+      if( optInTimePeriod <= 1 ) {
          /* No smoothing needed. Just do a simple DM1
           * for each price bar.
           */
          outBegIdx.value = startIdx;
-         today = (startIdx-1);
+         today = startIdx - 1;
          prevHigh = inHigh[today];
          prevLow = inLow[today];
-         while( (today<endIdx) ) {
+         while( today < endIdx ) {
             today += 1;
             tempReal = inHigh[today];
-            diffP = (tempReal-prevHigh);
+            diffP = tempReal - prevHigh;
             /* Plus Delta */
             prevHigh = tempReal;
             tempReal = inLow[today];
-            diffM = (prevLow-tempReal);
+            diffM = prevLow - tempReal;
             /* Minus Delta */
             prevLow = tempReal;
-            if( ((diffP>0)&&(diffP>diffM)) ) {
+            if( diffP > 0 && diffP > diffM ) {
                /* Case 1 and 3: +DM=diffP,-DM=0 */
                outReal[outIdx++] = diffP;
             } else {
@@ -164,21 +164,21 @@
       /* Process the initial DM */
       outBegIdx.value = startIdx;
       prevPlusDM = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          /* Minus Delta */
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
+         if( diffP > 0 && diffP > diffM ) {
             /* Case 1 and 3: +DM=diffP,-DM=0 */
             prevPlusDM += diffP;
          }
@@ -186,22 +186,22 @@
       /* Process subsequent DM */
       /* Skip the unstable period. */
       i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
-      while( (i--!=0) ) {
+      while( i-- != 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          /* Minus Delta */
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
+         if( diffP > 0 && diffP > diffM ) {
             /* Case 1 and 3: +DM=diffP,-DM=0 */
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
             /* Case 2,4,5 and 7 */
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
       }
       /* Now start to write the output in
@@ -209,22 +209,22 @@
        */
       outReal[0] = prevPlusDM;
       outIdx = 1;
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          /* Plus Delta */
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          /* Minus Delta */
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
+         if( diffP > 0 && diffP > diffM ) {
             /* Case 1 and 3: +DM=diffP,-DM=0 */
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
             /* Case 2,4,5 and 7 */
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
          outReal[outIdx++] = prevPlusDM;
       }
@@ -250,34 +250,34 @@
       double diffP = 0;
       double diffM = 0;
       int i = 0;
-      if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
+      if( optInTimePeriod > 1 ) {
+         lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.PlusDM.ordinal()] - 1;
       } else {
          lookbackTotal = 1;
       }
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      if( (optInTimePeriod<=1) ) {
+      if( optInTimePeriod <= 1 ) {
          outBegIdx.value = startIdx;
-         today = (startIdx-1);
+         today = startIdx - 1;
          prevHigh = inHigh[today];
          prevLow = inLow[today];
-         while( (today<endIdx) ) {
+         while( today < endIdx ) {
             today += 1;
             tempReal = inHigh[today];
-            diffP = (tempReal-prevHigh);
+            diffP = tempReal - prevHigh;
             prevHigh = tempReal;
             tempReal = inLow[today];
-            diffM = (prevLow-tempReal);
+            diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if( ((diffP>0)&&(diffP>diffM)) ) {
+            if( diffP > 0 && diffP > diffM ) {
                outReal[outIdx++] = diffP;
             } else {
                outReal[outIdx++] = 0;
@@ -288,51 +288,51 @@
       }
       outBegIdx.value = startIdx;
       prevPlusDM = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
+         if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
       }
       i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
-      while( (i--!=0) ) {
+      while( i-- != 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+         if( diffP > 0 && diffP > diffM ) {
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
       }
       outReal[0] = prevPlusDM;
       outIdx = 1;
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+         if( diffP > 0 && diffP > diffM ) {
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
          outReal[outIdx++] = prevPlusDM;
       }
@@ -364,34 +364,34 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
+      if( optInTimePeriod > 1 ) {
+         lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.PlusDM.ordinal()] - 1;
       } else {
          lookbackTotal = 1;
       }
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      if( (optInTimePeriod<=1) ) {
+      if( optInTimePeriod <= 1 ) {
          outBegIdx.value = startIdx;
-         today = (startIdx-1);
+         today = startIdx - 1;
          prevHigh = inHigh[today];
          prevLow = inLow[today];
-         while( (today<endIdx) ) {
+         while( today < endIdx ) {
             today += 1;
             tempReal = inHigh[today];
-            diffP = (tempReal-prevHigh);
+            diffP = tempReal - prevHigh;
             prevHigh = tempReal;
             tempReal = inLow[today];
-            diffM = (prevLow-tempReal);
+            diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if( ((diffP>0)&&(diffP>diffM)) ) {
+            if( diffP > 0 && diffP > diffM ) {
                outReal[outIdx++] = diffP;
             } else {
                outReal[outIdx++] = 0;
@@ -402,51 +402,51 @@
       }
       outBegIdx.value = startIdx;
       prevPlusDM = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
+         if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
       }
       i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
-      while( (i--!=0) ) {
+      while( i-- != 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+         if( diffP > 0 && diffP > diffM ) {
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
       }
       outReal[0] = prevPlusDM;
       outIdx = 1;
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+         if( diffP > 0 && diffP > diffM ) {
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
          outReal[outIdx++] = prevPlusDM;
       }
@@ -472,34 +472,34 @@
       double diffP = 0;
       double diffM = 0;
       int i = 0;
-      if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
+      if( optInTimePeriod > 1 ) {
+         lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.PlusDM.ordinal()] - 1;
       } else {
          lookbackTotal = 1;
       }
-      if( (startIdx<lookbackTotal) ) {
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
       }
-      if( (startIdx>endIdx) ) {
+      if( startIdx > endIdx ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return RetCode.Success ;
       }
       outIdx = 0;
-      if( (optInTimePeriod<=1) ) {
+      if( optInTimePeriod <= 1 ) {
          outBegIdx.value = startIdx;
-         today = (startIdx-1);
+         today = startIdx - 1;
          prevHigh = inHigh[today];
          prevLow = inLow[today];
-         while( (today<endIdx) ) {
+         while( today < endIdx ) {
             today += 1;
             tempReal = inHigh[today];
-            diffP = (tempReal-prevHigh);
+            diffP = tempReal - prevHigh;
             prevHigh = tempReal;
             tempReal = inLow[today];
-            diffM = (prevLow-tempReal);
+            diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if( ((diffP>0)&&(diffP>diffM)) ) {
+            if( diffP > 0 && diffP > diffM ) {
                outReal[outIdx++] = diffP;
             } else {
                outReal[outIdx++] = 0;
@@ -510,51 +510,51 @@
       }
       outBegIdx.value = startIdx;
       prevPlusDM = 0.0;
-      today = (startIdx-lookbackTotal);
+      today = startIdx - lookbackTotal;
       prevHigh = inHigh[today];
       prevLow = inLow[today];
-      i = (optInTimePeriod-1);
-      while( (i-->0) ) {
+      i = optInTimePeriod - 1;
+      while( i-- > 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
+         if( diffP > 0 && diffP > diffM ) {
             prevPlusDM += diffP;
          }
       }
       i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
-      while( (i--!=0) ) {
+      while( i-- != 0 ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+         if( diffP > 0 && diffP > diffM ) {
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
       }
       outReal[0] = prevPlusDM;
       outIdx = 1;
-      while( (today<endIdx) ) {
+      while( today < endIdx ) {
          today += 1;
          tempReal = inHigh[today];
-         diffP = (tempReal-prevHigh);
+         diffP = tempReal - prevHigh;
          prevHigh = tempReal;
          tempReal = inLow[today];
-         diffM = (prevLow-tempReal);
+         diffM = prevLow - tempReal;
          prevLow = tempReal;
-         if( ((diffP>0)&&(diffP>diffM)) ) {
-            prevPlusDM = ((prevPlusDM-(prevPlusDM/optInTimePeriod))+diffP);
+         if( diffP > 0 && diffP > diffM ) {
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
          } else {
-            prevPlusDM = (prevPlusDM-(prevPlusDM/optInTimePeriod));
+            prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod;
          }
          outReal[outIdx++] = prevPlusDM;
       }

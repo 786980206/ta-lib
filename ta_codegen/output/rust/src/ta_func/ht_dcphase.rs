@@ -442,7 +442,7 @@ impl Core {
             smoothPeriod = (0.33 as f64).mul_add(period, 0.67 * smoothPeriod);
             // Compute Dominant Cycle Phase
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             realPart = 0.0;
             imagPart = 0.0;
             // idx is used to iterate for up to 50 of the last
@@ -451,7 +451,7 @@ impl Core {
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
             while i < DCPeriodInt {
-                tempReal = ((i) as f64) * constDeg2RadBy360 / ((DCPeriodInt) as f64);
+                tempReal = (i as f64) * constDeg2RadBy360 / (DCPeriodInt as f64);
                 tempReal2 = smoothPrice[idx];
                 realPart += (tempReal).sin() * tempReal2;
                 imagPart += (tempReal).cos() * tempReal2;
@@ -797,14 +797,14 @@ impl Core {
             period = (0.2 as f64).mul_add(period, 0.8 * tempReal);
             smoothPeriod = (0.33 as f64).mul_add(period, 0.67 * smoothPeriod);
             DCPeriod = smoothPeriod + 0.5;
-            DCPeriodInt = ((DCPeriod) as usize) as usize;
+            DCPeriodInt = (DCPeriod as usize) as usize;
             realPart = 0.0;
             imagPart = 0.0;
             idx = smoothPrice_Idx;
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
             while i < DCPeriodInt {
-                tempReal = ((i) as f64) * constDeg2RadBy360 / ((DCPeriodInt) as f64);
+                tempReal = (i as f64) * constDeg2RadBy360 / (DCPeriodInt as f64);
                 tempReal2 = *smoothPrice.as_ptr().add(idx);
                 realPart += (tempReal).sin() * tempReal2;
                 imagPart += (tempReal).cos() * tempReal2;

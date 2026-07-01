@@ -136,7 +136,7 @@ impl Core {
             tmp = high - low;
             close = inClose[currentBar];
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * ((inVolume[currentBar]) as f64);
+                ad += (close - low - (high - close)) / tmp * (inVolume[currentBar] as f64);
             }
             outReal[outIdx] = ad;
             outIdx += 1;
@@ -184,7 +184,7 @@ impl Core {
             tmp = high - low;
             close = *inClose.as_ptr().add(currentBar);
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(currentBar)) as f64);
+                ad += (close - low - (high - close)) / tmp * (*inVolume.as_ptr().add(currentBar) as f64);
             }
             *outReal.as_mut_ptr().add(outIdx) = ad;
             outIdx += 1;

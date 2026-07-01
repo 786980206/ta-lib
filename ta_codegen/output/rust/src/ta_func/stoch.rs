@@ -304,7 +304,7 @@ impl Core {
         // Some documentation will refer to the smoothed version as being
         // "K-Slow", but often this end up to be shorten to "K".
         retCode = self.ma_unguarded(0, outIdx - 1, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
             // Something wrong happen? No further data?
@@ -314,13 +314,13 @@ impl Core {
         }
         // Calculate the %D which is simply a moving average of
         // the already smoothed %K.
-        retCode = self.ma_unguarded(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+        retCode = self.ma_unguarded(0, (((*outNBElement) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
         // Copy tempBuffer into the caller buffer.
         // (Calculation could not be done directly in the
         //  caller buffer because more input data then the
         //  requested range was needed for doing %D).
         {
-            let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
+            let _n = ((((*outNBElement) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;
             let _si = (lookbackDSlow) as usize;
             outSlowK[_di.._di + _n].copy_from_slice(&tempBuffer[_si.._si + _n]);
@@ -457,16 +457,16 @@ impl Core {
             today += 1;
         }
         retCode = self.ma_unguarded(0, outIdx - 1, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
-        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+        if retCode != RetCode::Success || ((*outNBElement) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.ma_unguarded(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+        retCode = self.ma_unguarded(0, (((*outNBElement) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
         {
-            let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
+            let _n = ((((*outNBElement) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;
             let _si = (lookbackDSlow) as usize;
             outSlowK[_di.._di + _n].copy_from_slice(&tempBuffer[_si.._si + _n]);
