@@ -17,6 +17,49 @@
 
 use crate::ir::{BinOp, Expr, VarType};
 
+/// Binding strength of a binary operator (higher binds tighter), following C
+/// operator precedence. Backends use this to emit the *minimal* parenthesization
+/// that still preserves the IR's grouping, instead of wrapping every operand.
+///
+/// Rust and Java share this ordering for the operators the IR uses, so the same
+/// table serves those backends too.
+#[must_use]
+pub fn binop_prec(op: &BinOp) -> u8 {
+    match op {
+        BinOp::Or => 2,
+        BinOp::And => 3,
+        BinOp::BitwiseOr => 4,
+        BinOp::Eq | BinOp::NotEq => 7,
+        BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq => 8,
+        BinOp::Shl | BinOp::Shr => 9,
+        BinOp::Add | BinOp::Sub => 10,
+        BinOp::Mul | BinOp::Div | BinOp::Mod => 11,
+    }
+}
+
+/// Binding strength of an expression's top-level operator (higher binds
+/// tighter). Atomic and postfix operands (literals, identifiers, calls,
+/// indexing, `x++`) sit above every binary operator, so they never need
+/// wrapping; prefix-unary forms sit just below postfix.
+#[must_use]
+pub fn expr_prec(e: &Expr) -> u8 {
+    match e {
+        Expr::Ternary(..) => 1,
+        Expr::BinOp(_, op, _) => binop_prec(op),
+        Expr::Not(_)
+        | Expr::Cast(..)
+        | Expr::AddressOf(_)
+        | Expr::PreIncrement(_)
+        | Expr::PreDecrement(_)
+        | Expr::PointerDeref(_) => 12,
+        Expr::PostIncrement(_)
+        | Expr::PostDecrement(_)
+        | Expr::ArrayAccess(..)
+        | Expr::FuncCall(..) => 13,
+        Expr::Literal(_) | Expr::IntLiteral(_) | Expr::Var(_) => 14,
+    }
+}
+
 /// Per-language leaf formatting for the shared [`walk`](ExprEmitter::walk) dispatch.
 ///
 /// Implementors provide the language-specific hooks; the default `walk` owns the

@@ -2250,7 +2250,7 @@ fn inlining_counter_avoids_name_collisions() {
         "First call should emit BodyLong macro: {output}"
     );
     assert!(
-        output.contains("TA_CANDLERANGE(BodyShort,(i-1))"),
+        output.contains("TA_CANDLERANGE(BodyShort,i - 1)"),
         "Second call should emit BodyShort macro with offset: {output}"
     );
     // No expanded temporaries
@@ -4992,7 +4992,7 @@ fn c_forc_single_init_renders_correctly() {
         "C ForC should render as for(): {rendered}"
     );
     assert!(
-        rendered.contains("(i<n)"),
+        rendered.contains("i < n"),
         "C ForC should render condition: {rendered}"
     );
 }
@@ -5040,7 +5040,7 @@ fn c_t3_for_countdown_loops() {
 
     // T3 uses multiple for(i=period-1; i>0; i--) loops (rendered as i -= 1)
     assert!(
-        c.contains("i > 0; i--") || c.contains("(i>0); i -= 1"),
+        c.contains("i > 0; i -= 1"),
         "C T3 should contain countdown for loops"
     );
 }
@@ -5131,8 +5131,8 @@ fn c_cast_expression_types() {
     };
     let rendered = render_c_stmt(&stmt);
     assert!(
-        rendered.contains("((int)2.71)"),
-        "C Cast to Integer should render as ((int)...): {rendered}"
+        rendered.contains("(int)2.71"),
+        "C Cast to Integer should render as (int)...: {rendered}"
     );
 
     let stmt2 = ir::Statement::Assign {
@@ -5145,8 +5145,8 @@ fn c_cast_expression_types() {
     };
     let rendered2 = render_c_stmt(&stmt2);
     assert!(
-        rendered2.contains("((TA_RetCode)0)"),
-        "C Cast to RetCodeType should render as ((TA_RetCode)...): {rendered2}"
+        rendered2.contains("(TA_RetCode)0"),
+        "C Cast to RetCodeType should render as (TA_RetCode)...: {rendered2}"
     );
 
     let stmt3 = ir::Statement::Assign {
@@ -5159,8 +5159,8 @@ fn c_cast_expression_types() {
     };
     let rendered3 = render_c_stmt(&stmt3);
     assert!(
-        rendered3.contains("((double *)buf)"),
-        "C Cast to RealPointer should render as ((double *)...): {rendered3}"
+        rendered3.contains("(double *)buf"),
+        "C Cast to RealPointer should render as (double *)...: {rendered3}"
     );
 
     let stmt4 = ir::Statement::Assign {
@@ -5173,8 +5173,8 @@ fn c_cast_expression_types() {
     };
     let rendered4 = render_c_stmt(&stmt4);
     assert!(
-        rendered4.contains("((int *)arr)"),
-        "C Cast to IntPointer should render as ((int *)...): {rendered4}"
+        rendered4.contains("(int *)arr"),
+        "C Cast to IntPointer should render as (int *)...: {rendered4}"
     );
 }
 
@@ -5300,8 +5300,8 @@ fn c_not_expression() {
     };
     let rendered = render_c_stmt(&stmt);
     assert!(
-        rendered.contains("!(flag)"),
-        "C Not expression should render as !(expr): {rendered}"
+        rendered.contains("!flag"),
+        "C Not expression should render as !expr: {rendered}"
     );
 }
 

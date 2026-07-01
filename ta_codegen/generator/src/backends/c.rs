@@ -11,7 +11,7 @@ use crate::ir::{
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 use super::common::{expr_directly_contains_candle_call, pascal_word};
-use super::expr_walk::ExprEmitter;
+use super::expr_walk::{binop_prec, expr_prec, ExprEmitter};
 use super::builtins::{MathFn, SpecialBuiltin, StdlibFn};
 use super::stmt_walk::StatementEmitter;
 
@@ -981,9 +981,20 @@ impl StatementEmitter for CStmt<'_> {
             let mut cnt = self.ctx.inline_counter.get();
             let new_cond = hoist_block_helpers(condition, self.helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
             self.ctx.inline_counter.set(cnt);
+            // These operands are re-joined with `&&`, so any operand that binds
+            // looser than `&&` (an `||` chain or a ternary) must be wrapped to
+            // preserve grouping — the binop hook can't see across this split.
+            let and_prec = binop_prec(&BinOp::And);
             let op_strs: Vec<String> = super::stmt_walk::flatten_and(&new_cond)
                 .iter()
-                .map(|o| render_expr(o, self.ctx, self.registry, self.helpers))
+                .map(|o| {
+                    let s = render_expr(o, self.ctx, self.registry, self.helpers);
+                    if expr_prec(o) < and_prec {
+                        format!("({s})")
+                    } else {
+                        s
+                    }
+                })
                 .collect();
             let mut out = render_hoisted_blocks(
                 &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
@@ -1332,18 +1343,35 @@ impl ExprEmitter for CExpr<'_> {
             && matches!(op, BinOp::Eq | BinOp::NotEq)
             && is_pointer_var(left)
             && is_pointer_var(right);
-        let l = self.walk(left);
-        let r = self.walk(right);
         if needs_void_cast {
-            format!("((void *){l}{op_str}(void *){r})")
-        } else {
-            format!("({l}{op_str}{r})")
+            // Operands are plain pointer identifiers (atomic) — no wrapping.
+            return format!("(void *){} {op_str} (void *){}", self.walk(left), self.walk(right));
         }
+        // Parenthesize an operand only when its own operator binds *looser* than
+        // this one (or ties on the right, since every binary operator here is
+        // left-associative) — the minimal parens that preserve the IR grouping.
+        let pp = binop_prec(op);
+        let l = wrap_child(self.walk(left), left, pp, false);
+        let r = wrap_child(self.walk(right), right, pp, true);
+        format!("{l} {op_str} {r}")
     }
 
     fn cast(&self, var_type: &VarType, inner: &Expr) -> String {
         let c_type = c_type_name(var_type);
-        format!("(({}){})", c_type, self.walk(inner))
+        // A cast binds as a prefix-unary operator; only wrap a looser-binding
+        // operand (a binary op or ternary).
+        let s = self.walk(inner);
+        let s = if expr_prec(inner) < 12 { format!("({s})") } else { s };
+        format!("({c_type}){s}")
+    }
+
+    fn not(&self, inner: &Expr) -> String {
+        let s = self.walk(inner);
+        if expr_prec(inner) < 12 {
+            format!("!({s})")
+        } else {
+            format!("!{s}")
+        }
     }
 
     fn func_call(&self, name: &str, args: &[Expr]) -> String {
@@ -1375,12 +1403,32 @@ impl ExprEmitter for CExpr<'_> {
     }
 
     fn ternary(&self, cond: &Expr, then_expr: &Expr, else_expr: &Expr) -> String {
-        format!(
-            "(({}) ? ({}) : ({}))",
-            self.walk(cond),
-            self.walk(then_expr),
-            self.walk(else_expr)
-        )
+        let c = self.walk(cond);
+        let t = self.walk(then_expr);
+        let e = self.walk(else_expr);
+        // Wrap a compound condition (conventional and readable); the arms only
+        // need wrapping when they nest another ternary.
+        let c = if matches!(cond, Expr::BinOp(..) | Expr::Ternary(..)) {
+            format!("({c})")
+        } else {
+            c
+        };
+        let t = if matches!(then_expr, Expr::Ternary(..)) { format!("({t})") } else { t };
+        let e = if matches!(else_expr, Expr::Ternary(..)) { format!("({e})") } else { e };
+        format!("{c} ? {t} : {e}")
+    }
+}
+
+/// Parenthesize a rendered operand only when its own operator binds looser than
+/// the enclosing operator (`parent_prec`), or ties with it on the right (all the
+/// binary operators here are left-associative). Tighter-binding and atomic
+/// operands are returned unwrapped.
+fn wrap_child(rendered: String, child: &Expr, parent_prec: u8, is_right: bool) -> String {
+    let cp = expr_prec(child);
+    if cp < parent_prec || (cp == parent_prec && is_right) {
+        format!("({rendered})")
+    } else {
+        rendered
     }
 }
 
@@ -1520,7 +1568,15 @@ fn render_func_call(
     // Check if this is a call to a helper function that can be inlined
     if let Some(helper) = helpers.get(fname) {
         if let Some(inlined_expr) = try_inline_expr(helper, args) {
-            return render_expr(&inlined_expr, ctx, registry, helpers);
+            let s = render_expr(&inlined_expr, ctx, registry, helpers);
+            // The caller splices this in where a call result (atomic) is
+            // expected, so a non-atomic inlined body (binary op / ternary) must
+            // be parenthesized to keep the surrounding grouping intact.
+            return if expr_prec(&inlined_expr) < 12 {
+                format!("({s})")
+            } else {
+                s
+            };
         }
         // Multi-statement helpers are hoisted earlier by hoist_block_helpers.
     }
