@@ -1398,6 +1398,167 @@ fn rust_inline_condition_parenthesizes_or_operand() {
     );
 }
 
+/// Regression for the boolean-context wrapping that broke the shipped Core.java
+/// twice: a condition that is a single-return candle helper whose body is a
+/// `(comparison) ? 1 : 0` ternary. The Java renderer inlines the helper and
+/// collapses the ternary to the bare comparison (already boolean), so
+/// is_boolean_expr must agree and NOT wrap it with `!= 0` (`boolean != 0` is a
+/// Java type error). ta_realbodygapup is one of the real helpers that hit this.
+#[test]
+fn java_condition_from_bool_ternary_helper_is_not_wrapped() {
+    use ta_codegen_lib::ir::*;
+
+    // if( ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) ) {}
+    let arg = |a: &str, k: i64| {
+        Expr::ArrayAccess(
+            a.into(),
+            Box::new(Expr::BinOp(
+                Box::new(Expr::Var("i".into())),
+                BinOp::Sub,
+                Box::new(Expr::IntLiteral(k)),
+            )),
+        )
+    };
+    let cond = Expr::FuncCall(
+        "ta_realbodygapup".into(),
+        vec![
+            arg("inOpen", 1),
+            arg("inClose", 1),
+            arg("inOpen", 2),
+            arg("inClose", 2),
+        ],
+    );
+    let stmt = Statement::If {
+        condition: cond,
+        then_body: vec![],
+        else_body: vec![],
+        cond_comments: vec![],
+    };
+
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helper_registry();
+    let inline_counter = std::cell::Cell::new(0);
+    let address_of_vars = std::collections::HashSet::new();
+    let double_address_of_vars = std::collections::HashSet::new();
+    let float_input_params = std::collections::HashSet::new();
+    let rendered = backends::java::render_statement(
+        &stmt, 0, false, &enums, &registry, &helpers, &inline_counter,
+        &address_of_vars, &double_address_of_vars, &float_input_params,
+    );
+
+    assert!(
+        rendered.contains("Math.min") && rendered.contains('>'),
+        "helper should inline to the bare comparison: {rendered}"
+    );
+    assert!(
+        !rendered.contains("!= 0"),
+        "a collapsed bool ternary must NOT be wrapped with `!= 0` (that is \
+         `boolean != 0`, a Java type error): {rendered}"
+    );
+}
+
+/// Complement to the above: a `cond ? 1 : 0` whose condition is an int-typed
+/// expression (a bare variable, not a comparison). The renderer still collapses
+/// it to the bare variable, which is NOT boolean, so is_boolean_expr must return
+/// false and the `!= 0` wrap MUST be applied (`if( flag )` is invalid Java).
+/// This pins the `is_boolean_expr(cond)` guard on the collapse.
+#[test]
+fn java_condition_from_int_ternary_is_wrapped() {
+    use ta_codegen_lib::ir::*;
+
+    let cond = Expr::Ternary(
+        Box::new(Expr::Var("flag".into())),
+        Box::new(Expr::IntLiteral(1)),
+        Box::new(Expr::IntLiteral(0)),
+    );
+    let stmt = Statement::If {
+        condition: cond,
+        then_body: vec![],
+        else_body: vec![],
+        cond_comments: vec![],
+    };
+
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    let address_of_vars = std::collections::HashSet::new();
+    let double_address_of_vars = std::collections::HashSet::new();
+    let float_input_params = std::collections::HashSet::new();
+    let rendered = backends::java::render_statement(
+        &stmt, 0, false, &enums, &registry, &helpers, &inline_counter,
+        &address_of_vars, &double_address_of_vars, &float_input_params,
+    );
+
+    assert!(
+        rendered.contains("flag") && rendered.contains("!= 0"),
+        "a collapsed int ternary condition must be wrapped with `!= 0`: {rendered}"
+    );
+}
+
+/// Rust complement: Rust does not collapse `? 1 : 0` — it keeps the integer
+/// ternary and, in a boolean context, wraps `!= 0`. Pins that a candle helper
+/// inlining to an int ternary, used as an `&&` operand, keeps its `!= 0` wrap
+/// so the generated Rust type-checks.
+#[test]
+fn rust_condition_from_int_ternary_helper_is_wrapped() {
+    use ta_codegen_lib::backends::rust_lang::{render_statement, RustRenderCtx};
+    use ta_codegen_lib::ir::*;
+
+    let arg = |a: &str, k: i64| {
+        Expr::ArrayAccess(
+            a.into(),
+            Box::new(Expr::BinOp(
+                Box::new(Expr::Var("i".into())),
+                BinOp::Sub,
+                Box::new(Expr::IntLiteral(k)),
+            )),
+        )
+    };
+    let helper_call = Expr::FuncCall(
+        "ta_realbodygapup".into(),
+        vec![
+            arg("inOpen", 1),
+            arg("inClose", 1),
+            arg("inOpen", 2),
+            arg("inClose", 2),
+        ],
+    );
+    // Force the boolean-context path: helper && (a > 0)
+    let cond = Expr::BinOp(
+        Box::new(helper_call),
+        BinOp::And,
+        Box::new(Expr::BinOp(
+            Box::new(Expr::Var("a".into())),
+            BinOp::Greater,
+            Box::new(Expr::IntLiteral(0)),
+        )),
+    );
+    let stmt = Statement::If {
+        condition: cond,
+        then_body: vec![],
+        else_body: vec![],
+        cond_comments: vec![],
+    };
+
+    let ctx = RustRenderCtx::for_lookback();
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helper_registry();
+    let inline_counter = std::cell::Cell::new(0);
+    let rendered = render_statement(
+        &stmt, 0, &ctx, &[], &std::collections::HashMap::new(), &[], &[],
+        &enums, &registry, &helpers, &inline_counter,
+    );
+
+    assert!(
+        rendered.contains("!= 0"),
+        "the int-producing helper used in a boolean context must keep its \
+         `!= 0` wrap in Rust: {rendered}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // 15. HT_TRENDMODE: verify Hilbert transform macros parse and generate
 // ---------------------------------------------------------------------------

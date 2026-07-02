@@ -63,14 +63,12 @@ fn is_boolean_expr(expr: &Expr, helpers: &HelperRegistry) -> bool {
             }
             false
         }
-        // The renderer prettifies `cond ? 1 : 0` to the bare rendered cond and
-        // `cond ? 0 : 1` to `!(cond)`, so the result is boolean only when cond
-        // itself renders boolean — an int-typed cond still needs the caller's
-        // `!= 0` wrap around the collapsed expression.
+        // A collapsed `? 1 : 0` / `? 0 : 1` ternary (see bool_ternary_collapse)
+        // renders to the bare cond or its negation, so the result is boolean
+        // only when cond itself renders boolean — an int-typed cond still needs
+        // the caller's `!= 0` wrap around the collapsed expression.
         Expr::Ternary(cond, then_expr, else_expr) => {
-            ((is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0))
-                || (is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1)))
-                && is_boolean_expr(cond, helpers)
+            bool_ternary_collapse(then_expr, else_expr).is_some() && is_boolean_expr(cond, helpers)
         }
         _ => false,
     }
@@ -79,6 +77,29 @@ fn is_boolean_expr(expr: &Expr, helpers: &HelperRegistry) -> bool {
 /// Check if an expression is an integer literal with a specific value.
 fn is_int_literal(expr: &Expr, value: i64) -> bool {
     matches!(expr, Expr::IntLiteral(v) if *v == value)
+}
+
+/// How the Java renderer collapses a boolean-shaped ternary.
+enum BoolTernaryCollapse {
+    /// `cond ? 1 : 0` renders as the bare condition.
+    Cond,
+    /// `cond ? 0 : 1` renders as `!(condition)`.
+    Negated,
+}
+
+/// The single definition of when a `? 1 : 0` / `? 0 : 1` ternary collapses to a
+/// bare boolean expression. Consulted by BOTH the `ternary()` render hook (to
+/// perform the collapse) and `is_boolean_expr` (to know the collapsed result is
+/// boolean-typed), so the two can never disagree about the rule. Returns `None`
+/// when the ternary keeps its normal `c ? t : e` form.
+fn bool_ternary_collapse(then_expr: &Expr, else_expr: &Expr) -> Option<BoolTernaryCollapse> {
+    if is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0) {
+        Some(BoolTernaryCollapse::Cond)
+    } else if is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1) {
+        Some(BoolTernaryCollapse::Negated)
+    } else {
+        None
+    }
 }
 
 /// The heap array storage names for a CIRCBUF. `Plain` is a single array named `<id>`;
@@ -1540,13 +1561,13 @@ impl ExprEmitter for JavaExpr<'_> {
     }
 
     fn ternary(&self, cond: &Expr, then_expr: &Expr, else_expr: &Expr) -> String {
-        // (cond) ? (1) : (0) → just the condition (boolean in Java)
-        if is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0) {
-            return self.walk(cond);
-        }
-        // (cond) ? (0) : (1) → !condition
-        if is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1) {
-            return format!("!({})", self.walk(cond));
+        // Collapse `cond ? 1 : 0` / `cond ? 0 : 1` to a bare boolean expression.
+        // is_boolean_expr consults the same bool_ternary_collapse rule so it
+        // agrees the collapsed result is boolean-typed.
+        match bool_ternary_collapse(then_expr, else_expr) {
+            Some(BoolTernaryCollapse::Cond) => return self.walk(cond),
+            Some(BoolTernaryCollapse::Negated) => return format!("!({})", self.walk(cond)),
+            None => {}
         }
         // Default: render as Java ternary
         let c = self.walk(cond);
