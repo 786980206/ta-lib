@@ -43721,14 +43721,17 @@ class Core {
      *  Initial  Name/description
      *  -------------------------------------------------------------------
      *  MF       Mario Fortier
-     *
+     *  CC       Claude Code (AI assistant)
      *
      * Change history:
      *
-     *  MMDDYY BY   Description
+     *  MMDDYY BY     Description
      *  -------------------------------------------------------------------
-     *  010802 MF   Template creation.
-     *  052603 MF   Adapt code to compile with .NET Managed C++
+     *  010802 MF     Template creation.
+     *  052603 MF     Adapt code to compile with .NET Managed C++
+     *  070226 MF,CC  Speed optimization: cache the highest/lowest index
+     *                instead of rescanning the window on every bar (same
+     *                approach as MIN/MAX/MINMAX).
      */
 
        public int midPointLookback( int optInTimePeriod )
@@ -43746,10 +43749,13 @@ class Core {
        {
           double lowest = 0;
           double highest = 0;
-          double tmp = 0;
+          double tmpLow = 0;
+          double tmpHigh = 0;
           int outIdx = 0;
           int nbInitialElementNeeded = 0;
           int trailingIdx = 0;
+          int lowestIdx = 0;
+          int highestIdx = 0;
           int today = 0;
           int i = 0;
           if( startIdx < 0 ) {
@@ -43785,22 +43791,54 @@ class Core {
           /* Proceed with the calculation for the requested range.
            * Note that this algorithm allows the input and
            * output to be the same buffer.
+           *
+           * The highest/lowest of the window is cached with its
+           * index; a rescan of the window is needed only when the
+           * cached extremum drops out of the window (amortized O(1)
+           * per bar instead of O(period)).
            */
           outIdx = 0;
           today = startIdx;
           trailingIdx = startIdx - nbInitialElementNeeded;
+          highestIdx = 0 - 1;
+          highest = 0.0;
+          lowestIdx = 0 - 1;
+          lowest = 0.0;
           while( today <= endIdx ) {
-             lowest = inReal[trailingIdx++];
-             highest = lowest;
-             for( i = trailingIdx; i <= today; i += 1 ) {
-                tmp = inReal[i];
-                if( tmp < lowest ) {
-                   lowest = tmp;
-                } else if( tmp > highest ) {
-                   highest = tmp;
+             tmpHigh = inReal[today];
+             tmpLow = tmpHigh;
+             if( highestIdx < trailingIdx ) {
+                highestIdx = trailingIdx;
+                highest = inReal[highestIdx];
+                i = highestIdx;
+                while( ++i <= today ) {
+                   tmpHigh = inReal[i];
+                   if( tmpHigh > highest ) {
+                      highestIdx = i;
+                      highest = tmpHigh;
+                   }
                 }
+             } else if( tmpHigh >= highest ) {
+                highestIdx = today;
+                highest = tmpHigh;
+             }
+             if( lowestIdx < trailingIdx ) {
+                lowestIdx = trailingIdx;
+                lowest = inReal[lowestIdx];
+                i = lowestIdx;
+                while( ++i <= today ) {
+                   tmpLow = inReal[i];
+                   if( tmpLow < lowest ) {
+                      lowestIdx = i;
+                      lowest = tmpLow;
+                   }
+                }
+             } else if( tmpLow <= lowest ) {
+                lowestIdx = today;
+                lowest = tmpLow;
              }
              outReal[outIdx++] = (highest + lowest) / 2.0;
+             trailingIdx += 1;
              today += 1;
           }
           /* Keep the outBegIdx relative to the
@@ -43820,10 +43858,13 @@ class Core {
        {
           double lowest = 0;
           double highest = 0;
-          double tmp = 0;
+          double tmpLow = 0;
+          double tmpHigh = 0;
           int outIdx = 0;
           int nbInitialElementNeeded = 0;
           int trailingIdx = 0;
+          int lowestIdx = 0;
+          int highestIdx = 0;
           int today = 0;
           int i = 0;
           nbInitialElementNeeded = optInTimePeriod - 1;
@@ -43838,18 +43879,45 @@ class Core {
           outIdx = 0;
           today = startIdx;
           trailingIdx = startIdx - nbInitialElementNeeded;
+          highestIdx = 0 - 1;
+          highest = 0.0;
+          lowestIdx = 0 - 1;
+          lowest = 0.0;
           while( today <= endIdx ) {
-             lowest = inReal[trailingIdx++];
-             highest = lowest;
-             for( i = trailingIdx; i <= today; i += 1 ) {
-                tmp = inReal[i];
-                if( tmp < lowest ) {
-                   lowest = tmp;
-                } else if( tmp > highest ) {
-                   highest = tmp;
+             tmpHigh = inReal[today];
+             tmpLow = tmpHigh;
+             if( highestIdx < trailingIdx ) {
+                highestIdx = trailingIdx;
+                highest = inReal[highestIdx];
+                i = highestIdx;
+                while( ++i <= today ) {
+                   tmpHigh = inReal[i];
+                   if( tmpHigh > highest ) {
+                      highestIdx = i;
+                      highest = tmpHigh;
+                   }
                 }
+             } else if( tmpHigh >= highest ) {
+                highestIdx = today;
+                highest = tmpHigh;
+             }
+             if( lowestIdx < trailingIdx ) {
+                lowestIdx = trailingIdx;
+                lowest = inReal[lowestIdx];
+                i = lowestIdx;
+                while( ++i <= today ) {
+                   tmpLow = inReal[i];
+                   if( tmpLow < lowest ) {
+                      lowestIdx = i;
+                      lowest = tmpLow;
+                   }
+                }
+             } else if( tmpLow <= lowest ) {
+                lowestIdx = today;
+                lowest = tmpLow;
              }
              outReal[outIdx++] = (highest + lowest) / 2.0;
+             trailingIdx += 1;
              today += 1;
           }
           outBegIdx.value = startIdx;
@@ -43866,10 +43934,13 @@ class Core {
        {
           double lowest = 0;
           double highest = 0;
-          double tmp = 0;
+          double tmpLow = 0;
+          double tmpHigh = 0;
           int outIdx = 0;
           int nbInitialElementNeeded = 0;
           int trailingIdx = 0;
+          int lowestIdx = 0;
+          int highestIdx = 0;
           int today = 0;
           int i = 0;
           if( startIdx < 0 ) {
@@ -43890,18 +43961,45 @@ class Core {
           outIdx = 0;
           today = startIdx;
           trailingIdx = startIdx - nbInitialElementNeeded;
+          highestIdx = 0 - 1;
+          highest = 0.0;
+          lowestIdx = 0 - 1;
+          lowest = 0.0;
           while( today <= endIdx ) {
-             lowest = inReal[trailingIdx++];
-             highest = lowest;
-             for( i = trailingIdx; i <= today; i += 1 ) {
-                tmp = inReal[i];
-                if( tmp < lowest ) {
-                   lowest = tmp;
-                } else if( tmp > highest ) {
-                   highest = tmp;
+             tmpHigh = inReal[today];
+             tmpLow = tmpHigh;
+             if( highestIdx < trailingIdx ) {
+                highestIdx = trailingIdx;
+                highest = inReal[highestIdx];
+                i = highestIdx;
+                while( ++i <= today ) {
+                   tmpHigh = inReal[i];
+                   if( tmpHigh > highest ) {
+                      highestIdx = i;
+                      highest = tmpHigh;
+                   }
                 }
+             } else if( tmpHigh >= highest ) {
+                highestIdx = today;
+                highest = tmpHigh;
+             }
+             if( lowestIdx < trailingIdx ) {
+                lowestIdx = trailingIdx;
+                lowest = inReal[lowestIdx];
+                i = lowestIdx;
+                while( ++i <= today ) {
+                   tmpLow = inReal[i];
+                   if( tmpLow < lowest ) {
+                      lowestIdx = i;
+                      lowest = tmpLow;
+                   }
+                }
+             } else if( tmpLow <= lowest ) {
+                lowestIdx = today;
+                lowest = tmpLow;
              }
              outReal[outIdx++] = (highest + lowest) / 2.0;
+             trailingIdx += 1;
              today += 1;
           }
           outBegIdx.value = startIdx;
@@ -43918,10 +44016,13 @@ class Core {
        {
           double lowest = 0;
           double highest = 0;
-          double tmp = 0;
+          double tmpLow = 0;
+          double tmpHigh = 0;
           int outIdx = 0;
           int nbInitialElementNeeded = 0;
           int trailingIdx = 0;
+          int lowestIdx = 0;
+          int highestIdx = 0;
           int today = 0;
           int i = 0;
           nbInitialElementNeeded = optInTimePeriod - 1;
@@ -43936,18 +44037,45 @@ class Core {
           outIdx = 0;
           today = startIdx;
           trailingIdx = startIdx - nbInitialElementNeeded;
+          highestIdx = 0 - 1;
+          highest = 0.0;
+          lowestIdx = 0 - 1;
+          lowest = 0.0;
           while( today <= endIdx ) {
-             lowest = inReal[trailingIdx++];
-             highest = lowest;
-             for( i = trailingIdx; i <= today; i += 1 ) {
-                tmp = inReal[i];
-                if( tmp < lowest ) {
-                   lowest = tmp;
-                } else if( tmp > highest ) {
-                   highest = tmp;
+             tmpHigh = inReal[today];
+             tmpLow = tmpHigh;
+             if( highestIdx < trailingIdx ) {
+                highestIdx = trailingIdx;
+                highest = inReal[highestIdx];
+                i = highestIdx;
+                while( ++i <= today ) {
+                   tmpHigh = inReal[i];
+                   if( tmpHigh > highest ) {
+                      highestIdx = i;
+                      highest = tmpHigh;
+                   }
                 }
+             } else if( tmpHigh >= highest ) {
+                highestIdx = today;
+                highest = tmpHigh;
+             }
+             if( lowestIdx < trailingIdx ) {
+                lowestIdx = trailingIdx;
+                lowest = inReal[lowestIdx];
+                i = lowestIdx;
+                while( ++i <= today ) {
+                   tmpLow = inReal[i];
+                   if( tmpLow < lowest ) {
+                      lowestIdx = i;
+                      lowest = tmpLow;
+                   }
+                }
+             } else if( tmpLow <= lowest ) {
+                lowestIdx = today;
+                lowest = tmpLow;
              }
              outReal[outIdx++] = (highest + lowest) / 2.0;
+             trailingIdx += 1;
              today += 1;
           }
           outBegIdx.value = startIdx;
