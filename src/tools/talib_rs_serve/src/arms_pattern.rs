@@ -25,7 +25,7 @@
 //! - CDLENGULFING: talib-rs computes from index 1; TA-Lib's lookback is 2.
 //! - CDL3OUTSIDE: talib-rs computes from index 2; TA-Lib's lookback is 3.
 
-use crate::{call_ctx, get_input, respond_error, respond_ints, RefData};
+use crate::{call_ctx, get_input, respond_error_shaped, respond_ints, RefData};
 use serde_json::Value;
 use talib_rs::pattern as pat;
 
@@ -188,6 +188,6 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
 
     Some(match result.unwrap() {
         Ok(out) => respond_ints(&[&out], first_valid, ctx.start_idx, ctx.end_idx, timing),
-        Err(e) => respond_error(&e),
+        Err(e) => respond_error_shaped(&e, 0, 1),
     })
 }

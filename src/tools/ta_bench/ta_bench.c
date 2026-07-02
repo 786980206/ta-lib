@@ -267,9 +267,14 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
             const char *t = json_find_field(ctx->respBuf, "timing_ns", &len);
             if( t ) {
                 long long ns = strtoll(t, NULL, 10);
-                if( !has_timing[li] || ns < timings[li] )
-                    timings[li] = ns;
-                has_timing[li] = 1;
+                /* Error responses carry timing_ns 0 — not a measurement.
+                 * Without this guard an errored call would show up as a
+                 * (green) 0 ns row instead of ERR. */
+                if( ns > 0 ) {
+                    if( !has_timing[li] || ns < timings[li] )
+                        timings[li] = ns;
+                    has_timing[li] = 1;
+                }
             }
             const char *tu = json_find_field(ctx->respBuf, "timing_ns_unguarded", &len);
             if( tu ) {
@@ -292,9 +297,12 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
     for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
         if( !LANGUAGES[li].active ) continue;
         int is_cref = (strcmp(LANGUAGES[li].name, "cref") == 0);
+        /* The header prints a value + "ung" column pair for every active
+         * non-cref language, so each row must emit both cells to stay
+         * aligned — even when the server returned no timing at all. */
         if( !has_timing[li] ) {
             printf(" %10s", "ERR");
-            if( !is_cref && has_timing_ung[li] ) printf(" %10s", "ERR");
+            if( !is_cref ) printf(" %10s", "ERR");
         } else if( is_cref ) {
             printf(" %10lld", timings[li]);
         } else {
@@ -302,13 +310,13 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
             const char *clr = (ratio > 1.10) ? "\033[31m" : (ratio < 0.90) ? "\033[32m" : "";
             const char *rst = (*clr) ? "\033[0m" : "";
             printf(" %s%10lld%s", clr, timings[li], rst);
-            /* Unguarded column */
+            /* Unguarded column (always emitted — see header alignment note) */
             if( has_timing_ung[li] && timings_ung[li] > 0 ) {
                 double ratio_u = (ref_ns > 0) ? (double)timings_ung[li] / (double)ref_ns : 0.0;
                 const char *clr_u = (ratio_u > 1.10) ? "\033[31m" : (ratio_u < 0.90) ? "\033[32m" : "";
                 const char *rst_u = (*clr_u) ? "\033[0m" : "";
                 printf(" %s%10lld%s", clr_u, timings_ung[li], rst_u);
-            } else if( has_timing_ung[li] ) {
+            } else {
                 printf(" %10s", "--");
             }
         }

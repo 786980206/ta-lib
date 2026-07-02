@@ -19,7 +19,7 @@
 //! - talib-rs accepts `timeperiod >= 1` where TA-Lib requires `>= 2`; a
 //!   period of 1 succeeds here but would be TA_BAD_PARAM in TA-Lib.
 
-use crate::{call_ctx, get_input, respond_error, respond_ints, respond_reals_from, RefData};
+use crate::{call_ctx, get_input, respond_error, respond_error_shaped, respond_ints, respond_reals_from, RefData};
 use serde_json::Value;
 use talib_rs::TaResult;
 
@@ -159,7 +159,7 @@ fn period_index_arm(
                 timing,
             )
         }
-        Err(e) => respond_error(&e),
+        Err(e) => respond_error_shaped(&e, 0, 1),
     }
 }
 
@@ -218,7 +218,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                     ctx.end_idx,
                     timing,
                 ),
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             }
         }
 
@@ -248,7 +248,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                         timing,
                     )
                 }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 0, 2),
             }
         }
 

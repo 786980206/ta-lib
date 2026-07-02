@@ -6,7 +6,7 @@
 //! (HT_PHASOR: outReal=InPhase, outReal1=Quadrature; HT_SINE: outReal=Sine,
 //! outReal1=LeadSine; HT_TRENDMODE: outInteger).
 
-use crate::{call_ctx, get_input, respond_error, respond_ints, respond_reals, RefData};
+use crate::{call_ctx, get_input, respond_error, respond_error_shaped, respond_ints, respond_reals, RefData};
 use serde_json::Value;
 
 pub const FUNCTIONS: &[&str] = &[
@@ -253,7 +253,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                     ctx.end_idx,
                     timing,
                 ),
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             })
         }
         "TA_HT_SINE" => {
@@ -271,7 +271,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                 Ok((sine, leadsine)) => {
                     respond_reals(&[&sine, &leadsine], ctx.start_idx, ctx.end_idx, timing)
                 }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             })
         }
         "TA_HT_TRENDMODE" => {

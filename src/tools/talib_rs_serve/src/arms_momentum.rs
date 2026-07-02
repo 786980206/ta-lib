@@ -4,10 +4,9 @@
 //! output key order mirror the corresponding arms in the generated
 //! `ta_codegen_serve.rs` server.
 
-use crate::{call_ctx, get_input, respond_error, respond_reals, RefData};
+use crate::{call_ctx, get_input, ma_type_param, respond_error, respond_error_shaped, respond_reals, RefData};
 use serde_json::Value;
 use talib_rs::momentum as mo;
-use talib_rs::MaType;
 
 pub const FUNCTIONS: &[&str] = &[
     "TA_ADX",
@@ -47,13 +46,6 @@ pub const FUNCTIONS: &[&str] = &[
 fn usize_param(params: &Value, key: &str, default: i64) -> usize {
     let v = params[key].as_i64().unwrap_or(default);
     (if v < 0 { default } else { v }) as usize
-}
-
-/// MAType ordinal (default 0 = SMA, matching ta_codegen_serve) → MaType.
-fn matype_param(params: &Value, key: &str) -> Result<MaType, talib_rs::TaError> {
-    let v = params[key].as_i64().unwrap_or(0);
-    let v = if v < 0 { 0 } else { v };
-    MaType::try_from(v as i32)
 }
 
 /// Run `f` `iters` times (iters >= 1), returning the last result and the
@@ -101,7 +93,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             let input = get_input(params, ref_data, &mut buf, "inReal", |r| &r.close);
             let fast = usize_param(params, "optInFastPeriod", 12);
             let slow = usize_param(params, "optInSlowPeriod", 26);
-            let matype = match matype_param(params, "optInMAType") {
+            let matype = match ma_type_param(params, "optInMAType") {
                 Ok(m) => m,
                 Err(e) => return Some(respond_error(&e)),
             };
@@ -124,7 +116,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                 Ok((down, up)) => {
                     respond_reals(&[&down, &up], ctx.start_idx, ctx.end_idx, timing)
                 }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             })
         }
         "TA_AROONOSC" => {
@@ -204,7 +196,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                 Ok((m, s, h)) => {
                     respond_reals(&[&m, &s, &h], ctx.start_idx, ctx.end_idx, timing)
                 }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 3, 0),
             })
         }
         "TA_MACDEXT" => {
@@ -214,17 +206,17 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             let fast = usize_param(params, "optInFastPeriod", 12);
             let slow = usize_param(params, "optInSlowPeriod", 26);
             let signal = usize_param(params, "optInSignalPeriod", 9);
-            let fast_ma = match matype_param(params, "optInFastMAType") {
+            let fast_ma = match ma_type_param(params, "optInFastMAType") {
                 Ok(m) => m,
-                Err(e) => return Some(respond_error(&e)),
+                Err(e) => return Some(respond_error_shaped(&e, 3, 0)),
             };
-            let slow_ma = match matype_param(params, "optInSlowMAType") {
+            let slow_ma = match ma_type_param(params, "optInSlowMAType") {
                 Ok(m) => m,
-                Err(e) => return Some(respond_error(&e)),
+                Err(e) => return Some(respond_error_shaped(&e, 3, 0)),
             };
-            let signal_ma = match matype_param(params, "optInSignalMAType") {
+            let signal_ma = match ma_type_param(params, "optInSignalMAType") {
                 Ok(m) => m,
-                Err(e) => return Some(respond_error(&e)),
+                Err(e) => return Some(respond_error_shaped(&e, 3, 0)),
             };
             let (result, timing) = timed(ctx.iters, || {
                 mo::macd_ext(input, fast, fast_ma, slow, slow_ma, signal, signal_ma)
@@ -233,7 +225,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                 Ok((m, s, h)) => {
                     respond_reals(&[&m, &s, &h], ctx.start_idx, ctx.end_idx, timing)
                 }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 3, 0),
             })
         }
         "TA_MACDFIX" => {
@@ -246,7 +238,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                 Ok((m, s, h)) => {
                     respond_reals(&[&m, &s, &h], ctx.start_idx, ctx.end_idx, timing)
                 }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 3, 0),
             })
         }
         "TA_MFI" => {
@@ -332,7 +324,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             let input = get_input(params, ref_data, &mut buf, "inReal", |r| &r.close);
             let fast = usize_param(params, "optInFastPeriod", 12);
             let slow = usize_param(params, "optInSlowPeriod", 26);
-            let matype = match matype_param(params, "optInMAType") {
+            let matype = match ma_type_param(params, "optInMAType") {
                 Ok(m) => m,
                 Err(e) => return Some(respond_error(&e)),
             };
@@ -405,14 +397,14 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             let close = get_input(params, ref_data, &mut bc, "inClose", |r| &r.close);
             let fastk = usize_param(params, "optInFastK_Period", 5);
             let slowk = usize_param(params, "optInSlowK_Period", 3);
-            let slowk_ma = match matype_param(params, "optInSlowK_MAType") {
+            let slowk_ma = match ma_type_param(params, "optInSlowK_MAType") {
                 Ok(m) => m,
-                Err(e) => return Some(respond_error(&e)),
+                Err(e) => return Some(respond_error_shaped(&e, 2, 0)),
             };
             let slowd = usize_param(params, "optInSlowD_Period", 3);
-            let slowd_ma = match matype_param(params, "optInSlowD_MAType") {
+            let slowd_ma = match ma_type_param(params, "optInSlowD_MAType") {
                 Ok(m) => m,
-                Err(e) => return Some(respond_error(&e)),
+                Err(e) => return Some(respond_error_shaped(&e, 2, 0)),
             };
             let (result, timing) = timed(ctx.iters, || {
                 mo::stoch(high, low, close, fastk, slowk, slowk_ma, slowd, slowd_ma)
@@ -420,7 +412,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             Some(match result {
                 // (slowk, slowd) → outReal (outSlowK), outReal1 (outSlowD).
                 Ok((k, d)) => respond_reals(&[&k, &d], ctx.start_idx, ctx.end_idx, timing),
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             })
         }
         "TA_STOCHF" => {
@@ -431,9 +423,9 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             let close = get_input(params, ref_data, &mut bc, "inClose", |r| &r.close);
             let fastk = usize_param(params, "optInFastK_Period", 5);
             let fastd = usize_param(params, "optInFastD_Period", 3);
-            let fastd_ma = match matype_param(params, "optInFastD_MAType") {
+            let fastd_ma = match ma_type_param(params, "optInFastD_MAType") {
                 Ok(m) => m,
-                Err(e) => return Some(respond_error(&e)),
+                Err(e) => return Some(respond_error_shaped(&e, 2, 0)),
             };
             let (result, timing) = timed(ctx.iters, || {
                 mo::stochf(high, low, close, fastk, fastd, fastd_ma)
@@ -441,7 +433,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             Some(match result {
                 // (fastk, fastd) → outReal (outFastK), outReal1 (outFastD).
                 Ok((k, d)) => respond_reals(&[&k, &d], ctx.start_idx, ctx.end_idx, timing),
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             })
         }
         "TA_STOCHRSI" => {
@@ -451,16 +443,16 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
             let period = usize_param(params, "optInTimePeriod", 14);
             let fastk = usize_param(params, "optInFastK_Period", 5);
             let fastd = usize_param(params, "optInFastD_Period", 3);
-            let fastd_ma = match matype_param(params, "optInFastD_MAType") {
+            let fastd_ma = match ma_type_param(params, "optInFastD_MAType") {
                 Ok(m) => m,
-                Err(e) => return Some(respond_error(&e)),
+                Err(e) => return Some(respond_error_shaped(&e, 2, 0)),
             };
             let (result, timing) = timed(ctx.iters, || {
                 mo::stochrsi(input, period, fastk, fastd, fastd_ma)
             });
             Some(match result {
                 Ok((k, d)) => respond_reals(&[&k, &d], ctx.start_idx, ctx.end_idx, timing),
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             })
         }
         "TA_TRIX" => {

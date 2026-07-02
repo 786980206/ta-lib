@@ -174,13 +174,49 @@ pub fn respond_ints(
 
 /// Map a talib-rs error to a protocol response. InsufficientData corresponds
 /// to TA-Lib's success-with-empty-range; anything else is TA_BAD_PARAM (2).
-pub fn respond_error(err: &talib_rs::TaError) -> String {
+/// For the empty-success case the response must carry the same output-key
+/// layout as the arm's normal path (outReal/outReal1/... then
+/// outInteger/outInteger1/...), so multi-output and integer-output arms pass
+/// their shape explicitly.
+pub fn respond_error_shaped(err: &talib_rs::TaError, n_reals: usize, n_ints: usize) -> String {
     match err {
         talib_rs::TaError::InsufficientData { .. } => {
-            "{\"retCode\":0,\"outBegIdx\":0,\"outNBElement\":0,\"lookback\":0,\"timing_ns\":0,\"timing_ns_unguarded\":0,\"outReal\":[]}".to_string()
+            let mut resp = String::from(
+                "{\"retCode\":0,\"outBegIdx\":0,\"outNBElement\":0,\"lookback\":0,\"timing_ns\":0,\"timing_ns_unguarded\":0",
+            );
+            for i in 0..n_reals {
+                if i == 0 {
+                    resp.push_str(",\"outReal\":[]");
+                } else {
+                    resp.push_str(&format!(",\"outReal{i}\":[]"));
+                }
+            }
+            for i in 0..n_ints {
+                if i == 0 {
+                    resp.push_str(",\"outInteger\":[]");
+                } else {
+                    resp.push_str(&format!(",\"outInteger{i}\":[]"));
+                }
+            }
+            resp.push('}');
+            resp
         }
         _ => "{\"retCode\":2,\"outBegIdx\":0,\"outNBElement\":0,\"timing_ns\":0}".to_string(),
     }
+}
+
+/// Shorthand for the common single-real-output shape.
+pub fn respond_error(err: &talib_rs::TaError) -> String {
+    respond_error_shaped(err, 1, 0)
+}
+
+/// MaType from the protocol's integer ordinal (0..=8, TA-Lib compatible).
+/// Negative and out-of-range ordinals map to InvalidParameter -> retCode 2,
+/// matching TA-Lib's TA_BAD_PARAM for a bad optInMAType — one policy for
+/// every arm.
+pub fn ma_type_param(params: &Value, key: &str) -> Result<talib_rs::MaType, talib_rs::TaError> {
+    let v = params[key].as_i64().unwrap_or(0) as i32;
+    talib_rs::MaType::try_from(v)
 }
 
 /// Fetch a named input array: preloaded column if `use_preloaded`, else the

@@ -4,7 +4,7 @@
 //! Param names / defaults / input-column mappings mirror the generated
 //! ta_codegen server arms (ta_codegen/output/rust/src/bin/ta_codegen_serve.rs).
 
-use crate::{call_ctx, get_input, respond_error, respond_reals, RefData};
+use crate::{call_ctx, get_input, ma_type_param, respond_error, respond_error_shaped, respond_reals, RefData};
 use serde_json::Value;
 
 pub const FUNCTIONS: &[&str] = &[
@@ -36,23 +36,6 @@ fn usize_param(params: &Value, key: &str, default: i64) -> usize {
 
 fn f64_param(params: &Value, key: &str, default: f64) -> f64 {
     params[key].as_f64().unwrap_or(default)
-}
-
-/// Build the MaType from the protocol's integer ordinal (0..=8, TA-Lib
-/// compatible). Out-of-range values map to InvalidParameter → retCode 2,
-/// matching TA-Lib's TA_BAD_PARAM.
-fn ma_type_param(params: &Value, key: &str) -> Result<talib_rs::MaType, talib_rs::TaError> {
-    let v = params[key].as_i64().unwrap_or(0) as i32;
-    talib_rs::MaType::try_from(v)
-}
-
-/// Empty-success response for multi-output functions when talib-rs reports
-/// InsufficientData (TA-Lib returns success with an empty range). Emits
-/// `n_outs` outReal keys so the response layout matches the normal path.
-fn empty_success_reals(n_outs: usize, start_idx: usize, end_idx: usize, timing: u64) -> String {
-    let empty: &[f64] = &[];
-    let outs: Vec<&[f64]> = vec![empty; n_outs];
-    respond_reals(&outs, start_idx, end_idx, timing)
 }
 
 /// Shared shape for the single-input, single-period MAs
@@ -106,10 +89,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                 Ok((mama, fama)) => {
                     respond_reals(&[&mama, &fama], ctx.start_idx, ctx.end_idx, timing)
                 }
-                Err(talib_rs::TaError::InsufficientData { .. }) => {
-                    empty_success_reals(2, ctx.start_idx, ctx.end_idx, timing)
-                }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 2, 0),
             })
         }
         "TA_T3" => {
@@ -200,10 +180,7 @@ pub fn dispatch(method: &str, params: &Value, ref_data: &RefData) -> Option<Stri
                 Ok((upper, middle, lower)) => {
                     respond_reals(&[&upper, &middle, &lower], ctx.start_idx, ctx.end_idx, timing)
                 }
-                Err(talib_rs::TaError::InsufficientData { .. }) => {
-                    empty_success_reals(3, ctx.start_idx, ctx.end_idx, timing)
-                }
-                Err(e) => respond_error(&e),
+                Err(e) => respond_error_shaped(&e, 3, 0),
             })
         }
         "TA_MIDPRICE" => {
