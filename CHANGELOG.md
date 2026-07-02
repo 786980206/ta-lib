@@ -7,8 +7,27 @@ Just re-install to upgrade. Older versions are automatically removed.
 See [github commits](https://github.com/TA-Lib/ta-lib/commits) for complete list of changes
 
 ## [Unreleased]
+### Added
+- (#86) Conan package manager support. Thanks @CaptainTrunky !
+- (#79) TA-Lib is now available as a GitHub Action: [setup-ta-lib](https://github.com/TA-Lib/setup-ta-lib). Thanks @mrjbq7 !
+
+### Welcome new wrappers
+- Go: [ta-lib-cgo](https://github.com/TA-Lib/ta-lib-cgo). Thanks @bradleypeabody !
+- PHP: [ext-ta-lib](https://github.com/TA-Lib/ext-ta-lib). Thanks @rernesto !
+- PostgreSQL: [ta_pg](https://github.com/TA-Lib/ta_pg). Thanks @tuxmonteiro !
+- R: [ta-lib-R](https://github.com/serkor1/ta-lib-R). Thanks @serkor1 !
+- Ruby: [ta-lib-ruby](https://github.com/TA-Lib/ta-lib-ruby). Thanks @Youngv !
+- Zig: [ta-lib-zig](https://github.com/TA-Lib/ta-lib-zig). Thanks @mrjbq7 !
+
 ### Changed
-- Removed outdated ta-lib/make directory. Only CMake and Autotools supported from now on.
+- Algo Optimization: MIDPOINT and MIDPRICE now cache the rolling min/max instead of rescanning the window each bar, reducing typical cost from O(n*period) toward O(n) (largest gains at bigger periods).
+- Removed outdated ta-lib/make directory. Use CMake and Autotools instead.
+- Major simplification of how TA functions are written and generated: the new ta_codegen (Rust) replaces the outdated gen_code — a big win for maintainability and the coming Rust-native release. Thanks @chadfurman !
+- (#70) Documentation index updates. Thanks @kennethjor !
+
+### Fixed
+- (#68) Corrected a spelling error in the TA_LIB_NOT_INITIALIZE return-code message. Thanks @alteholz !
+- (#62) Fixed an out-of-bounds access in the regression test tooling. Thanks @Lqingyu !
 
 ## [0.6.4] 2025-01-11
 ### Fixed
