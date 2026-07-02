@@ -115,6 +115,8 @@ typedef struct {
     const char *const *argv;
     CodegenPipe cp;
     int active;
+    int optional;   /* 1 = only run when named in --language (third-party
+                       comparison servers, e.g. talib_rs) */
 } BenchLanguage;
 
 static const char *const argv_cref[]   = {"./ta_ref_serve", NULL};
@@ -122,13 +124,16 @@ static const char *const argv_c[]      = {"./ta_codegen_serve_c", NULL};
 static const char *const argv_rust[]   = {"./ta_codegen_serve_rust", NULL};
 static const char *const argv_java[]   = {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL};
 static const char *const argv_dotnet[] = {"dotnet", "ta_codegen_dotnet/TaCodegenServe.dll", NULL};
+/* Third-party comparison server (pure-Rust talib-rs crate, opt-in only). */
+static const char *const argv_talib_rs[] = {"./ta_talib_rs_serve", NULL};
 
 static BenchLanguage LANGUAGES[] = {
-    {"cref",   "C-ref",  argv_cref,   {0}, 0},
-    {"c",      "C",      argv_c,      {0}, 0},
-    {"rust",   "Rust",   argv_rust,   {0}, 0},
-    {"java",   "Java",   argv_java,   {0}, 0},
-    {"dotnet", ".NET",   argv_dotnet, {0}, 0},
+    {"cref",     "C-ref",    argv_cref,     {0}, 0, 0},
+    {"c",        "C",        argv_c,        {0}, 0, 0},
+    {"rust",     "Rust",     argv_rust,     {0}, 0, 0},
+    {"java",     "Java",     argv_java,     {0}, 0, 0},
+    {"dotnet",   ".NET",     argv_dotnet,   {0}, 0, 0},
+    {"talib_rs", "talib-rs", argv_talib_rs, {0}, 0, 1},
 };
 #define NUM_LANGUAGES (sizeof(LANGUAGES)/sizeof(LANGUAGES[0]))
 
@@ -338,6 +343,7 @@ int main(int argc, char *argv[]) {
     char *respBuf = malloc(JSON_BUF_SIZE);
 
     for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( LANGUAGES[li].optional && !lang_filter ) continue;
         if( !lang_matches(lang_filter, LANGUAGES[li].name) ) continue;
         if( codegen_pipe_open(&LANGUAGES[li].cp, LANGUAGES[li].argv) == TA_TEST_PASS ) {
             LANGUAGES[li].active = 1;

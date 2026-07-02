@@ -98,3 +98,6 @@ ta_codegen/output/java/*.class
 .worktrees/
 ta_codegen/output/rust/target/
 .claude/worktrees
+
+# Local working notes — never commit (see to_be_deleted/ contents before deleting)
+to_be_deleted/
