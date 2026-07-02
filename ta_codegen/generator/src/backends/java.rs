@@ -33,9 +33,12 @@ struct JavaRenderCtx<'a> {
     inline_counter: &'a Cell<usize>,
 }
 
-/// Check if an expression already produces a boolean result in Java.
+/// Check if an expression renders to a boolean result in Java.
 /// Used to avoid wrapping comparisons with `!= 0` (which would be a type error).
-fn is_boolean_expr(expr: &Expr) -> bool {
+/// Must mirror what the expression renderer actually emits: `cond ? 1 : 0`
+/// prettifies to the bare (boolean) condition, and a single-return helper call
+/// renders as its inlined return expression.
+fn is_boolean_expr(expr: &Expr, helpers: &HelperRegistry) -> bool {
     match expr {
         Expr::BinOp(_, op, _) => matches!(
             op,
@@ -49,7 +52,21 @@ fn is_boolean_expr(expr: &Expr) -> bool {
                 | BinOp::Or
         ),
         Expr::Not(_) => true,
-        Expr::FuncCall(name, _) => matches!(name.as_str(), "IS_ZERO" | "IS_ZERO_OR_NEG"),
+        Expr::FuncCall(name, args) => {
+            if matches!(name.as_str(), "IS_ZERO" | "IS_ZERO_OR_NEG") {
+                return true;
+            }
+            if let Some(helper) = helpers.get(name) {
+                if let Some(inlined) = try_inline_expr(helper, args) {
+                    return is_boolean_expr(&inlined, helpers);
+                }
+            }
+            false
+        }
+        Expr::Ternary(_, then_expr, else_expr) => {
+            (is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0))
+                || (is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1))
+        }
         _ => false,
     }
 }
@@ -1056,7 +1073,7 @@ impl StatementEmitter for JavaStmt<'_> {
             &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
         );
         let cond_str = render_expr(&new_condition, self.ctx, self.registry, self.helpers);
-        let cond_java = if is_boolean_expr(&new_condition) {
+        let cond_java = if is_boolean_expr(&new_condition, self.helpers) {
             cond_str
         } else {
             format!("({cond_str}) != 0")
@@ -1088,7 +1105,7 @@ impl StatementEmitter for JavaStmt<'_> {
             &hoisted, indent + 3, self.ctx, self.enums, self.registry, self.helpers,
         ));
         let cond_str = render_expr(&new_condition, self.ctx, self.registry, self.helpers);
-        let cond_java = if is_boolean_expr(&new_condition) {
+        let cond_java = if is_boolean_expr(&new_condition, self.helpers) {
             cond_str
         } else {
             format!("({cond_str}) != 0")
@@ -1142,7 +1159,7 @@ impl StatementEmitter for JavaStmt<'_> {
                 .iter()
                 .map(|o| {
                     let s = render_expr(o, self.ctx, self.registry, self.helpers);
-                    if is_boolean_expr(o) {
+                    if is_boolean_expr(o, self.helpers) {
                         // Re-joined with `&&`, so wrap an operand that binds
                         // looser than `&&` (an `||` chain or ternary).
                         if expr_prec(o) < binop_prec(&BinOp::And) {
@@ -1177,7 +1194,7 @@ impl StatementEmitter for JavaStmt<'_> {
             &hoisted, indent, self.ctx, self.enums, self.registry, self.helpers,
         );
         let cond_str = render_expr(&new_condition, self.ctx, self.registry, self.helpers);
-        let cond_java = if is_boolean_expr(&new_condition) {
+        let cond_java = if is_boolean_expr(&new_condition, self.helpers) {
             cond_str
         } else {
             format!("({cond_str}) != 0")

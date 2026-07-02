@@ -111,7 +111,7 @@
          if( ((inClose[i - 4] >= inOpen[i - 4]) ? 1 : 0 - 1) == 1 &&     /* white, black, 2 black or white, white */
              ((inClose[i - 3] >= inOpen[i - 3]) ? 1 : 0 - 1) == 0 - 1 &&
              ((inClose[i] >= inOpen[i]) ? 1 : 0 - 1) == 1 &&
-             ((Math.min(inOpen[i - 3], inClose[i - 3]) > Math.max(inOpen[i - 4], inClose[i - 4]))) != 0 && /* upside gap 1st to 2nd */
+             (Math.min(inOpen[i - 3], inClose[i - 3]) > Math.max(inOpen[i - 4], inClose[i - 4])) && /* upside gap 1st to 2nd */
              Math.min(inOpen[i - 2], inClose[i - 2]) < inClose[i - 4] && /* 3rd to 4th hold within 1st: a part of the real body must be within 1st real body */
              Math.min(inOpen[i - 1], inClose[i - 1]) < inClose[i - 4] &&
              Math.min(inOpen[i - 2], inClose[i - 2]) > inClose[i - 4] - Math.abs(inClose[i - 4] - inOpen[i - 4]) * optInPenetration && /* reaction days penetrate first body less than optInPenetration percent */
