@@ -63,9 +63,14 @@ fn is_boolean_expr(expr: &Expr, helpers: &HelperRegistry) -> bool {
             }
             false
         }
-        Expr::Ternary(_, then_expr, else_expr) => {
-            (is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0))
-                || (is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1))
+        // The renderer prettifies `cond ? 1 : 0` to the bare rendered cond and
+        // `cond ? 0 : 1` to `!(cond)`, so the result is boolean only when cond
+        // itself renders boolean — an int-typed cond still needs the caller's
+        // `!= 0` wrap around the collapsed expression.
+        Expr::Ternary(cond, then_expr, else_expr) => {
+            ((is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0))
+                || (is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1)))
+                && is_boolean_expr(cond, helpers)
         }
         _ => false,
     }
