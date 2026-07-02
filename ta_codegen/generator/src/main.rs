@@ -422,6 +422,10 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     backends::func_list::generate(all_funcs, &root.join("ta_func_list.txt"));
     backends::func_api_xml::generate(all_funcs, &root.join("ta_func_api.xml"));
 
+    // Website pages for ta-lib.org — generated into docs/ (NOT ta_codegen/output),
+    // one page per function from its ta_codegen/input/<name>/<name>.md source.
+    backends::docs_site::generate(all_funcs, &root);
+
     // Generate the Rust abstract/introspection registry from the full function set.
     if backends_to_run.contains(&"rust") {
         backends::rust_abstract::generate(all_funcs, &enums, &out_base);

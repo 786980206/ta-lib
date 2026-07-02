@@ -1,4 +1,4 @@
-# ta_codegen Logic File (`<name>.c`) Reference
+# ta_codegen Input: Code (`<name>.c`) Reference
 
 Each indicator's algorithm lives in `ta_codegen/input/<name>/<name>.c`, written as
 **plain, standard C** using the types and macros from `ta_defs.h` — essentially the
@@ -8,7 +8,7 @@ backend: C, Rust, Java, .NET.
 
 There is **no bespoke DSL** — write idiomatic C. Metadata (inputs, optional params,
 outputs, flags) lives in the companion `<name>.yaml`; see
-[ta_codegen_input_idl.md](ta_codegen_input_idl.md). The generator adds parameter
+[ta_codegen_input_yaml.md](ta_codegen_input_yaml.md). The generator adds parameter
 validation, the guarded/unguarded split, single-precision variants, and per-language
 naming — so the `.c` file contains only the algorithm.
 

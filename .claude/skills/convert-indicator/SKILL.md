@@ -9,7 +9,7 @@ description: Use when adding a new TA-Lib indicator to ta_codegen, modifying an 
 indicator is defined by two files in `ta_codegen/input/<name>/`:
 
 - `<name>.yaml` — metadata (inputs, optional params, outputs, group, flags)
-- `<name>.c` — the algorithm, written as plain C (see `docs/ta_codegen_logic_syntax.md`)
+- `<name>.c` — the algorithm, written as plain C (see `docs/ta_codegen_input_code.md`)
 
 From these it generates all **four** backends: **C** (in place under `src/ta_func` /
 `src/ta_abstract`), **Rust**, **Java**, **.NET** (under `ta_codegen/output/`).
@@ -56,7 +56,7 @@ ls ta_codegen/input/<name>/          # the target's .yaml + .c (if it already ex
 
 ### 2. Write / adjust the metadata — `ta_codegen/input/<name>/<name>.yaml`
 
-Full schema in `docs/ta_codegen_input_idl.md`. Example:
+Full schema in `docs/ta_codegen_input_yaml.md`. Example:
 
 ```yaml
 name: SMA
@@ -90,7 +90,7 @@ Plain C, exactly as it would appear in `src/ta_func`: two functions,
 `TA_RetCode <name>(int startIdx, int endIdx, const double inReal[], ..., int *outBegIdx, int *outNBElement, double outReal[])`.
 Full syntax and the `ta_defs.h` vocabulary (`TA_IS_ZERO`,
 `TA_GetUnstablePeriod(TA_FUNC_UNST_X)`, `TA_COMPATIBILITY_*`, …) are in
-`docs/ta_codegen_logic_syntax.md`.
+`docs/ta_codegen_input_code.md`.
 
 **Rules:**
 
@@ -145,8 +145,8 @@ the change is wrong.
 | `ta_codegen/generator/src/backends/*.rs` | Backends (c, rust_lang, java, dotnet) |
 | `ta_codegen/generator/src/server_gen.rs` | JSON-RPC server generation |
 | `ta_codegen/generator/tests/validate.sh` | Dev validation harness |
-| `docs/ta_codegen_input_idl.md` | YAML schema reference |
-| `docs/ta_codegen_logic_syntax.md` | `.c` logic / `ta_defs.h` macro reference |
+| `docs/ta_codegen_input_yaml.md` | YAML schema reference |
+| `docs/ta_codegen_input_code.md` | `.c` logic / `ta_defs.h` macro reference |
 
 ## Backend rendering
 

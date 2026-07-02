@@ -1,10 +1,23 @@
 ---
-title: ta_codegen/input IDL Reference
+title: "ta_codegen Input: Metadata (<name>.yaml) Reference"
 ---
 
-# ta_codegen/input IDL Reference
+# ta_codegen Input: Metadata (`<name>.yaml`) Reference
 
-The `ta_codegen/input/` directory is the **Interface Definition Language (IDL)** for TA-Lib functions. Each function has a subdirectory containing a YAML metadata file and a C logic file. The `ta_codegen` tool reads these definitions and generates output for all target languages (C, Rust, Java, .NET).
+The `ta_codegen/input/` directory is the **Interface Definition Language (IDL)** for
+TA-Lib functions and the single source of truth for every generated backend. Each
+function lives in `ta_codegen/input/<name>/` as a small set of sibling files, each with
+its own reference:
+
+| File | Holds | Reference |
+|------|-------|-----------|
+| `<name>.yaml` | Metadata — **data only, no logic** | **this document** |
+| `<name>.c` | The algorithm, in cross-language C | [ta_codegen_input_code.md](ta_codegen_input_code.md) |
+| `<name>.md` | Function documentation (prose) — _proposed_ | [ta_codegen_input_doc.md](ta_codegen_input_doc.md) |
+
+The `ta_codegen` tool reads these definitions and generates output for all target
+languages (C, Rust, Java, .NET). This document specifies the **`<name>.yaml` metadata
+schema**.
 
 ## Directory Structure
 
@@ -213,7 +226,7 @@ The `short_name` (uppercase, e.g., `SMA`) is derived automatically from the `c_n
 
 ## C Logic Files
 
-The `.c` file in each function directory contains the actual computation logic, written in cross-language C using macros from `ta_defs.h`. See [ta_codegen_logic_syntax.md](ta_codegen_logic_syntax.md) for the macro reference.
+The `.c` file in each function directory contains the actual computation logic, written in cross-language C using macros from `ta_defs.h`. See [ta_codegen_input_code.md](ta_codegen_input_code.md) for the macro reference.
 
 ## Complete Example
 
