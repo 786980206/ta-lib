@@ -21,6 +21,8 @@ For python and Rusers, see instead [ta-lib-python](https://github.com/TA-Lib/ta-
     - [Debian packages](#linux-debian-packages)
     - [Build from source](#linux-build-from-source)
 
+- [GitHub Actions](#github-actions)
+
 
 ## Windows
 
@@ -152,4 +154,23 @@ Recommended for all debian-based distributions (e.g. Ubuntu, Mint...)
     ```bash
     sudo make uninstall
     ```
+
+
+## GitHub Actions
+
+To install the TA-Lib C library in a CI pipeline, use the [setup-ta-lib](https://github.com/TA-Lib/setup-ta-lib) action. It runs on Linux, macOS and Windows runners.
+
+```yaml
+- uses: TA-Lib/setup-ta-lib@v1
+```
+
+The latest release is installed by default. To pin a specific version:
+
+```yaml
+- uses: TA-Lib/setup-ta-lib@v1
+  with:
+    version: "0.6.4"
+```
+
+This is handy as a step before installing a wrapper that depends on the C library, such as the Python `ta-lib` package.
 
