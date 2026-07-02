@@ -1586,6 +1586,7 @@ fn backends_render_max_min_fmax_fmin_abs() {
         private_param_init: vec![],
         has_explicit_private: false,
         header_comments: vec![],
+        doc: None,
     };
 
     let enums = std::collections::HashMap::new();
@@ -2088,6 +2089,7 @@ fn make_func_with_helper_call(
         private_param_init: vec![],
         has_explicit_private: false,
         header_comments: vec![],
+        doc: None,
     }
 }
 
@@ -2237,6 +2239,7 @@ fn inlining_counter_avoids_name_collisions() {
         private_param_init: vec![],
         has_explicit_private: false,
         header_comments: vec![],
+        doc: None,
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -3251,8 +3254,8 @@ fn rust_post_decrement_renders_block() {
     };
     let rendered = render_rust_stmt(&stmt);
     assert!(
-        rendered.contains("let _v =") && rendered.contains("-= 1"),
-        "PostDecrement should render as block with temp: {rendered}"
+        rendered.contains("let _v =") && rendered.contains("i.wrapping_sub(1)"),
+        "PostDecrement should render as block with temp and a debug-safe wrapping decrement: {rendered}"
     );
 }
 
@@ -3279,8 +3282,8 @@ fn rust_pre_decrement_renders_block() {
     };
     let rendered = render_rust_stmt(&stmt);
     assert!(
-        rendered.contains("-= 1"),
-        "PreDecrement should render with decrement: {rendered}"
+        rendered.contains("i.wrapping_sub(1)"),
+        "PreDecrement should render with a debug-safe wrapping decrement: {rendered}"
     );
 }
 
@@ -3901,6 +3904,7 @@ fn rust_lookback_param_minus() {
         private_param_init: vec![],
         has_explicit_private: false,
         header_comments: vec![],
+        doc: None,
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -3947,6 +3951,7 @@ fn rust_lookback_none() {
         private_param_init: vec![],
         has_explicit_private: false,
         header_comments: vec![],
+        doc: None,
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -4151,6 +4156,7 @@ fn rust_lookback_code_renders_var_types_correctly() {
         private_param_init: vec![],
         has_explicit_private: false,
         header_comments: vec![],
+        doc: None,
     };
     let enums = HashMap::new();
     let registry = make_registry();

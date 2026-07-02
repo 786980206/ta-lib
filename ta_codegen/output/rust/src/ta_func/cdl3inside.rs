@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdl3inside`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdl3inside`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     pub fn cdl3inside_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
@@ -82,19 +80,74 @@ impl Core {
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
         return ((BodyShort_avgPeriod).max(BodyLong_avgPeriod) + 2) as usize;
     }
-    /// Three Inside Up/Down
+    /// A three-candle reversal pattern: a long real body, then a short real body totally engulfed
+    /// by it (a harami), then a third candle of opposite color to the first that closes past the
+    /// first candle's open. Signals a bullish (three inside up) or bearish (three inside down)
+    /// reversal. A hit is a reversal signal: +100 = three inside up (bullish, significant in a
+    /// downtrend); -100 = three inside down (bearish, significant in an uptrend).
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the prior trend the pattern classically assumes (three inside up is
+    ///   meaningful in a downtrend, three inside down in an uptrend).
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 for three inside up (bullish reversal, first candle black), -100 for
+    ///   three inside down (bearish reversal, first candle white), 0 when no pattern. Computed as
+    ///   -candlecolor(1st)*100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdl3inside(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlharami`] · [`Core::cdl3outside`] · [`Core::cdlengulfing`]
+    ///
+    /// Further reading: [ta-lib.org/functions/cdl3inside](https://ta-lib.org/functions/cdl3inside/)
+    #[doc(alias = "ThreeInsideUpDown")]
+    #[doc(alias = "ThreeInside")]
+    #[doc(alias = "ThreeInsideUp")]
+    #[doc(alias = "ThreeInsideDown")]
     pub fn cdl3inside(
         &self,
         startIdx: usize,
@@ -288,6 +341,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdl3inside`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdl3inside`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdl3inside`].
     #[inline]
     pub fn cdl3inside_unguarded(
         &self,

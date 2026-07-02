@@ -64,11 +64,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cmo`].
+    /// Lookback period for [`Core::cmo`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
+    /// * `optInTimePeriod` — Bars over which gains/losses are smoothed (default 14, range
+    ///   2..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn cmo_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -83,17 +88,75 @@ impl Core {
         }
         return retValue;
     }
-    /// Chande Momentum Oscillator
+    /// Chande Momentum Oscillator: bounded momentum measure from Wilder-smoothed average up-moves
+    /// and down-moves. Identical to RSI except the numerator uses (gain-loss) instead of gain.
+    /// Bounded in \[-100,+100]; positive = net upward momentum, negative = net downward.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// d = P[t]-P[t-1]; over the initial period accumulate gain = sum of positive d, loss = sum of -d for negative d. Wilder-smooth each: prevGain = (prevGain*(period-1) + gain_today)/period (same for loss). CMO = 100 * (prevGain-prevLoss)/(prevGain+prevLoss); 0 when prevGain+prevLoss == 0.
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * Gains and losses are smoothed with Wilder's method (as in RSI) rather than the simple
+    ///   period sums of Chande's original definition.
+    /// * In Metastock-compatibility mode, an extra initial bar is emitted using a simple gain/loss
+    ///   average.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Source price/value series.
+    /// * `optInTimePeriod` — Bars over which gains/losses are smoothed (default 14, range
+    ///   2..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — CMO oscillator value.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.cmo(0, data.len() - 1, &data, 14, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::rsi`]
+    ///
+    /// # References
+    ///
+    /// * Tushar S. Chande, *The New Technical Trader*, John Wiley & Sons (ISBN 0471597805)
+    ///
+    /// Further reading: [ta-lib.org/functions/cmo](https://ta-lib.org/functions/cmo/)
+    #[doc(alias = "ChandeMomentumOscillator")]
     pub fn cmo(
         &self,
         startIdx: usize,
@@ -310,6 +373,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cmo`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cmo`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::cmo`].
     #[inline]
     pub fn cmo_unguarded(
         &self,

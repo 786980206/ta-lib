@@ -65,12 +65,18 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::ppo`].
+    /// Lookback period for [`Core::ppo`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInFastPeriod` - Number of period (default: 12, range: 2..=100000)
-    /// * `optInSlowPeriod` - Number of period (default: 26, range: 2..=100000)
+    /// * `optInFastPeriod` — Period of the fast MA (default 12, range 2..=100000)
+    /// * `optInSlowPeriod` — Period of the slow MA (default 26, range 2..=100000)
+    /// * `optInMAType` — Moving average type used for both MAs (default 0 = SMA, values: 0=SMA,
+    ///   1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn ppo_lookback(&self, mut optInFastPeriod: i32, mut optInSlowPeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInFastPeriod) as i32) == (i32::MIN) {
@@ -86,18 +92,70 @@ impl Core {
         // Lookback is driven by the slowest MA.
         return self.ma_lookback((optInSlowPeriod).max(optInFastPeriod), optInMAType);
     }
-    /// Percentage Price Oscillator
+    /// Percentage Price Oscillator: the difference between a fast and slow moving average expressed
+    /// as a percentage of the slow MA. A normalized (scale-invariant) variant of APO. Positive when
+    /// the fast MA is above the slow MA (upward momentum), negative otherwise; magnitude is the %
+    /// deviation.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// PPO = ((fastMA(inReal) - slowMA(inReal)) / slowMA(inReal)) * 100, both MAs of type optInMAType; output = 0 when slowMA == 0
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInFastPeriod` - Number of period (default: 12, range: 2..=100000)
-    /// * `optInSlowPeriod` - Number of period (default: 26, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Input data series.
+    /// * `optInFastPeriod` — Period of the fast MA (default 12, range 2..=100000)
+    /// * `optInSlowPeriod` — Period of the slow MA (default 26, range 2..=100000)
+    /// * `optInMAType` — Moving average type used for both MAs (default 0 = SMA, values: 0=SMA,
+    ///   1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — PPO value in percent.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.ppo(
+    ///     0, data.len() - 1, &data, 12, 26, 0,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::apo`] · [`Core::macd`] · [`Core::ma`]
+    ///
+    /// Further reading: [ta-lib.org/functions/ppo](https://ta-lib.org/functions/ppo/)
+    #[doc(alias = "PercentagePriceOscillator")]
     pub fn ppo(
         &self,
         startIdx: usize,
@@ -171,6 +229,12 @@ impl Core {
         }
         return retCode;
     }
+    /// Unchecked variant of [`Core::ppo`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::ppo`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::ppo`].
     #[inline]
     pub fn ppo_unguarded(
         &self,

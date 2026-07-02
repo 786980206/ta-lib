@@ -67,13 +67,20 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::stochrsi`].
+    /// Lookback period for [`Core::stochrsi`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
-    /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
+    /// * `optInTimePeriod` — RSI period (default 14, range 2..=100000)
+    /// * `optInFastK_Period` — Lookback window for the RSI min/max stochastic (default 5, range
+    ///   1..=100000)
+    /// * `optInFastD_Period` — Smoothing period for %D (default 3, range 1..=100000)
+    /// * `optInFastD_MAType` — MA type used to smooth %D (default 0 = SMA, values: 0=SMA, 1=EMA,
+    ///   2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn stochrsi_lookback(&self, mut optInTimePeriod: i32, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -95,20 +102,86 @@ impl Core {
         retValue = self.rsi_lookback(optInTimePeriod) + self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
         return retValue;
     }
-    /// Stochastic Relative Strength Index
+    /// Applies the Fast Stochastic (STOCHF) oscillator to an RSI series instead of price, measuring
+    /// where RSI sits within its recent min/max range. Oscillates 0-100; high = RSI near its recent
+    /// top, low = near its recent bottom.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// rsi = RSI(inReal, optInTimePeriod)
+    /// FastK = 100 * (rsi_t - min(rsi, FastK_Period)) / (max(rsi, FastK_Period) - min(rsi, FastK_Period))
+    /// FastD = MA(FastK, FastD_Period, FastD_MAType)
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * To reproduce the original article's unsmoothed Stochastic RSI, set the RSI period equal to
+    ///   the %K period and read the raw %K output.
+    /// * When the RSI's recent range is zero, %K is set to 0 instead of being undefined.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
-    /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outFastK` - Output values
-    /// * `outFastD` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Source series fed into the RSI calculation.
+    /// * `optInTimePeriod` — RSI period (default 14, range 2..=100000)
+    /// * `optInFastK_Period` — Lookback window for the RSI min/max stochastic (default 5, range
+    ///   1..=100000)
+    /// * `optInFastD_Period` — Smoothing period for %D (default 3, range 1..=100000)
+    /// * `optInFastD_MAType` — MA type used to smooth %D (default 0 = SMA, values: 0=SMA, 1=EMA,
+    ///   2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outFastK` — Unsmoothed stochastic of the RSI (raw %K)
+    /// * `outFastD` — %K smoothed over FastD_Period (signal line)
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut fast_k = vec![0.0; 252];
+    /// let mut fast_d = vec![0.0; 252];
+    ///
+    /// let ret = core.stochrsi(
+    ///     0, data.len() - 1, &data, 14, 5, 3, 0,
+    ///     &mut out_beg, &mut out_nb, &mut fast_k, &mut fast_d,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::rsi`] · [`Core::stochf`] · [`Core::stoch`] · [`Core::ma`]
+    ///
+    /// # References
+    ///
+    /// * Tushar S. Chande, Stanley Kroll, *The New Technical Trader*, John Wiley & Sons (ISBN
+    ///   0471597805)
+    ///
+    /// Further reading: [ta-lib.org/functions/stochrsi](https://ta-lib.org/functions/stochrsi/)
+    #[doc(alias = "StochasticRSI")]
     pub fn stochrsi(
         &self,
         startIdx: usize,
@@ -204,6 +277,12 @@ impl Core {
         }
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::stochrsi`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::stochrsi`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::stochrsi`].
     #[inline]
     pub fn stochrsi_unguarded(
         &self,

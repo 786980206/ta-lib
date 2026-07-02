@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlbreakaway`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdlbreakaway`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdlbreakaway_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
@@ -76,19 +74,71 @@ impl Core {
         let BodyLong_factor: f64 = self.candle_settings.body_long.factor;
         return (BodyLong_avgPeriod + 4) as usize;
     }
-    /// Breakaway
+    /// A five-candle reversal pattern: a long first candle, a same-colored second candle that gaps
+    /// away from it by its real body, two more candles extending the move, and an opposite-colored
+    /// fifth candle that closes back inside the gap. Emits a bullish signal (bottom reversal) or
+    /// bearish signal (top reversal). A hit signals a reversal: +100 bullish (bottom), -100 bearish
+    /// (top).
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the prior trend the pattern classically assumes (a breakaway matters most
+    ///   against a preceding move).
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 when the fifth candle is white (bullish breakaway), -100 when it is
+    ///   black (bearish breakaway), 0 otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlbreakaway(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlgapsidesidewhite`] · [`Core::cdlrisefall3methods`] · [`Core::cdl3linestrike`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlbreakaway](https://ta-lib.org/functions/cdlbreakaway/)
+    #[doc(alias = "Breakaway")]
     pub fn cdlbreakaway(
         &self,
         startIdx: usize,
@@ -222,6 +272,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlbreakaway`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlbreakaway`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdlbreakaway`].
     #[inline]
     pub fn cdlbreakaway_unguarded(
         &self,

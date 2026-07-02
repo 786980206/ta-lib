@@ -63,11 +63,17 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdleveningstar`].
+    /// Lookback period for [`Core::cdleveningstar`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    /// * `optInPenetration` — Fraction of the 1st candle's real body the 3rd close must penetrate
+    ///   below the 1st close (default 0.3); larger requires deeper penetration (default 0.3,
+    ///   minimum 0)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn cdleveningstar_lookback(&self, mut optInPenetration: f64) -> usize {
         #[allow(non_snake_case)]
@@ -84,20 +90,74 @@ impl Core {
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
         return ((BodyShort_avgPeriod).max(BodyLong_avgPeriod) + 2) as usize;
     }
-    /// Evening Star
+    /// A three-candle bearish reversal pattern: a long white candle, a short-bodied star gapping
+    /// up, then a black candle closing well down into the first candle's body. A hit signals a
+    /// bearish reversal (most significant in an uptrend).
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the preceding uptrend the bearish reversal classically assumes.
+    /// * The third candle only needs a body longer than short, not the full long body some
+    ///   definitions require.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInPenetration` — Fraction of the 1st candle's real body the 3rd close must penetrate
+    ///   below the 1st close (default 0.3); larger requires deeper penetration (default 0.3,
+    ///   minimum 0)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — -100 when detected (always bearish), 0 otherwise. Never emits +100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdleveningstar(
+    ///     0, open.len() - 1, &open, &high, &low, &close, 0.3,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdleveningdojistar`] · [`Core::cdlmorningstar`] · [`Core::cdlmorningdojistar`] ·
+    /// CDLSTARSINSOUTH
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdleveningstar](https://ta-lib.org/functions/cdleveningstar/)
+    #[doc(alias = "EveningStar")]
     pub fn cdleveningstar(
         &self,
         startIdx: usize,
@@ -346,6 +406,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdleveningstar`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdleveningstar`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdleveningstar`].
     #[inline]
     pub fn cdleveningstar_unguarded(
         &self,

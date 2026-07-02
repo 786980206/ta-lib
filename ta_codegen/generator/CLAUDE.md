@@ -39,6 +39,7 @@ include/ta_func.h        (generated public header)
 | `extractor` | Extracts indicator definitions from C source files → YAML |
 | `backends/c.rs` | Generates C indicator implementations (guarded + unguarded variants) |
 | `backends/rust_lang.rs` | Generates Rust indicator implementations (concrete `f64`, guarded + unguarded variants) |
+| `backends/rust_doc.rs` | Renders each function's canonical `<name>.md` as rustdoc on the generated Rust methods (summary/formula/notes, `# Arguments` with YAML numbers injected, `# Errors`/`# Panics`, a runnable doctest, `#[doc(alias)]`, intra-doc `# See also` links) |
 | `backends/java.rs` | Generates Java Core class methods |
 | `backends/dotnet.rs` | Generates .NET P/Invoke wrappers |
 | `backends/ta_abstract_c.rs` | Generates `ta_abstract` introspection layer (tables, frames, group index, runtime API) |
@@ -172,6 +173,24 @@ Functions with extra internal params (e.g. EMA's `k` factor) get an additional
 `fn xxx_private(...)` exposing them; the guarded/unguarded variants pre-compute
 the params and delegate to it. There are **no** `_unchecked` /
 `_unguarded_unchecked` variants.
+
+### Documentation (rustdoc)
+
+`backends/rust_doc.rs` renders the canonical `ta_codegen/input/<name>/<name>.md`
+(parsed into `DocDef` by `parser/doc_md.rs`, attached as `FuncDef.doc`) as rustdoc
+on all three variants, and every guarded function gets a **generated runnable
+doctest** (252 bars of deterministic synthetic data, all params at defaults,
+asserts `Success`). Crate-level docs, Cargo.toml package metadata, and the crate
+README.md are emitted by `generate_rust_crate_scaffolding` in `main.rs`. Verify
+with `cargo doc --no-deps` (must be warning-free — prose escaping of `[`/`<` is
+load-bearing) and `cargo test --doc` in `ta_codegen/output/rust/`.
+
+### Debug-safe decrements
+
+C's `while (i-- > 0)` idiom lets an unsigned counter wrap past zero; the Rust
+backend emits `wrapping_sub(1)` for post/pre-decrement so debug builds (and
+doctests) behave like the regtest-verified release builds instead of panicking
+on `attempt to subtract with overflow`.
 
 ### Known Code Quality Issues (non-blocking)
 

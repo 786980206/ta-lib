@@ -65,12 +65,18 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::mama`].
+    /// Lookback period for [`Core::mama`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInFastLimit` - Number of period (default: 0, range: 0.01..=0.99)
-    /// * `optInSlowLimit` - Number of period (default: 0, range: 0.01..=0.99)
+    /// * `optInFastLimit` — Upper bound on the adaptive smoothing factor (default 0.5, range
+    ///   0.01..=0.99)
+    /// * `optInSlowLimit` — Lower bound on the adaptive smoothing factor (default 0.05, range
+    ///   0.01..=0.99)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn mama_lookback(&self, mut optInFastLimit: f64, mut optInSlowLimit: f64) -> usize {
         // The two parameters are not a factor to determine
@@ -93,19 +99,78 @@ impl Core {
         //         32 Total
         return (32 + self.unstable_period[FuncUnstId::Mama as usize]) as usize;
     }
-    /// MESA Adaptive Moving Average
+    /// MESA Adaptive Moving Average: an adaptive EMA whose smoothing factor is driven by the
+    /// dominant-cycle phase rate measured with a Hilbert transform. Emits two lines, MAMA and its
+    /// slower follower FAMA. MAMA crossing above FAMA is bullish; crossing below is bearish.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// phase = atan(Q1/I1) in degrees; deltaPhase = max(1, prevPhase - phase)
+    /// alpha = max(fastLimit/deltaPhase, slowLimit) if deltaPhase>1 else fastLimit
+    /// MAMA = alpha*price + (1-alpha)*MAMA_prev
+    /// FAMA = (alpha/2)*MAMA + (1-alpha/2)*FAMA_prev
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInFastLimit` - Number of period (default: 0, range: 0.01..=0.99)
-    /// * `optInSlowLimit` - Number of period (default: 0, range: 0.01..=0.99)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outMAMA` - Output values
-    /// * `outFAMA` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Price series to smooth.
+    /// * `optInFastLimit` — Upper bound on the adaptive smoothing factor (default 0.5, range
+    ///   0.01..=0.99)
+    /// * `optInSlowLimit` — Lower bound on the adaptive smoothing factor (default 0.05, range
+    ///   0.01..=0.99)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outMAMA` — Adaptive moving average (fast line)
+    /// * `outFAMA` — Following adaptive moving average, using half the alpha (slow line)
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut mama = vec![0.0; 252];
+    /// let mut fama = vec![0.0; 252];
+    ///
+    /// let ret = core.mama(
+    ///     0, data.len() - 1, &data, 0.5, 0.05,
+    ///     &mut out_beg, &mut out_nb, &mut mama, &mut fama,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::ma`] · [`Core::wma`] · [`Core::ht_dcperiod`]
+    ///
+    /// # References
+    ///
+    /// * John F. Ehlers, *Rocket Science for Traders: Digital Signal Processing Applications*, John
+    ///   Wiley & Sons (ISBN 0471405671)
+    ///
+    /// Further reading: [ta-lib.org/functions/mama](https://ta-lib.org/functions/mama/)
+    #[doc(alias = "MESAAdaptiveMovingAverage")]
+    #[doc(alias = "EhlersMAMA")]
     pub fn mama(
         &self,
         startIdx: usize,
@@ -232,7 +297,7 @@ impl Core {
             trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         // Initialize the circular buffers used by the hilbert
         // transform logic.
@@ -478,6 +543,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::mama`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::mama`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::mama`].
     #[inline]
     pub fn mama_unguarded(
         &self,
@@ -589,7 +660,7 @@ impl Core {
             trailingWMAValue = *inReal.as_ptr().add({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         hilbertIdx = 0;
         *detrender_Odd.as_mut_ptr().add(0) = 0.0;

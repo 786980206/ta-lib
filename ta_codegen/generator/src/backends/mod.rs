@@ -13,6 +13,7 @@ pub mod java_shipped;
 pub mod makefile_am;
 pub mod retcode;
 pub mod rust_abstract;
+pub mod rust_doc;
 pub mod rust_lang;
 pub mod stmt_walk;
 pub mod ta_abstract_c;

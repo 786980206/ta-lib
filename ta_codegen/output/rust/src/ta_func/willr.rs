@@ -64,11 +64,15 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::willr`].
+    /// Lookback period for [`Core::willr`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
+    /// * `optInTimePeriod` — Lookback bars for the high/low range (default 14, range 2..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn willr_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -78,19 +82,72 @@ impl Core {
         }
         return (optInTimePeriod - 1) as usize;
     }
-    /// Williams' %R
+    /// Williams' %R momentum oscillator over a rolling period, bounded in \[-100, 0]. Measures
+    /// where the current close sits relative to the high-low range of the last N bars. Near 0 =
+    /// close at period high (overbought); near -100 = close at period low (oversold).
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// %R = -100 * (highestHigh - close) / (highestHigh - lowestLow) over the trailing optInTimePeriod bars; if highestHigh == lowestLow, output 0.
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInTimePeriod` — Lookback bars for the high/low range (default 14, range 2..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Williams' %R value in \[-100, 0].
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.willr(
+    ///     0, high.len() - 1, &high, &low, &close, 14,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::stoch`] · [`Core::stochf`] · [`Core::minmax`]
+    ///
+    /// Further reading: [ta-lib.org/functions/willr](https://ta-lib.org/functions/willr/)
+    #[doc(alias = "WilliamsR")]
+    #[doc(alias = "WilliamsPercentR")]
+    #[doc(alias = "R")]
     pub fn willr(
         &self,
         startIdx: usize,
@@ -206,6 +263,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::willr`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::willr`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::willr`].
     #[inline]
     pub fn willr_unguarded(
         &self,

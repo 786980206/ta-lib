@@ -65,12 +65,19 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::stochf`].
+    /// Lookback period for [`Core::stochf`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
-    /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
+    /// * `optInFastK_Period` — Lookback window for the highest-high/lowest-low of Fast-K (default
+    ///   5, range 1..=100000)
+    /// * `optInFastD_Period` — Smoothing period for the Fast-D line (default 3, range 1..=100000)
+    /// * `optInFastD_MAType` — Moving-average type used to smooth Fast-D (default 0 = SMA,
+    ///   values: 0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn stochf_lookback(&self, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> usize {
         if ((optInFastK_Period) as i32) == (i32::MIN) {
@@ -90,21 +97,83 @@ impl Core {
         retValue += self.ma_lookback(optInFastD_Period, optInFastD_MAType);
         return retValue;
     }
-    /// Stochastic Fast
+    /// Fast Stochastic Oscillator: the raw %K line and its moving-average-smoothed %D line. Unlike
+    /// STOCH (which slows both lines), STOCHF returns the unsmoothed FastK and FastD. Oscillates
+    /// 0-100; >80 overbought, \<20 oversold.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// FastK = 100 * (Close - LowestLow) / (HighestHigh - LowestLow), over the last FastK_Period bars (incl. today)
+    /// FastD = MA(FastK, FastD_Period, FastD_MAType)
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * When the high-low range over the window is zero, %K is set to 0 instead of being
+    ///   undefined.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
-    /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outFastK` - Output values
-    /// * `outFastD` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInFastK_Period` — Lookback window for the highest-high/lowest-low of Fast-K (default
+    ///   5, range 1..=100000)
+    /// * `optInFastD_Period` — Smoothing period for the Fast-D line (default 3, range 1..=100000)
+    /// * `optInFastD_MAType` — Moving-average type used to smooth Fast-D (default 0 = SMA,
+    ///   values: 0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outFastK` — Raw %K stochastic line.
+    /// * `outFastD` — MA-smoothed %K (signal line)
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut fast_k = vec![0.0; 252];
+    /// let mut fast_d = vec![0.0; 252];
+    ///
+    /// let ret = core.stochf(
+    ///     0, high.len() - 1, &high, &low, &close, 5, 3, 0,
+    ///     &mut out_beg, &mut out_nb, &mut fast_k, &mut fast_d,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::stoch`] · [`Core::stochrsi`] · [`Core::ma`]
+    ///
+    /// Further reading: [ta-lib.org/functions/stochf](https://ta-lib.org/functions/stochf/)
+    #[doc(alias = "StochasticFast")]
+    #[doc(alias = "FastStochasticOscillator")]
     pub fn stochf(
         &self,
         startIdx: usize,
@@ -317,6 +386,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::stochf`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::stochf`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::stochf`].
     #[inline]
     pub fn stochf_unguarded(
         &self,

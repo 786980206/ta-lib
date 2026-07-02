@@ -62,24 +62,66 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::sub`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::sub`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     pub fn sub_lookback(&self) -> usize {
         return (0) as usize;
     }
-    /// Vector Arithmetic Subtraction
+    /// Element-wise vector subtraction of two input series. Outputs inReal0 minus inReal1 at each
+    /// index.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// outReal[i] = inReal0[i] - inReal1[i]
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal0` - Input price series
-    /// * `inReal1` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal0` — Minuend series.
+    /// * `inReal1` — Subtrahend series.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Per-element difference inReal0 - inReal1.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data0: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let data1: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 + 0.7).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.sub(0, data0.len() - 1, &data0, &data1, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::add`] · [`Core::mult`] · [`Core::div`]
+    ///
+    /// Further reading: [ta-lib.org/functions/sub](https://ta-lib.org/functions/sub/)
+    #[doc(alias = "Subtract")]
+    #[doc(alias = "VectorSubtraction")]
     pub fn sub(
         &self,
         startIdx: usize,
@@ -109,6 +151,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::sub`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::sub`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::sub`].
     #[inline]
     pub fn sub_unguarded(
         &self,

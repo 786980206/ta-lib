@@ -62,11 +62,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::natr`].
+    /// Lookback period for [`Core::natr`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
+    /// * `optInTimePeriod` — Smoothing period for the true range average (default 14, range
+    ///   1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn natr_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -82,19 +87,76 @@ impl Core {
         // moving average.
         return (optInTimePeriod + self.unstable_period[FuncUnstId::Natr as usize]) as usize;
     }
-    /// Normalized Average True Range
+    /// Average True Range expressed as a percentage of the current close, making volatility
+    /// comparable across price levels and securities. Same computation as ATR, then normalized by
+    /// close. Higher values mean greater relative volatility; unit is percent of price.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// NATR = (ATR / Close) * 100
+    /// ATR: first value = SMA of TRANGE over period; then Wilder smoothing ATR_t = (ATR_{t-1}*(period-1) + TR_t) / period
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInTimePeriod` — Smoothing period for the true range average (default 14, range
+    ///   1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — ATR as a percentage of the close.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.natr(
+    ///     0, high.len() - 1, &high, &low, &close, 14,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::atr`] · [`Core::trange`] · [`Core::sma`]
+    ///
+    /// # References
+    ///
+    /// * John Forman
+    ///
+    /// Further reading: [ta-lib.org/functions/natr](https://ta-lib.org/functions/natr/)
+    #[doc(alias = "NormalizedAverageTrueRange")]
     pub fn natr(
         &self,
         startIdx: usize,
@@ -203,7 +265,7 @@ impl Core {
         }
         // Now do the number of requested ATR.
         nbATR = endIdx - startIdx + 1;
-        while { nbATR -= 1; nbATR } != 0 {
+        while { nbATR = nbATR.wrapping_sub(1); nbATR } != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);
             prevATR += tempBuffer[{ let _v = today; today += 1; _v }];
             prevATR /= ((optInTimePeriod) as f64);
@@ -219,6 +281,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return retCode;
     }
+    /// Unchecked variant of [`Core::natr`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::natr`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::natr`].
     #[inline]
     pub fn natr_unguarded(
         &self,
@@ -284,7 +352,7 @@ impl Core {
             *outReal.as_mut_ptr().add(0) = 0.0;
         }
         nbATR = endIdx - startIdx + 1;
-        while { nbATR -= 1; nbATR } != 0 {
+        while { nbATR = nbATR.wrapping_sub(1); nbATR } != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);
             prevATR += *tempBuffer.as_ptr().add({ let _v = today; today += 1; _v });
             prevATR /= ((optInTimePeriod) as f64);

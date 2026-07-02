@@ -69,12 +69,17 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::t3`].
+    /// Lookback period for [`Core::t3`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
-    /// * `optInVFactor` - Number of period (default: 0, range: 0..=1)
+    /// * `optInTimePeriod` — EMA period for each of the six stages (default 5, range 2..=100000)
+    /// * `optInVFactor` — Volume factor weighting the coefficients (0 = plain triple EMA, higher
+    ///   = more DEMA-like sharpening) (default 0.7, range 0..=1)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn t3_lookback(&self, mut optInTimePeriod: i32, mut optInVFactor: f64) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -84,18 +89,68 @@ impl Core {
         }
         return (6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize]) as usize;
     }
-    /// Triple Exponential Moving Average (T3)
+    /// Tillson's T3: a low-lag moving average built from six chained EMAs, combined via
+    /// volume-factor-weighted coefficients. Not the same as EMA3, despite both being called "triple
+    /// EMA".
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// k = 2/(period+1); e1=EMA(x), e2=EMA(e1), ... e6=EMA(e5) (six chained EMAs).
+    /// v = vFactor: c1 = -v^3; c2 = 3(v^2 - c1); c3 = -6v^2 - 3(v - c1); c4 = 1 + 3v - c1 + 3v^2.
+    /// T3 = c1*e6 + c2*e5 + c3*e4 + c4*e3
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
-    /// * `optInVFactor` - Number of period (default: 0, range: 0..=1)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Source series to smooth.
+    /// * `optInTimePeriod` — EMA period for each of the six stages (default 5, range 2..=100000)
+    /// * `optInVFactor` — Volume factor weighting the coefficients (0 = plain triple EMA, higher
+    ///   = more DEMA-like sharpening) (default 0.7, range 0..=1)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — T3 smoothed line.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.t3(0, data.len() - 1, &data, 5, 0.7, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::ema`] · [`Core::dema`] · [`Core::tema`] · [`Core::ma`]
+    ///
+    /// Further reading: [ta-lib.org/functions/t3](https://ta-lib.org/functions/t3/)
+    #[doc(alias = "TillsonT3")]
+    #[doc(alias = "TripleExponentialMovingAverage")]
     pub fn t3(
         &self,
         startIdx: usize,
@@ -267,6 +322,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::t3`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::t3`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::t3`].
     #[inline]
     pub fn t3_unguarded(
         &self,

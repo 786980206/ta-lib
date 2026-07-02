@@ -64,10 +64,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlladderbottom`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdlladderbottom`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdlladderbottom_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let ShadowVeryShort_rangeType: i32 = self.candle_settings.shadow_very_short.range_type;
@@ -77,19 +75,69 @@ impl Core {
         let ShadowVeryShort_factor: f64 = self.candle_settings.shadow_very_short.factor;
         return (ShadowVeryShort_avgPeriod + 4) as usize;
     }
-    /// Ladder Bottom
+    /// Five-candle bullish reversal pattern: three consecutively lower black candles, a fourth
+    /// black candle with a non-very-short upper shadow, then a white candle that opens above the
+    /// prior open and closes above the prior high. Signals a potential bottom reversal. A hit
+    /// (+100) is a bullish reversal signal, most meaningful after a downtrend.
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the preceding downtrend that this bullish reversal classically assumes.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 on a detected ladder bottom, 0 otherwise. Only ever emits +100
+    ///   (never -100); inherently bullish.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlladderbottom(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdl3blackcrows`] · [`Core::cdlmatchinglow`] · [`Core::cdlbreakaway`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlladderbottom](https://ta-lib.org/functions/cdlladderbottom/)
+    #[doc(alias = "LadderBottom")]
     pub fn cdlladderbottom(
         &self,
         startIdx: usize,
@@ -228,6 +276,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlladderbottom`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlladderbottom`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdlladderbottom`].
     #[inline]
     pub fn cdlladderbottom_unguarded(
         &self,

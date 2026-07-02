@@ -62,11 +62,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::imi`].
+    /// Lookback period for [`Core::imi`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
+    /// * `optInTimePeriod` — Rolling window length for the up/down body sums (default 14, range
+    ///   2..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn imi_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -76,18 +81,69 @@ impl Core {
         }
         return (optInTimePeriod + self.unstable_period[FuncUnstId::Imi as usize] - 1) as usize;
     }
-    /// Intraday Momentum Index
+    /// Intraday Momentum Index: an RSI-like 0-100 oscillator built from the open-to-close body of
+    /// each bar. Over a rolling window it ratios cumulative up-body moves against total up+down
+    /// body moves.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// upsum = Σ(close-open) for bars with close>open; downsum = Σ(open-close) for bars with close<=open, over window [i-lookback, i]; IMI = 100 * upsum/(upsum+downsum)
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInTimePeriod` — Rolling window length for the up/down body sums (default 14, range
+    ///   2..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — IMI oscillator value, 0-100.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.imi(
+    ///     0, open.len() - 1, &open, &close, 14,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::rsi`]
+    ///
+    /// Further reading: [ta-lib.org/functions/imi](https://ta-lib.org/functions/imi/)
+    #[doc(alias = "IntradayMomentumIndex")]
     pub fn imi(
         &self,
         startIdx: usize,
@@ -143,6 +199,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::imi`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::imi`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::imi`].
     #[inline]
     pub fn imi_unguarded(
         &self,

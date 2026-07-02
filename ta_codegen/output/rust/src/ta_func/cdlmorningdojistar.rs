@@ -63,11 +63,17 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlmorningdojistar`].
+    /// Lookback period for [`Core::cdlmorningdojistar`]: the number of leading input values
+    /// consumed before the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    /// * `optInPenetration` — Fraction (default 0.3) of the 1st candle's real body the 3rd close
+    ///   must exceed above close\[i-2]; larger values demand deeper penetration into the black body
+    ///   (default 0.3, minimum 0)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn cdlmorningdojistar_lookback(&self, mut optInPenetration: f64) -> usize {
         #[allow(non_snake_case)]
@@ -90,20 +96,76 @@ impl Core {
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
         return (((BodyDoji_avgPeriod).max(BodyLong_avgPeriod)).max(BodyShort_avgPeriod) + 2) as usize;
     }
-    /// Morning Doji Star
+    /// A three-candle bullish reversal pattern: a long black candle, then a doji that gaps down,
+    /// then a white candle closing well up into the first candle's body. It is the doji-star
+    /// variant of the morning star. A hit (+100) signals a bullish reversal; most meaningful after
+    /// a downtrend, which this function does not verify.
+    ///
+    /// # Notes
+    ///
+    /// * The gap-down is measured between the candles' real bodies, not between their high/low
+    ///   ranges.
+    /// * A prior downtrend is not verified.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInPenetration` — Fraction (default 0.3) of the 1st candle's real body the 3rd close
+    ///   must exceed above close\[i-2]; larger values demand deeper penetration into the black body
+    ///   (default 0.3, minimum 0)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 when the pattern is detected, 0 otherwise. Always bullish; never
+    ///   emits -100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlmorningdojistar(
+    ///     0, open.len() - 1, &open, &high, &low, &close, 0.3,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlmorningstar`] · [`Core::cdleveningdojistar`] · [`Core::cdleveningstar`] ·
+    /// [`Core::cdldojistar`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlmorningdojistar](https://ta-lib.org/functions/cdlmorningdojistar/)
+    #[doc(alias = "MorningDojiStar")]
     pub fn cdlmorningdojistar(
         &self,
         startIdx: usize,
@@ -365,6 +427,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlmorningdojistar`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlmorningdojistar`]; an out-of-range
+    /// parameter, an input slice not covering `startIdx..=endIdx`, or an undersized output slice
+    /// may panic or cause undefined behavior. Prefer [`Core::cdlmorningdojistar`].
     #[inline]
     pub fn cdlmorningdojistar_unguarded(
         &self,

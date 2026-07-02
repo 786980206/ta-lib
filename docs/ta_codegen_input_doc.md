@@ -5,11 +5,14 @@ title: "ta_codegen Input: Documentation (<name>.md) Reference"
 # ta_codegen Input: Documentation (`<name>.md`) Reference
 
 > **Status (2026-07-01).** All 161 `<name>.md` source files exist, and `ta_codegen`
-> **generates the ta-lib.org website** from them (`backends/docs_site.rs` → `docs/functions/`,
-> served at `/functions/<name>`). Still **planned**: the crates.io/docs.rs rustdoc embed, the
-> npm/TSDoc render, and the `docs-lint` gate (the "Rendering targets" / "Verification" sections
-> below describe those intended targets). See the sibling references for the two other input
-> file kinds: [metadata](ta_codegen_input_yaml.md) and [code](ta_codegen_input_code.md).
+> generates two render targets from them: the **ta-lib.org website**
+> (`backends/docs_site.rs` → `docs/functions/`, served at `/functions/<name>`) and the
+> **embedded rustdoc** in the generated Rust crate (`backends/rust_doc.rs`, including a
+> runnable doctest per function, verified by `cargo test --doc`). Still **planned**: the
+> npm/TSDoc render, Javadoc/.NET XML-doc, and the `docs-lint` gate (the "Rendering targets"
+> / "Verification" sections below describe those intended targets). See the sibling
+> references for the two other input file kinds: [metadata](ta_codegen_input_yaml.md) and
+> [code](ta_codegen_input_code.md).
 
 `<name>.md` is the **third sibling** in each `ta_codegen/input/<name>/` directory,
 alongside `<name>.yaml` (metadata) and `<name>.c` (logic). It is the **single canonical
@@ -94,7 +97,7 @@ them per target as needed.
 | Target | Mechanism | What is emitted |
 |--------|-----------|-----------------|
 | **ta-lib.org** (mkdocs) | new `DocsBackend` on the `LanguageBackend` trait → `docs/functions/<NAME>.md` (scoped `clean_glob`) | Summary; brief `$$` formula; Inputs/Outputs/Parameters tables **joining** `.md` prose with live YAML numbers; Notes; Implementation links; cross-links. A cross-function emitter regenerates the grouped `functions/index.md`. |
-| **crates.io / docs.rs** | inline `///` in the generated Rust (replaces today's hard-coded generic strings) | Crate `//!` overview; per-item summary; plain-text formula; `# Arguments`/`# Returns` from prose; `#[doc(alias)]`; intra-doc links; trailing "Further reading: ta-lib.org/…". Plus Cargo.toml `documentation`/`homepage`/`keywords`/`categories` + `[package.metadata.docs.rs]`. |
+| **crates.io / docs.rs** | inline `///` in the generated Rust (`backends/rust_doc.rs`) | Crate `//!` overview + quick-start doctest; per-function summary, ```` ```text ```` formula, notes; `# Arguments` joining `.md` prose with YAML defaults/ranges; `# Errors`/`# Panics`; a **generated runnable doctest** per function (synthetic data, defaults, asserts `Success` — run by `cargo test --doc`); `# See also` intra-doc links; `#[doc(alias)]` from Aliases; trailing ta-lib.org deep link. Plus Cargo.toml `description`/`license`/`homepage`/`keywords`/`categories` and a generated crate README.md. Prose is escaped for rustdoc (`[`, `<` outside code spans; list/quote markers at wrapped-line starts). |
 | **Java / .NET / XML** (phase 3) | Javadoc / XML-doc / `<description>` | Summary + arguments prose. |
 | **npm** (phase 4, when a JS/TS backend exists) | TSDoc `/** */` + README | Summary tier for IntelliSense; `package.json` `homepage`/`documentation` deep link. |
 

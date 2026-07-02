@@ -182,5 +182,6 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         private_param_init: vec![],
         has_explicit_private: false,
         header_comments: vec![],
+        doc: None,
     }
 }

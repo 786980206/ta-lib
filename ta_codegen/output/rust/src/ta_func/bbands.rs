@@ -66,13 +66,20 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::bbands`].
+    /// Lookback period for [`Core::bbands`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
-    /// * `optInNbDevUp` - Number of period (default: 2, range: -179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `optInNbDevDn` - Number of period (default: 2, range: -179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    /// * `optInTimePeriod` — Periods for the MA and standard deviation (default 5, range
+    ///   2..=100000)
+    /// * `optInNbDevUp` — Standard-deviation multiplier for the upper band (default 2)
+    /// * `optInNbDevDn` — Standard-deviation multiplier for the lower band (default 2)
+    /// * `optInMAType` — Moving-average type for the middle band (default 0 = SMA, values: 0=SMA,
+    ///   1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn bbands_lookback(&self, mut optInTimePeriod: i32, mut optInNbDevUp: f64, mut optInNbDevDn: f64, mut optInMAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -83,21 +90,85 @@ impl Core {
         // The lookback is driven by the middle band moving average.
         return self.ma_lookback(optInTimePeriod, optInMAType);
     }
-    /// Bollinger Bands
+    /// Bollinger Bands: a moving-average middle band with upper and lower bands offset by a
+    /// multiple of the standard deviation. Used to gauge relative price volatility.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// middle = MA(inReal, period); sd = stddev(inReal, period); upper = middle + nbDevUp*sd; lower = middle - nbDevDn*sd
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * The standard deviation uses the population form (dividing by the period), not the sample
+    ///   form.
+    /// * The standard deviation is always computed with a simple moving average regardless of the
+    ///   selected MA type.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
-    /// * `optInNbDevUp` - Number of period (default: 2, range: -179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `optInNbDevDn` - Number of period (default: 2, range: -179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outRealUpperBand` - Output values
-    /// * `outRealMiddleBand` - Output values
-    /// * `outRealLowerBand` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Input data series.
+    /// * `optInTimePeriod` — Periods for the MA and standard deviation (default 5, range
+    ///   2..=100000)
+    /// * `optInNbDevUp` — Standard-deviation multiplier for the upper band (default 2)
+    /// * `optInNbDevDn` — Standard-deviation multiplier for the lower band (default 2)
+    /// * `optInMAType` — Moving-average type for the middle band (default 0 = SMA, values: 0=SMA,
+    ///   1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outRealUpperBand` — Middle band plus nbDevUp standard deviations.
+    /// * `outRealMiddleBand` — The moving average.
+    /// * `outRealLowerBand` — Middle band minus nbDevDn standard deviations.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut upper_band = vec![0.0; 252];
+    /// let mut middle_band = vec![0.0; 252];
+    /// let mut lower_band = vec![0.0; 252];
+    ///
+    /// let ret = core.bbands(
+    ///     0, data.len() - 1, &data, 5, 2.0, 2.0, 0,
+    ///     &mut out_beg, &mut out_nb, &mut upper_band, &mut middle_band, &mut lower_band,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::ma`] · [`Core::stddev`] · [`Core::sma`]
+    ///
+    /// # References
+    ///
+    /// * John A. Bollinger, *Bollinger on Bollinger Bands*, McGraw-Hill Trade (ISBN 0071373683)
+    ///
+    /// Further reading: [ta-lib.org/functions/bbands](https://ta-lib.org/functions/bbands/)
+    #[doc(alias = "BollingerBands")]
     pub fn bbands(
         &self,
         startIdx: usize,
@@ -289,6 +360,12 @@ impl Core {
         }
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::bbands`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::bbands`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::bbands`].
     #[inline]
     pub fn bbands_unguarded(
         &self,

@@ -63,26 +63,70 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlhikkake`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdlhikkake`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     pub fn cdlhikkake_lookback(&self) -> usize {
         return (5) as usize;
     }
-    /// Hikkake Pattern
+    /// A 3-bar pattern: an inside bar followed by a false breakout, optionally later confirmed by a
+    /// follow-through bar. Signals a bullish or bearish reversal/continuation depending on the
+    /// breakout direction. A false-breakout setup: positive = bullish, negative = bearish;
+    /// magnitude 200 flags the confirming bar.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100/-100 at the hikkake (breakout) bar for bull/bear; +200/-200 at a
+    ///   later confirmation bar; 0 otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlhikkake(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlhikkakemod`] · [`Core::cdlharami`]
+    ///
+    /// Further reading: [ta-lib.org/functions/cdlhikkake](https://ta-lib.org/functions/cdlhikkake/)
+    #[doc(alias = "HikkakePattern")]
+    #[doc(alias = "Hikkake")]
     pub fn cdlhikkake(
         &self,
         startIdx: usize,
@@ -177,6 +221,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlhikkake`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlhikkake`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdlhikkake`].
     #[inline]
     pub fn cdlhikkake_unguarded(
         &self,

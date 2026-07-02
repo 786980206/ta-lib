@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlclosingmarubozu`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdlclosingmarubozu`]: the number of leading input values
+    /// consumed before the first output value can be produced.
     pub fn cdlclosingmarubozu_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
@@ -82,19 +80,71 @@ impl Core {
         let ShadowVeryShort_factor: f64 = self.candle_settings.shadow_very_short.factor;
         return ((BodyLong_avgPeriod).max(ShadowVeryShort_avgPeriod)) as usize;
     }
-    /// Closing Marubozu
+    /// Single-candle pattern: a long real body whose closing end has no or very short shadow, so
+    /// the close sits at the candle's extreme. Non-directional strong bar that emits +100 for a
+    /// white body and -100 for a black body. White (+100) is bullish, black (-100) is bearish; a
+    /// strong directional bar, not a defined reversal/continuation signal.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// One candle. Requires: (1) long real body: real body > the BodyLong average; AND (2) very short shadow at the closing end: if white (close>=open) upper shadow < the ShadowVeryShort average [close at/near high]; if black (close<open) lower shadow < the ShadowVeryShort average [close at/near low].
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 for a white (bullish) closing marubozu, -100 for a black (bearish)
+    ///   one, 0 otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlclosingmarubozu(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlmarubozu`] · [`Core::cdllongline`] · [`Core::cdlbelthold`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlclosingmarubozu](https://ta-lib.org/functions/cdlclosingmarubozu/)
+    #[doc(alias = "ClosingMarubozu")]
     pub fn cdlclosingmarubozu(
         &self,
         startIdx: usize,
@@ -281,6 +331,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlclosingmarubozu`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlclosingmarubozu`]; an out-of-range
+    /// parameter, an input slice not covering `startIdx..=endIdx`, or an undersized output slice
+    /// may panic or cause undefined behavior. Prefer [`Core::cdlclosingmarubozu`].
     #[inline]
     pub fn cdlclosingmarubozu_unguarded(
         &self,

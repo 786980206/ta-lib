@@ -63,11 +63,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlmathold`].
+    /// Lookback period for [`Core::cdlmathold`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    /// * `optInPenetration` — Max fraction of the 1st white body the reaction days (3rd, 4th) may
+    ///   penetrate; default 0.5 (default 0.5, minimum 0)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn cdlmathold_lookback(&self, mut optInPenetration: f64) -> usize {
         #[allow(non_snake_case)]
@@ -84,20 +89,73 @@ impl Core {
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
         return ((BodyShort_avgPeriod).max(BodyLong_avgPeriod) + 4) as usize;
     }
-    /// Mat Hold
+    /// A five-candle bullish continuation pattern: a long white candle, an upside real-body-gapped
+    /// small black candle, two more small falling candles that hold within the first body, and a
+    /// final white candle closing above the reaction days' highs. Signals continuation of the prior
+    /// uptrend. Hit = bullish continuation of the existing uptrend.
+    ///
+    /// # Notes
+    ///
+    /// * The colors of the third and fourth (reaction) candles are not checked, although they are
+    ///   classically black.
+    /// * The continuation reading assumes a prior uptrend, which is not verified.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInPenetration` — Max fraction of the 1st white body the reaction days (3rd, 4th) may
+    ///   penetrate; default 0.5 (default 0.5, minimum 0)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 when the bullish Mat Hold is detected, 0 otherwise. Never emits
+    ///   -100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlmathold(
+    ///     0, open.len() - 1, &open, &high, &low, &close, 0.5,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlrisefall3methods`] · [`Core::cdlxsidegap3methods`]
+    ///
+    /// Further reading: [ta-lib.org/functions/cdlmathold](https://ta-lib.org/functions/cdlmathold/)
+    #[doc(alias = "MatHold")]
     pub fn cdlmathold(
         &self,
         startIdx: usize,
@@ -349,6 +407,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlmathold`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlmathold`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdlmathold`].
     #[inline]
     pub fn cdlmathold_unguarded(
         &self,

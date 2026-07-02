@@ -1,3 +1,6 @@
+//! Generated technical-analysis functions — one private module per indicator,
+//! all exposed as methods on [`Core`].
+
 // Types and Core struct are in types.rs (hand-written, not generated).
 mod types;
 pub use types::*;

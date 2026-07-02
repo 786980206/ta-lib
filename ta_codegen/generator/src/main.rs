@@ -393,6 +393,15 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         let mut func_def = parser::yaml::parse_yaml(&yaml_path);
         let parsed = parser::c_source::parse_c_source(&c_path);
         wire_parsed_source(&mut func_def, &parsed);
+
+        // Canonical documentation (third sibling input file) — feeds the rustdoc
+        // backend; the website backend reads the .md itself.
+        let doc_path = dir.join(format!("{}.md", func_name_lower));
+        func_def.doc = parser::doc_md::parse_doc_md(&doc_path);
+        if func_def.doc.is_none() {
+            eprintln!("Warning: {func_name_lower}: missing {func_name_lower}.md documentation");
+        }
+
         generated_funcs.push(func_def);
     }
 
@@ -401,12 +410,6 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         for backend in &backends_to_run {
             generate_backend(func_def, backend, &enums, &registry, &helper_registry, &out_base);
         }
-    }
-
-    // Generate Rust crate scaffolding when Rust is one of the backends
-    if backends_to_run.contains(&"rust") {
-        let types_src = root.join("ta_codegen/input/lib/rust/types.rs");
-        generate_rust_crate_scaffolding(&out_base, &generated_funcs, &types_src);
     }
 
     // For cross-function outputs (func_list, Makefile.am), use all definitions
@@ -418,6 +421,15 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     } else {
         &generated_funcs
     };
+
+    // The Rust crate scaffolding (Cargo.toml, lib.rs, README.md, mod.rs) is a
+    // cross-function output: always built from ALL definitions so a filtered
+    // `--func=X` run cannot rewrite mod.rs down to the filtered subset and
+    // break the crate.
+    if backends_to_run.contains(&"rust") {
+        let types_src = root.join("ta_codegen/input/lib/rust/types.rs");
+        generate_rust_crate_scaffolding(&out_base, all_funcs, &types_src);
+    }
 
     backends::func_list::generate(all_funcs, &root.join("ta_func_list.txt"));
     backends::func_api_xml::generate(all_funcs, &root.join("ta_func_api.xml"));
@@ -1149,6 +1161,14 @@ fn generate_rust_crate_scaffolding(out_base: &Path, funcs: &[ir::FuncDef], types
 name = "ta-lib"
 version = "0.6.4"
 edition = "2021"
+description = "Technical analysis library: 161 indicators (SMA, EMA, RSI, MACD, Bollinger Bands, ATR, Stochastic, candlestick patterns) — the official Rust port of TA-Lib, verified against the C reference."
+license = "BSD-3-Clause"
+homepage = "https://ta-lib.org"
+repository = "https://github.com/TA-Lib/ta-lib"
+documentation = "https://docs.rs/ta-lib"
+readme = "README.md"
+keywords = ["technical-analysis", "finance", "trading", "indicators", "candlestick"]
+categories = ["finance", "mathematics", "algorithms"]
 
 [lib]
 name = "ta_lib"
@@ -1178,7 +1198,59 @@ rustflags = ["-C", "target-cpu=native"]
     std::fs::write(cargo_config_dir.join("config.toml"), cargo_config).unwrap();
 
     // --- src/lib.rs ---
-    let lib_rs = r#"#![allow(non_snake_case, unused_variables, unused_assignments, unused_mut, unused_parens, arithmetic_overflow)]
+    let lib_rs = r#"//! # TA-Lib: Technical Analysis Library
+//!
+//! 161 technical-analysis indicators — moving averages, momentum oscillators,
+//! volatility bands, volume studies, Hilbert Transform cycle analysis, statistics,
+//! price transforms, and 61 candlestick-pattern recognizers — as a pure-Rust crate.
+//!
+//! This is the official Rust port of [TA-Lib](https://ta-lib.org): every function is
+//! generated from the same canonical definitions as the C library and verified
+//! against the C reference implementation.
+//!
+//! # Quick start
+//!
+//! ```
+//! use ta_lib::{Core, RetCode};
+//!
+//! let close = [11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0];
+//! let core = Core::new();
+//! let mut sma = vec![0.0; close.len()];
+//! let (mut out_beg, mut out_nb) = (0, 0);
+//!
+//! let ret = core.sma(0, close.len() - 1, &close, 3, &mut out_beg, &mut out_nb, &mut sma);
+//! assert_eq!(ret, RetCode::Success);
+//!
+//! // The first 3-period average lands at input index 2 (the lookback):
+//! assert_eq!((out_beg, out_nb), (2, 8));
+//! assert_eq!(sma[0], 12.0); // (11 + 12 + 13) / 3
+//! ```
+//!
+//! # API shape
+//!
+//! Every indicator is a method on [`Core`] and follows the same pattern:
+//!
+//! * Inputs are `&[f64]` slices, computed over the range `startIdx..=endIdx`.
+//! * Outputs are written into caller-provided `&mut` slices; `outBegIdx` receives the
+//!   input index of the first output value and `outNBElement` the number of values
+//!   written. An indicator consumes a number of leading values (its *lookback*)
+//!   before producing output — query it with the matching `*_lookback` method
+//!   (e.g. [`Core::sma_lookback`]).
+//! * Integer parameters accept `i32::MIN` to select their default value.
+//! * Every call returns a [`RetCode`]; anything other than [`RetCode::Success`]
+//!   means no output was produced.
+//!
+//! Per-instance settings on [`Core`] control the unstable period
+//! ([`Core::set_unstable_period`]), Metastock compatibility
+//! ([`Core::set_compatibility`]), and candlestick thresholds.
+//!
+//! Every indicator also has an `*_unguarded` variant that skips validation and
+//! bounds checks for internal cross-indicator calls — prefer the checked methods.
+//!
+//! The full function reference, grouped by category, is at
+//! [ta-lib.org/functions](https://ta-lib.org/functions/).
+
+#![allow(non_snake_case, unused_variables, unused_assignments, unused_mut, unused_parens, arithmetic_overflow)]
 pub mod ta_func;
 pub mod abstract_api;
 pub use ta_func::*;
@@ -1186,6 +1258,61 @@ pub use ta_func::*;
     let lib_path = src_dir.join("lib.rs");
     std::fs::write(&lib_path, lib_rs).unwrap();
     println!("  Scaffolding -> {}", lib_path.display());
+
+    // --- README.md (crates.io / GitHub front page for the crate) ---
+    let readme = r#"<!-- Generated by ta_codegen — do not edit. -->
+
+# TA-Lib for Rust
+
+[TA-Lib](https://ta-lib.org) — the widely used technical-analysis library — as a
+pure-Rust crate: 161 indicators covering moving averages, momentum oscillators
+(RSI, MACD, Stochastic), volatility (Bollinger Bands, ATR), volume, Hilbert
+Transform cycle analysis, statistics, price transforms, and 61 candlestick
+patterns.
+
+Every function is generated from the same canonical definitions as the C library
+and verified against the C reference implementation.
+
+## Install
+
+```toml
+[dependencies]
+ta-lib = "0.6"
+```
+
+## Quick start
+
+```rust
+use ta_lib::{Core, RetCode};
+
+let close = [11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0];
+let core = Core::new();
+let mut sma = vec![0.0; close.len()];
+let (mut out_beg, mut out_nb) = (0, 0);
+
+let ret = core.sma(0, close.len() - 1, &close, 3, &mut out_beg, &mut out_nb, &mut sma);
+assert_eq!(ret, RetCode::Success);
+assert_eq!(sma[0], 12.0); // (11 + 12 + 13) / 3, at input index `out_beg` = 2
+```
+
+Every indicator is a method on `Core` with the same calling pattern: `&[f64]`
+input slices, a `startIdx..=endIdx` range, caller-provided output slices, and a
+`RetCode` result. `outBegIdx` reports the input index of the first output value;
+`*_lookback` methods return how many leading values an indicator consumes.
+
+## Documentation
+
+- API reference: <https://docs.rs/ta-lib>
+- Per-function reference (formulas, notes, sources): <https://ta-lib.org/functions/>
+- Project home: <https://ta-lib.org>
+
+## License
+
+BSD-3-Clause — see [LICENSE](https://github.com/TA-Lib/ta-lib/blob/main/LICENSE).
+"#;
+    let readme_path = rust_dir.join("README.md");
+    std::fs::write(&readme_path, readme).unwrap();
+    println!("  Scaffolding -> {}", readme_path.display());
 
     // --- Copy hand-written types.rs from ta_codegen/input/lib/rust/ ---
     if types_src.exists() {
@@ -1197,7 +1324,10 @@ pub use ta_func::*;
     // --- src/ta_func/mod.rs (generated: imports types + declares indicator modules) ---
     let mut mod_rs = String::new();
     mod_rs.push_str(
-        r#"// Types and Core struct are in types.rs (hand-written, not generated).
+        r#"//! Generated technical-analysis functions — one private module per indicator,
+//! all exposed as methods on [`Core`].
+
+// Types and Core struct are in types.rs (hand-written, not generated).
 mod types;
 pub use types::*;
 

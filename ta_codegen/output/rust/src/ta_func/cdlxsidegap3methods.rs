@@ -63,26 +63,78 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlxsidegap3methods`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdlxsidegap3methods`]: the number of leading input values
+    /// consumed before the first output value can be produced.
     pub fn cdlxsidegap3methods_lookback(&self) -> usize {
         return (2) as usize;
     }
-    /// Upside/Downside Gap Three Methods
+    /// A three-candle continuation pattern: two same-color candles separated by a real-body gap,
+    /// followed by an opposite-color candle that fills into the gap. Bullish (upside) when the
+    /// first two candles are white, bearish (downside) when they are black. A hit signals trend
+    /// continuation: +100 bullish (uptrend resumes), -100 bearish (downtrend resumes).
+    ///
+    /// # Notes
+    ///
+    /// * This continuation pattern does not verify the prior trend it classically assumes; the
+    ///   caller must confirm the trend.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 when the two same-color candles are white (bullish/upside
+    ///   continuation), -100 when black (bearish/downside continuation), 0 otherwise. Equals
+    ///   candlecolor(1st candle) * 100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlxsidegap3methods(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlgapsidesidewhite`] · [`Core::cdltasukigap`] · [`Core::cdlrisefall3methods`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlxsidegap3methods](https://ta-lib.org/functions/cdlxsidegap3methods/)
+    #[doc(alias = "UpsideDownsideGapThreeMethods")]
+    #[doc(alias = "UpsideGapThreeMethods")]
+    #[doc(alias = "DownsideGapThreeMethods")]
     pub fn cdlxsidegap3methods(
         &self,
         startIdx: usize,
@@ -154,6 +206,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlxsidegap3methods`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlxsidegap3methods`]; an out-of-range
+    /// parameter, an input slice not covering `startIdx..=endIdx`, or an undersized output slice
+    /// may panic or cause undefined behavior. Prefer [`Core::cdlxsidegap3methods`].
     #[inline]
     pub fn cdlxsidegap3methods_unguarded(
         &self,

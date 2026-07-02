@@ -63,11 +63,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::beta`].
+    /// Lookback period for [`Core::beta`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 5, range: 1..=100000)
+    /// * `optInTimePeriod` — Rolling window length (number of returns) for the regression sums
+    ///   (default 5, range 1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn beta_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -77,18 +82,70 @@ impl Core {
         }
         return (optInTimePeriod) as usize;
     }
-    /// Beta
+    /// Beta: the slope of a least-squares linear regression of one series' percentage returns (y,
+    /// from inReal1) against another's (x, from inReal0) over a rolling window. Measures how much a
+    /// security moves relative to a market index. Beta = 1 moves with the index; \< 1 less
+    /// volatile, > 1 more volatile.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// Per-bar returns: $x_i=(p^0_i-p^0_{i-1})/p^0_{i-1}$ from inReal0, $y_i=(p^1_i-p^1_{i-1})/p^1_{i-1}$ from inReal1. With $n$=period over the window: $\beta = \dfrac{n\,S_{xy}-S_x S_y}{n\,S_{xx}-S_x^2}$, where $S_{xx}=\sum x^2,\ S_{xy}=\sum xy,\ S_x=\sum x,\ S_y=\sum y$.
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal0` - Input price series
-    /// * `inReal1` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 5, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal0` — Series whose returns are the regression x (market/index)
+    /// * `inReal1` — Series whose returns are the regression y (security)
+    /// * `optInTimePeriod` — Rolling window length (number of returns) for the regression sums
+    ///   (default 5, range 1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Beta: regression slope of inReal1-returns on inReal0-returns.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data0: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let data1: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 + 0.7).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.beta(
+    ///     0, data0.len() - 1, &data0, &data1, 5,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::correl`] · [`Core::linearreg_slope`] · [`Core::var`] · [`Core::stddev`]
+    ///
+    /// Further reading: [ta-lib.org/functions/beta](https://ta-lib.org/functions/beta/)
+    #[doc(alias = "Betacoefficient")]
     pub fn beta(
         &self,
         startIdx: usize,
@@ -257,6 +314,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::beta`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::beta`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::beta`].
     #[inline]
     pub fn beta_unguarded(
         &self,

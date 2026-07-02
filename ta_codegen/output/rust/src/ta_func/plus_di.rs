@@ -69,11 +69,15 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::plus_di`].
+    /// Lookback period for [`Core::plus_di`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
+    /// * `optInTimePeriod` — Wilder smoothing period (default 14, range 1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn plus_di_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -87,19 +91,87 @@ impl Core {
             return (1) as usize;
         }
     }
-    /// Plus Directional Indicator
+    /// Plus Directional Indicator: the Wilder-smoothed positive directional movement expressed as a
+    /// percentage of the true range. Measures the strength of upward price movement. Rising +DI
+    /// signals strengthening upward direction; compared against MINUS_DI to judge trend direction.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// +DM1 = (H-Hprev) if (H-Hprev) > 0 and (H-Hprev) > (Lprev-L), else 0.
+    /// TR1 = true range = max(H-L, |H-Cprev|, |L-Cprev|).
+    /// Seed +DM/TR = sum of first (period-1) one-period values; then Wilder smooth: X = X - X/period + X1.
+    /// +DI = 100 * (+DM / TR); if TR = 0, +DI = 0.
+    /// When period <= 1: +DI = +DM1 / TR1 (no *100).
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * Wilder's original integer rounding of intermediate values is not applied (it was
+    ///   unreliable when values are near 1).
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInTimePeriod` — Wilder smoothing period (default 14, range 1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Plus Directional Indicator.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.plus_di(
+    ///     0, high.len() - 1, &high, &low, &close, 14,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::minus_di`] · [`Core::dx`] · [`Core::adx`] · [`Core::adxr`] · [`Core::plus_dm`]
+    /// · [`Core::trange`]
+    ///
+    /// # References
+    ///
+    /// * J. Welles Wilder, *New Concepts in Technical Trading Systems*, Trend Research (ISBN
+    ///   0894590278)
+    ///
+    /// Further reading: [ta-lib.org/functions/plus_di](https://ta-lib.org/functions/plus_di/)
+    #[doc(alias = "DI")]
+    #[doc(alias = "PlusDirectionalIndicator")]
+    #[doc(alias = "PDI")]
     pub fn plus_di(
         &self,
         startIdx: usize,
@@ -304,7 +376,7 @@ impl Core {
         prevLow = inLow[today];
         prevClose = inClose[today];
         i = (optInTimePeriod - 1) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             today += 1;
             tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
@@ -337,7 +409,7 @@ impl Core {
         // Skip the unstable period. Note that this loop must be executed
         // at least ONCE to calculate the first DI.
         i = (self.unstable_period[FuncUnstId::PlusDI as usize] + 1) as usize;
-        while { let _v = i; i -= 1; _v } != 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } != 0 {
             // Calculate the prevPlusDM
             today += 1;
             tempReal = inHigh[today];
@@ -424,6 +496,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::plus_di`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::plus_di`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::plus_di`].
     #[inline]
     pub fn plus_di_unguarded(
         &self,
@@ -521,7 +599,7 @@ impl Core {
         prevLow = *inLow.as_ptr().add(today);
         prevClose = *inClose.as_ptr().add(today);
         i = (optInTimePeriod - 1) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             today += 1;
             tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
@@ -548,7 +626,7 @@ impl Core {
             prevClose = *inClose.as_ptr().add(today);
         }
         i = (self.unstable_period[FuncUnstId::PlusDI as usize] + 1) as usize;
-        while { let _v = i; i -= 1; _v } != 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } != 0 {
             today += 1;
             tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;

@@ -65,10 +65,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlharamicross`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdlharamicross`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdlharamicross_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyDoji_rangeType: i32 = self.candle_settings.body_doji.range_type;
@@ -84,19 +82,71 @@ impl Core {
         let BodyLong_factor: f64 = self.candle_settings.body_long.factor;
         return ((BodyDoji_avgPeriod).max(BodyLong_avgPeriod) + 1) as usize;
     }
-    /// Harami Cross Pattern
+    /// A two-candle reversal pattern: a long real body followed by a doji whose real body is
+    /// contained within the first candle's real body (the doji variant of the Harami). Bullish
+    /// after a black first candle, bearish after a white first candle. A hit signals a potential
+    /// reversal: +100/+80 bullish (black first candle), -100/-80 bearish (white first candle).
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the prior trend (downtrend for bullish, uptrend for bearish) that the
+    ///   reversal signal assumes.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100/+80 when the first candle is black (bullish), -100/-80 when the
+    ///   first candle is white (bearish), 0 otherwise. Magnitude 100 for strict containment inside
+    ///   the first body, 80 when one real-body end matches.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlharamicross(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlharami`] · [`Core::cdldoji`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlharamicross](https://ta-lib.org/functions/cdlharamicross/)
+    #[doc(alias = "HaramiCross")]
     pub fn cdlharamicross(
         &self,
         startIdx: usize,
@@ -304,6 +354,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlharamicross`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlharamicross`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdlharamicross`].
     #[inline]
     pub fn cdlharamicross_unguarded(
         &self,

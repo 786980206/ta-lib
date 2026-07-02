@@ -64,11 +64,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::ema`].
+    /// Lookback period for [`Core::ema`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
+    /// * `optInTimePeriod` — number of bars in the average; sets smoothing k = 2/(period+1)
+    ///   (default 30, range 2..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn ema_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -78,17 +83,73 @@ impl Core {
         }
         return (optInTimePeriod - 1 + self.unstable_period[FuncUnstId::Ema as usize]) as usize;
     }
-    /// Exponential Moving Average
+    /// Exponential moving average that weights recent prices more heavily via a recursive smoothing
+    /// factor. A core building block seeding or composing many other indicators. Reacts faster than
+    /// SMA; price above/below EMA suggests up/down trend.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// k = 2 / (period + 1); EMA_t = (price_t - EMA_{t-1}) * k + EMA_{t-1}. Seed (DEFAULT): EMA = SMA of first `period` bars.
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * In Metastock compatibility mode the average is seeded with the first price value and the
+    ///   recursion starts at the second bar, rather than the default of seeding with a simple
+    ///   average of the first period bars.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — price/data series to smooth.
+    /// * `optInTimePeriod` — number of bars in the average; sets smoothing k = 2/(period+1)
+    ///   (default 30, range 2..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — the exponential moving average.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.ema(0, data.len() - 1, &data, 30, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::sma`] · [`Core::dema`] · [`Core::tema`] · [`Core::ma`] · [`Core::macd`] ·
+    /// [`Core::t3`]
+    ///
+    /// Further reading: [ta-lib.org/functions/ema](https://ta-lib.org/functions/ema/)
+    #[doc(alias = "ExponentialMovingAverage")]
+    #[doc(alias = "ExponentiallyWeightedMovingAverage")]
+    #[doc(alias = "EWMA")]
     pub fn ema(
         &self,
         startIdx: usize,
@@ -111,6 +172,8 @@ impl Core {
         // Simply call the internal implementation of the EMA.
         return self.ema_private(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal);
     }
+    /// Internal variant of [`Core::ema_unguarded`] taking the precomputed parameter `optInK_1`.
+    /// Same contract as [`Core::ema_unguarded`].
     #[inline]
     pub fn ema_private(
         &self,
@@ -182,7 +245,7 @@ impl Core {
             today = startIdx - lookbackTotal;
             i = (optInTimePeriod) as usize;
             tempReal = 0.0;
-            while { let _v = i; i -= 1; _v } > 0 {
+            while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
                 tempReal += *inReal.as_ptr().add({ let _v = today; today += 1; _v });
             }
             prevMA = tempReal / ((optInTimePeriod) as f64);
@@ -204,6 +267,12 @@ impl Core {
         return RetCode::Success;
         } // unsafe
     }
+    /// Unchecked variant of [`Core::ema`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::ema`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::ema`].
     #[inline]
     pub fn ema_unguarded(
         &self,

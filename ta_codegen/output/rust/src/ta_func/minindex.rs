@@ -62,11 +62,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::minindex`].
+    /// Lookback period for [`Core::minindex`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
+    /// * `optInTimePeriod` — Window length over which the minimum is located (default 30, range
+    ///   2..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn minindex_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -76,17 +81,70 @@ impl Core {
         }
         return (optInTimePeriod - 1) as usize;
     }
-    /// Index of lowest value over a specified period
+    /// Returns the absolute index of the lowest value within a rolling window of the given period.
+    /// Same scan as MIN but outputs the position of the minimum rather than its value.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// outInteger[t] = argmin_{t-period+1 <= i <= t} inReal[i]  (absolute index into inReal)
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * When several bars in a window share the lowest value, which bar's index is returned is not
+    ///   guaranteed to be a specific one of the tied bars.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Series to scan for its minimum.
+    /// * `optInTimePeriod` — Window length over which the minimum is located (default 30, range
+    ///   2..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — Absolute index in inReal of the lowest value in each window.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.minindex(0, data.len() - 1, &data, 30, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::min`] · [`Core::maxindex`] · [`Core::minmaxindex`] · [`Core::minmax`]
+    ///
+    /// Further reading: [ta-lib.org/functions/minindex](https://ta-lib.org/functions/minindex/)
+    #[doc(alias = "IndexofLowestValue")]
+    #[doc(alias = "LowestValueIndex")]
+    #[doc(alias = "RollingArgmin")]
     pub fn minindex(
         &self,
         startIdx: usize,
@@ -165,6 +223,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::minindex`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::minindex`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::minindex`].
     #[inline]
     pub fn minindex_unguarded(
         &self,

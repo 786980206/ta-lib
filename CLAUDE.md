@@ -143,6 +143,10 @@ Generated Rust lives in `ta_codegen/output/rust/` (a standalone crate).
   unguarded variant only; the guarded variant pre-computes them and delegates.
   If the C source defines only the guarded function, the codegen auto-generates
   the unguarded variant by stripping range checks.
+- Rustdoc is generated from each function's canonical `<name>.md`
+  (`backends/rust_doc.rs`), including a runnable doctest per function; crate
+  docs/README/Cargo metadata come from the scaffolding in `main.rs`. Verify with
+  `cargo doc --no-deps` (warning-free) and `cargo test --doc` in the crate.
 
 ## Adding or Modifying an Indicator
 

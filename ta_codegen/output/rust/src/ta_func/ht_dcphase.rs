@@ -64,10 +64,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::ht_dcphase`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::ht_dcphase`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     pub fn ht_dcphase_lookback(&self) -> usize {
         // 31 input are skip
         // +32 output are skip to account for misc lookback
@@ -78,16 +76,60 @@ impl Core {
         // See mama_lookback for an explanation of the "32".
         return (63 + self.unstable_period[FuncUnstId::HtDcPhase as usize]) as usize;
     }
-    /// Hilbert Transform - Dominant Cycle Phase
+    /// Hilbert Transform Dominant Cycle Phase: the instantaneous phase (in degrees) of the dominant
+    /// market cycle, derived from a homodyne discriminator on a Hilbert-transformed, smoothed
+    /// price. One real output per bar. Output is degrees, wrapped so it never exceeds 315 (can go
+    /// negative).
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Price series to analyze.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Dominant cycle phase in degrees.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.ht_dcphase(0, data.len() - 1, &data, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::ht_dcperiod`] · [`Core::ht_phasor`] · [`Core::ht_sine`] · [`Core::ht_trendline`]
+    /// · [`Core::ht_trendmode`] · [`Core::mama`] · [`Core::wma`]
+    ///
+    /// # References
+    ///
+    /// * John F. Ehlers, *Rocket Science for Traders: Digital Signal Processing Applications*, John
+    ///   Wiley & Sons (ISBN 0471405671)
+    ///
+    /// Further reading: [ta-lib.org/functions/ht_dcphase](https://ta-lib.org/functions/ht_dcphase/)
+    #[doc(alias = "HilbertTransformDominantCyclePhase")]
     pub fn ht_dcphase(
         &self,
         startIdx: usize,
@@ -228,7 +270,7 @@ impl Core {
             trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         // Initialize the circular buffers used by the hilbert
         // transform logic.
@@ -493,6 +535,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::ht_dcphase`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::ht_dcphase`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::ht_dcphase`].
     #[inline]
     pub fn ht_dcphase_unguarded(
         &self,
@@ -612,7 +660,7 @@ impl Core {
             trailingWMAValue = *inReal.as_ptr().add({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         hilbertIdx = 0;
         *detrender_Odd.as_mut_ptr().add(0) = 0.0;

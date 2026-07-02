@@ -65,31 +65,95 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::sar`].
+    /// Lookback period for [`Core::sar`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInAcceleration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `optInMaximum` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    /// * `optInAcceleration` — Step added to the acceleration factor on each new extreme point
+    ///   (default 0.02, minimum 0)
+    /// * `optInMaximum` — Ceiling on the acceleration factor (default 0.2, minimum 0)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn sar_lookback(&self, mut optInAcceleration: f64, mut optInMaximum: f64) -> usize {
         // SAR always sacrify one price bar to establish the
         // initial extreme price.
         return (1) as usize;
     }
-    /// Parabolic SAR
+    /// Wilder's Parabolic SAR (Stop And Reverse): a trailing stop/reverse level that accelerates
+    /// toward price via an acceleration factor. Signals trend direction and trailing exit points.
+    /// SAR below price = uptrend (long); SAR above price = downtrend (short). Price crossing SAR
+    /// flips direction.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// SAR_next = SAR + af * (EP - SAR)
+    /// EP = extreme point (highest high in long / lowest low in short); af starts at Acceleration, += Acceleration each new EP, capped at Maximum.
+    /// On penetration: reverse, SAR := prior EP, reset af = Acceleration. SAR clamped each bar so it does not penetrate the prior/current bar's range.
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `optInAcceleration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `optInMaximum` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `optInAcceleration` — Step added to the acceleration factor on each new extreme point
+    ///   (default 0.02, minimum 0)
+    /// * `optInMaximum` — Ceiling on the acceleration factor (default 0.2, minimum 0)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Parabolic SAR stop/reverse level per bar.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.sar(
+    ///     0, high.len() - 1, &high, &low, 0.02, 0.2,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::sarext`] · [`Core::minus_dm`] · [`Core::plus_dm`]
+    ///
+    /// # References
+    ///
+    /// * J. Welles Wilder, *New Concepts in Technical Trading Systems*, Trend Research (ISBN
+    ///   0894590278)
+    ///
+    /// Further reading: [ta-lib.org/functions/sar](https://ta-lib.org/functions/sar/)
+    #[doc(alias = "ParabolicSAR")]
+    #[doc(alias = "PSAR")]
+    #[doc(alias = "StopandReverse")]
     pub fn sar(
         &self,
         startIdx: usize,
@@ -329,6 +393,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::sar`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::sar`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::sar`].
     #[inline]
     pub fn sar_unguarded(
         &self,

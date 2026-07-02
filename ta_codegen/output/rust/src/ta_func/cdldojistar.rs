@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdldojistar`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdldojistar`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdldojistar_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyDoji_rangeType: i32 = self.candle_settings.body_doji.range_type;
@@ -82,19 +80,78 @@ impl Core {
         let BodyLong_factor: f64 = self.candle_settings.body_long.factor;
         return ((BodyDoji_avgPeriod).max(BodyLong_avgPeriod) + 1) as usize;
     }
-    /// Doji Star
+    /// A two-candle reversal pattern: a long real body followed by a doji whose real body gaps away
+    /// from it (up after a white body, down after a black body). Signals a potential reversal of
+    /// the prevailing trend. A hit flags a likely trend reversal; true direction depends on the
+    /// prevailing trend (bullish in a downtrend, bearish in an uptrend), which the code does not
+    /// itself verify.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// Two candles. Candle 1: long real body (realbody > BodyLong average). Candle 2: doji (realbody <= BodyDoji average). Gap: either candle 1 white (color==1) AND candle 2 real body gaps up above it (the real bodies gap up), or candle 1 black (color==-1) AND candle 2 real body gaps down below it (the real bodies gap down).
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the prior trend the reversal signal classically assumes.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — Emits +100 or -100 on a hit, 0 otherwise. Value is
+    ///   -candlecolor(candle1)*100: -100 when candle 1 is white (gap up), +100 when candle 1 is
+    ///   black (gap down)
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdldojistar(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdlmorningdojistar`] · [`Core::cdleveningdojistar`] · [`Core::cdldoji`] ·
+    /// [`Core::cdlmorningstar`] · [`Core::cdleveningstar`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdldojistar](https://ta-lib.org/functions/cdldojistar/)
+    #[doc(alias = "DojiStar")]
     pub fn cdldojistar(
         &self,
         startIdx: usize,
@@ -286,6 +343,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdldojistar`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdldojistar`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdldojistar`].
     #[inline]
     pub fn cdldojistar_unguarded(
         &self,

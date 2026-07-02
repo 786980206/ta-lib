@@ -241,10 +241,7 @@ fn gen_lookback(
     helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
-    out.push_str(&format!("    /// Lookback period for [`Core::{snake}`].\n"));
-    out.push_str("    ///\n");
-    out.push_str("    /// # Arguments\n");
-    out.push_str("    ///\n");
+    out.push_str(&super::rust_doc::lookback_docs(func, snake, enums));
 
     let has_opt_inputs = !func.optional_inputs.is_empty();
 
@@ -266,18 +263,6 @@ fn gen_lookback(
     };
 
     if has_opt_inputs {
-        // Document optional params
-        for opt in &func.optional_inputs {
-            if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
-                #[allow(clippy::cast_possible_truncation)]
-                let default_i64 = default as i64;
-                out.push_str(&format!(
-                    "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
-                    opt.name, default_i64, lo, hi
-                ));
-            }
-        }
-
         // Build parameter list
         let mut params = Vec::new();
         for opt in &func.optional_inputs {
@@ -323,44 +308,8 @@ fn gen_guarded_func(
 ) -> String {
     let mut out = String::new();
 
-    // Doc comments
-    let title = func
-        .description
-        .as_deref()
-        .or(func.hint.as_deref())
-        .unwrap_or(&func.group);
-    out.push_str(&format!("    /// {title}\n"));
-    out.push_str("    ///\n");
-    out.push_str("    /// # Arguments\n");
-    out.push_str("    ///\n");
-    out.push_str("    /// * `startIdx` - Start index for calculation range\n");
-    out.push_str("    /// * `endIdx` - End index for calculation range (inclusive)\n");
-    for input in &func.inputs {
-        out.push_str(&format!(
-            "    /// * `{}` - Input price series\n",
-            input.name
-        ));
-    }
-    for opt in &func.optional_inputs {
-        if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
-            out.push_str(&format!(
-                "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
-                opt.name,
-                {
-                    #[allow(clippy::cast_possible_truncation)]
-                    let d = default as i64;
-                    d
-                },
-                lo,
-                hi
-            ));
-        }
-    }
-    out.push_str("    /// * `outBegIdx` - First valid output index\n");
-    out.push_str("    /// * `outNBElement` - Number of valid output elements\n");
-    for output in &func.outputs {
-        out.push_str(&format!("    /// * `{}` - Output values\n", output.name));
-    }
+    // Doc comments + #[doc(alias)] attributes from the canonical <name>.md
+    out.push_str(&super::rust_doc::guarded_docs(func, snake, enums, registry));
 
     // Function signature
     out.push_str(&format!("    pub fn {snake}(\n"));
@@ -688,6 +637,8 @@ fn gen_unguarded_or_private_func(
     } else {
         format!("{snake}_unguarded")
     };
+
+    out.push_str(&super::rust_doc::unguarded_docs(func, snake, is_private));
 
     // Function signature — always pub fn (unsafe is contained internally)
     // #[inline] enables cross-module inlining for cross-indicator calls
@@ -2745,9 +2696,13 @@ impl ExprEmitter for RustExpr<'_> {
         format!("{{ let _v = {rendered}; {rendered} += 1; _v }}")
     }
 
+    // C's decrement idioms (`while (i-- > 0)`) let an unsigned counter wrap past
+    // zero on the final iteration. Release builds already wrap (that behavior is
+    // regtest-verified); `wrapping_sub` makes debug builds match instead of
+    // panicking with `attempt to subtract with overflow`.
     fn post_decrement(&self, inner: &Expr) -> String {
         let rendered = self.walk(inner);
-        format!("{{ let _v = {rendered}; {rendered} -= 1; _v }}")
+        format!("{{ let _v = {rendered}; {rendered} = {rendered}.wrapping_sub(1); _v }}")
     }
 
     fn pre_increment(&self, inner: &Expr) -> String {
@@ -2757,7 +2712,7 @@ impl ExprEmitter for RustExpr<'_> {
 
     fn pre_decrement(&self, inner: &Expr) -> String {
         let rendered = self.walk(inner);
-        format!("{{ {rendered} -= 1; {rendered} }}")
+        format!("{{ {rendered} = {rendered}.wrapping_sub(1); {rendered} }}")
     }
 
     fn ternary(&self, cond: &Expr, then_expr: &Expr, else_expr: &Expr) -> String {

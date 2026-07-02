@@ -63,11 +63,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::linearreg_slope`].
+    /// Lookback period for [`Core::linearreg_slope`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
+    /// * `optInTimePeriod` — Number of bars in the regression window (default 14, range
+    ///   2..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn linearreg_slope_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -77,17 +82,73 @@ impl Core {
         }
         return (optInTimePeriod - 1) as usize;
     }
-    /// Linear Regression Slope
+    /// Slope 'm' of the least-squares best-fit line (y = b + m*x) over the last optInTimePeriod
+    /// bars. Reports the per-bar rate of change of the fitted trend line. Positive slope = rising
+    /// trend, negative = falling; magnitude is price change per bar.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// m = (n·SumXY − SumX·SumY) / Divisor
+    /// SumX = n(n−1)/2,  SumXSqr = n(n−1)(2n−1)/6,  Divisor = SumX² − n·SumXSqr
+    /// SumXY = Σ i·y[today−i],  SumY = Σ y[today−i],  i=0..n−1,  n=period,  y=inReal
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Data series to fit.
+    /// * `optInTimePeriod` — Number of bars in the regression window (default 14, range
+    ///   2..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Slope m of the fitted line.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.linearreg_slope(
+    ///     0, data.len() - 1, &data, 14,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::linearreg`] · [`Core::linearreg_intercept`] · [`Core::linearreg_angle`] ·
+    /// [`Core::tsf`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/linearreg_slope](https://ta-lib.org/functions/linearreg_slope/)
+    #[doc(alias = "LinearRegressionSlope")]
+    #[doc(alias = "LSMAslope")]
+    #[doc(alias = "leastsquaresslope")]
     pub fn linearreg_slope(
         &self,
         startIdx: usize,
@@ -152,9 +213,9 @@ impl Core {
         while today <= endIdx {
             SumXY = 0.0;
             SumY = 0.0;
-            // for( i = (optInTimePeriod) as usize; { let _v = i; i -= 1; _v } != 0;  )
+            // for( i = (optInTimePeriod) as usize; { let _v = i; i = i.wrapping_sub(1); _v } != 0;  )
             i = (optInTimePeriod) as usize;
-            while { let _v = i; i -= 1; _v } != 0 {
+            while { let _v = i; i = i.wrapping_sub(1); _v } != 0 {
                 tempValue1 = inReal[today - i];
                 SumY += tempValue1;
                 SumXY += (i as f64) * tempValue1;
@@ -167,6 +228,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::linearreg_slope`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::linearreg_slope`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::linearreg_slope`].
     #[inline]
     pub fn linearreg_slope_unguarded(
         &self,
@@ -208,9 +275,9 @@ impl Core {
         while today <= endIdx {
             SumXY = 0.0;
             SumY = 0.0;
-            // for( i = (optInTimePeriod) as usize; { let _v = i; i -= 1; _v } != 0;  )
+            // for( i = (optInTimePeriod) as usize; { let _v = i; i = i.wrapping_sub(1); _v } != 0;  )
             i = (optInTimePeriod) as usize;
-            while { let _v = i; i -= 1; _v } != 0 {
+            while { let _v = i; i = i.wrapping_sub(1); _v } != 0 {
                 tempValue1 = *inReal.as_ptr().add(today - i);
                 SumY += tempValue1;
                 SumXY += (i as f64) * tempValue1;

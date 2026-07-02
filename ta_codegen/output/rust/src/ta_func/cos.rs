@@ -62,23 +62,64 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cos`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cos`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     pub fn cos_lookback(&self) -> usize {
         return (0) as usize;
     }
-    /// Vector Trigonometric Cos
+    /// Element-wise trigonometric cosine of the input series. Applies the C library cos() to each
+    /// sample.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// outReal[i] = cos(inReal[i])
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Input values, treated as angles in radians.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Cosine of each input value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.cos(0, data.len() - 1, &data, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::acos`] · [`Core::sin`] · [`Core::tan`] · [`Core::cosh`]
+    ///
+    /// Further reading: [ta-lib.org/functions/cos](https://ta-lib.org/functions/cos/)
+    #[doc(alias = "Cosine")]
+    #[doc(alias = "VectorTrigonometricCos")]
     pub fn cos(
         &self,
         startIdx: usize,
@@ -106,6 +147,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cos`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cos`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::cos`].
     #[inline]
     pub fn cos_unguarded(
         &self,

@@ -64,10 +64,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::ht_sine`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::ht_sine`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     pub fn ht_sine_lookback(&self) -> usize {
         // 31 input are skip
         // +32 output are skip to account for misc lookback
@@ -78,17 +76,66 @@ impl Core {
         // See mama_lookback for an explanation of the "32".
         return (63 + self.unstable_period[FuncUnstId::HtSine as usize]) as usize;
     }
-    /// Hilbert Transform - SineWave
+    /// Hilbert Transform SineWave: derives the dominant-cycle phase from price and emits its sine
+    /// plus a 45-degree-lead sine. The two curves cross near cycle turning points. outSine and
+    /// outLeadSine crossing marks cycle turning points.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outSine` - Output values
-    /// * `outLeadSine` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Source price series.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outSine` — Sine of the dominant-cycle phase.
+    /// * `outLeadSine` — Sine of the phase advanced 45 degrees (lead)
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut sine = vec![0.0; 252];
+    /// let mut lead_sine = vec![0.0; 252];
+    ///
+    /// let ret = core.ht_sine(
+    ///     0, data.len() - 1, &data,
+    ///     &mut out_beg, &mut out_nb, &mut sine, &mut lead_sine,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::ht_dcphase`] · [`Core::ht_dcperiod`] · [`Core::ht_phasor`] ·
+    /// [`Core::ht_trendmode`] · [`Core::mama`]
+    ///
+    /// # References
+    ///
+    /// * John F. Ehlers, *Rocket Science for Traders: Digital Signal Processing Applications*, John
+    ///   Wiley & Sons (ISBN 0471405671)
+    ///
+    /// Further reading: [ta-lib.org/functions/ht_sine](https://ta-lib.org/functions/ht_sine/)
+    #[doc(alias = "HilbertTransformSineWave")]
+    #[doc(alias = "EhlersSineWave")]
+    #[doc(alias = "SineWaveIndicator")]
     pub fn ht_sine(
         &self,
         startIdx: usize,
@@ -232,7 +279,7 @@ impl Core {
             trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         // Initialize the circular buffers used by the hilbert
         // transform logic.
@@ -498,6 +545,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::ht_sine`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::ht_sine`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::ht_sine`].
     #[inline]
     pub fn ht_sine_unguarded(
         &self,
@@ -621,7 +674,7 @@ impl Core {
             trailingWMAValue = *inReal.as_ptr().add({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         hilbertIdx = 0;
         *detrender_Odd.as_mut_ptr().add(0) = 0.0;

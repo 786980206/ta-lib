@@ -66,25 +66,67 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::obv`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::obv`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     pub fn obv_lookback(&self) -> usize {
         // This function have no lookback needed.
         return (0) as usize;
     }
-    /// On Balance Volume
+    /// On Balance Volume: a running cumulative total of volume, added on up-price bars and
+    /// subtracted on down-price bars. Relates volume flow to price direction.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// OBV[i] = OBV[i-1] + (inReal[i] > inReal[i-1] ? V[i] : inReal[i] < inReal[i-1] ? -V[i] : 0); seed OBV[startIdx] = V[startIdx]
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `inVolume` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Price series compared bar-over-bar (typically close)
+    /// * `inVolume` — Volume per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Cumulative on-balance volume.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let volume: Vec<f64> = (0..252).map(|i| 10_000.0 + 100.0 * i as f64).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.obv(0, data.len() - 1, &data, &volume, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # References
+    ///
+    /// * Joseph Ensign Granville, B. Granville, *Granville's New Strategy of Daily Stock Market
+    ///   Timing for Maximum Profit*, Simon & Schuster (ISBN 0133634329)
+    ///
+    /// Further reading: [ta-lib.org/functions/obv](https://ta-lib.org/functions/obv/)
+    #[doc(alias = "OnBalanceVolume")]
     pub fn obv(
         &self,
         startIdx: usize,
@@ -123,6 +165,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::obv`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::obv`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::obv`].
     #[inline]
     pub fn obv_unguarded(
         &self,

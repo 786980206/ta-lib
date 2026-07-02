@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdladvanceblock`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdladvanceblock`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdladvanceblock_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
@@ -100,19 +98,69 @@ impl Core {
         let ShadowShort_factor: f64 = self.candle_settings.shadow_short.factor;
         return ((((ShadowLong_avgPeriod).max(ShadowShort_avgPeriod)).max((Far_avgPeriod).max(Near_avgPeriod))).max(BodyLong_avgPeriod) + 2) as usize;
     }
-    /// Advance Block
+    /// Three-candle bearish reversal pattern: three white candles with consecutively higher closes
+    /// whose advance weakens (progressively smaller bodies and/or lengthening upper shadows).
+    /// Signals that an uptrend's advance is being blocked. A hit (-100) is bearish: the advance is
+    /// stalling/blocked; meaningful mainly within an existing uptrend.
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the prior uptrend the pattern classically assumes for significance.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — -100 on a detected pattern (always bearish), 0 otherwise; never emits
+    ///   +100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdladvanceblock(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdl3whitesoldiers`] · CDLDELIBERATION · [`Core::cdlstalledpattern`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdladvanceblock](https://ta-lib.org/functions/cdladvanceblock/)
+    #[doc(alias = "AdvanceBlock")]
     pub fn cdladvanceblock(
         &self,
         startIdx: usize,
@@ -607,6 +655,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdladvanceblock`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdladvanceblock`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdladvanceblock`].
     #[inline]
     pub fn cdladvanceblock_unguarded(
         &self,

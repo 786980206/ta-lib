@@ -64,11 +64,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::rocp`].
+    /// Lookback period for [`Core::rocp`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 10, range: 1..=100000)
+    /// * `optInTimePeriod` — Lookback distance to the previous price (default 10, range
+    ///   1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn rocp_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -78,17 +83,65 @@ impl Core {
         }
         return (optInTimePeriod) as usize;
     }
-    /// Rate of change Percentage: (price-prevPrice)/prevPrice
+    /// Rate of change expressed as a fraction of the price optInTimePeriod bars ago. Normalized and
+    /// centered at zero (positive or negative). >0 rising vs N bars ago, \<0 falling; equals
+    /// ROC/100.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// ROCP = (price - prevPrice) / prevPrice, prevPrice = inReal[i - optInTimePeriod]
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 10, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Source price series.
+    /// * `optInTimePeriod` — Lookback distance to the previous price (default 10, range
+    ///   1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Fractional rate of change vs the value optInTimePeriod bars earlier.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.rocp(0, data.len() - 1, &data, 10, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::roc`] · [`Core::rocr`] · [`Core::rocr100`] · [`Core::mom`]
+    ///
+    /// Further reading: [ta-lib.org/functions/rocp](https://ta-lib.org/functions/rocp/)
+    #[doc(alias = "RateofChangePercentage")]
+    #[doc(alias = "PercentChange")]
     pub fn rocp(
         &self,
         startIdx: usize,
@@ -173,6 +226,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::rocp`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::rocp`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::rocp`].
     #[inline]
     pub fn rocp_unguarded(
         &self,

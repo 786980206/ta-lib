@@ -64,10 +64,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::ht_trendmode`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::ht_trendmode`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn ht_trendmode_lookback(&self) -> usize {
         // 31 input are skip
         // +32 output are skip to account for misc lookback
@@ -78,16 +76,61 @@ impl Core {
         // See mama_lookback for an explanation of the "32".
         return (63 + self.unstable_period[FuncUnstId::HtTrendMode as usize]) as usize;
     }
-    /// Hilbert Transform - Trend vs Cycle Mode
+    /// Hilbert Transform classifier that labels each bar as trending (1) or cycling (0). Reuses the
+    /// MAMA dominant-cycle/phase DSP plus a SineWave/trendline test to decide the market mode. 1 =
+    /// trending market (favor trend-following); 0 = cycle/mean-reverting mode.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Source price series.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — 1 = trend mode, 0 = cycle mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.ht_trendmode(0, data.len() - 1, &data, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::ht_trendline`] · [`Core::ht_sine`] · [`Core::ht_dcphase`] · [`Core::ht_dcperiod`]
+    /// · [`Core::mama`]
+    ///
+    /// # References
+    ///
+    /// * John F. Ehlers, *Rocket Science for Traders: Digital Signal Processing Applications*, John
+    ///   Wiley & Sons (ISBN 0471405671)
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/ht_trendmode](https://ta-lib.org/functions/ht_trendmode/)
+    #[doc(alias = "HilbertTransformTrendvsCycleMode")]
+    #[doc(alias = "TrendMode")]
     pub fn ht_trendmode(
         &self,
         startIdx: usize,
@@ -253,7 +296,7 @@ impl Core {
             trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         // Initialize the circular buffers used by the hilbert
         // transform logic.
@@ -521,7 +564,7 @@ impl Core {
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
             while i < DCPeriodInt {
-                tempReal += inReal[{ let _v = idx; idx -= 1; _v }];
+                tempReal += inReal[{ let _v = idx; idx = idx.wrapping_sub(1); _v }];
                 i += 1;
             }
             if DCPeriodInt > 0 {
@@ -562,6 +605,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::ht_trendmode`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::ht_trendmode`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::ht_trendmode`].
     #[inline]
     pub fn ht_trendmode_unguarded(
         &self,
@@ -704,7 +753,7 @@ impl Core {
             trailingWMAValue = *inReal.as_ptr().add({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            if !({ i -= 1; i } != 0) { break; }
+            if !({ i = i.wrapping_sub(1); i } != 0) { break; }
         }
         hilbertIdx = 0;
         *detrender_Odd.as_mut_ptr().add(0) = 0.0;
@@ -937,7 +986,7 @@ impl Core {
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
             while i < DCPeriodInt {
-                tempReal += *inReal.as_ptr().add({ let _v = idx; idx -= 1; _v });
+                tempReal += *inReal.as_ptr().add({ let _v = idx; idx = idx.wrapping_sub(1); _v });
                 i += 1;
             }
             if DCPeriodInt > 0 {

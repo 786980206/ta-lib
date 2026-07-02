@@ -65,13 +65,17 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::macd`].
+    /// Lookback period for [`Core::macd`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInFastPeriod` - Number of period (default: 12, range: 2..=100000)
-    /// * `optInSlowPeriod` - Number of period (default: 26, range: 2..=100000)
-    /// * `optInSignalPeriod` - Number of period (default: 9, range: 1..=100000)
+    /// * `optInFastPeriod` — Period of the fast EMA (default 12, range 2..=100000)
+    /// * `optInSlowPeriod` — Period of the slow EMA (default 26, range 2..=100000)
+    /// * `optInSignalPeriod` — Smoothing period of the signal line (default 9, range 1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn macd_lookback(&self, mut optInFastPeriod: i32, mut optInSlowPeriod: i32, mut optInSignalPeriod: i32) -> usize {
         if ((optInFastPeriod) as i32) == (i32::MIN) {
@@ -104,21 +108,83 @@ impl Core {
         }
         return (self.ema_lookback(optInSlowPeriod) + self.ema_lookback(optInSignalPeriod)) as usize;
     }
-    /// Moving Average Convergence/Divergence
+    /// Moving Average Convergence/Divergence: the difference between a fast and a slow EMA of the
+    /// input, plus an EMA-smoothed signal line and their histogram. MACD crossing its signal line
+    /// and histogram sign changes flag momentum shifts.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// MACD = EMA_fast - EMA_slow;  Signal = EMA(MACD, signalPeriod);  Hist = MACD - Signal
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * If the slow period is set smaller than the fast period, the two are swapped so the slow
+    ///   EMA is always the longer one.
+    /// * Under Metastock compatibility mode the EMAs are seeded from the first value instead of a
+    ///   simple moving average, which changes all outputs.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInFastPeriod` - Number of period (default: 12, range: 2..=100000)
-    /// * `optInSlowPeriod` - Number of period (default: 26, range: 2..=100000)
-    /// * `optInSignalPeriod` - Number of period (default: 9, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outMACD` - Output values
-    /// * `outMACDSignal` - Output values
-    /// * `outMACDHist` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Input series (typically close)
+    /// * `optInFastPeriod` — Period of the fast EMA (default 12, range 2..=100000)
+    /// * `optInSlowPeriod` — Period of the slow EMA (default 26, range 2..=100000)
+    /// * `optInSignalPeriod` — Smoothing period of the signal line (default 9, range 1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outMACD` — Fast EMA minus slow EMA.
+    /// * `outMACDSignal` — EMA of the MACD line.
+    /// * `outMACDHist` — MACD minus signal line.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut macd = vec![0.0; 252];
+    /// let mut macd_signal = vec![0.0; 252];
+    /// let mut macd_hist = vec![0.0; 252];
+    ///
+    /// let ret = core.macd(
+    ///     0, data.len() - 1, &data, 12, 26, 9,
+    ///     &mut out_beg, &mut out_nb, &mut macd, &mut macd_signal, &mut macd_hist,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::macdext`] · [`Core::macdfix`] · [`Core::ema`] · [`Core::apo`]
+    ///
+    /// # References
+    ///
+    /// * Gerald Appel, *Stock Market Trading Systems*, Traders Pr (ISBN 0934380163)
+    ///
+    /// Further reading: [ta-lib.org/functions/macd](https://ta-lib.org/functions/macd/)
+    #[doc(alias = "movingaverageconvergencedivergence")]
     pub fn macd(
         &self,
         startIdx: usize,
@@ -305,6 +371,12 @@ impl Core {
         (*outNBElement) = outNbElement2;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::macd`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::macd`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::macd`].
     #[inline]
     pub fn macd_unguarded(
         &self,

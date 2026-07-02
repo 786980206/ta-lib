@@ -68,11 +68,17 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::ma`].
+    /// Lookback period for [`Core::ma`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
+    /// * `optInTimePeriod` — Averaging window length (default 30, range 1..=100000)
+    /// * `optInMAType` — Which moving-average algorithm to dispatch to (default 0 = SMA, values:
+    ///   0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn ma_lookback(&self, mut optInTimePeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -118,17 +124,65 @@ impl Core {
         }
         return retValue;
     }
-    /// Moving average
+    /// Generic moving-average dispatcher that forwards the job to a concrete MA implementation
+    /// selected by optInMAType. Single uniform interface over all TA-Lib moving averages.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// outReal = MA_of_type(optInMAType)(inReal, optInTimePeriod); default type = SMA
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Series to average.
+    /// * `optInTimePeriod` — Averaging window length (default 30, range 1..=100000)
+    /// * `optInMAType` — Which moving-average algorithm to dispatch to (default 0 = SMA, values:
+    ///   0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Selected moving average of the input.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.ma(0, data.len() - 1, &data, 30, 0, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::sma`] · [`Core::ema`] · [`Core::wma`] · [`Core::dema`] · [`Core::tema`] ·
+    /// [`Core::trima`] · [`Core::kama`] · [`Core::mama`] · [`Core::t3`]
+    ///
+    /// Further reading: [ta-lib.org/functions/ma](https://ta-lib.org/functions/ma/)
+    #[doc(alias = "MovingAverage")]
     pub fn ma(
         &self,
         startIdx: usize,
@@ -206,6 +260,12 @@ impl Core {
         }
         return retCode;
     }
+    /// Unchecked variant of [`Core::ma`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::ma`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::ma`].
     #[inline]
     pub fn ma_unguarded(
         &self,

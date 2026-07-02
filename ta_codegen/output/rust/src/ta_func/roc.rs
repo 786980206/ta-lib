@@ -64,11 +64,15 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::roc`].
+    /// Lookback period for [`Core::roc`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 10, range: 1..=100000)
+    /// * `optInTimePeriod` — Lookback distance to the prior price (default 10, range 1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn roc_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -78,17 +82,64 @@ impl Core {
         }
         return (optInTimePeriod) as usize;
     }
-    /// Rate of change : ((price/prevPrice)-1)*100
+    /// Rate-of-change momentum oscillator: the percent change of price versus the price
+    /// optInTimePeriod bars earlier. Centered at zero with positive and negative values. Positive
+    /// when price rose over the period, negative when it fell; magnitude scales the move.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// ROC = ((price / prevPrice) - 1) * 100, where prevPrice = inReal[i - optInTimePeriod]
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 10, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Input price series.
+    /// * `optInTimePeriod` — Lookback distance to the prior price (default 10, range 1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Percent rate of change.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.roc(0, data.len() - 1, &data, 10, &mut out_beg, &mut out_nb, &mut out);
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::mom`] · [`Core::rocp`] · [`Core::rocr`] · [`Core::rocr100`]
+    ///
+    /// Further reading: [ta-lib.org/functions/roc](https://ta-lib.org/functions/roc/)
+    #[doc(alias = "RateofChange")]
+    #[doc(alias = "PriceRateofChange")]
     pub fn roc(
         &self,
         startIdx: usize,
@@ -173,6 +224,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::roc`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::roc`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::roc`].
     #[inline]
     pub fn roc_unguarded(
         &self,

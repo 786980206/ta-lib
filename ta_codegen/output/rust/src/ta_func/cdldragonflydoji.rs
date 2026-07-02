@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdldragonflydoji`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdldragonflydoji`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdldragonflydoji_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyDoji_rangeType: i32 = self.candle_settings.body_doji.range_type;
@@ -82,19 +80,77 @@ impl Core {
         let ShadowVeryShort_factor: f64 = self.candle_settings.shadow_very_short.factor;
         return ((BodyDoji_avgPeriod).max(ShadowVeryShort_avgPeriod)) as usize;
     }
-    /// Dragonfly Doji
+    /// Single-candle pattern: a doji (open and close nearly equal) sitting at the top of the range,
+    /// with no meaningful upper shadow and a long lower shadow. A reversal signal, but its
+    /// bullish/bearish meaning depends on the prior trend (the code does not judge direction). A
+    /// hit marks a dragonfly doji; treated as a potential reversal, but direction (bullish/bearish)
+    /// must be read from the trend it appears in.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// Single candle. realbody <= BodyDoji average (doji body) AND upper shadow < ShadowVeryShort average (no/very short upper shadow) AND lower shadow > ShadowVeryShort average (lower shadow present, not very short). No color, gap, or trend test.
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the prior trend that determines the pattern's bullish/bearish meaning.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 when the pattern is present, 0 otherwise; never -100. The +100 does
+    ///   not itself imply bullishness (must be read against the trend)
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdldragonflydoji(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdldoji`] · [`Core::cdlgravestonedoji`] · [`Core::cdllongleggeddoji`] ·
+    /// [`Core::cdltakuri`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdldragonflydoji](https://ta-lib.org/functions/cdldragonflydoji/)
+    #[doc(alias = "DragonflyDoji")]
     pub fn cdldragonflydoji(
         &self,
         startIdx: usize,
@@ -282,6 +338,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdldragonflydoji`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdldragonflydoji`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdldragonflydoji`].
     #[inline]
     pub fn cdldragonflydoji_unguarded(
         &self,

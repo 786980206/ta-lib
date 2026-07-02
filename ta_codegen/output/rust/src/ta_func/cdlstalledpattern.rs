@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlstalledpattern`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdlstalledpattern`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdlstalledpattern_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
@@ -94,19 +92,71 @@ impl Core {
         let ShadowVeryShort_factor: f64 = self.candle_settings.shadow_very_short.factor;
         return (((BodyLong_avgPeriod).max(BodyShort_avgPeriod)).max((ShadowVeryShort_avgPeriod).max(Near_avgPeriod)) + 2) as usize;
     }
-    /// Stalled Pattern
+    /// A three-candle pattern of three white candles with consecutively higher closes where the
+    /// third loses momentum (a small body riding on the shoulder of the second's long body). It is
+    /// a bearish reversal signal of a stalling advance. A hit (-100) is bearish: the uptrend is
+    /// stalling and may reverse.
+    ///
+    /// # Notes
+    ///
+    /// * The pattern classically appears in an uptrend, but this function does not verify a prior
+    ///   uptrend; the caller must confirm it.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — -100 when the pattern is detected (always bearish), 0 otherwise. Never
+    ///   emits +100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlstalledpattern(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdladvanceblock`] · [`Core::cdl3whitesoldiers`] · [`Core::cdlxsidegap3methods`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlstalledpattern](https://ta-lib.org/functions/cdlstalledpattern/)
+    #[doc(alias = "StalledPattern")]
+    #[doc(alias = "DeliberationPattern")]
     pub fn cdlstalledpattern(
         &self,
         startIdx: usize,
@@ -477,6 +527,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlstalledpattern`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlstalledpattern`]; an out-of-range
+    /// parameter, an input slice not covering `startIdx..=endIdx`, or an undersized output slice
+    /// may panic or cause undefined behavior. Prefer [`Core::cdlstalledpattern`].
     #[inline]
     pub fn cdlstalledpattern_unguarded(
         &self,

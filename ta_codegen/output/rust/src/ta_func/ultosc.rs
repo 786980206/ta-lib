@@ -64,13 +64,17 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::ultosc`].
+    /// Lookback period for [`Core::ultosc`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod1` - Number of period (default: 7, range: 1..=100000)
-    /// * `optInTimePeriod2` - Number of period (default: 14, range: 1..=100000)
-    /// * `optInTimePeriod3` - Number of period (default: 28, range: 1..=100000)
+    /// * `optInTimePeriod1` — Bars for one averaging window (default 7, range 1..=100000)
+    /// * `optInTimePeriod2` — Bars for another averaging window (default 14, range 1..=100000)
+    /// * `optInTimePeriod3` — Bars for another averaging window (default 28, range 1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn ultosc_lookback(&self, mut optInTimePeriod1: i32, mut optInTimePeriod2: i32, mut optInTimePeriod3: i32) -> usize {
         if ((optInTimePeriod1) as i32) == (i32::MIN) {
@@ -94,21 +98,82 @@ impl Core {
         maxPeriod = (((optInTimePeriod1).max(optInTimePeriod2)).max(optInTimePeriod3)) as usize;
         return (self.sma_lookback((maxPeriod) as i32) + 1) as usize;
     }
-    /// Ultimate Oscillator
+    /// Ultimate Oscillator: momentum indicator combining buying-pressure/true-range ratios over
+    /// three time periods into one 0-100 weighted average. Blends short-, medium-, and long-term
+    /// momentum to damp single-period noise. Ranges 0-100; conventionally >70 overbought, \<30
+    /// oversold.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// trueLow = min(low, prevClose);  BP = close - trueLow
+    /// TR = max(high-low, |prevClose-high|, |prevClose-low|)
+    /// avg_n = (sum BP over n bars) / (sum TR over n bars)
+    /// ULTOSC = 100 * (4*avg_short + 2*avg_mid + avg_long) / 7
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * The three periods are sorted internally, so the 4/2/1 weighting always applies to the
+    ///   shortest, middle, and longest period regardless of the order in which you pass them.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInTimePeriod1` - Number of period (default: 7, range: 1..=100000)
-    /// * `optInTimePeriod2` - Number of period (default: 14, range: 1..=100000)
-    /// * `optInTimePeriod3` - Number of period (default: 28, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInTimePeriod1` — Bars for one averaging window (default 7, range 1..=100000)
+    /// * `optInTimePeriod2` — Bars for another averaging window (default 14, range 1..=100000)
+    /// * `optInTimePeriod3` — Bars for another averaging window (default 28, range 1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Ultimate Oscillator value.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.ultosc(
+    ///     0, high.len() - 1, &high, &low, &close, 7, 14, 28,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::atr`] · [`Core::trange`] · [`Core::rsi`]
+    ///
+    /// Further reading: [ta-lib.org/functions/ultosc](https://ta-lib.org/functions/ultosc/)
+    #[doc(alias = "UltimateOscillator")]
+    #[doc(alias = "UO")]
     pub fn ultosc(
         &self,
         startIdx: usize,
@@ -385,6 +450,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::ultosc`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::ultosc`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::ultosc`].
     #[inline]
     pub fn ultosc_unguarded(
         &self,

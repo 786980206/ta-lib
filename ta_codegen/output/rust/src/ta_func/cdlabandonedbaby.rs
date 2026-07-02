@@ -63,11 +63,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdlabandonedbaby`].
+    /// Lookback period for [`Core::cdlabandonedbaby`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    /// * `optInPenetration` — Fraction of the 1st candle's real body the 3rd close must
+    ///   penetrate; default 0.3, range \[0, TA_REAL_MAX] (default 0.3, minimum 0)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn cdlabandonedbaby_lookback(&self, mut optInPenetration: f64) -> usize {
         #[allow(non_snake_case)]
@@ -90,20 +95,74 @@ impl Core {
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
         return (((BodyDoji_avgPeriod).max(BodyLong_avgPeriod)).max(BodyShort_avgPeriod) + 2) as usize;
     }
-    /// Abandoned Baby
+    /// A three-candle reversal pattern: a long body, then a gapped-away doji, then a body of
+    /// opposite color that gaps back the other way and closes deep into the first body. Bullish
+    /// (bottom) or bearish (top) reversal signal. Nonzero hit signals a reversal: +100 abandoned
+    /// baby bottom (bullish), -100 abandoned baby top (bearish).
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the prior trend the pattern classically assumes for significance.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInPenetration` — Fraction of the 1st candle's real body the 3rd close must
+    ///   penetrate; default 0.3, range \[0, TA_REAL_MAX] (default 0.3, minimum 0)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 at a bullish abandoned baby bottom (3rd candle white), -100 at a
+    ///   bearish abandoned baby top (3rd candle black), 0 otherwise; sign = color of the 3rd
+    ///   candle.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdlabandonedbaby(
+    ///     0, open.len() - 1, &open, &high, &low, &close, 0.3,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdleveningdojistar`] · [`Core::cdlmorningdojistar`] · [`Core::cdleveningstar`] ·
+    /// [`Core::cdlmorningstar`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdlabandonedbaby](https://ta-lib.org/functions/cdlabandonedbaby/)
+    #[doc(alias = "AbandonedBaby")]
     pub fn cdlabandonedbaby(
         &self,
         startIdx: usize,
@@ -364,6 +423,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdlabandonedbaby`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdlabandonedbaby`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdlabandonedbaby`].
     #[inline]
     pub fn cdlabandonedbaby_unguarded(
         &self,

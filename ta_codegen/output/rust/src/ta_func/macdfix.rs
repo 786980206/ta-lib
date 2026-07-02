@@ -64,11 +64,15 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::macdfix`].
+    /// Lookback period for [`Core::macdfix`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInSignalPeriod` - Number of period (default: 9, range: 1..=100000)
+    /// * `optInSignalPeriod` — Smoothing period for the signal line (default 9, range 1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn macdfix_lookback(&self, mut optInSignalPeriod: i32) -> usize {
         if ((optInSignalPeriod) as i32) == (i32::MIN) {
@@ -82,19 +86,72 @@ impl Core {
         //  by the fix 26 period EMA).
         return (self.ema_lookback(26) + self.ema_lookback(optInSignalPeriod)) as usize;
     }
-    /// Moving Average Convergence/Divergence Fix 12/26
+    /// MACD with the fast/slow EMAs fixed to the classic 12/26 periods, exposing only the signal
+    /// period. Thin wrapper that delegates to MACD with fast=slow=0. Signal-line crossovers and
+    /// histogram sign flag momentum shifts.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// MACD = EMA_12 - EMA_26   (fixed k: 0.15 for 12, 0.075 for 26)
+    /// Signal = EMA(MACD, signalPeriod),  k = 2/(signalPeriod+1)
+    /// Hist = MACD - Signal
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inReal` - Input price series
-    /// * `optInSignalPeriod` - Number of period (default: 9, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outMACD` - Output values
-    /// * `outMACDSignal` - Output values
-    /// * `outMACDHist` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inReal` — Source series (typically close)
+    /// * `optInSignalPeriod` — Smoothing period for the signal line (default 9, range 1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outMACD` — Fixed EMA12 minus EMA26.
+    /// * `outMACDSignal` — EMA of the MACD line.
+    /// * `outMACDHist` — MACD minus signal.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let data: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut macd = vec![0.0; 252];
+    /// let mut macd_signal = vec![0.0; 252];
+    /// let mut macd_hist = vec![0.0; 252];
+    ///
+    /// let ret = core.macdfix(
+    ///     0, data.len() - 1, &data, 9,
+    ///     &mut out_beg, &mut out_nb, &mut macd, &mut macd_signal, &mut macd_hist,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::macd`] · [`Core::macdext`] · [`Core::ema`] · [`Core::apo`]
+    ///
+    /// Further reading: [ta-lib.org/functions/macdfix](https://ta-lib.org/functions/macdfix/)
+    #[doc(alias = "MovingAverageConvergenceDivergenceFix")]
     pub fn macdfix(
         &self,
         startIdx: usize,
@@ -120,6 +177,12 @@ impl Core {
         // 0 indicate fix 12 == 0.15  for optInFastPeriod
         // 0 indicate fix 26 == 0.075 for optInSlowPeriod
     }
+    /// Unchecked variant of [`Core::macdfix`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::macdfix`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::macdfix`].
     #[inline]
     pub fn macdfix_unguarded(
         &self,

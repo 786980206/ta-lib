@@ -64,11 +64,15 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::minus_dm`].
+    /// Lookback period for [`Core::minus_dm`]: the number of leading input values consumed before
+    /// the first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
+    /// * `optInTimePeriod` — Wilder smoothing period (default 14, range 1..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn minus_dm_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -82,18 +86,79 @@ impl Core {
             return (1) as usize;
         }
     }
-    /// Minus Directional Movement
+    /// Minus Directional Movement, the downward component of Wilder's directional movement system.
+    /// Measures Wilder-smoothed downward price motion over the period. Higher -DM indicates
+    /// stronger downward directional movement.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// diffP = high - prevHigh; diffM = prevLow - low
+    /// -DM1 = diffM if (diffM > 0 and diffP < diffM) else 0
+    /// period<=1: output raw -DM1 per bar.
+    /// period>1: seed = sum of first (period-1) -DM1; then Wilder smooth each bar:
+    /// -DM = prevMinusDM - prevMinusDM/period (+ -DM1 when the bar qualifies)
+    /// ```
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `optInTimePeriod` — Wilder smoothing period (default 14, range 1..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Smoothed minus directional movement.
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.minus_dm(
+    ///     0, high.len() - 1, &high, &low, 14,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::plus_dm`] · [`Core::minus_di`] · [`Core::plus_di`] · [`Core::dx`] ·
+    /// [`Core::adx`] · [`Core::adxr`]
+    ///
+    /// # References
+    ///
+    /// * J. Welles Wilder, *New Concepts in Technical Trading Systems*, Trend Research (ISBN
+    ///   0894590278)
+    ///
+    /// Further reading: [ta-lib.org/functions/minus_dm](https://ta-lib.org/functions/minus_dm/)
+    #[doc(alias = "MinusDirectionalMovement")]
+    #[doc(alias = "-DM")]
     pub fn minus_dm(
         &self,
         startIdx: usize,
@@ -243,7 +308,7 @@ impl Core {
         prevHigh = inHigh[today];
         prevLow = inLow[today];
         i = (optInTimePeriod - 1) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             today += 1;
             tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
@@ -261,7 +326,7 @@ impl Core {
         // Process subsequent DM
         // Skip the unstable period.
         i = (self.unstable_period[FuncUnstId::MinusDM as usize]) as usize;
-        while { let _v = i; i -= 1; _v } != 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } != 0 {
             today += 1;
             tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
@@ -306,6 +371,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::minus_dm`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::minus_dm`]; an out-of-range parameter, an
+    /// input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::minus_dm`].
     #[inline]
     pub fn minus_dm_unguarded(
         &self,
@@ -376,7 +447,7 @@ impl Core {
         prevHigh = *inHigh.as_ptr().add(today);
         prevLow = *inLow.as_ptr().add(today);
         i = (optInTimePeriod - 1) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             today += 1;
             tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
@@ -389,7 +460,7 @@ impl Core {
             }
         }
         i = (self.unstable_period[FuncUnstId::MinusDM as usize]) as usize;
-        while { let _v = i; i -= 1; _v } != 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } != 0 {
             today += 1;
             tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;

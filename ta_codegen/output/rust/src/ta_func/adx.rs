@@ -69,11 +69,16 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::adx`].
+    /// Lookback period for [`Core::adx`]: the number of leading input values consumed before the
+    /// first output value can be produced.
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
+    /// * `optInTimePeriod` — Smoothing/averaging period for DM, TR, and ADX (default 14, range
+    ///   2..=100000)
+    ///
+    /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
+    /// to select their default value.
     #[inline]
     pub fn adx_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
@@ -83,19 +88,83 @@ impl Core {
         }
         return (2 * optInTimePeriod + self.unstable_period[FuncUnstId::Adx as usize] - 1) as usize;
     }
-    /// Average Directional Movement Index
+    /// Wilder's Average Directional Movement Index, a smoothed measure of trend strength derived
+    /// from the directional indicators (+DI/-DI). Quantifies how strongly a market is trending,
+    /// regardless of direction. Higher values indicate a stronger trend (a common convention treats
+    /// \>25 as trending); says nothing about direction.
+    ///
+    /// # Formula
+    ///
+    /// ```text
+    /// +DI = 100*(+DM_p/TR_p), -DI = 100*(-DM_p/TR_p); DX = 100*|(-DI)-(+DI)| / ((-DI)+(+DI)); first ADX = mean of the first `period` DX; then ADX = (prevADX*(period-1) + DX)/period. +DM_p/-DM_p/TR_p use Wilder smoothing: X = X - X/period + today's one-bar value.
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// * Wilder's original integer rounding is not applied.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outReal` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `optInTimePeriod` — Smoothing/averaging period for DM, TR, and ADX (default 14, range
+    ///   2..=100000)
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outReal` — Smoothed directional trend-strength index (0-100)
+    ///
+    /// Integer parameters accept `i32::MIN` to select their default value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`, and
+    /// [`RetCode::BadParam`] when an optional parameter is outside its documented range.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0.0; 252];
+    ///
+    /// let ret = core.adx(
+    ///     0, high.len() - 1, &high, &low, &close, 14,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::adxr`] · [`Core::dx`] · [`Core::plus_di`] · [`Core::minus_di`] ·
+    /// [`Core::plus_dm`] · [`Core::minus_dm`] · [`Core::trange`]
+    ///
+    /// # References
+    ///
+    /// * J. Welles Wilder, *New Concepts in Technical Trading Systems*, Trend Research (ISBN
+    ///   0894590278)
+    ///
+    /// Further reading: [ta-lib.org/functions/adx](https://ta-lib.org/functions/adx/)
+    #[doc(alias = "AverageDirectionalMovementIndex")]
+    #[doc(alias = "AverageDirectionalIndex")]
     pub fn adx(
         &self,
         startIdx: usize,
@@ -271,7 +340,7 @@ impl Core {
         prevLow = inLow[today];
         prevClose = inClose[today];
         i = (optInTimePeriod - 1) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             // Calculate the prevMinusDM and prevPlusDM
             today += 1;
             tempReal = inHigh[today];
@@ -307,7 +376,7 @@ impl Core {
         // Add up all the initial DX.
         sumDX = 0.0;
         i = (optInTimePeriod) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             // Calculate the prevMinusDM and prevPlusDM
             today += 1;
             tempReal = inHigh[today];
@@ -357,7 +426,7 @@ impl Core {
         prevADX = (sumDX / ((optInTimePeriod) as f64));
         // Skip the unstable period
         i = (self.unstable_period[FuncUnstId::Adx as usize]) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             // Calculate the prevMinusDM and prevPlusDM
             today += 1;
             tempReal = inHigh[today];
@@ -461,6 +530,12 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::adx`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::adx`]; an out-of-range parameter, an input
+    /// slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or cause
+    /// undefined behavior. Prefer [`Core::adx`].
     #[inline]
     pub fn adx_unguarded(
         &self,
@@ -517,7 +592,7 @@ impl Core {
         prevLow = *inLow.as_ptr().add(today);
         prevClose = *inClose.as_ptr().add(today);
         i = (optInTimePeriod - 1) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             today += 1;
             tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
@@ -547,7 +622,7 @@ impl Core {
         }
         sumDX = 0.0;
         i = (optInTimePeriod) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             today += 1;
             tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
@@ -587,7 +662,7 @@ impl Core {
         }
         prevADX = (sumDX / ((optInTimePeriod) as f64));
         i = (self.unstable_period[FuncUnstId::Adx as usize]) as usize;
-        while { let _v = i; i -= 1; _v } > 0 {
+        while { let _v = i; i = i.wrapping_sub(1); _v } > 0 {
             today += 1;
             tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;

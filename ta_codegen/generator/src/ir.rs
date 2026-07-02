@@ -29,6 +29,37 @@ pub struct FuncDef {
     /// verbatim after the generated banner, before the function definitions.
     /// Each entry is one comment block, itself a list of content lines.
     pub header_comments: Vec<Vec<String>>,
+    /// Canonical human documentation parsed from `ta_codegen/input/<name>/<name>.md`
+    /// (see docs/ta_codegen_input_doc.md). Prose only — numbers stay in the YAML
+    /// and are injected at render time.
+    pub doc: Option<DocDef>,
+}
+
+/// Parsed canonical documentation (`<name>.md`) for one function.
+///
+/// Mirrors the section list in docs/ta_codegen_input_doc.md. All strings are
+/// markdown as authored; renderers escape/adapt per target (rustdoc, mkdocs, ...).
+#[derive(Debug, Clone, Default)]
+pub struct DocDef {
+    /// `## Summary` — what the function is and how to read its output.
+    pub summary: String,
+    /// `## Formula` — brief high-level formula, verbatim lines.
+    pub formula: Option<String>,
+    /// `## Notes` — variations from the original indicator, one entry per bullet.
+    pub notes: Vec<String>,
+    /// `## Inputs` — `(name, description)` per input, keyed by the YAML input
+    /// name (price bundles appear as e.g. `inPriceOHLC`, not their components).
+    pub inputs: Vec<(String, String)>,
+    /// `## Outputs` — `(name, description)` per output.
+    pub outputs: Vec<(String, String)>,
+    /// `## Parameters` — `(name, description)` per optional input.
+    pub params: Vec<(String, String)>,
+    /// `## Aliases` — alternative names / abbreviation expansions.
+    pub aliases: Vec<String>,
+    /// `## See Also` — related TA-Lib function names.
+    pub see_also: Vec<String>,
+    /// `## References` — book/site citations, one entry per bullet.
+    pub references: Vec<String>,
 }
 
 #[derive(Debug, Clone)]

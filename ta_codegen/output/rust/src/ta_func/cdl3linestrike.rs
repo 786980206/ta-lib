@@ -63,10 +63,8 @@ use super::*;
 #[allow(unused_mut)]
 #[allow(unused_assignments)]
 impl Core {
-    /// Lookback period for [`Core::cdl3linestrike`].
-    ///
-    /// # Arguments
-    ///
+    /// Lookback period for [`Core::cdl3linestrike`]: the number of leading input values consumed
+    /// before the first output value can be produced.
     pub fn cdl3linestrike_lookback(&self) -> usize {
         #[allow(non_snake_case)]
         let Near_rangeType: i32 = self.candle_settings.near.range_type;
@@ -76,19 +74,73 @@ impl Core {
         let Near_factor: f64 = self.candle_settings.near.factor;
         return (Near_avgPeriod + 3) as usize;
     }
-    /// Three-Line Strike 
+    /// A four-candle pattern: three same-color candles with consecutively higher (or lower) closes,
+    /// each opening within or near the prior real body, then a fourth opposite-color candle that
+    /// opens beyond the third close and closes past the first candle's open. TA-Lib emits a signed
+    /// continuation-style signal keyed to the color of the first three candles. +100 = three-white
+    /// (bullish) strike, -100 = three-black (bearish) strike; traditionally read as significant
+    /// only inside a trend matching the first three candles.
+    ///
+    /// # Notes
+    ///
+    /// * Does not verify the surrounding trend the pattern classically assumes for significance.
     ///
     /// # Arguments
     ///
-    /// * `startIdx` - Start index for calculation range
-    /// * `endIdx` - End index for calculation range (inclusive)
-    /// * `inOpen` - Input price series
-    /// * `inHigh` - Input price series
-    /// * `inLow` - Input price series
-    /// * `inClose` - Input price series
-    /// * `outBegIdx` - First valid output index
-    /// * `outNBElement` - Number of valid output elements
-    /// * `outInteger` - Output values
+    /// * `startIdx` — Start index of the requested calculation range.
+    /// * `endIdx` — End index of the requested calculation range (inclusive).
+    /// * `inOpen` — Open prices per bar.
+    /// * `inHigh` — High prices per bar.
+    /// * `inLow` — Low prices per bar.
+    /// * `inClose` — Close prices per bar.
+    /// * `outBegIdx` — Set to the input index of the first output value.
+    /// * `outNBElement` — Set to the number of output values written.
+    /// * `outInteger` — +100 for a white (rising) three-line strike, -100 for a black (falling)
+    ///   three-line strike, 0 otherwise. Sign is the color of the first three candles:
+    ///   candlecolor(i-1)*100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RetCode::OutOfRangeStartIndex`] when `endIdx < startIdx`.
+    ///
+    /// # Panics
+    ///
+    /// Input slices must cover `startIdx..=endIdx` and output slices must hold the number of values
+    /// produced for that range: undersized slices panic or, for functions that forward to unchecked
+    /// internals, cause undefined behavior. Sizing every output slice to the input length is always
+    /// sufficient.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ta_lib::{Core, RetCode};
+    ///
+    /// let open: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64 - 0.05).sin()).collect();
+    /// let high: Vec<f64> = (0..252).map(|i| 101.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let low: Vec<f64> = (0..252).map(|i| 99.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    /// let close: Vec<f64> = (0..252).map(|i| 100.0 + 10.0 * (0.1 * i as f64).sin()).collect();
+    ///
+    /// let core = Core::new();
+    /// let mut out_beg = 0;
+    /// let mut out_nb = 0;
+    /// let mut out = vec![0i32; 252];
+    ///
+    /// let ret = core.cdl3linestrike(
+    ///     0, open.len() - 1, &open, &high, &low, &close,
+    ///     &mut out_beg, &mut out_nb, &mut out,
+    /// );
+    /// assert_eq!(ret, RetCode::Success);
+    /// assert!(out_nb > 0);
+    /// ```
+    ///
+    /// # See also
+    ///
+    /// [`Core::cdl3whitesoldiers`] · [`Core::cdl3blackcrows`]
+    ///
+    /// Further reading:
+    /// [ta-lib.org/functions/cdl3linestrike](https://ta-lib.org/functions/cdl3linestrike/)
+    #[doc(alias = "Three-LineStrike")]
+    #[doc(alias = "3-LineStrike")]
     pub fn cdl3linestrike(
         &self,
         startIdx: usize,
@@ -248,6 +300,12 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Unchecked variant of [`Core::cdl3linestrike`], used for internal cross-indicator calls.
+    ///
+    /// Skips parameter validation and uses unchecked indexing internally. Every argument must
+    /// satisfy the constraints documented on [`Core::cdl3linestrike`]; an out-of-range parameter,
+    /// an input slice not covering `startIdx..=endIdx`, or an undersized output slice may panic or
+    /// cause undefined behavior. Prefer [`Core::cdl3linestrike`].
     #[inline]
     pub fn cdl3linestrike_unguarded(
         &self,
