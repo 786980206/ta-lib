@@ -11,11 +11,20 @@ on:
     - cron: "0 5 * * *" # every day 5AM
 
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: "Force rebuild + tests even when dist digests match"
+        type: boolean
+        default: false
 
 jobs:
   test:
     name: Test ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      # Scheduled runs leave this '0'; a manual dispatch can force package.py
+      # to rebuild and re-test everything despite matching dist digests.
+      PACKAGE_FORCE_BUILD: ${{ inputs.force_build && '1' || '0' }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-2022]

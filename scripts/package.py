@@ -139,7 +139,7 @@ def find_asset_with_ext(target_dir, version: str, extension: str) -> str:
 
     return os.path.basename(filepath)
 
-def package_windows_zip(root_dir: str, asset_file_name: str, version: str, sources_digest: str, builder_id: str) -> dict:
+def package_windows_zip(root_dir: str, asset_file_name: str, version: str, sources_digest: str, builder_id: str, force_build: bool = False) -> dict:
     result: dict = {"build_valid": False}
     result["asset_file_name"] = asset_file_name
 
@@ -171,7 +171,7 @@ def package_windows_zip(root_dir: str, asset_file_name: str, version: str, sourc
     digests_dir = os.path.join(dist_dir, 'digests')
     delete_other_versions(digests_dir, "*.digest", version)
 
-    if is_build_skipping_allowed(root_dir, asset_file_name, version, sources_digest, builder_id):
+    if not force_build and is_build_skipping_allowed(root_dir, asset_file_name, version, sources_digest, builder_id):
         result["build_valid"] = True
         result["existed"] = True
         result["copied"] = False
@@ -775,7 +775,7 @@ def display_package_results(results: dict):
     else:
         print(f"Skipped {asset_file_name} build (not supported on this platform)")
 
-def package_all_linux(root_dir: str, version: str, sources_digest: str, builder_id: str, sudo_pwd: str):
+def package_all_linux(root_dir: str, version: str, sources_digest: str, builder_id: str, sudo_pwd: str, force_build: bool = False):
     os.chdir(root_dir)
 
     # For consistency, the dist/ta-lib-*-src.tar.gz are created only on Ubuntu,
@@ -786,7 +786,6 @@ def package_all_linux(root_dir: str, version: str, sources_digest: str, builder_
         "asset_file_name": f"ta-lib-{version}-src.tar.gz"
     }
 
-    force_build = False
     if is_ubuntu():
         asset_file_name = src_tar_gz_results["asset_file_name"]
         results = package_src_tar_gz(root_dir, asset_file_name, version, sources_digest, builder_id, sudo_pwd)
@@ -888,7 +887,7 @@ def package_all_linux(root_dir: str, version: str, sources_digest: str, builder_
 
     print(f"\nPackaging completed successfully.")
 
-def package_windows_platform(root_dir: str, version: str, sources_digest: str, builder_id: str, platform: str) -> dict:
+def package_windows_platform(root_dir: str, version: str, sources_digest: str, builder_id: str, platform: str, force_build: bool = False) -> dict:
 
     vcvarsall_args = []
     if platform == "x86_64":
@@ -916,7 +915,7 @@ def package_windows_platform(root_dir: str, version: str, sources_digest: str, b
             "asset_file_name": msi_asset_file_name,
         }
     }
-    zip_results = package_windows_zip(root_dir, zip_asset_file_name, version, sources_digest, builder_id)
+    zip_results = package_windows_zip(root_dir, zip_asset_file_name, version, sources_digest, builder_id, force_build)
     results["zip_results"].update(zip_results)
     results["zip_results"]["processed"] = True
     if not results["zip_results"]["build_valid"]:
@@ -926,7 +925,6 @@ def package_windows_platform(root_dir: str, version: str, sources_digest: str, b
     # The zip file is better at detecting if the *content* is different.
     # If any changes are detected, it will force the build
     # of the .msi file in dist.
-    force_build = False
     if results["zip_results"]["processed"] and results["zip_results"]["copied"]:
         force_build = True
 
@@ -945,9 +943,9 @@ def package_windows_platform(root_dir: str, version: str, sources_digest: str, b
 
     return results
 
-def package_all_windows(root_dir: str, version: str, sources_digest: str, builder_id: str):
-    results_x86_64 = package_windows_platform(root_dir, version, sources_digest, builder_id, "x86_64")
-    results_x86_32 = package_windows_platform(root_dir, version, sources_digest, builder_id, "x86_32")
+def package_all_windows(root_dir: str, version: str, sources_digest: str, builder_id: str, force_build: bool = False):
+    results_x86_64 = package_windows_platform(root_dir, version, sources_digest, builder_id, "x86_64", force_build)
+    results_x86_32 = package_windows_platform(root_dir, version, sources_digest, builder_id, "x86_32", force_build)
 
     # TODO: More testing needed for ARM platforms.
     #results_arm_64 = package_windows_platform(root_dir, version, "arm_64")
@@ -975,9 +973,13 @@ def package_all_windows(root_dir: str, version: str, sources_digest: str, builde
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test release candidate assets in 'dist'")
     parser.add_argument('-p', '--pwd', type=str, default="", help="Optional password for sudo commands")
+    parser.add_argument('--force-build', action='store_true',
+                        help="Rebuild and re-test all packages even when the dist digests match "
+                             "(also enabled by PACKAGE_FORCE_BUILD=1, e.g. from a CI dispatch input)")
     args = parser.parse_args()
 
     sudo_pwd = args.pwd
+    force_build = args.force_build or os.environ.get("PACKAGE_FORCE_BUILD") == "1"
     root_dir = verify_git_repo()
     is_updated, version = sync_versions(root_dir)
     is_updated, sources_digest = sync_sources_digest(root_dir)
@@ -987,11 +989,11 @@ if __name__ == "__main__":
     builder_id = get_git_user_name()
 
     if host_platform == "linux":
-        package_all_linux(root_dir, version, sources_digest, builder_id, sudo_pwd)
+        package_all_linux(root_dir, version, sources_digest, builder_id, sudo_pwd, force_build)
     elif host_platform == "win32":
         arch = platform.architecture()[0]
         if arch == '64bit':
-            package_all_windows(root_dir, version, sources_digest, builder_id)
+            package_all_windows(root_dir, version, sources_digest, builder_id, force_build)
         else:
             print( f"Unsupported [{arch}]. Only 64-bits windows supported for TA-Lib development.")
     else:
