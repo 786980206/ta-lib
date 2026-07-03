@@ -61,7 +61,7 @@ if abs((macd[-1] - sig[-1]) - hist[-1]) > 1e-9:
     print("FAIL: MACD hist != macd - signal")
     sys.exit(1)
 
-# 0.6.5 period=1 semantics: signalPeriod=1 means no smoothing — the signal
+# 0.6.5 period=1 semantics: signalPeriod=1 means no smoothing -- the signal
 # IS the MACD line and the histogram is exactly 0 (issues #48/#59).
 macd1, sig1, hist1 = talib.MACD(c, fastperiod=3, slowperiod=4, signalperiod=1)
 valid = ~np.isnan(macd1)
@@ -145,7 +145,7 @@ def build_wrapper_and_verify(temp_dir: str, version: str,
                "build ta-lib-python from source", env=env)
 
     verify_file = os.path.join(temp_dir, "verify_talib.py")
-    with open(verify_file, "w") as f:
+    with open(verify_file, "w", encoding="utf-8") as f:
         f.write(VERIFY_SCRIPT)
     run_or_die([vpy, verify_file, version], "verify wrapper", env=env)
 
