@@ -571,6 +571,14 @@ fn generate_c_global_buffers() -> String {
     s.push_str("static double g_inBuf3[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf4[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf5[MAX_ARRAY_SIZE];\n");
+    // Single-precision mirrors of the input buffers for the "use_float" leg
+    // (TA_S_ variants). Converted from g_inBuf* on demand.
+    s.push_str("static float g_sinBuf0[MAX_ARRAY_SIZE];\n");
+    s.push_str("static float g_sinBuf1[MAX_ARRAY_SIZE];\n");
+    s.push_str("static float g_sinBuf2[MAX_ARRAY_SIZE];\n");
+    s.push_str("static float g_sinBuf3[MAX_ARRAY_SIZE];\n");
+    s.push_str("static float g_sinBuf4[MAX_ARRAY_SIZE];\n");
+    s.push_str("static float g_sinBuf5[MAX_ARRAY_SIZE];\n");
     // Real output buffers — up to 3 for MACD/BBANDS/STOCH
     s.push_str("static double g_outBuf0[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_outBuf1[MAX_ARRAY_SIZE];\n");
@@ -805,6 +813,48 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("#else\n");
         s.push_str("        long elapsed_ns_ung = 0;\n");
         s.push_str("#endif /* TA_REF_SERVE */\n");
+
+        // Float-variant leg: with "use_float":1 the call is re-run through the
+        // single-precision TA_S_ API (inputs converted to float) and the
+        // response carries the S-variant result instead. The frozen reference
+        // library also exports the guarded TA_S_ functions, so ta_ref_serve
+        // answers this too — giving S-vs-S comparison against the reference.
+        // Mirrors the double flow: guarded first, then (outside ta_ref_serve)
+        // the unguarded S variant over the same buffers.
+        s.push_str("        if( json_find_int(json, \"use_float\") ) {\n");
+        for (j, _name) in input_names.iter().enumerate() {
+            s.push_str(&format!(
+                "            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf{j}[_fi] = (float)g_inBuf{j}[_fi];\n"
+            ));
+        }
+        let mut emit_s_call = |s: &mut String, suffix: &str| {
+            s.push_str(&format!("            rc = TA_S_{}{}(\n", func.name, suffix));
+            s.push_str("                startIdx, endIdx,\n");
+            for (j, _name) in input_names.iter().enumerate() {
+                s.push_str(&format!("                g_sinBuf{j},\n"));
+            }
+            for opt in &func.optional_inputs {
+                s.push_str(&format!("                {},\n", opt.name));
+            }
+            s.push_str("                &outBegIdx, &outNBElement");
+            let mut real_idx = 0usize;
+            let mut int_idx = 0usize;
+            for out in &func.outputs {
+                if out.param_type == ParamType::Integer {
+                    s.push_str(&format!(", g_outIntBuf{int_idx}"));
+                    int_idx += 1;
+                } else {
+                    s.push_str(&format!(", g_outBuf{real_idx}"));
+                    real_idx += 1;
+                }
+            }
+            s.push_str(");\n");
+        };
+        emit_s_call(&mut s, "");
+        s.push_str("#ifndef TA_REF_SERVE\n");
+        emit_s_call(&mut s, "_Unguarded");
+        s.push_str("#endif /* TA_REF_SERVE */\n");
+        s.push_str("        }\n");
 
         // Build response with correct key names and serialisers per output type.
         s.push_str("        int pos = snprintf(resp, resp_size,\n");

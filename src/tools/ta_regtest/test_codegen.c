@@ -293,6 +293,14 @@ typedef struct {
     int    optOverrideActive;
     double optOverride[16];
 
+    /* Float-variant leg: build_json_request adds "use_float":1, routing the
+     * servers through the single-precision TA_S_ API. Comparisons then use
+     * an epsilon widened by epsilonScale (float noise from codegen operation
+     * reordering; 0 means the default scale of 1). */
+    int    useFloat;
+    double epsilonScale;
+    int    sweepFloatLeg;   /* run the float leg per sweep variant (C only) */
+
     /* Timing */
     long long c_ref_total_ns;
     long long server_total_ns;
@@ -300,6 +308,10 @@ typedef struct {
     long long server_unguarded_total_ns;
     int       timing_unguarded_count;
 } CodegenRangeTestParam;
+
+/* Forward declaration: defined with the sweep further below, used by the
+ * per-function default pass as well. */
+static void run_float_leg(CodegenRangeTestParam *p);
 
 /* ---- Large-period stress coverage (Task 10) ----
  * The default codegen sweep uses each opt param's default (e.g. period 14), so a
@@ -511,6 +523,9 @@ static int build_json_request(CodegenRangeTestParam *p,
         pos += snprintf(buf + pos, bufSize - pos, ",\"unstablePeriod\":%d", unstPeriod);
     }
 
+    if( p->useFloat )
+        pos += snprintf(buf + pos, bufSize - pos, ",\"use_float\":1");
+
     pos += snprintf(buf + pos, bufSize - pos, "}}");
 
     return pos;
@@ -609,11 +624,13 @@ static void compare_codegen_output_generic(
         {
             double cVal = p->outRealBufs[outputNb][i];
             double diff = fabs(cVal - cg_out[i]);
-            double threshold = CODEGEN_EPSILON;
-            /* Use relative epsilon for large values (JSON roundtrip precision) */
+            double scale = (p->epsilonScale > 0.0) ? p->epsilonScale : 1.0;
+            double threshold = CODEGEN_EPSILON * scale;
+            /* Use relative epsilon for large values (JSON roundtrip precision;
+             * for the float leg, single-precision significand). */
             if( fabs(cVal) > 1.0 )
             {
-                double relThreshold = fabs(cVal) * 1e-12;
+                double relThreshold = fabs(cVal) * ((scale > 1.0) ? 1e-6 * scale : 1e-12);
                 if( relThreshold > threshold )
                     threshold = relThreshold;
             }
@@ -1056,6 +1073,15 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
                       ? (double)params.server_unguarded_total_ns / (double)params.timing_unguarded_count
                       : 0.0;
 
+    /* ---- Float-variant pass (TA_S_) ----
+     * Every function at default params, C server only (the other backends
+     * have no single-precision API): single-precision current vs
+     * single-precision frozen reference. This is the systematic coverage
+     * for the 161 TA_S_ guarded+unguarded pairs.
+     */
+    if( params.codegenError == TA_TEST_PASS && strcmp(ctx->lang->name, "c") == 0 )
+        run_float_leg(&params);
+
     /* ---- Large-period pass (Task 10) ----
      * Re-run the codegen value comparison with every IntegerRange opt param pushed
      * above the historical CIRCBUF static-buffer sizes (50/30), so period-dependent
@@ -1313,6 +1339,36 @@ static void sweep_compare_guarded(CodegenRangeTestParam *p)
     }
 }
 
+/* Float-variant leg: re-run the current request through the TA_S_ API on
+ * BOTH servers ("use_float":1) and diff single-precision against
+ * single-precision. The frozen reference library exports the guarded TA_S_
+ * functions, so ta_ref_serve provides a true S baseline. Widened epsilon:
+ * float carries ~1e-7 relative noise per reordered operation chain. */
+static void run_float_leg(CodegenRangeTestParam *p)
+{
+    if( p->codegenError != TA_TEST_PASS )
+        return;
+    p->useFloat = 1;
+    p->epsilonScale = 100.0;
+    build_json_request(p, 0, p->nbBars - 1);
+    if( codegen_pipe_call(p->refCp, p->requestBuf, p->responseBuf,
+                          JSON_BUF_SIZE) == TA_TEST_PASS
+        && !json_is_error(p->responseBuf) )
+    {
+        parse_ref_baseline(p);
+        if( codegen_pipe_call(p->cp, p->requestBuf, p->responseBuf,
+                              JSON_BUF_SIZE) != TA_TEST_PASS )
+            p->codegenError = TA_CODEGEN_RETCODE_MISMATCH;
+        else
+            for( unsigned int o = 0; o < p->funcInfo->nbOutput; o++ )
+                compare_codegen_output_generic(p, o);
+        if( p->codegenError != TA_TEST_PASS )
+            printf("  (mismatch above is from the FLOAT (TA_S_) leg)\n");
+    }
+    p->useFloat = 0;
+    p->epsilonScale = 0.0;
+}
+
 /* Run one variant: ta_ref_serve fills the baseline, the language server is
  * diffed against it. Returns 1 if the variant was comparable (counted), 0 if
  * the reference could not answer it. Mismatches land in p->codegenError. */
@@ -1336,6 +1392,8 @@ static int sweep_run_variant(CodegenRangeTestParam *p)
 
     if( p->codegenError == TA_TEST_PASS )
         sweep_compare_guarded(p);
+    if( p->sweepFloatLeg )
+        run_float_leg(p);
     return 1;
 }
 
@@ -1381,6 +1439,7 @@ static void sweep_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
      * repeating it for the other language iterations would be identical. */
     if( strcmp(ctx->lang->name, "c") == 0 )
     {
+        params.sweepFloatLeg = 1;
         if( TA_ParamHolderAlloc(funcInfo->handle, &params.paramHolder) == TA_SUCCESS )
         {
             setup_inputs(params.paramHolder, funcInfo, ctx->history);

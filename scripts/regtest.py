@@ -86,6 +86,14 @@ def _ta_ref_serve_paths(src_root, build_dir):
             # ta_def_ui.h does `#include "ta_frame.h"` (frames/) and pulls in
             # ta_abstract_serve.c, which lives under ta_codegen/input/lib/c.
             os.path.join(src_root, "ta_codegen", "input", "lib", "c"),
+            # Current-tree layout: ta_memory.h / ta_utility.h live with the
+            # library sources, not under ta_codegen/output/c, and the server
+            # includes "ta_func/ta_func_private.h" relative to src/.
+            os.path.join(src_root, "src", "ta_common"),
+            os.path.join(src_root, "src", "ta_func"),
+            os.path.join(src_root, "src"),
+            os.path.join(src_root, "src", "ta_abstract"),
+            os.path.join(src_root, "src", "ta_abstract", "frames"),
         ],
     )
 
@@ -150,7 +158,15 @@ def ensure_reference_serve(root, bin_dir):
                        check=True, cwd=root)
 
     if tag_ok and os.path.isdir(ref_root):
-        serve_src, lib_a, includes = _ta_ref_serve_paths(ref_root, ref_build)
+        # Transport (server source + headers) comes from the CURRENT tree so the
+        # JSON-RPC protocol never drifts from what ta_regtest speaks (e.g. the
+        # use_float leg); the ORACLE property lives in lib_a, which stays the
+        # frozen pinned-tag build. The two trees' public C API declarations are
+        # identical (audited), so current headers link cleanly against the
+        # frozen library. TA_*_Unguarded/TA_S_*_Unguarded calls are compiled
+        # out via TA_REF_SERVE (the frozen lib has no unguarded symbols).
+        serve_src, _lib_ignored, includes = _ta_ref_serve_paths(root, os.path.join(root, "cmake-build"))
+        lib_a = os.path.join(ref_build, "libta-lib.a")
         # Build the frozen reference static lib once (the tag is immutable).
         if not os.path.exists(lib_a):
             print("  Building frozen reference libta-lib.a (one time)...")
@@ -163,9 +179,11 @@ def ensure_reference_serve(root, bin_dir):
         if not os.path.exists(serve_src):
             print(f"  ta_ref_serve: FAILED — {serve_src} missing in worktree")
             return
-        # Rebuild only if missing or older than the frozen lib (normally: never).
+        # Rebuild if missing, or older than the frozen lib OR the current
+        # transport source (the server template evolves with the protocol).
         if (os.path.exists(bin_serve)
-                and os.path.getmtime(bin_serve) >= os.path.getmtime(lib_a)):
+                and os.path.getmtime(bin_serve) >= os.path.getmtime(lib_a)
+                and os.path.getmtime(bin_serve) >= os.path.getmtime(serve_src)):
             print("  ta_ref_serve: up to date (frozen reference unchanged)")
             return
         rc = _compile_ta_ref_serve(serve_src, lib_a, includes, bin_dir)
