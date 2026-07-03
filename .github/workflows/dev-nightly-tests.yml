@@ -113,6 +113,52 @@ jobs:
             echo "No changes detected in dist directory"
           fi
 
+  # Cross-language codegen verification — runs AFTER the C tests (needs: test).
+  # C is the hero: the 'test' job above validates the C library with a C-only
+  # toolchain (CMake/autotools never invoke cargo, so ta_regtest needs no Rust
+  # toolchain). Only this job adds the Rust/Java/.NET toolchains, builds the
+  # JSON-RPC language servers plus the frozen reference server (ta_ref_serve,
+  # from the pinned reference tag), and runs ta_regtest --codegen-only:
+  # 161 functions x 4 languages diffed against the reference, including the
+  # non-default-parameter ref differential sweep. POSIX-only (the server
+  # harness uses fork/exec), hence no Windows leg.
+  cross-language:
+    name: Cross-language codegen tests
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout dev Branch
+        uses: actions/checkout@v6
+        with:
+          ref: dev
+          fetch-depth: 0 # ta_ref_serve builds from the pinned reference tag
+
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install JDK
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-21-jdk
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build servers and run cross-language verification
+        shell: bash
+        run: |
+          # Rust toolchain and cmake are preinstalled on ubuntu-latest.
+          # C reference tests already ran in the 'test' job (the hero);
+          # --codegen-only runs just the cross-language verification.
+          # Benchmarks are skipped: CI timing is noise.
+          python3 scripts/regtest.py --no-perftest --no-direct-bench --codegen-only
+
   # Runs LAST (needs: test) so every other job tested the committed,
   # already-generated sources. This regenerates from ta_codegen/input/ and fails
   # if anything differs — i.e. an input edit whose generated output was never
