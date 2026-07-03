@@ -1098,11 +1098,15 @@ static ErrorNumber testPeriodOnePins( const TA_History *history )
                      &outBegIdx, &outNbElement, gBuffer[0].out0 );
    errNb = pbCheckCallShape( "VAR(1)", retCode, outBegIdx, 0, outNbElement, endIdx );
    if( errNb != TA_TEST_PASS ) return errNb;
+   /* Mathematically 0 (x^2 - x*x), but NOT bit-exact everywhere: under FMA
+    * contraction (ARM64) the fused x*x is subtracted from the rounded x^2,
+    * leaving ~1e-13 residue. Same for BETA/CORREL below.
+    */
    for( i = 0; i < outNbElement; i++ )
    {
-      if( gBuffer[0].out0[i] != 0.0 )
+      if( fabs( gBuffer[0].out0[i] ) > 1e-9 )
       {
-         printf( "\nFail: VAR(1): [%d] got %.17g, expected 0\n", i, gBuffer[0].out0[i] );
+         printf( "\nFail: VAR(1): [%d] got %.17g, expected ~0\n", i, gBuffer[0].out0[i] );
          return TA_REGTEST_OPTIMIZATION_REF_ERROR;
       }
    }
@@ -1113,9 +1117,9 @@ static ErrorNumber testPeriodOnePins( const TA_History *history )
    if( errNb != TA_TEST_PASS ) return errNb;
    for( i = 0; i < outNbElement; i++ )
    {
-      if( gBuffer[0].out0[i] != 0.0 )
+      if( fabs( gBuffer[0].out0[i] ) > 1e-9 )
       {
-         printf( "\nFail: CORREL(1): [%d] got %.17g, expected 0\n", i, gBuffer[0].out0[i] );
+         printf( "\nFail: CORREL(1): [%d] got %.17g, expected ~0\n", i, gBuffer[0].out0[i] );
          return TA_REGTEST_OPTIMIZATION_REF_ERROR;
       }
    }
@@ -1126,9 +1130,9 @@ static ErrorNumber testPeriodOnePins( const TA_History *history )
    if( errNb != TA_TEST_PASS ) return errNb;
    for( i = 0; i < outNbElement; i++ )
    {
-      if( gBuffer[0].out0[i] != 0.0 )
+      if( fabs( gBuffer[0].out0[i] ) > 1e-9 )
       {
-         printf( "\nFail: BETA(1): [%d] got %.17g, expected 0\n", i, gBuffer[0].out0[i] );
+         printf( "\nFail: BETA(1): [%d] got %.17g, expected ~0\n", i, gBuffer[0].out0[i] );
          return TA_REGTEST_OPTIMIZATION_REF_ERROR;
       }
    }
