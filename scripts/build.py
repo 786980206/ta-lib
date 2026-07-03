@@ -194,18 +194,39 @@ def check_regtest_source_lists(root_dir: str) -> bool:
         print(f"Error: ta_regtest_SOURCES block not found in {am_path}")
         return False
 
-    cmake_only = sorted(cmake_set - am_set)
-    am_only = sorted(am_set - cmake_set)
-    if cmake_only or am_only:
-        print("Error: the ta_regtest source lists disagree.")
-        for entry in cmake_only:
-            print(f"  only in CMakeLists.txt TA_REGTEST_SOURCES:            {entry}")
-        for entry in am_only:
-            print(f"  only in src/tools/ta_regtest/Makefile.am ta_regtest_SOURCES: {entry}")
-        print("Add the missing entries so both build systems compile the same files.")
+    # The two shipped Visual Studio projects list the same sources a third
+    # and fourth time (ClCompile entries, backslash paths).
+    vcxproj_sets = {}
+    for rel in ('ide/vs2022/lib_proj/ta_regtest/ta_regtest.vcxproj',
+                'ide/vs2012/lib_proj/ta_regtest/ta_regtest.vcxproj'):
+        vpath = os.path.join(root_dir, rel)
+        vset = set()
+        with open(vpath, encoding='utf-8-sig') as f:
+            for m in re.finditer(r'<ClCompile Include="([^"]+)"', f.read()):
+                entry = m.group(1).replace('\\', '/')
+                marker = 'src/tools/ta_regtest/'
+                if marker in entry:
+                    vset.add(entry.split(marker, 1)[1])
+        vcxproj_sets[rel] = vset
+
+    ok = True
+    lists = [('CMakeLists.txt TA_REGTEST_SOURCES', cmake_set),
+             ('src/tools/ta_regtest/Makefile.am ta_regtest_SOURCES', am_set)]
+    lists += [(rel, vset) for rel, vset in vcxproj_sets.items()]
+    union = set()
+    for _, entries in lists:
+        union |= entries
+    for name, entries in lists:
+        missing = sorted(union - entries)
+        for entry in missing:
+            print(f"Error: missing from {name}: {entry}")
+            ok = False
+    if not ok:
+        print("Add the missing entries so all build systems compile the same files.")
         return False
 
-    print(f"ta_regtest source lists agree ({len(cmake_set)} files). OK.")
+    print(f"ta_regtest source lists agree across CMake, autotools and the two "
+          f"VS projects ({len(cmake_set)} files). OK.")
     return True
 
 # Rust targets run cargo directly (no CMake).

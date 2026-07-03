@@ -328,6 +328,10 @@ copy $(OutDir)$(ProjectName)_$(Configuration).exe $(OutDir)$(ProjectName)_vs2005
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\tools\ta_regtest\ta_regtest.c" />
+    <ClCompile Include="..\..\..\..\src\tools\ta_regtest\codegen_pipe.c" />
+    <ClCompile Include="..\..\..\..\src\tools\ta_regtest\test_codegen.c" />
+    <ClCompile Include="..\..\..\..\src\tools\ta_regtest\server_verify.c" />
+    <ClCompile Include="..\..\..\..\src\tools\ta_regtest\ta_test_func\test_period_boundary.c" />
     <ClCompile Include="..\..\..\..\src\tools\ta_regtest\ta_test_func\test_avgdev.c" />
     <ClCompile Include="..\..\..\..\src\tools\ta_regtest\ta_test_func\test_imi.c" />
     <ClCompile Include="..\..\..\..\src\tools\ta_regtest\test_abstract.c" />
