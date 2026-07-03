@@ -412,7 +412,7 @@ if(WIN32)
     )
 
     install(FILES ${LIB_HEADERS}
-        DESTINATION include
+        DESTINATION include/ta-lib
     )
 else()
     install(TARGETS ta-lib ta-lib-static

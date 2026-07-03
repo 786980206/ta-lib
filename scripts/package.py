@@ -197,7 +197,10 @@ def package_windows_zip(root_dir: str, asset_file_name: str, version: str, sourc
     package_temp_dir = path_join(temp_dir, file_name_prefix)
     temp_lib_dir = path_join(package_temp_dir, 'lib')
     temp_bin_dir = path_join(package_temp_dir, 'bin')
-    temp_include_dir = path_join(package_temp_dir, 'include')
+    # Headers go under include/ta-lib/ — the documented 0.6.1 convention
+    # (#include <ta-lib/ta_libc.h>), already used on Linux; required by
+    # ta-lib-python source builds. Windows was still shipping them flat.
+    temp_include_dir = path_join(package_temp_dir, 'include', 'ta-lib')
 
     os.makedirs(temp_dir, exist_ok=True)
     os.makedirs(package_temp_dir, exist_ok=True)
