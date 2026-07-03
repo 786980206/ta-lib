@@ -66,17 +66,26 @@ jobs:
 
       # NOTE: one command per step (or && chains). A multi-line `shell: cmd`
       # script propagates only the LAST command's exit code, masking every
-      # failure before it. WiX pinned: wix >= 7.0.0 refuses to run without
-      # accepting the OSMF EULA (WIX7015).
+      # failure before it. WiX is version-pinned for determinism; v7
+      # requires the OSMF EULA acceptance step below.
       - name: Install WiX (Windows x64)
         if: runner.os == 'Windows'
         shell: cmd
-        run: dotnet tool install --global wix --version 5.0.2 && echo %USERPROFILE%\.dotnet\tools>>%GITHUB_PATH%
+        run: dotnet tool install --global wix --version 7.0.0 && echo %USERPROFILE%\.dotnet\tools>>%GITHUB_PATH%
+
+      # TA-Lib generates no revenue, so the Open Source Maintenance Fee does
+      # not apply (the OSMF exempts organizations under USD 10k/year), but
+      # WiX v7 still requires explicit EULA acceptance (WIX7015 otherwise).
+      # Accepted per project-maintainer decision, 2026-07-03.
+      - name: Accept WiX OSMF EULA (Windows x64)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: wix eula accept wix7
 
       - name: Add WiX UI extension (Windows x64)
         if: runner.os == 'Windows'
         shell: cmd
-        run: wix extension add --global WixToolset.UI.wixext/5.0.2 && wix extension list --global
+        run: wix extension add --global WixToolset.UI.wixext/7.0.0 && wix extension list --global
 
       - name: Build dist assets (Windows x64)
         if: runner.os == 'Windows'
