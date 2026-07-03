@@ -23,6 +23,17 @@ int g_hideUnguarded = 0;
 #endif
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
+/* Portability shims for the report-writing paths (MSVC has the same
+ * functionality under different names; PATH_MAX is POSIX-only). */
+#define popen  _popen
+#define pclose _pclose
+#ifndef PATH_MAX
+#define PATH_MAX MAX_PATH
+#endif
+/* realpath(rel, abs) and _fullpath(abs, rel, size) swap their arguments. */
+#define realpath(rel, abs) _fullpath((abs), (rel), PATH_MAX)
+#else
+#include <limits.h> /* PATH_MAX */
 #endif
 
 #include "ta_libc.h"
