@@ -23,10 +23,16 @@ if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
 endif()
 
 if(WIN32)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(CMAKE_INSTALL_PREFIX "C:/Program Files/TA-Lib" CACHE PATH "Installation Directory" FORCE)
-    else()
-        set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/TA-Lib" CACHE PATH "Installation Directory" FORCE)
+    # Default install location, but only when the user (or a package manager
+    # such as vcpkg) did not specify a prefix: the unconditional FORCE used to
+    # hijack every -DCMAKE_INSTALL_PREFIX/--prefix, sending vcpkg installs to
+    # C:/Program Files (caught by the talib vcpkg-port 0.7.1 update).
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(CMAKE_INSTALL_PREFIX "C:/Program Files/TA-Lib" CACHE PATH "Installation Directory" FORCE)
+        else()
+            set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/TA-Lib" CACHE PATH "Installation Directory" FORCE)
+        endif()
     endif()
 
 	if(DEFINED ENV{Platform})
