@@ -218,6 +218,32 @@ jobs:
           # Benchmarks are skipped: CI timing is noise.
           python3 scripts/regtest.py --no-perftest --no-direct-bench --codegen-only
 
+  # Conan packaging (#86) was never exercised by CI: build the package
+  # recipe end to end (library-only; BUILD_DEV_TOOLS stays off in the
+  # recipe). Gated on the C hero job like the other non-hero jobs.
+  conan:
+    name: Conan package build
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout dev Branch
+        uses: actions/checkout@v6
+        with:
+          ref: dev
+
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Build conan package
+        shell: bash
+        run: |
+          pip install conan
+          conan profile detect --force
+          conan create . --build=missing
+
   # Runs LAST (needs: test) so every other job tested the committed,
   # already-generated sources. This regenerates from ta_codegen/input/ and fails
   # if anything differs — i.e. an input edit whose generated output was never
