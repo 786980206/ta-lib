@@ -530,8 +530,11 @@ TA_LIB_API TA_RetCode TA_HT_TRENDMODE( int    startIdx,
       /* Compute Trendline */
       DCPeriod = smoothPeriod + 0.5;
       DCPeriodInt = (int)DCPeriod;
-      /* idx is used to iterate for up to 50 of the last
-       * value of smoothPrice.
+      /* Average the RAW price over the dominant cycle period.
+       * Unlike the DC-phase loop above (which reads the smoothPrice
+       * circular buffer), the iTrend average reads the raw price,
+       * exactly as published (Ehlers, "Rocket Science for Traders":
+       * ITrend sums Price, not SmoothPrice). See issue #88.
        */
       idx = today;
       tempReal = 0.0;

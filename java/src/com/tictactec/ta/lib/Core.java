@@ -35062,10 +35062,15 @@ public class Core {
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070326 MF,CC  Remove the smoothPrice circular buffer: it was written
+ *                on every bar but never read in this function (issue #88).
+ *                The trendline averages RAW price over the dominant cycle
+ *                period, exactly as published (Ehlers, "Rocket Science
+ *                for Traders": ITrend sums Price, not SmoothPrice).
  */
 
    public int htTrendlineLookback( )
@@ -35149,9 +35154,6 @@ public class Core {
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice;
-      int smoothPrice_Idx = 0;
-      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
@@ -35166,11 +35168,6 @@ public class Core {
       /* Variable used for the price smoother (a weighted moving average). */
       /* Variable to keep track of the last 3 ITrend */
       /* Variables used for the Hilbert Transormation */
-      /* Variable used to keep track of the previous
-       * smooth price. In the case of this algorithm,
-       * we will never need more than 50 values.
-       */
-      smoothPrice = new double[maxIdx_smoothPrice+1];
       /* Variable used to calculate the dominant cycle phase */
       /* circular buffer already declared */
       iTrend3 = 0.0;
@@ -35293,9 +35290,6 @@ public class Core {
       I1ForEvenPrev2 = 0.0;
       I1ForOddPrev2 = I1ForEvenPrev2;
       smoothPeriod = 0.0;
-      for( i = 0; i < 50; i += 1 ) {
-         smoothPrice[i] = 0.0;
-      }
       /* The code is speed optimized and is most likely very
        * hard to follow if you do not already know well the
        * original algorithm.
@@ -35312,10 +35306,6 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = periodWMASum * 0.1;
          periodWMASum -= periodWMASub;
-         /* Remember the smoothedValue into the smoothPrice
-          * circular buffer.
-          */
-         smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( today % 2 == 0 ) {
             /* Do the Hilbert Transforms for even price bar */
             hilbertTempReal = a * smoothedValue;
@@ -35443,8 +35433,10 @@ public class Core {
          /* Compute Trendline */
          DCPeriod = smoothPeriod + 0.5;
          DCPeriodInt = (int)DCPeriod;
-         /* idx is used to iterate for up to 50 of the last
-          * value of smoothPrice.
+         /* Average the RAW price over the dominant cycle period
+          * (Ehlers, "Rocket Science for Traders": the Instantaneous
+          * Trendline sums Price — not SmoothPrice, which only feeds
+          * the Hilbert detrender above). See issue #88.
           */
          idx = today;
          tempReal = 0.0;
@@ -35462,8 +35454,6 @@ public class Core {
             outReal[outIdx++] = tempReal2;
          }
          /* Ooof... let's do the next price bar now! */
-         smoothPrice_Idx++;
-         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -35537,15 +35527,11 @@ public class Core {
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice;
-      int smoothPrice_Idx = 0;
-      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
       a = 0.0962;
       b = 0.5769;
-      smoothPrice = new double[maxIdx_smoothPrice+1];
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -35639,9 +35625,6 @@ public class Core {
       I1ForEvenPrev2 = 0.0;
       I1ForOddPrev2 = I1ForEvenPrev2;
       smoothPeriod = 0.0;
-      for( i = 0; i < 50; i += 1 ) {
-         smoothPrice[i] = 0.0;
-      }
       while( today <= endIdx ) {
          adjustedPrevPeriod = 0.075 * period + 0.54;
          todayValue = inReal[today];
@@ -35651,7 +35634,6 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = periodWMASum * 0.1;
          periodWMASum -= periodWMASub;
-         smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( today % 2 == 0 ) {
             hilbertTempReal = a * smoothedValue;
             detrender = 0 - detrender_Even[hilbertIdx];
@@ -35778,8 +35760,6 @@ public class Core {
          if( today >= startIdx ) {
             outReal[outIdx++] = tempReal2;
          }
-         smoothPrice_Idx++;
-         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -35853,9 +35833,6 @@ public class Core {
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice;
-      int smoothPrice_Idx = 0;
-      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
@@ -35867,7 +35844,6 @@ public class Core {
       }
       a = 0.0962;
       b = 0.5769;
-      smoothPrice = new double[maxIdx_smoothPrice+1];
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -35961,9 +35937,6 @@ public class Core {
       I1ForEvenPrev2 = 0.0;
       I1ForOddPrev2 = I1ForEvenPrev2;
       smoothPeriod = 0.0;
-      for( i = 0; i < 50; i += 1 ) {
-         smoothPrice[i] = 0.0;
-      }
       while( today <= endIdx ) {
          adjustedPrevPeriod = 0.075 * period + 0.54;
          todayValue = inReal[today];
@@ -35973,7 +35946,6 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = periodWMASum * 0.1;
          periodWMASum -= periodWMASub;
-         smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( today % 2 == 0 ) {
             hilbertTempReal = a * smoothedValue;
             detrender = 0 - detrender_Even[hilbertIdx];
@@ -36100,8 +36072,6 @@ public class Core {
          if( today >= startIdx ) {
             outReal[outIdx++] = tempReal2;
          }
-         smoothPrice_Idx++;
-         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -36175,15 +36145,11 @@ public class Core {
       double rad2Deg = 0;
       double todayValue = 0;
       double smoothPeriod = 0;
-      double[] smoothPrice;
-      int smoothPrice_Idx = 0;
-      int maxIdx_smoothPrice = (50)-1;
       int idx = 0;
       int DCPeriodInt = 0;
       double DCPeriod = 0;
       a = 0.0962;
       b = 0.5769;
-      smoothPrice = new double[maxIdx_smoothPrice+1];
       iTrend3 = 0.0;
       iTrend2 = iTrend3;
       iTrend1 = iTrend2;
@@ -36277,9 +36243,6 @@ public class Core {
       I1ForEvenPrev2 = 0.0;
       I1ForOddPrev2 = I1ForEvenPrev2;
       smoothPeriod = 0.0;
-      for( i = 0; i < 50; i += 1 ) {
-         smoothPrice[i] = 0.0;
-      }
       while( today <= endIdx ) {
          adjustedPrevPeriod = 0.075 * period + 0.54;
          todayValue = inReal[today];
@@ -36289,7 +36252,6 @@ public class Core {
          trailingWMAValue = inReal[trailingWMAIdx++];
          smoothedValue = periodWMASum * 0.1;
          periodWMASum -= periodWMASub;
-         smoothPrice[smoothPrice_Idx] = smoothedValue;
          if( today % 2 == 0 ) {
             hilbertTempReal = a * smoothedValue;
             detrender = 0 - detrender_Even[hilbertIdx];
@@ -36416,8 +36378,6 @@ public class Core {
          if( today >= startIdx ) {
             outReal[outIdx++] = tempReal2;
          }
-         smoothPrice_Idx++;
-         if( smoothPrice_Idx > maxIdx_smoothPrice ) { smoothPrice_Idx = 0; }
          today += 1;
       }
       outNBElement.value = outIdx;
@@ -36881,8 +36841,11 @@ public class Core {
          /* Compute Trendline */
          DCPeriod = smoothPeriod + 0.5;
          DCPeriodInt = (int)DCPeriod;
-         /* idx is used to iterate for up to 50 of the last
-          * value of smoothPrice.
+         /* Average the RAW price over the dominant cycle period.
+          * Unlike the DC-phase loop above (which reads the smoothPrice
+          * circular buffer), the iTrend average reads the raw price,
+          * exactly as published (Ehlers, "Rocket Science for Traders":
+          * ITrend sums Price, not SmoothPrice). See issue #88.
           */
          idx = today;
          tempReal = 0.0;

@@ -48,10 +48,15 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070326 MF,CC  Remove the smoothPrice circular buffer: it was written
+ *                on every bar but never read in this function (issue #88).
+ *                The trendline averages RAW price over the dominant cycle
+ *                period, exactly as published (Ehlers, "Rocket Science
+ *                for Traders": ITrend sums Price, not SmoothPrice).
  */
 
 // Import types from parent module
@@ -204,9 +209,6 @@ impl Core {
         let mut rad2Deg: f64 = 0.0_f64;
         let mut todayValue: f64 = 0.0_f64;
         let mut smoothPeriod: f64 = 0.0_f64;
-        let mut smoothPrice: Vec<f64> = Vec::new();
-        let mut smoothPrice_Idx: usize = 0;
-        let mut maxIdx_smoothPrice: usize = 49;
         let mut idx: usize = 0_usize;
         let mut DCPeriodInt: usize = 0_usize;
         let mut DCPeriod: f64 = 0.0_f64;
@@ -215,11 +217,6 @@ impl Core {
         // Variable used for the price smoother (a weighted moving average).
         // Variable to keep track of the last 3 ITrend
         // Variables used for the Hilbert Transormation
-        // Variable used to keep track of the previous
-        // smooth price. In the case of this algorithm,
-        // we will never need more than 50 values.
-        smoothPrice = vec![0.0_f64; maxIdx_smoothPrice + 1];
-        smoothPrice_Idx = 0;
         // Variable used to calculate the dominant cycle phase
         // circular buffer already declared
         iTrend3 = 0.0;
@@ -337,12 +334,6 @@ impl Core {
         I1ForEvenPrev2 = 0.0;
         I1ForOddPrev2 = I1ForEvenPrev2;
         smoothPeriod = 0.0;
-        // for( i = 0; i < 50; i += 1 )
-        i = 0;
-        while i < 50 {
-            smoothPrice[i] = 0.0;
-            i += 1;
-        }
         // The code is speed optimized and is most likely very
         // hard to follow if you do not already know well the
         // original algorithm.
@@ -358,9 +349,6 @@ impl Core {
             trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            // Remember the smoothedValue into the smoothPrice
-            // circular buffer.
-            smoothPrice[smoothPrice_Idx] = smoothedValue;
             if today % 2 == 0 {
                 // Do the Hilbert Transforms for even price bar
                 hilbertTempReal = a * smoothedValue;
@@ -486,8 +474,10 @@ impl Core {
             // Compute Trendline
             DCPeriod = smoothPeriod + 0.5;
             DCPeriodInt = (DCPeriod as usize) as usize;
-            // idx is used to iterate for up to 50 of the last
-            // value of smoothPrice.
+            // Average the RAW price over the dominant cycle period
+            // (Ehlers, "Rocket Science for Traders": the Instantaneous
+            // Trendline sums Price — not SmoothPrice, which only feeds
+            // the Hilbert detrender above). See issue #88.
             idx = today;
             tempReal = 0.0;
             // for( i = 0; i < DCPeriodInt; i += 1 )
@@ -508,8 +498,6 @@ impl Core {
                 outIdx += 1;
             }
             // Ooof... let's do the next price bar now!
-            smoothPrice_Idx += 1;
-            if smoothPrice_Idx > maxIdx_smoothPrice { smoothPrice_Idx = 0; }
             today += 1;
         }
         (*outNBElement) = outIdx;
@@ -592,9 +580,6 @@ impl Core {
         let mut rad2Deg: f64 = 0.0_f64;
         let mut todayValue: f64 = 0.0_f64;
         let mut smoothPeriod: f64 = 0.0_f64;
-        let mut smoothPrice: Vec<f64> = Vec::new();
-        let mut smoothPrice_Idx: usize = 0;
-        let mut maxIdx_smoothPrice: usize = 49;
         let mut idx: usize = 0_usize;
         let mut DCPeriodInt: usize = 0_usize;
         let mut DCPeriod: f64 = 0.0_f64;
@@ -605,8 +590,6 @@ impl Core {
         assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         a = 0.0962;
         b = 0.5769;
-        smoothPrice = vec![0.0_f64; maxIdx_smoothPrice + 1];
-        smoothPrice_Idx = 0;
         iTrend3 = 0.0;
         iTrend2 = iTrend3;
         iTrend1 = iTrend2;
@@ -701,12 +684,6 @@ impl Core {
         I1ForEvenPrev2 = 0.0;
         I1ForOddPrev2 = I1ForEvenPrev2;
         smoothPeriod = 0.0;
-        // for( i = 0; i < 50; i += 1 )
-        i = 0;
-        while i < 50 {
-            *smoothPrice.as_mut_ptr().add(i) = 0.0;
-            i += 1;
-        }
         while today <= endIdx {
             adjustedPrevPeriod = (0.075 as f64).mul_add(period, 0.54);
             todayValue = *inReal.as_ptr().add(today);
@@ -716,7 +693,6 @@ impl Core {
             trailingWMAValue = *inReal.as_ptr().add({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            *smoothPrice.as_mut_ptr().add(smoothPrice_Idx) = smoothedValue;
             if today % 2 == 0 {
                 hilbertTempReal = a * smoothedValue;
                 detrender = 0_f64 - *detrender_Even.as_ptr().add(hilbertIdx);
@@ -847,8 +823,6 @@ impl Core {
                 *outReal.as_mut_ptr().add(outIdx) = tempReal2;
                 outIdx += 1;
             }
-            smoothPrice_Idx += 1;
-            if smoothPrice_Idx > maxIdx_smoothPrice { smoothPrice_Idx = 0; }
             today += 1;
         }
         (*outNBElement) = outIdx;

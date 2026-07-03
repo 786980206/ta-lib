@@ -51,10 +51,15 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070326 MF,CC  Remove the smoothPrice circular buffer: it was written
+ *                on every bar but never read in this function (issue #88).
+ *                The trendline averages RAW price over the dominant cycle
+ *                period, exactly as published (Ehlers, "Rocket Science
+ *                for Traders": ITrend sums Price, not SmoothPrice).
  */
 
 TA_LIB_API int TA_HT_TRENDLINE_Lookback( void )
@@ -138,10 +143,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double local_smoothPrice[50];
-   double *smoothPrice;
-   int smoothPrice_Idx;
-   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
@@ -161,13 +162,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
    /* Variable used for the price smoother (a weighted moving average). */
    /* Variable to keep track of the last 3 ITrend */
    /* Variables used for the Hilbert Transormation */
-   /* Variable used to keep track of the previous
-    * smooth price. In the case of this algorithm,
-    * we will never need more than 50 values.
-    */
-   smoothPrice = &local_smoothPrice[0];
-   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
-   smoothPrice_Idx = 0;
    /* Variable used to calculate the dominant cycle phase */
    /* circular buffer already declared */
    iTrend3 = 0.0;
@@ -293,10 +287,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
    smoothPeriod = 0.0;
-   for( i = 0; i < 50; i += 1 )
-   {
-      smoothPrice[i] = 0.0;
-   }
    /* The code is speed optimized and is most likely very
     * hard to follow if you do not already know well the
     * original algorithm.
@@ -314,10 +304,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
       trailingWMAValue = inReal[trailingWMAIdx++];
       smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      /* Remember the smoothedValue into the smoothPrice
-       * circular buffer.
-       */
-      smoothPrice[smoothPrice_Idx] = smoothedValue;
       if( today % 2 == 0 )
       {
          /* Do the Hilbert Transforms for even price bar */
@@ -453,8 +439,10 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
       /* Compute Trendline */
       DCPeriod = smoothPeriod + 0.5;
       DCPeriodInt = (int)DCPeriod;
-      /* idx is used to iterate for up to 50 of the last
-       * value of smoothPrice.
+      /* Average the RAW price over the dominant cycle period
+       * (Ehlers, "Rocket Science for Traders": the Instantaneous
+       * Trendline sums Price — not SmoothPrice, which only feeds
+       * the Hilbert detrender above). See issue #88.
        */
       idx = today;
       tempReal = 0.0;
@@ -475,8 +463,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE( int    startIdx,
          outReal[outIdx++] = tempReal2;
       }
       /* Ooof... let's do the next price bar now! */
-      smoothPrice_Idx++;
-      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -551,19 +537,12 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE_Unguarded( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double local_smoothPrice[50];
-   double *smoothPrice;
-   int smoothPrice_Idx;
-   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
 
    a = 0.0962;
    b = 0.5769;
-   smoothPrice = &local_smoothPrice[0];
-   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
-   smoothPrice_Idx = 0;
    iTrend3 = 0.0;
    iTrend2 = iTrend3;
    iTrend1 = iTrend2;
@@ -660,10 +639,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE_Unguarded( int    startIdx,
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
    smoothPeriod = 0.0;
-   for( i = 0; i < 50; i += 1 )
-   {
-      smoothPrice[i] = 0.0;
-   }
    while( today <= endIdx )
    {
       adjustedPrevPeriod = 0.075 * period + 0.54;
@@ -674,7 +649,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE_Unguarded( int    startIdx,
       trailingWMAValue = inReal[trailingWMAIdx++];
       smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      smoothPrice[smoothPrice_Idx] = smoothedValue;
       if( today % 2 == 0 )
       {
          hilbertTempReal = a * smoothedValue;
@@ -812,8 +786,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE_Unguarded( int    startIdx,
       {
          outReal[outIdx++] = tempReal2;
       }
-      smoothPrice_Idx++;
-      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -888,10 +860,6 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double local_smoothPrice[50];
-   double *smoothPrice;
-   int smoothPrice_Idx;
-   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
@@ -908,9 +876,6 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
 
    a = 0.0962;
    b = 0.5769;
-   smoothPrice = &local_smoothPrice[0];
-   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
-   smoothPrice_Idx = 0;
    iTrend3 = 0.0;
    iTrend2 = iTrend3;
    iTrend1 = iTrend2;
@@ -1007,10 +972,6 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
    smoothPeriod = 0.0;
-   for( i = 0; i < 50; i += 1 )
-   {
-      smoothPrice[i] = 0.0;
-   }
    while( today <= endIdx )
    {
       adjustedPrevPeriod = 0.075 * period + 0.54;
@@ -1021,7 +982,6 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
       trailingWMAValue = inReal[trailingWMAIdx++];
       smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      smoothPrice[smoothPrice_Idx] = smoothedValue;
       if( today % 2 == 0 )
       {
          hilbertTempReal = a * smoothedValue;
@@ -1159,8 +1119,6 @@ TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
       {
          outReal[outIdx++] = tempReal2;
       }
-      smoothPrice_Idx++;
-      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;
@@ -1235,19 +1193,12 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
    double rad2Deg;
    double todayValue;
    double smoothPeriod;
-   double local_smoothPrice[50];
-   double *smoothPrice;
-   int smoothPrice_Idx;
-   int maxIdx_smoothPrice;
    int idx;
    int DCPeriodInt;
    double DCPeriod;
 
    a = 0.0962;
    b = 0.5769;
-   smoothPrice = &local_smoothPrice[0];
-   maxIdx_smoothPrice = (int)(sizeof(local_smoothPrice)/sizeof(double))-1;
-   smoothPrice_Idx = 0;
    iTrend3 = 0.0;
    iTrend2 = iTrend3;
    iTrend1 = iTrend2;
@@ -1344,10 +1295,6 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
    I1ForEvenPrev2 = 0.0;
    I1ForOddPrev2 = I1ForEvenPrev2;
    smoothPeriod = 0.0;
-   for( i = 0; i < 50; i += 1 )
-   {
-      smoothPrice[i] = 0.0;
-   }
    while( today <= endIdx )
    {
       adjustedPrevPeriod = 0.075 * period + 0.54;
@@ -1358,7 +1305,6 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
       trailingWMAValue = inReal[trailingWMAIdx++];
       smoothedValue = periodWMASum * 0.1;
       periodWMASum -= periodWMASub;
-      smoothPrice[smoothPrice_Idx] = smoothedValue;
       if( today % 2 == 0 )
       {
          hilbertTempReal = a * smoothedValue;
@@ -1496,8 +1442,6 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
       {
          outReal[outIdx++] = tempReal2;
       }
-      smoothPrice_Idx++;
-      if( smoothPrice_Idx > maxIdx_smoothPrice ) smoothPrice_Idx = 0;
       today += 1;
    }
    *outNBElement= outIdx;

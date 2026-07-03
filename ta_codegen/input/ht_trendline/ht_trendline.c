@@ -7,11 +7,15 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
- *
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070326 MF,CC  Remove the smoothPrice circular buffer: it was written
+ *                on every bar but never read in this function (issue #88).
+ *                The trendline averages RAW price over the dominant cycle
+ *                period, exactly as published (Ehlers, "Rocket Science
+ *                for Traders": ITrend sums Price, not SmoothPrice).
  */
 
 int ht_trendline_lookback(void)
@@ -87,12 +91,6 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
 
    double todayValue, smoothPeriod;
 
-   /* Variable used to keep track of the previous
-    * smooth price. In the case of this algorithm,
-    * we will never need more than 50 values.
-    */
-   CIRCBUF_PROLOG(smoothPrice,double,50);
-   CIRCBUF_INIT_LOCAL_ONLY(smoothPrice,double);
    int idx;
 
    /* Variable used to calculate the dominant cycle phase */
@@ -207,9 +205,6 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
    I1ForOddPrev2 = I1ForEvenPrev2 = 0.0;
    smoothPeriod  = 0.0;
 
-   for( i=0; i < 50; i++ )
-      smoothPrice[i] = 0.0;
-
    /* The code is speed optimized and is most likely very
     * hard to follow if you do not already know well the
     * original algorithm.
@@ -228,11 +223,6 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
       trailingWMAValue = inReal[trailingWMAIdx++];
       smoothedValue = periodWMASum*0.1;
       periodWMASum -= periodWMASub;
-
-      /* Remember the smoothedValue into the smoothPrice
-       * circular buffer.
-       */
-      smoothPrice[smoothPrice_Idx] = smoothedValue;
 
       if( (today%2) == 0 )
       {
@@ -367,8 +357,10 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
       DCPeriod    = smoothPeriod+0.5;
       DCPeriodInt = (int)DCPeriod;
 
-      /* idx is used to iterate for up to 50 of the last
-       * value of smoothPrice.
+      /* Average the RAW price over the dominant cycle period
+       * (Ehlers, "Rocket Science for Traders": the Instantaneous
+       * Trendline sums Price — not SmoothPrice, which only feeds
+       * the Hilbert detrender above). See issue #88.
        */
       idx = today;
       tempReal = 0.0;
@@ -389,7 +381,6 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
       }
 
       /* Ooof... let's do the next price bar now! */
-      CIRCBUF_NEXT(smoothPrice);
       today++;
    }
 
