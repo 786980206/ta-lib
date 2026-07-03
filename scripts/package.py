@@ -177,9 +177,21 @@ def package_windows_zip(root_dir: str, asset_file_name: str, version: str, sourc
         result["copied"] = False
         return result
 
-    # Build the libraries
-    build_dir = do_cmake_reconfigure(root_dir, '-G Ninja -DBUILD_DEV_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release')
+    # Build the libraries + the regression test runner. BUILD_DEV_TOOLS=ON is
+    # safe here: the zip content below is assembled by hand (lib/bin/include
+    # copies), so dev tools never leak into the package. The MSI path keeps
+    # dev tools OFF because its content is install-rule driven.
+    build_dir = do_cmake_reconfigure(root_dir, '-G Ninja -DBUILD_DEV_TOOLS=ON -DCMAKE_BUILD_TYPE=Release')
     do_cmake_build(build_dir)
+
+    # Run the C regression suite against the exact binaries being packaged.
+    # Plain mode only: the C reference tests run in-process. --codegen (the
+    # cross-language server verification) is POSIX-only — codegen_pipe.c has
+    # Windows stubs precisely so plain ta_regtest builds and runs here.
+    ta_regtest_exe = path_join(build_dir, 'bin',
+                               'ta_regtest.exe' if sys.platform == 'win32' else 'ta_regtest')
+    print(f"Running C regression tests: {ta_regtest_exe}")
+    run_command_term([ta_regtest_exe])
 
     # Create a temporary zip package to test before copying to dist.
     package_temp_dir = path_join(temp_dir, file_name_prefix)
