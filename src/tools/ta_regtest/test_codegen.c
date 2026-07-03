@@ -275,6 +275,13 @@ typedef struct {
      * opt param (Task 10 large-period coverage) instead of the default. */
     int useLargePeriod;
 
+    /* Ref differential sweep: when optOverrideActive, build_json_request
+     * emits optOverride[i] for optional param i instead of the default (or
+     * large-period) value. Stored as double; integer params truncate on
+     * emission. Takes precedence over useLargePeriod. */
+    int    optOverrideActive;
+    double optOverride[16];
+
     /* Timing */
     long long c_ref_total_ns;
     long long server_total_ns;
@@ -468,15 +475,19 @@ static int build_json_request(CodegenRangeTestParam *p,
         {
         case TA_OptInput_RealRange:
         case TA_OptInput_RealList:
-            pos += snprintf(buf + pos, bufSize - pos, "%.15g", optInfo->defaultValue);
+            pos += snprintf(buf + pos, bufSize - pos, "%.15g",
+                p->optOverrideActive ? p->optOverride[i] : optInfo->defaultValue);
             break;
         case TA_OptInput_IntegerRange:
             pos += snprintf(buf + pos, bufSize - pos, "%d",
-                p->useLargePeriod ? compute_large_int(optInfo, p->nbBars)
-                                  : (int)optInfo->defaultValue);
+                p->optOverrideActive ? (int)p->optOverride[i]
+                : p->useLargePeriod  ? compute_large_int(optInfo, p->nbBars)
+                                     : (int)optInfo->defaultValue);
             break;
         case TA_OptInput_IntegerList:
-            pos += snprintf(buf + pos, bufSize - pos, "%d", (int)optInfo->defaultValue);
+            pos += snprintf(buf + pos, bufSize - pos, "%d",
+                p->optOverrideActive ? (int)p->optOverride[i]
+                                     : (int)optInfo->defaultValue);
             break;
         }
     }
@@ -875,6 +886,9 @@ typedef struct {
     int               skipped;
     int               langIndex;   /* index into ALL_LANGUAGES */
     const CodegenLanguage *lang;
+    /* Ref differential sweep counters */
+    int               sweepVariants;
+    int               sweepFunctions;
 } ForEachFuncContext;
 
 static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
@@ -1184,6 +1198,236 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     TA_ParamHolderFree(paramHolder);
 }
 
+
+/* ---- Ref differential sweep (#94 groundwork) ----
+ * The default and large-period passes above diff each language server against
+ * ta_ref_serve at two parameter points per function. This sweep broadens the
+ * sample: every IntegerRange param at a few non-default values, every
+ * IntegerList (MAType) value, RealRange params at their suggested bounds,
+ * plus a Metastock-compatibility pass and an unstable-period pass at the
+ * defaults. Purely differential: for every variant both servers must agree on
+ * retCode, outBegIdx, outNBElement and every output value.
+ *
+ * Integer periods are floored at max(min, 2): period=1 is the intentional
+ * divergence from the frozen reference fixed for #48/#59 (the reference is
+ * wrong there), and that territory is owned by the PERIOD1/BOUNDARY
+ * hand-written group with its own pinned expected values.
+ */
+
+#define SWEEP_MAX_OPT 16
+
+/* Send a set_compatibility to one server. Returns 1 on success. */
+static int sweep_set_compat(CodegenPipe *pipe, int mode, char *respBuf)
+{
+    char req[96];
+    snprintf(req, sizeof(req),
+             "{\"method\":\"set_compatibility\",\"params\":{\"mode\":%d}}", mode);
+    if( codegen_pipe_call(pipe, req, respBuf, JSON_BUF_SIZE) != TA_TEST_PASS )
+        return 0;
+    return !json_is_error(respBuf);
+}
+
+/* Run one variant: ta_ref_serve fills the baseline, the language server is
+ * diffed against it. Returns 1 if the variant was comparable (counted), 0 if
+ * the reference could not answer it. Mismatches land in p->codegenError. */
+static int sweep_run_variant(CodegenRangeTestParam *p)
+{
+    build_json_request(p, 0, p->nbBars - 1);
+    if( codegen_pipe_call(p->refCp, p->requestBuf, p->responseBuf,
+                          JSON_BUF_SIZE) != TA_TEST_PASS
+        || json_is_error(p->responseBuf) )
+        return 0;   /* reference cannot answer this variant -- nothing to diff */
+    parse_ref_baseline(p);
+
+    if( codegen_pipe_call(p->cp, p->requestBuf, p->responseBuf,
+                          JSON_BUF_SIZE) != TA_TEST_PASS )
+    {
+        p->codegenError = TA_CODEGEN_RETCODE_MISMATCH;
+        return 1;
+    }
+    for( unsigned int o = 0; o < p->funcInfo->nbOutput; o++ )
+        compare_codegen_output_generic(p, o);
+    return 1;
+}
+
+static void sweep_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
+{
+    ForEachFuncContext *ctx = (ForEachFuncContext *)opaqueData;
+    unsigned int i;
+
+    if( ctx->error != TA_TEST_PASS )
+        return;
+    if( !codegen_matches_filter(ctx->functionFilter, funcInfo->name) )
+        return;
+    if( funcInfo->nbOptInput == 0 || funcInfo->nbOptInput > SWEEP_MAX_OPT )
+        return;
+
+    /* Skip functions with integer inputs (same rule as the main pass). */
+    for( i = 0; i < funcInfo->nbInput; i++ )
+    {
+        const TA_InputParameterInfo *inputInfo;
+        TA_GetInputParameterInfo(funcInfo->handle, i, &inputInfo);
+        if( inputInfo->type == TA_Input_Integer )
+            return;
+    }
+
+    TA_SetUnstablePeriod(TA_FUNC_UNST_ALL, 0);
+
+    CodegenRangeTestParam params;
+    memset(&params, 0, sizeof(params));
+    params.funcInfo    = funcInfo;
+    params.paramHolder = NULL;   /* no in-process calls in this pass */
+    params.history     = ctx->history;
+    params.nbBars      = (int)ctx->history->nbBars;
+    params.unstId      = get_unst_id(funcInfo->name);
+    params.cp          = ctx->cp;
+    params.refCp       = ctx->refCp;
+    params.requestBuf  = ctx->requestBuf;
+    params.responseBuf = ctx->responseBuf;
+    params.codegenError = TA_TEST_PASS;
+    setup_outputs(&params);
+
+    /* Seed every override with the default value. */
+    double defVals[SWEEP_MAX_OPT];
+    for( i = 0; i < funcInfo->nbOptInput; i++ )
+    {
+        const TA_OptInputParameterInfo *optInfo;
+        TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInfo);
+        defVals[i] = optInfo->defaultValue;
+        params.optOverride[i] = optInfo->defaultValue;
+    }
+    params.optOverrideActive = 1;
+
+    int variants = 0;
+    const char *failParam = NULL;
+    double failValue = 0.0;
+
+    /* One param varied at a time, the others at their defaults. */
+    for( i = 0; i < funcInfo->nbOptInput && params.codegenError == TA_TEST_PASS; i++ )
+    {
+        const TA_OptInputParameterInfo *optInfo;
+        TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInfo);
+
+        double cand[8];
+        int nc = 0;
+
+        if( optInfo->type == TA_OptInput_IntegerRange )
+        {
+            const TA_IntegerRange *r = (const TA_IntegerRange *)optInfo->dataSet;
+            int lo  = (r->min < 2) ? 2 : r->min;       /* floor: see header comment */
+            int hi  = (r->max > 100) ? 100 : r->max;   /* keep lookbacks < nbBars */
+            int def = (int)optInfo->defaultValue;
+            int base[5];
+            int b, k;
+            base[0] = lo; base[1] = lo + 1; base[2] = lo + 7;
+            base[3] = def - 1; base[4] = def + 3;
+            for( b = 0; b < 5; b++ )
+            {
+                int v = base[b];
+                if( v < lo ) v = lo;
+                if( v > hi ) v = hi;
+                if( v == def ) continue;
+                for( k = 0; k < nc; k++ )
+                    if( (int)cand[k] == v ) break;
+                if( k == nc )
+                    cand[nc++] = (double)v;
+            }
+        }
+        else if( optInfo->type == TA_OptInput_IntegerList )
+        {
+            const TA_IntegerList *l = (const TA_IntegerList *)optInfo->dataSet;
+            unsigned int e;
+            for( e = 0; e < l->nbElement && nc < 8; e++ )
+            {
+                if( l->data[e].value != (int)optInfo->defaultValue )
+                    cand[nc++] = (double)l->data[e].value;
+            }
+        }
+        else if( optInfo->type == TA_OptInput_RealRange )
+        {
+            const TA_RealRange *r = (const TA_RealRange *)optInfo->dataSet;
+            double sugg[2];
+            int b;
+            sugg[0] = r->suggested_start;
+            sugg[1] = r->suggested_end;
+            for( b = 0; b < 2; b++ )
+            {
+                double v = sugg[b];
+                if( fabs(v) > 1e30 ) continue;             /* unbounded sentinel */
+                if( v < r->min || v > r->max ) continue;
+                if( v == optInfo->defaultValue ) continue;
+                cand[nc++] = v;
+            }
+        }
+        else
+            continue;
+
+        for( int c = 0; c < nc && params.codegenError == TA_TEST_PASS; c++ )
+        {
+            params.optOverride[i] = cand[c];
+            variants += sweep_run_variant(&params);
+            if( params.codegenError != TA_TEST_PASS )
+            {
+                failParam = optInfo->paramName;
+                failValue = cand[c];
+            }
+            params.optOverride[i] = defVals[i];
+        }
+    }
+
+    /* Metastock-compatibility pass at defaults (both servers switched). */
+    if( params.codegenError == TA_TEST_PASS )
+    {
+        if( sweep_set_compat(params.refCp, 1, params.responseBuf) &&
+            sweep_set_compat(params.cp,    1, params.responseBuf) )
+        {
+            variants += sweep_run_variant(&params);
+            if( params.codegenError != TA_TEST_PASS )
+            {
+                failParam = "compatibility=METASTOCK";
+                failValue = 1;
+            }
+        }
+        sweep_set_compat(params.refCp, 0, params.responseBuf);
+        sweep_set_compat(params.cp,    0, params.responseBuf);
+    }
+
+    /* Unstable-period pass at defaults (sent per-call to both servers). */
+    if( params.codegenError == TA_TEST_PASS &&
+        (funcInfo->flags & TA_FUNC_FLG_UNST_PER) &&
+        params.unstId != TA_FUNC_UNST_NONE )
+    {
+        TA_SetUnstablePeriod(params.unstId, 3);
+        variants += sweep_run_variant(&params);
+        TA_SetUnstablePeriod(TA_FUNC_UNST_ALL, 0);
+        /* The per-call unstablePeriod field is sticky server-side (each call
+         * sets the server's global for that function). Send one defaults call
+         * carrying 0 so BOTH servers are restored for later functions and
+         * languages — ta_ref_serve is shared across the language loop, and
+         * dependents like ADOSC read EMA's global without sending the field. */
+        if( params.codegenError == TA_TEST_PASS )
+            variants += sweep_run_variant(&params);
+        if( params.codegenError != TA_TEST_PASS )
+        {
+            failParam = "unstablePeriod";
+            failValue = 3;
+        }
+    }
+
+    ctx->sweepVariants += variants;
+    ctx->sweepFunctions++;
+
+    if( params.codegenError != TA_TEST_PASS )
+    {
+        printf("  REF SWEEP FAIL [TA_%s]: %s=%g (mismatch detail above)\n",
+               funcInfo->name, failParam ? failParam : "?", failValue);
+        ctx->failed++;
+        ctx->error = params.codegenError;
+    }
+
+    free_outputs(&params);
+}
+
 /* ---- Test orchestration (Task 9) ---- */
 
 static ErrorNumber test_codegen_for_language(
@@ -1241,6 +1485,18 @@ static ErrorNumber test_codegen_for_language(
     ctx.lang           = lang;
 
     TA_ForEachFunc(test_one_function, &ctx);
+
+    /* Ref differential sweep: broaden the ta_ref_serve comparison beyond the
+     * default and large-period points (see sweep_one_function). */
+    if( ctx.error == TA_TEST_PASS && refCp )
+    {
+        ctx.sweepVariants  = 0;
+        ctx.sweepFunctions = 0;
+        TA_ForEachFunc(sweep_one_function, &ctx);
+        printf("  Ref differential sweep: %d variants across %d functions%s\n",
+               ctx.sweepVariants, ctx.sweepFunctions,
+               ctx.error == TA_TEST_PASS ? ", all match ta_ref_serve" : "");
+    }
 
     free(requestBuf);
     free(responseBuf);
