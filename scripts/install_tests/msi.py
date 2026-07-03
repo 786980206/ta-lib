@@ -44,7 +44,12 @@ def _find_install_dir():
 
 def test_msi_windows(msi_file_path: str, temp_dir: str, version: str):
     print(f"Testing MSI install/uninstall on Windows")
+    # msiexec rejects mixed path separators (error 1619) — normalize.
+    msi_file_path = os.path.normpath(os.path.abspath(msi_file_path))
     print(f"  msi_file_path={msi_file_path}")
+    if not os.path.isfile(msi_file_path):
+        print(f"FAIL: MSI not found: {msi_file_path}")
+        sys.exit(1)
 
     install_log = os.path.join(temp_dir, "msi_install.log")
     uninstall_log = os.path.join(temp_dir, "msi_uninstall.log")
