@@ -1,9 +1,9 @@
 {
     "asset_file_name": "ta-lib-0.6.4-src.tar.gz",
-    "sources_digest": "3145cbb8d754f2125bf353e7d219e765",
+    "sources_digest": "b5abd625decf6df63ce0eb3e68c1fac7",
     "builder_id": "github-actions[bot]",
     "built_success": "True",
-    "package_md5": "6c80c25a4e78dd36a2ab9cf58ab329f4",
+    "package_md5": "b10a680a75868f06da5cb1e9d7b65c31",
     "ta_regtest_pass": "True",
     "dist_test_pass": "True"
 }
