@@ -147,6 +147,31 @@ jobs:
             echo "No changes detected in dist directory"
           fi
 
+  # First-ever clang + ARM64 + macOS coverage of the generated C: build with
+  # the default Apple toolchain and run the full C reference suite. Kept
+  # separate from the dist 'test' job (macOS produces no dist assets); the
+  # C hero philosophy applies — this needs no Rust/Java/.NET toolchain.
+  test-macos:
+    name: Test macos-latest (clang, ARM64)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout dev Branch
+        uses: actions/checkout@v6
+        with:
+          ref: dev
+
+      - name: Build (CMake, AppleClang)
+        shell: bash
+        run: |
+          mkdir -p cmake-build && cd cmake-build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_DEV_TOOLS=ON
+          cmake --build . -j 3
+
+      - name: Run C regression suite
+        shell: bash
+        run: cd cmake-build/bin && ./ta_regtest
+
   # Cross-language codegen verification — runs AFTER the C tests (needs: test).
   # C is the hero: the 'test' job above validates the C library with a C-only
   # toolchain (CMake/autotools never invoke cargo, so ta_regtest needs no Rust
