@@ -1238,6 +1238,81 @@ static int sweep_set_compat(CodegenPipe *pipe, int mode, char *respBuf)
     return !json_is_error(respBuf);
 }
 
+/* In-process GUARDED comparison buffers for the sweep triangle (see below). */
+static TA_Real    sweepGuardedReal[MAX_OUTPUTS][MAX_NB_TEST_ELEMENT];
+static TA_Integer sweepGuardedInt[MAX_OUTPUTS][MAX_NB_TEST_ELEMENT];
+
+/* Compare the in-process GUARDED call against the ta_ref_serve baseline for
+ * one sweep variant. The language servers reply with their UNGUARDED result
+ * (the server re-runs TA_X_Unguarded over the same buffers), so without this
+ * leg the guarded path would only ever be verified at the hand-written pins:
+ * server-vs-reference checks unguarded, this checks guarded, closing the
+ * guarded/unguarded/reference triangle at every sweep variant. C only — the
+ * in-process library IS the C backend. */
+static void sweep_compare_guarded(CodegenRangeTestParam *p)
+{
+    unsigned int i;
+    int outBegIdx = -1, outNbElement = -1;
+
+    if( p->paramHolder == NULL )
+        return;
+
+    /* Apply this variant's optional params to the holder. */
+    for( i = 0; i < p->funcInfo->nbOptInput; i++ )
+    {
+        const TA_OptInputParameterInfo *optInfo;
+        TA_GetOptInputParameterInfo(p->funcInfo->handle, i, &optInfo);
+        if( optInfo->type == TA_OptInput_RealRange ||
+            optInfo->type == TA_OptInput_RealList )
+            TA_SetOptInputParamReal(p->paramHolder, i, p->optOverride[i]);
+        else
+            TA_SetOptInputParamInteger(p->paramHolder, i, (int)p->optOverride[i]);
+    }
+
+    if( TA_CallFunc(p->paramHolder, 0, p->nbBars - 1,
+                    &outBegIdx, &outNbElement) != p->lastRetCode
+        || outBegIdx != p->lastBegIdx
+        || outNbElement != p->lastNbElement )
+    {
+        printf("SWEEP GUARDED MISMATCH [TA_%s]: rc/begIdx/nbElement "
+               "guarded=%d/%d vs ref=%d/%d (nb %d vs %d)\n",
+               p->funcInfo->name, outBegIdx, outNbElement,
+               (int)p->lastBegIdx, (int)p->lastNbElement,
+               outNbElement, (int)p->lastNbElement);
+        p->codegenError = TA_CODEGEN_BEGIDX_MISMATCH;
+        return;
+    }
+
+    for( i = 0; i < p->funcInfo->nbOutput && i < MAX_OUTPUTS; i++ )
+    {
+        int j;
+        if( p->outputIsInteger[i] )
+        {
+            for( j = 0; j < outNbElement; j++ )
+                if( sweepGuardedInt[i][j] != p->outIntBufs[i][j] )
+                {
+                    printf("SWEEP GUARDED MISMATCH [TA_%s]: outInt%u[%d] "
+                           "guarded=%d ref=%d\n", p->funcInfo->name, i, j,
+                           sweepGuardedInt[i][j], p->outIntBufs[i][j]);
+                    p->codegenError = TA_CODEGEN_OUTPUT_MISMATCH;
+                    return;
+                }
+        }
+        else
+        {
+            for( j = 0; j < outNbElement; j++ )
+                if( fabs(sweepGuardedReal[i][j] - p->outRealBufs[i][j]) > 1e-6 )
+                {
+                    printf("SWEEP GUARDED MISMATCH [TA_%s]: out%u[%d] "
+                           "guarded=%.12g ref=%.12g\n", p->funcInfo->name, i, j,
+                           sweepGuardedReal[i][j], p->outRealBufs[i][j]);
+                    p->codegenError = TA_CODEGEN_OUTPUT_MISMATCH;
+                    return;
+                }
+        }
+    }
+}
+
 /* Run one variant: ta_ref_serve fills the baseline, the language server is
  * diffed against it. Returns 1 if the variant was comparable (counted), 0 if
  * the reference could not answer it. Mismatches land in p->codegenError. */
@@ -1258,6 +1333,9 @@ static int sweep_run_variant(CodegenRangeTestParam *p)
     }
     for( unsigned int o = 0; o < p->funcInfo->nbOutput; o++ )
         compare_codegen_output_generic(p, o);
+
+    if( p->codegenError == TA_TEST_PASS )
+        sweep_compare_guarded(p);
     return 1;
 }
 
@@ -1287,7 +1365,7 @@ static void sweep_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     CodegenRangeTestParam params;
     memset(&params, 0, sizeof(params));
     params.funcInfo    = funcInfo;
-    params.paramHolder = NULL;   /* no in-process calls in this pass */
+    params.paramHolder = NULL;
     params.history     = ctx->history;
     params.nbBars      = (int)ctx->history->nbBars;
     params.unstId      = get_unst_id(funcInfo->name);
@@ -1297,6 +1375,28 @@ static void sweep_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     params.responseBuf = ctx->responseBuf;
     params.codegenError = TA_TEST_PASS;
     setup_outputs(&params);
+
+    /* In-process GUARDED triangle leg (see sweep_compare_guarded): only while
+     * sweeping the C server — the in-process library is the C backend, so
+     * repeating it for the other language iterations would be identical. */
+    if( strcmp(ctx->lang->name, "c") == 0 )
+    {
+        if( TA_ParamHolderAlloc(funcInfo->handle, &params.paramHolder) == TA_SUCCESS )
+        {
+            setup_inputs(params.paramHolder, funcInfo, ctx->history);
+            for( i = 0; i < funcInfo->nbOutput && i < MAX_OUTPUTS; i++ )
+            {
+                const TA_OutputParameterInfo *outputInfo;
+                TA_GetOutputParameterInfo(funcInfo->handle, i, &outputInfo);
+                if( outputInfo->type == TA_Output_Real )
+                    TA_SetOutputParamRealPtr(params.paramHolder, i, &sweepGuardedReal[i][0]);
+                else
+                    TA_SetOutputParamIntegerPtr(params.paramHolder, i, &sweepGuardedInt[i][0]);
+            }
+        }
+        else
+            params.paramHolder = NULL;
+    }
 
     /* Seed every override with the default value. */
     double defVals[SWEEP_MAX_OPT];
@@ -1386,13 +1486,16 @@ static void sweep_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         }
     }
 
-    /* Metastock-compatibility pass at defaults (both servers switched). */
+    /* Metastock-compatibility pass at defaults (both servers AND the
+     * in-process library switched, for the guarded triangle leg). */
     if( params.codegenError == TA_TEST_PASS )
     {
         if( sweep_set_compat(params.refCp, 1, params.responseBuf) &&
             sweep_set_compat(params.cp,    1, params.responseBuf) )
         {
+            TA_SetCompatibility(TA_COMPATIBILITY_METASTOCK);
             variants += sweep_run_variant(&params);
+            TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
             if( params.codegenError != TA_TEST_PASS )
             {
                 failParam = "compatibility=METASTOCK";
@@ -1424,6 +1527,9 @@ static void sweep_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
             failValue = 3;
         }
     }
+
+    if( params.paramHolder != NULL )
+        TA_ParamHolderFree(params.paramHolder);
 
     ctx->sweepVariants += variants;
     ctx->sweepFunctions++;
