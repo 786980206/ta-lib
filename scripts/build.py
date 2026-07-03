@@ -100,6 +100,8 @@ def show_help():
 
   Testing:
     test                C reference regression tests
+    check-source-lists  Verify the CMake and autotools ta_regtest source
+                        lists agree (no build; pure text check)
     regtest             Full pipeline: servers (cargo) + C tests + codegen verification
     regtest-only        Codegen verification only (skip C tests)
     talib-rs-server     Build the third-party talib-rs benchmark server (opt-in;
@@ -144,6 +146,67 @@ def build_talib_rs_server(root_dir: str):
         os.path.join(root_dir, "bin", "ta_talib_rs_serve"),
     )
     print("  talib-rs comparison server -> bin/ta_talib_rs_serve")
+
+def check_regtest_source_lists(root_dir: str) -> bool:
+    """Verify the two hand-maintained ta_regtest source lists agree.
+
+    ta_regtest is built by BOTH build systems: CMake (TA_REGTEST_SOURCES in
+    CMakeLists.txt, used by the local dev loop and the cross-language CI job)
+    and autotools (ta_regtest_SOURCES in src/tools/ta_regtest/Makefile.am,
+    used by the dist "end-user simulation" nightly). The lists are maintained
+    by hand in parallel: a file added to only one of them compiles fine under
+    CMake locally and then breaks the autotools nightly. Returns True when
+    the lists are identical.
+    """
+    import re
+
+    cmake_path = os.path.join(root_dir, 'CMakeLists.txt')
+    with open(cmake_path, encoding='utf-8') as f:
+        cmake_text = f.read()
+    m = re.search(r'set\(TA_REGTEST_SOURCES\n(.*?)\n\s*\)', cmake_text, re.S)
+    if not m:
+        print("Error: TA_REGTEST_SOURCES block not found in CMakeLists.txt")
+        return False
+    cmake_set = set()
+    for line in m.group(1).splitlines():
+        entry = line.strip().strip('"')
+        if not entry:
+            continue
+        cmake_set.add(entry.replace(
+            '${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/', ''))
+
+    am_path = os.path.join(root_dir, 'src', 'tools', 'ta_regtest', 'Makefile.am')
+    am_set = set()
+    with open(am_path, encoding='utf-8') as f:
+        lines = f.readlines()
+    i = 0
+    while i < len(lines):
+        if lines[i].lstrip().startswith('ta_regtest_SOURCES'):
+            block = lines[i].split('=', 1)[1]
+            while block.rstrip().endswith('\\') and i + 1 < len(lines):
+                block = block.rstrip().rstrip('\\') + ' '
+                i += 1
+                block += lines[i]
+            am_set.update(block.rstrip().rstrip('\\').split())
+            break
+        i += 1
+    if not am_set:
+        print(f"Error: ta_regtest_SOURCES block not found in {am_path}")
+        return False
+
+    cmake_only = sorted(cmake_set - am_set)
+    am_only = sorted(am_set - cmake_set)
+    if cmake_only or am_only:
+        print("Error: the ta_regtest source lists disagree.")
+        for entry in cmake_only:
+            print(f"  only in CMakeLists.txt TA_REGTEST_SOURCES:            {entry}")
+        for entry in am_only:
+            print(f"  only in src/tools/ta_regtest/Makefile.am ta_regtest_SOURCES: {entry}")
+        print("Add the missing entries so both build systems compile the same files.")
+        return False
+
+    print(f"ta_regtest source lists agree ({len(cmake_set)} files). OK.")
+    return True
 
 # Rust targets run cargo directly (no CMake).
 CARGO_TARGETS = {'ta_codegen', 'generate', 'servers', 'format', 'format-check',
@@ -203,6 +266,10 @@ def main():
         except FileNotFoundError:
             print("Nothing to clean.")
         return
+
+    # Pure text check — no build prerequisites.
+    if args.target == 'check-source-lists':
+        sys.exit(0 if check_regtest_source_lists(root_dir) else 1)
 
     check_prerequisites(TARGET_PREREQS.get(args.target, PREREQS_BUILD_BASIC))
 

@@ -179,6 +179,14 @@ jobs:
         with:
           python-version: "3.x"
 
+      # The two hand-maintained ta_regtest source lists must agree: a file
+      # present only in CMakeLists.txt builds fine locally (CMake) and then
+      # breaks the autotools dist path above, and vice versa. Pure text
+      # check, fails fast before anything is built.
+      - name: Verify ta_regtest source lists (CMake vs autotools) agree
+        shell: bash
+        run: python3 scripts/build.py check-source-lists
+
       # Check the INPUT source of truth first: it must be re-indented (leading
       # whitespace, trailing whitespace, and blank-line runs). This fails early
       # and clearly, before the output-regeneration check below.

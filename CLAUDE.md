@@ -110,6 +110,8 @@ comparison table, and JSONL report.
 verify each call against the language servers. Note: it must be registered in
 BOTH `CMakeLists.txt` and the autotools `Makefile.am` (the dist-verification CI
 path builds with autotools — a missing entry there breaks the nightly).
+`scripts/build.py check-source-lists` verifies the two lists agree (also run
+by the dev nightly regen-check job).
 
 ### `--function=CSV` Filter
 
