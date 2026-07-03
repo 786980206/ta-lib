@@ -334,15 +334,30 @@ def commit_and_open_pr(vcpkg_root: Path, version: str) -> None:
         return
 
     run_command(["git", "commit", "-m", f"[ta-lib] update to {version}"], cwd=str(vcpkg_root))
-    run_command(["git", "push", "-u", "origin", f"ta-lib-{version}"], cwd=str(vcpkg_root))
 
     gh_path = shutil.which("gh")
     if gh_path is None:
-        print("[warn] GitHub CLI not found; skipping PR creation.")
-        print("       Run manually: gh pr create --repo microsoft/vcpkg --fill")
+        print("[warn] GitHub CLI not found; cannot fork/push/PR.")
+        print("       Push the branch to YOUR vcpkg fork and run:")
+        print("       gh pr create --repo microsoft/vcpkg --fill")
         return
 
-    run_command([gh_path, "pr", "create", "--repo", "microsoft/vcpkg", "--fill"], cwd=str(vcpkg_root))
+    # Contributors cannot push branches to microsoft/vcpkg directly (403).
+    # Push to the user's fork and open a cross-fork PR.
+    login = run_command([gh_path, "api", "user", "--jq", ".login"]).strip()
+    run_command([gh_path, "repo", "fork", "microsoft/vcpkg", "--clone=false"])  # idempotent
+    remotes = run_command(["git", "remote"], cwd=str(vcpkg_root)).split()
+    fork_url = f"https://github.com/{login}/vcpkg.git"
+    if "fork" in remotes:
+        run_command(["git", "remote", "set-url", "fork", fork_url], cwd=str(vcpkg_root))
+    else:
+        run_command(["git", "remote", "add", "fork", fork_url], cwd=str(vcpkg_root))
+    run_command(["git", "push", "-u", "fork", f"ta-lib-{version}"], cwd=str(vcpkg_root))
+
+    run_command([gh_path, "pr", "create", "--repo", "microsoft/vcpkg",
+                 "--head", f"{login}:ta-lib-{version}",
+                 "--title", f"[talib] update to {version}", "--fill-first"],
+                cwd=str(vcpkg_root))
     print("[ok] Opened PR in microsoft/vcpkg")
 
 
