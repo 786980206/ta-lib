@@ -58,7 +58,7 @@ from utilities.common import run_command, verify_git_repo_original
 from utilities.files import path_join
 
 API_RELEASE_LATEST = "https://api.github.com/repos/TA-Lib/ta-lib/releases/latest"
-ASSET_PATTERN = re.compile(r"ta-lib-(\d+\.\d+\.\d+)-src\.tar\.gz$")
+ASSET_PATTERN = re.compile(r"ta-lib-(\d+\.\d+\.\d+)-github-tag-archive\.tar\.gz$")
 VCPKG_PORT_NAME = "talib"
 
 
@@ -95,24 +95,29 @@ def version_key(v: str) -> tuple[int, int, int]:
 
 
 def read_latest_release_src_tarball() -> tuple[str, str, str, str]:
-    """Return (version, tarball_name, download_url, tag_name) for the latest published release."""
+    """Return (version, tarball_name, download_url, tag_name) for the latest published release.
+
+    IMPORTANT: the download_url is the GitHub TAG ARCHIVE
+    (github.com/.../archive/<tag>.tar.gz), NOT the release's src.tar.gz
+    asset. vcpkg_from_github() downloads the tag archive, so the SHA512 in
+    portfile.cmake must be computed over those bytes — hashing the release
+    asset produced a hash-mismatch failure on every triplet (0.7.1 PR).
+    """
     data = fetch_json(API_RELEASE_LATEST)
     if data.get("draft", False):
         raise RuntimeError("Latest GitHub release is still a draft (not yet published).")
     tag_name = data.get("tag_name", "")
-    assets = data.get("assets", [])
-    for a in assets:
-        name = a.get("name", "")
-        m = ASSET_PATTERN.search(name)
-        if m:
-            version = m.group(1)
-            return version, name, a.get("browser_download_url", ""), tag_name
-    raise RuntimeError("Could not find ta-lib-<version>-src.tar.gz asset in latest release")
+    if not tag_name:
+        raise RuntimeError("Latest release has no tag_name")
+    version = tag_name.lstrip("v")
+    archive_url = f"https://github.com/TA-Lib/ta-lib/archive/{tag_name}.tar.gz"
+    tarball_name = f"ta-lib-{version}-github-tag-archive.tar.gz"
+    return version, tarball_name, archive_url, tag_name
 
 
 def read_cached_latest_release_src_tarball(out_dir: Path) -> tuple[str, str, Path]:
     candidates: list[tuple[tuple[int, int, int], str, Path]] = []
-    for p in out_dir.glob("ta-lib-*-src.tar.gz"):
+    for p in out_dir.glob("ta-lib-*-github-tag-archive.tar.gz"):
         m = ASSET_PATTERN.search(p.name)
         if not m:
             continue
