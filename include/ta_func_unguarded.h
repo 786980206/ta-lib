@@ -338,8 +338,6 @@ TA_LIB_API TA_RetCode TA_WMA_Unguarded(int startIdx, int endIdx, const double in
 extern TA_RetCode TA_S_WMA_Unguarded(int startIdx, int endIdx, const float inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[]);
 
 /* Private-variant forward declarations (custom signatures) */
-TA_LIB_API TA_RetCode TA_EMA_Private(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, double optInK_1, int *outBegIdx, int *outNBElement, double outReal[]);
-extern TA_RetCode TA_S_EMA_Private(int startIdx, int endIdx, const float inReal[], int optInTimePeriod, double optInK_1, int *outBegIdx, int *outNBElement, double outReal[]);
 
 /* Internal helper forward declarations */
 extern void stddev_using_precalc_ma(const double inReal[], const double inMovAvg[], int inMovAvgBegIdx, int inMovAvgNbElement, int timePeriod, double output[]);

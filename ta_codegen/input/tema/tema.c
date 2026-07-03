@@ -7,11 +7,15 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  112400 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
- *
+ *  112400 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070226 MF,CC  Allow period of 1: output is an exact copy of the
+ *                input, consistent with TA_MA (issues #48, #59). The
+ *                natural math (3*e1 - 3*e2 + e3 with e1=e2=e3=x) is
+ *                exact on x86 but not under FMA contraction (ARM64
+ *                clang leaves ~1e-14 residue), so the copy is explicit.
  */
 
 int tema_lookback(int           optInTimePeriod)
@@ -78,6 +82,21 @@ TA_RetCode tema(int startIdx, int endIdx, const double inReal[], int optInTimePe
    /* Make sure there is still something to evaluate. */
    if( startIdx > endIdx )
       return TA_SUCCESS;
+
+   /* No smoothing at period of 1: the output is a copy of the input
+    * (same convention as TA_MA for every MAType). Explicit because the
+    * 3*e1 - 3*e2 + e3 composition cancels exactly only without FMA
+    * contraction; ARM64 fused multiply-add leaves ~1e-14 residue.
+    */
+   if( optInTimePeriod == 1 )
+   {
+      *outBegIdx = startIdx;
+      outIdx = 0;
+      while( startIdx <= endIdx )
+         outReal[outIdx++] = inReal[startIdx++];
+      *outNBElement = outIdx;
+      return TA_SUCCESS;
+   }
 
    /* Allocate a temporary buffer for the firstEMA. */
    tempInt = lookbackTotal+(endIdx-startIdx)+1;

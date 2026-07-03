@@ -48,10 +48,15 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  112400 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  112400 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070226 MF,CC  Allow period of 1: output is an exact copy of the
+ *                input, consistent with TA_MA (issues #48, #59). The
+ *                natural math (3*e1 - 3*e2 + e3 with e1=e2=e3=x) is
+ *                exact on x86 but not under FMA contraction (ARM64
+ *                clang leaves ~1e-14 residue), so the copy is explicit.
  */
 
 // Import types from parent module
@@ -216,6 +221,20 @@ impl Core {
         if startIdx > endIdx {
             return RetCode::Success;
         }
+        // No smoothing at period of 1: the output is a copy of the input
+        // (same convention as TA_MA for every MAType). Explicit because the
+        // 3*e1 - 3*e2 + e3 composition cancels exactly only without FMA
+        // contraction; ARM64 fused multiply-add leaves ~1e-14 residue.
+        if optInTimePeriod == 1 {
+            (*outBegIdx) = startIdx;
+            outIdx = 0;
+            while startIdx <= endIdx {
+                outReal[outIdx] = ((inReal[{ let _v = startIdx; startIdx += 1; _v }]) as f64);
+                outIdx += 1;
+            }
+            (*outNBElement) = outIdx;
+            return RetCode::Success;
+        }
         // Allocate a temporary buffer for the firstEMA.
         tempInt = lookbackTotal + (endIdx - startIdx) + 1;
         firstEMA = vec![0.0_f64; (tempInt * 1) as usize];
@@ -304,6 +323,16 @@ impl Core {
             startIdx = lookbackTotal;
         }
         if startIdx > endIdx {
+            return RetCode::Success;
+        }
+        if optInTimePeriod == 1 {
+            (*outBegIdx) = startIdx;
+            outIdx = 0;
+            while startIdx <= endIdx {
+                *outReal.as_mut_ptr().add(outIdx) = ((*inReal.as_ptr().add({ let _v = startIdx; startIdx += 1; _v })) as f64);
+                outIdx += 1;
+            }
+            (*outNBElement) = outIdx;
             return RetCode::Success;
         }
         tempInt = lookbackTotal + (endIdx - startIdx) + 1;
