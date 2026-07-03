@@ -1160,6 +1160,18 @@ fn format_yaml_num(v: f64) -> String {
 }
 
 fn generate_rust_crate_scaffolding(out_base: &Path, funcs: &[ir::FuncDef], types_src: &Path) {
+    // Single source of truth for the crate version: the VERSION file at the
+    // repo root (kept in sync across all packaging by scripts/sync.py).
+    // Hardcoding it here once made a release bump fail the regen-check gate.
+    let version_path = out_base
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|root| root.join("VERSION"))
+        .expect("cannot derive repo root from output dir");
+    let crate_version = std::fs::read_to_string(&version_path)
+        .unwrap_or_else(|e| panic!("cannot read {}: {e}", version_path.display()))
+        .trim()
+        .to_string();
     let rust_dir = out_base.join("rust");
     let src_dir = rust_dir.join("src");
     let ta_func_dir = src_dir.join("ta_func");
@@ -1169,10 +1181,10 @@ fn generate_rust_crate_scaffolding(out_base: &Path, funcs: &[ir::FuncDef], types
     std::fs::create_dir_all(&bin_dir).unwrap();
 
     // --- Cargo.toml ---
-    let cargo_toml = r#"[package]
-name = "ta-lib"
-version = "0.6.4"
-edition = "2021"
+    let cargo_toml_head = format!(
+        "[package]\nname = \"ta-lib\"\nversion = \"{crate_version}\"\nedition = \"2021\""
+    );
+    let cargo_toml_tail = r#"
 description = "Technical analysis library: 161 indicators (SMA, EMA, RSI, MACD, Bollinger Bands, ATR, Stochastic, candlestick patterns) — the official Rust port of TA-Lib, verified against the C reference."
 license = "BSD-3-Clause"
 homepage = "https://ta-lib.org"
@@ -1198,7 +1210,7 @@ lto = "thin"
 codegen-units = 1
 "#;
     let cargo_path = rust_dir.join("Cargo.toml");
-    std::fs::write(&cargo_path, cargo_toml).unwrap();
+    std::fs::write(&cargo_path, format!("{cargo_toml_head}{cargo_toml_tail}")).unwrap();
     println!("  Scaffolding -> {}", cargo_path.display());
 
     // --- .cargo/config.toml ---
