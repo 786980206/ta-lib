@@ -268,8 +268,12 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
         let full_params = build_full_param_str(func);
         let sp_params = full_params.replace("const double", "const float");
 
+        // The double-precision unguarded variants are exported public API:
+        // their definitions carry TA_LIB_API, and MSVC requires declaration
+        // and definition linkage to match (C2375 otherwise). The TA_S_
+        // variants are internal (plain definitions), so plain extern here.
         s.push_str(&format!(
-            "extern TA_RetCode TA_{upper}_Unguarded({full_params});\n"
+            "TA_LIB_API TA_RetCode TA_{upper}_Unguarded({full_params});\n"
         ));
         s.push_str(&format!(
             "extern TA_RetCode TA_S_{upper}_Unguarded({sp_params});\n"
@@ -346,8 +350,11 @@ fn push_private_decls(s: &mut String, funcs: &[FuncDef]) {
             params.join(", ")
         };
 
+        // Same linkage rule as the unguarded declarations: the double
+        // private variants are defined with TA_LIB_API, the TA_S_ ones are
+        // plain — MSVC rejects mismatched declaration/definition linkage.
         s.push_str(&format!(
-            "extern TA_RetCode TA_{upper}_Private({});\n",
+            "TA_LIB_API TA_RetCode TA_{upper}_Private({});\n",
             build_params("const double")
         ));
         s.push_str(&format!(

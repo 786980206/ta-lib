@@ -762,10 +762,16 @@ fn test_ma_java_switch_statement() {
         out.java.contains("switch(") || out.java.contains("switch ("),
         "Java MA should contain a switch statement"
     );
-    // Java uses Type.Variant for switch labels
+    // Enum switch case labels must be UNQUALIFIED ("case Sma:") — qualified
+    // labels are Java 21+ syntax and the shipped Core.java must compile on
+    // older JDKs.
     assert!(
-        out.java.contains("MAType.Sma") || out.java.contains("MAType.Ema"),
-        "Java MA should use MAType enum labels"
+        out.java.contains("case Sma:") || out.java.contains("case Ema:"),
+        "Java MA should use unqualified enum case labels"
+    );
+    assert!(
+        !out.java.contains("case MAType."),
+        "Java switch case labels must not be qualified (Java 21+ only)"
     );
 }
 
@@ -4728,10 +4734,14 @@ fn java_ma_switch_variable_rendering() {
         j.contains("switch(") || j.contains("switch ("),
         "Java MA should contain switch: {j}"
     );
-    // Should render MAType enum cases
+    // Should render enum cases with UNQUALIFIED labels (pre-Java-21 compatible)
     assert!(
-        j.contains("MAType.Sma") || j.contains("MAType.Ema"),
-        "Java MA should use MAType enum labels in switch: {j}"
+        j.contains("case Sma:") || j.contains("case Ema:"),
+        "Java MA should use unqualified enum case labels in switch: {j}"
+    );
+    assert!(
+        !j.contains("case MAType."),
+        "Java switch case labels must not be qualified (Java 21+ only): {j}"
     );
 }
 

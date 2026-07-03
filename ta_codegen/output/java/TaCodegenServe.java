@@ -40044,31 +40044,31 @@ class Core {
           }
           switch( optInMAType )
           {
-          case MAType.Sma:
+          case Sma:
              retValue = smaLookback(optInTimePeriod);
              break;
-          case MAType.Ema:
+          case Ema:
              retValue = emaLookback(optInTimePeriod);
              break;
-          case MAType.Wma:
+          case Wma:
              retValue = wmaLookback(optInTimePeriod);
              break;
-          case MAType.Dema:
+          case Dema:
              retValue = demaLookback(optInTimePeriod);
              break;
-          case MAType.Tema:
+          case Tema:
              retValue = temaLookback(optInTimePeriod);
              break;
-          case MAType.Trima:
+          case Trima:
              retValue = trimaLookback(optInTimePeriod);
              break;
-          case MAType.Kama:
+          case Kama:
              retValue = kamaLookback(optInTimePeriod);
              break;
-          case MAType.Mama:
+          case Mama:
              retValue = mamaLookback(0.5, 0.05);
              break;
-          case MAType.T3:
+          case T3:
              retValue = t3Lookback(optInTimePeriod, 0.7);
              break;
           default:
@@ -40115,35 +40115,35 @@ class Core {
           /* Simply forward the job to the corresponding TA function. */
           switch( optInMAType )
           {
-          case MAType.Sma:
+          case Sma:
              retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Ema:
+          case Ema:
              retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Wma:
+          case Wma:
              retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Dema:
+          case Dema:
              retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Tema:
+          case Tema:
              retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Trima:
+          case Trima:
              retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Kama:
+          case Kama:
              retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Mama:
+          case Mama:
              /* The optInTimePeriod is ignored and the FAMA output of the MAMA
               * is ignored.
               */
              dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
              retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
-          case MAType.T3:
+          case T3:
              retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:
@@ -40177,32 +40177,32 @@ class Core {
           }
           switch( optInMAType )
           {
-          case MAType.Sma:
+          case Sma:
              retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Ema:
+          case Ema:
              retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Wma:
+          case Wma:
              retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Dema:
+          case Dema:
              retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Tema:
+          case Tema:
              retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Trima:
+          case Trima:
              retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Kama:
+          case Kama:
              retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Mama:
+          case Mama:
              dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
              retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
-          case MAType.T3:
+          case T3:
              retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:
@@ -40247,32 +40247,32 @@ class Core {
           }
           switch( optInMAType )
           {
-          case MAType.Sma:
+          case Sma:
              retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Ema:
+          case Ema:
              retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Wma:
+          case Wma:
              retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Dema:
+          case Dema:
              retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Tema:
+          case Tema:
              retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Trima:
+          case Trima:
              retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Kama:
+          case Kama:
              retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Mama:
+          case Mama:
              dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
              retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
-          case MAType.T3:
+          case T3:
              retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:
@@ -40306,32 +40306,32 @@ class Core {
           }
           switch( optInMAType )
           {
-          case MAType.Sma:
+          case Sma:
              retCode = smaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Ema:
+          case Ema:
              retCode = emaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Wma:
+          case Wma:
              retCode = wmaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Dema:
+          case Dema:
              retCode = demaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Tema:
+          case Tema:
              retCode = temaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Trima:
+          case Trima:
              retCode = trimaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Kama:
+          case Kama:
              retCode = kamaUnguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
-          case MAType.Mama:
+          case Mama:
              dummyBuffer = new double[(int)((endIdx - startIdx + 1) * 1)];
              retCode = mamaUnguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
-          case MAType.T3:
+          case T3:
              retCode = t3Unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:

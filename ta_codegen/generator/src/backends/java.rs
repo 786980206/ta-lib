@@ -1399,8 +1399,12 @@ fn render_statement_ctx(
 }
 
 fn render_java_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String {
-    if let Some((enum_name, variant)) = lookup_variant(label, enums) {
-        format!("{}.{}", enum_name, variant.pascal_name)
+    if let Some((_enum_name, variant)) = lookup_variant(label, enums) {
+        // Enum switch case labels must be UNQUALIFIED ("case Sma:", not
+        // "case MAType.Sma:"): qualified enum case labels are Java 21+
+        // syntax, and the shipped Core.java must keep compiling on older
+        // JDKs (the reference Java also emitted unqualified labels).
+        variant.pascal_name.clone()
     } else {
         label.to_string()
     }
