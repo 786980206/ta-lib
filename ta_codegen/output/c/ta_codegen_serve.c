@@ -290,6 +290,12 @@ static double g_inBuf2[MAX_ARRAY_SIZE];
 static double g_inBuf3[MAX_ARRAY_SIZE];
 static double g_inBuf4[MAX_ARRAY_SIZE];
 static double g_inBuf5[MAX_ARRAY_SIZE];
+static float g_sinBuf0[MAX_ARRAY_SIZE];
+static float g_sinBuf1[MAX_ARRAY_SIZE];
+static float g_sinBuf2[MAX_ARRAY_SIZE];
+static float g_sinBuf3[MAX_ARRAY_SIZE];
+static float g_sinBuf4[MAX_ARRAY_SIZE];
+static float g_sinBuf5[MAX_ARRAY_SIZE];
 static double g_outBuf0[MAX_ARRAY_SIZE];
 static double g_outBuf1[MAX_ARRAY_SIZE];
 static double g_outBuf2[MAX_ARRAY_SIZE];
@@ -388,6 +394,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_ACCBANDS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ACCBANDS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -435,6 +462,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_ACOS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ACOS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -487,6 +527,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_AD(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_AD_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -533,6 +595,22 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_ADD(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ADD_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -591,6 +669,32 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_ADOSC(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInFastPeriod,
+                optInSlowPeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ADOSC_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInFastPeriod,
+                optInSlowPeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -644,6 +748,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_ADX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ADX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -697,6 +822,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_ADXR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ADXR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -749,6 +895,25 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_APO(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_APO_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -798,6 +963,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_AROON(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_AROON_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -849,6 +1032,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_AROONOSC(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_AROONOSC_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -892,6 +1093,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_ASIN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ASIN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -935,6 +1149,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_ATAN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ATAN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -988,6 +1215,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_ATR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ATR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1034,6 +1282,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_AVGDEV(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_AVGDEV_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1086,6 +1349,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_AVGPRICE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_AVGPRICE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1141,6 +1426,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_BBANDS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInNbDevUp,
+                optInNbDevDn,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#ifndef TA_REF_SERVE
+            rc = TA_S_BBANDS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInNbDevUp,
+                optInNbDevDn,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1194,6 +1500,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_BETA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_BETA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1246,6 +1570,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_BOP(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_BOP_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1298,6 +1644,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_CCI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CCI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1350,6 +1717,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDL2CROWS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDL2CROWS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1402,6 +1791,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDL3BLACKCROWS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDL3BLACKCROWS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1454,6 +1865,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDL3INSIDE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDL3INSIDE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1506,6 +1939,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDL3LINESTRIKE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDL3LINESTRIKE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1558,6 +2013,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDL3OUTSIDE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDL3OUTSIDE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1610,6 +2087,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDL3STARSINSOUTH(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDL3STARSINSOUTH_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1662,6 +2161,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDL3WHITESOLDIERS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDL3WHITESOLDIERS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1717,6 +2238,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLABANDONEDBABY(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLABANDONEDBABY_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1769,6 +2314,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLADVANCEBLOCK(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLADVANCEBLOCK_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1821,6 +2388,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLBELTHOLD(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLBELTHOLD_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1873,6 +2462,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLBREAKAWAY(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLBREAKAWAY_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1925,6 +2536,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLCLOSINGMARUBOZU(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLCLOSINGMARUBOZU_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1977,6 +2610,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLCONCEALBABYSWALL(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLCONCEALBABYSWALL_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2029,6 +2684,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLCOUNTERATTACK(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLCOUNTERATTACK_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2084,6 +2761,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLDARKCLOUDCOVER(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLDARKCLOUDCOVER_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2136,6 +2837,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLDOJI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLDOJI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2188,6 +2911,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLDOJISTAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLDOJISTAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2240,6 +2985,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLDRAGONFLYDOJI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLDRAGONFLYDOJI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2292,6 +3059,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLENGULFING(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLENGULFING_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2347,6 +3136,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLEVENINGDOJISTAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLEVENINGDOJISTAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2402,6 +3215,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLEVENINGSTAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLEVENINGSTAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2454,6 +3291,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLGAPSIDESIDEWHITE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLGAPSIDESIDEWHITE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2506,6 +3365,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLGRAVESTONEDOJI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLGRAVESTONEDOJI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2558,6 +3439,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHAMMER(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHAMMER_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2610,6 +3513,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHANGINGMAN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHANGINGMAN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2662,6 +3587,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHARAMI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHARAMI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2714,6 +3661,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHARAMICROSS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHARAMICROSS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2766,6 +3735,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHIGHWAVE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHIGHWAVE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2818,6 +3809,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHIKKAKE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHIKKAKE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2870,6 +3883,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHIKKAKEMOD(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHIKKAKEMOD_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2922,6 +3957,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLHOMINGPIGEON(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLHOMINGPIGEON_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2974,6 +4031,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLIDENTICAL3CROWS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLIDENTICAL3CROWS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3026,6 +4105,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLINNECK(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLINNECK_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3078,6 +4179,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLINVERTEDHAMMER(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLINVERTEDHAMMER_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3130,6 +4253,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLKICKING(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLKICKING_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3182,6 +4327,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLKICKINGBYLENGTH(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLKICKINGBYLENGTH_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3234,6 +4401,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLLADDERBOTTOM(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLLADDERBOTTOM_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3286,6 +4475,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLLONGLEGGEDDOJI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLLONGLEGGEDDOJI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3338,6 +4549,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLLONGLINE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLLONGLINE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3390,6 +4623,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLMARUBOZU(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLMARUBOZU_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3442,6 +4697,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLMATCHINGLOW(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLMATCHINGLOW_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3497,6 +4774,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLMATHOLD(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLMATHOLD_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3552,6 +4853,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLMORNINGDOJISTAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLMORNINGDOJISTAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3607,6 +4932,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLMORNINGSTAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLMORNINGSTAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInPenetration,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3659,6 +5008,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLONNECK(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLONNECK_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3711,6 +5082,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLPIERCING(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLPIERCING_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3763,6 +5156,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLRICKSHAWMAN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLRICKSHAWMAN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3815,6 +5230,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLRISEFALL3METHODS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLRISEFALL3METHODS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3867,6 +5304,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLSEPARATINGLINES(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLSEPARATINGLINES_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3919,6 +5378,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLSHOOTINGSTAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLSHOOTINGSTAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3971,6 +5452,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLSHORTLINE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLSHORTLINE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4023,6 +5526,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLSPINNINGTOP(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLSPINNINGTOP_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4075,6 +5600,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLSTALLEDPATTERN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLSTALLEDPATTERN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4127,6 +5674,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLSTICKSANDWICH(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLSTICKSANDWICH_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4179,6 +5748,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLTAKURI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLTAKURI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4231,6 +5822,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLTASUKIGAP(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLTASUKIGAP_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4283,6 +5896,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLTHRUSTING(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLTHRUSTING_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4335,6 +5970,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLTRISTAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLTRISTAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4387,6 +6044,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLUNIQUE3RIVER(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLUNIQUE3RIVER_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4439,6 +6118,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLUPSIDEGAP2CROWS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLUPSIDEGAP2CROWS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4491,6 +6192,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_CDLXSIDEGAP3METHODS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CDLXSIDEGAP3METHODS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4534,6 +6257,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_CEIL(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CEIL_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4581,6 +6317,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_CMO(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CMO_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4630,6 +6381,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_CORREL(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_CORREL_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4673,6 +6442,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_COS(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_COS_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4716,6 +6498,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_COSH(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_COSH_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4762,6 +6557,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_DEMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_DEMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4808,6 +6618,22 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_DIV(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_DIV_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4861,6 +6687,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_DX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_DX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4908,6 +6755,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_EMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_EMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4951,6 +6813,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_EXP(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_EXP_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4994,6 +6869,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_FLOOR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_FLOOR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5038,6 +6926,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_HT_DCPERIOD(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_HT_DCPERIOD_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5082,6 +6983,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_HT_DCPHASE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_HT_DCPHASE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5126,6 +7040,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_HT_PHASOR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_HT_PHASOR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5172,6 +7099,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_HT_SINE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_HT_SINE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5218,6 +7158,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_HT_TRENDLINE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_HT_TRENDLINE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5262,6 +7215,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_HT_TRENDMODE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_HT_TRENDMODE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5312,6 +7278,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_IMI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_IMI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5359,6 +7343,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_KAMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_KAMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5405,6 +7404,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_LINEARREG(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_LINEARREG_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5451,6 +7465,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_LINEARREG_ANGLE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_LINEARREG_ANGLE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5497,6 +7526,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_LINEARREG_INTERCEPT(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_LINEARREG_INTERCEPT_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5543,6 +7587,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_LINEARREG_SLOPE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_LINEARREG_SLOPE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5586,6 +7645,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_LN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_LN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5629,6 +7701,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_LOG10(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_LOG10_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5678,6 +7763,23 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5730,6 +7832,25 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MACD(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInSignalPeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MACD_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInSignalPeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5795,6 +7916,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MACDEXT(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInFastMAType,
+                optInSlowPeriod,
+                optInSlowMAType,
+                optInSignalPeriod,
+                optInSignalMAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MACDEXT_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInFastMAType,
+                optInSlowPeriod,
+                optInSlowMAType,
+                optInSignalPeriod,
+                optInSignalMAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5845,6 +7991,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MACDFIX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInSignalPeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MACDFIX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInSignalPeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5899,6 +8060,23 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MAMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastLimit,
+                optInSlowLimit,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MAMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastLimit,
+                optInSlowLimit,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5956,6 +8134,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_MAVP(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInMinPeriod,
+                optInMaxPeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MAVP_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInMinPeriod,
+                optInMaxPeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6002,6 +8202,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MAX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MAX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6048,6 +8263,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MAXINDEX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MAXINDEX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6094,6 +8324,22 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_MEDPRICE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MEDPRICE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6150,6 +8396,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf3[_fi] = (float)g_inBuf3[_fi];
+            rc = TA_S_MFI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MFI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                g_sinBuf3,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6196,6 +8466,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MIDPOINT(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MIDPOINT_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6245,6 +8530,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_MIDPRICE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MIDPRICE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6291,6 +8594,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MIN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MIN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6337,6 +8655,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MININDEX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MININDEX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outIntBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6383,6 +8716,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MINMAX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MINMAX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6431,6 +8779,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MINMAXINDEX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outIntBuf0, g_outIntBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MINMAXINDEX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outIntBuf0, g_outIntBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6486,6 +8849,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_MINUS_DI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MINUS_DI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6536,6 +8920,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_MINUS_DM(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MINUS_DM_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6582,6 +8984,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_MOM(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MOM_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6628,6 +9045,22 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_MULT(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_MULT_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6681,6 +9114,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_NATR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_NATR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6727,6 +9181,22 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_OBV(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_OBV_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6780,6 +9250,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_PLUS_DI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_PLUS_DI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6830,6 +9321,24 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_PLUS_DM(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_PLUS_DM_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6882,6 +9391,25 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_PPO(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_PPO_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInMAType,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6928,6 +9456,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_ROC(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ROC_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6974,6 +9517,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_ROCP(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ROCP_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7020,6 +9578,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_ROCR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ROCR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7066,6 +9639,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_ROCR100(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ROCR100_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7113,6 +9701,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_RSI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_RSI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7165,6 +9768,26 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_SAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInAcceleration,
+                optInMaximum,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInAcceleration,
+                optInMaximum,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7235,6 +9858,38 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_SAREXT(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInStartValue,
+                optInOffsetOnReverse,
+                optInAccelerationInitLong,
+                optInAccelerationLong,
+                optInAccelerationMaxLong,
+                optInAccelerationInitShort,
+                optInAccelerationShort,
+                optInAccelerationMaxShort,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SAREXT_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                optInStartValue,
+                optInOffsetOnReverse,
+                optInAccelerationInitLong,
+                optInAccelerationLong,
+                optInAccelerationMaxLong,
+                optInAccelerationInitShort,
+                optInAccelerationShort,
+                optInAccelerationMaxShort,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7278,6 +9933,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_SIN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SIN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7321,6 +9989,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_SINH(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SINH_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7367,6 +10048,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_SMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7410,6 +10106,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_SQRT(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SQRT_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7459,6 +10168,23 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_STDDEV(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInNbDev,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_STDDEV_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInNbDev,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7523,6 +10249,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_STOCH(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInFastK_Period,
+                optInSlowK_Period,
+                optInSlowK_MAType,
+                optInSlowD_Period,
+                optInSlowD_MAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_STOCH_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInFastK_Period,
+                optInSlowK_Period,
+                optInSlowK_MAType,
+                optInSlowD_Period,
+                optInSlowD_MAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7583,6 +10338,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_STOCHF(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInFastK_Period,
+                optInFastD_Period,
+                optInFastD_MAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_STOCHF_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInFastK_Period,
+                optInFastD_Period,
+                optInFastD_MAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7641,6 +10421,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_STOCHRSI(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInFastK_Period,
+                optInFastD_Period,
+                optInFastD_MAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#ifndef TA_REF_SERVE
+            rc = TA_S_STOCHRSI_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInFastK_Period,
+                optInFastD_Period,
+                optInFastD_MAType,
+                &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7689,6 +10490,22 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            rc = TA_S_SUB(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SUB_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7735,6 +10552,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_SUM(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_SUM_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7785,6 +10617,23 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_T3(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInVFactor,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_T3_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInVFactor,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7828,6 +10677,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_TAN(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TAN_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7871,6 +10733,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_TANH(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TANH_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7917,6 +10792,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_TEMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TEMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -7966,6 +10856,25 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_TRANGE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TRANGE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8012,6 +10921,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_TRIMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TRIMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8058,6 +10982,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_TRIX(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TRIX_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8104,6 +11043,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_TSF(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TSF_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8153,6 +11107,25 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_TYPPRICE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_TYPPRICE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8211,6 +11184,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_ULTOSC(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod1,
+                optInTimePeriod2,
+                optInTimePeriod3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_ULTOSC_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod1,
+                optInTimePeriod2,
+                optInTimePeriod3,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8260,6 +11258,23 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_VAR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInNbDev,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_VAR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                optInNbDev,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8309,6 +11324,25 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_WCLPRICE(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_WCLPRICE_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8361,6 +11395,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf1[_fi] = (float)g_inBuf1[_fi];
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf2[_fi] = (float)g_inBuf2[_fi];
+            rc = TA_S_WILLR(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_WILLR_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                g_sinBuf1,
+                g_sinBuf2,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -8407,6 +11462,21 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 #else
         long elapsed_ns_ung = 0;
 #endif /* TA_REF_SERVE */
+        if( json_find_int(json, "use_float") ) {
+            for( int _fi = 0; _fi <= endIdx; _fi++ ) g_sinBuf0[_fi] = (float)g_inBuf0[_fi];
+            rc = TA_S_WMA(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#ifndef TA_REF_SERVE
+            rc = TA_S_WMA_Unguarded(
+                startIdx, endIdx,
+                g_sinBuf0,
+                optInTimePeriod,
+                &outBegIdx, &outNBElement, g_outBuf0);
+#endif /* TA_REF_SERVE */
+        }
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
