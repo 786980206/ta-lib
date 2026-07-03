@@ -15,6 +15,11 @@
 
    public int demaLookback( int optInTimePeriod )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
       /* Get lookback for one EMA.
        * Multiply by two (because double smoothing).
        */
@@ -46,6 +51,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* For an explanation of this function, please read
        *
@@ -219,6 +229,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       outNBElement.value = 0;
       outBegIdx.value = 0;

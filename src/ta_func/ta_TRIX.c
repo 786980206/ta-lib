@@ -61,6 +61,10 @@
 TA_LIB_API int TA_TRIX_Lookback( int optInTimePeriod )
 {
    int emaLookback;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 30;
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
+      return -1;
    emaLookback = TA_EMA_Lookback(optInTimePeriod);
    return emaLookback * 3 + TA_ROCR_Lookback(1);
 }

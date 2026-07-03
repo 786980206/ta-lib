@@ -15,6 +15,11 @@
 
    public int cmoLookback( int optInTimePeriod )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
       int retValue;
       retValue = optInTimePeriod + this.unstablePeriod[FuncUnstId.Cmo.ordinal()];
       if( this.compatibility == Compatibility.Metastock ) {
@@ -49,6 +54,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* CMO calculation is mostly identical to RSI.
        *
@@ -389,6 +399,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       outBegIdx.value = 0;
       outNBElement.value = 0;

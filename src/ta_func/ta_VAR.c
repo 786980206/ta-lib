@@ -60,6 +60,12 @@
 
 TA_LIB_API int TA_VAR_Lookback( int optInTimePeriod, double optInNbDev )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 5;
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
+      return -1;
+   if( optInNbDev == -4e37 )
+      optInNbDev = 1;
    return optInTimePeriod - 1;
 }
 

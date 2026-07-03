@@ -61,6 +61,24 @@ TA_LIB_API int TA_MACDEXT_Lookback( int optInFastPeriod, TA_MAType optInFastMATy
 {
    int tempInteger;
    int lookbackLargest;
+   if( (int)optInFastPeriod == (int)0x80000000 )
+      optInFastPeriod = 12;
+   else if( (int)optInFastPeriod < 2 || (int)optInFastPeriod > 100000 )
+      return -1;
+   if( (int)optInFastMAType == (int)0x80000000 )
+      optInFastMAType = 0;
+   if( (int)optInSlowPeriod == (int)0x80000000 )
+      optInSlowPeriod = 26;
+   else if( (int)optInSlowPeriod < 2 || (int)optInSlowPeriod > 100000 )
+      return -1;
+   if( (int)optInSlowMAType == (int)0x80000000 )
+      optInSlowMAType = 0;
+   if( (int)optInSignalPeriod == (int)0x80000000 )
+      optInSignalPeriod = 9;
+   else if( (int)optInSignalPeriod < 1 || (int)optInSignalPeriod > 100000 )
+      return -1;
+   if( (int)optInSignalMAType == (int)0x80000000 )
+      optInSignalMAType = 0;
    /* Find the MA with the largest lookback */
    lookbackLargest = TA_MA_Lookback(optInFastPeriod,optInFastMAType);
    tempInteger = TA_MA_Lookback(optInSlowPeriod,optInSlowMAType);

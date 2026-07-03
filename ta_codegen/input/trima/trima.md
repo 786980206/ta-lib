@@ -11,6 +11,7 @@ Weights rise then fall (4-period: (1a+2b+2c+1d)/6; 5-period: (1a+2b+3c+2d+1e)/9)
 ## Notes
 
 - Follows the generally accepted (Metastock) definition rather than the TradeStation variant.
+- A period of 1 performs no smoothing: the output is a copy of the input. Allowed since 0.6.5 (issues #48/#59).
 
 ## Inputs
 

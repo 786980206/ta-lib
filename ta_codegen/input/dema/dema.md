@@ -8,6 +8,10 @@ Double Exponential Moving Average: an EMA combined with an EMA-of-EMA to reduce 
 
 EMA1 = EMA(inReal, period); EMA2 = EMA(EMA1, period); DEMA = 2*EMA1 - EMA2
 
+## Notes
+
+- A period of 1 performs no smoothing: the output is a copy of the input. Allowed since 0.6.5 (issues #48/#59).
+
 ## Inputs
 
 - `inReal` — Source series (typically price)

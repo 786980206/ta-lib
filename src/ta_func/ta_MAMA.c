@@ -60,6 +60,14 @@
 
 TA_LIB_API int TA_MAMA_Lookback( double optInFastLimit, double optInSlowLimit )
 {
+   if( optInFastLimit == -4e37 )
+      optInFastLimit = 0.5;
+   else if( optInFastLimit < 1e-2 || optInFastLimit > 9.9e-1 )
+      return -1;
+   if( optInSlowLimit == -4e37 )
+      optInSlowLimit = 0.05;
+   else if( optInSlowLimit < 1e-2 || optInSlowLimit > 9.9e-1 )
+      return -1;
    /* The two parameters are not a factor to determine
     * the lookback, but are still requested for
     * consistency with all other Lookback functions.

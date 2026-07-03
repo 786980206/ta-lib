@@ -18,6 +18,11 @@
 
    public int mfiLookback( int optInTimePeriod )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
       return optInTimePeriod + this.unstablePeriod[FuncUnstId.Mfi.ordinal()] ;
 
    }
@@ -50,6 +55,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* Id, Type, Static Size */
       if( optInTimePeriod < 1 ) return RetCode.AllocErr;
@@ -328,6 +338,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       if( optInTimePeriod < 1 ) return RetCode.AllocErr;
       mflow_positive = new double[optInTimePeriod];

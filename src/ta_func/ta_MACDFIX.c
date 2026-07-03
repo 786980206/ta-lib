@@ -59,6 +59,10 @@
 
 TA_LIB_API int TA_MACDFIX_Lookback( int optInSignalPeriod )
 {
+   if( (int)optInSignalPeriod == (int)0x80000000 )
+      optInSignalPeriod = 9;
+   else if( (int)optInSignalPeriod < 1 || (int)optInSignalPeriod > 100000 )
+      return -1;
    /* The lookback is driven by the signal line output.
     *
     * (must also account for the initial data consume

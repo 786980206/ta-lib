@@ -13,16 +13,16 @@ optional_inputs:
     type: integer
     display_name: Minimum Period
     hint: Value less than minimum will be changed to Minimum period
-    range: [2, 100000]
+    range: [1, 100000]
     default: 2
-    suggested: [4, 200, 1]
+    suggested: [1, 200, 1]
   - name: optInMaxPeriod
     type: integer
     display_name: Maximum Period
     hint: Value higher than maximum will be changed to Maximum period
-    range: [2, 100000]
+    range: [1, 100000]
     default: 30
-    suggested: [4, 200, 1]
+    suggested: [1, 200, 1]
   - name: optInMAType
     type: enum:MAType
     display_name: MA Type

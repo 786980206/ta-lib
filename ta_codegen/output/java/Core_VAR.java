@@ -16,6 +16,14 @@
 
    public int varianceLookback( int optInTimePeriod, double optInNbDev )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
+      if( optInNbDev == -4e37 ) {
+         optInNbDev = 1e0;
+      }
       return optInTimePeriod - 1 ;
 
    }
@@ -42,6 +50,14 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInNbDev == -4e37 ) {
+         optInNbDev = 1e0;
       }
       /* Validate the calculation method type and
        * identify the minimum number of price bar needed
@@ -183,6 +199,14 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInNbDev == -4e37 ) {
+         optInNbDev = 1e0;
       }
       nbInitialElementNeeded = optInTimePeriod - 1;
       if( startIdx < nbInitialElementNeeded ) {

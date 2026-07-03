@@ -4004,8 +4004,10 @@ fn is_vec_local_var(name: &str) -> bool {
 fn expr_returns_usize(expr: &Expr) -> bool {
     match expr {
         Expr::FuncCall(name, _) => {
+            // Note: UNSTABLE_PERIOD is NOT usize — it renders as an i32
+            // array access (see expr_is_i32_typed), so a bare return of it
+            // from a lookback needs the `as usize` cast.
             name.ends_with("_lookback") || name.ends_with("_Lookback")
-                || name == "UNSTABLE_PERIOD"
         }
         _ => false,
     }

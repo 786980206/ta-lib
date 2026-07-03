@@ -61,6 +61,16 @@
 TA_LIB_API int TA_STOCHF_Lookback( int optInFastK_Period, int optInFastD_Period, TA_MAType optInFastD_MAType )
 {
    int retValue;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return -1;
+   if( (int)optInFastD_Period == (int)0x80000000 )
+      optInFastD_Period = 3;
+   else if( (int)optInFastD_Period < 1 || (int)optInFastD_Period > 100000 )
+      return -1;
+   if( (int)optInFastD_MAType == (int)0x80000000 )
+      optInFastD_MAType = 0;
    /* Account for the initial data needed for Fast-K. */
    retValue = optInFastK_Period - 1;
    /* Add the smoothing being done for Fast-D */

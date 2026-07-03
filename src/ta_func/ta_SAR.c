@@ -60,6 +60,14 @@
 
 TA_LIB_API int TA_SAR_Lookback( double optInAcceleration, double optInMaximum )
 {
+   if( optInAcceleration == -4e37 )
+      optInAcceleration = 0.02;
+   else if( optInAcceleration < 0e0 || optInAcceleration > 1.7976931348623157e308 )
+      return -1;
+   if( optInMaximum == -4e37 )
+      optInMaximum = 0.2;
+   else if( optInMaximum < 0e0 || optInMaximum > 1.7976931348623157e308 )
+      return -1;
    /* SAR always sacrify one price bar to establish the
     * initial extreme price.
     */

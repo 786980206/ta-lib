@@ -183,6 +183,57 @@ fn gen_header() -> String {
     out
 }
 
+/// Optional-parameter validation prologue: map the TA_INTEGER_DEFAULT /
+/// TA_REAL_DEFAULT sentinels to the documented default value, then reject
+/// out-of-range values. One source of truth for both function variants:
+/// guarded functions fail with `TA_BAD_PARAM`, lookback functions fail with
+/// `-1` (the classic lookback bad-param contract that wrappers rely on).
+fn emit_opt_param_validation(func: &FuncDef, fail: &str) -> String {
+    let mut out = String::new();
+    for opt in &func.optional_inputs {
+        match &opt.param_type {
+            ParamType::Integer | ParamType::Enum(_) => {
+                if let Some(default_val) = opt.default {
+                    out.push_str(&format!(
+                        "   if( (int){name} == (int)0x80000000 )\n      {name} = {val};\n",
+                        name = opt.name,
+                        val = default_val as i32
+                    ));
+                    if let Some((min, max)) = opt.range {
+                        let min_i = min as i32;
+                        let max_i = max as i32;
+                        out.push_str(&format!(
+                            "   else if( (int){name} < {min_i} || (int){name} > {max_i} )\n      return {fail};\n",
+                            name = opt.name
+                        ));
+                    }
+                }
+            }
+            ParamType::Real => {
+                if let Some(default_val) = opt.default {
+                    out.push_str(&format!(
+                        "   if( {name} == -4e37 )\n      {name} = {val};\n",
+                        name = opt.name,
+                        val = default_val
+                    ));
+                    if let Some((min, max)) = opt.range {
+                        // Skip unbounded ranges (f64::MIN/MAX = no real constraint)
+                        if min > f64::MIN / 2.0 || max < f64::MAX / 2.0 {
+                            out.push_str(&format!(
+                                "   else if( {name} < {min:e} || {name} > {max:e} )\n      return {fail};\n",
+                                name = opt.name
+                            ));
+                        }
+                    }
+                }
+            }
+            // Price params expand to arrays handled separately; no scalar validation.
+            ParamType::Price(_) => {}
+        }
+    }
+    out
+}
+
 fn gen_lookback(
     func: &FuncDef,
     enums: &HashMap<String, EnumDef>,
@@ -208,13 +259,20 @@ fn gen_lookback(
         " void ".to_string()
     };
 
+    // Same param validation as the guarded function, with the lookback
+    // bad-param contract: out-of-range returns -1. For Code bodies it is
+    // injected after the local declarations (C89 ordering).
+    let validation = emit_opt_param_validation(func, "-1");
+
     let body = match &func.lookback {
-        Some(LookbackExpr::Literal(n)) => format!("   return {n};\n"),
+        Some(LookbackExpr::Literal(n)) => format!("{validation}   return {n};\n"),
         Some(LookbackExpr::ParamMinus(param, offset)) => {
-            format!("   return {param} - {offset};\n")
+            format!("{validation}   return {param} - {offset};\n")
         }
-        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts, enums, registry, helpers),
-        None => "   return 0;\n".to_string(),
+        Some(LookbackExpr::Code(stmts)) => {
+            render_lookback_code(stmts, &validation, enums, registry, helpers)
+        }
+        None => format!("{validation}   return 0;\n"),
     };
 
     format!(
@@ -428,47 +486,7 @@ fn gen_func_inner(
         }
 
         // Optional parameter validation (default + range)
-        for opt in &func.optional_inputs {
-            match &opt.param_type {
-                ParamType::Integer | ParamType::Enum(_) => {
-                    if let Some(default_val) = opt.default {
-                        out.push_str(&format!(
-                            "   if( (int){name} == (int)0x80000000 )\n      {name} = {val};\n",
-                            name = opt.name,
-                            val = default_val as i32
-                        ));
-                        if let Some((min, max)) = opt.range {
-                            let min_i = min as i32;
-                            let max_i = max as i32;
-                            out.push_str(&format!(
-                                "   else if( (int){name} < {min_i} || (int){name} > {max_i} )\n      return TA_BAD_PARAM;\n",
-                                name = opt.name
-                            ));
-                        }
-                    }
-                }
-                ParamType::Real => {
-                    if let Some(default_val) = opt.default {
-                        out.push_str(&format!(
-                            "   if( {name} == -4e37 )\n      {name} = {val};\n",
-                            name = opt.name,
-                            val = default_val
-                        ));
-                        if let Some((min, max)) = opt.range {
-                            // Skip unbounded ranges (f64::MIN/MAX = no real constraint)
-                            if min > f64::MIN / 2.0 || max < f64::MAX / 2.0 {
-                                out.push_str(&format!(
-                                    "   else if( {name} < {min:e} || {name} > {max:e} )\n      return TA_BAD_PARAM;\n",
-                                    name = opt.name
-                                ));
-                            }
-                        }
-                    }
-                }
-                // Price params expand to arrays handled separately; no scalar validation.
-                ParamType::Price(_) => {}
-            }
-        }
+        out.push_str(&emit_opt_param_validation(func, "TA_BAD_PARAM"));
 
         // Output array NULL checks
         for output in &func.outputs {
@@ -1688,6 +1706,7 @@ fn render_func_call(
 /// Render a complex lookback body (`LookbackExpr::Code`) into C code.
 fn render_lookback_code(
     stmts: &[Statement],
+    validation: &str,
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
@@ -1702,11 +1721,18 @@ fn render_lookback_code(
         emit_c_var_decls(stmt, &mut out, &mut declared_vars);
     }
 
-    // Emit candle settings unpacking for lookback body
+    // Emit candle settings unpacking for lookback body. It declares locals
+    // with initializers, so it must stay in the declaration block (C89
+    // ordering); it reads only TA_Globals, never an optional param, so
+    // running it before the validation is safe.
     let candle_used = detect_candle_settings(stmts);
     if !candle_used.is_empty() {
         out.push_str(&emit_c_unpacking(&candle_used, 3));
     }
+
+    // Param validation comes after all declarations (C89 ordering) and
+    // before any statement that could read an un-defaulted parameter.
+    out.push_str(validation);
 
     // Emit VarDecl initializations (including those inside Block multi-var declarations)
     for stmt in stmts {

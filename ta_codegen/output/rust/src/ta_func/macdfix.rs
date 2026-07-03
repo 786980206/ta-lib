@@ -98,6 +98,12 @@ impl Core {
     /// Hist = MACD - Signal
     /// ```
     ///
+    /// # Notes
+    ///
+    /// * A signal period of 1 disables signal-line smoothing: the signal equals the MACD line and
+    ///   the histogram is zero. Before 0.6.5 this parameter value produced misaligned output
+    ///   (issues #48/#59).
+    ///
     /// # Arguments
     ///
     /// * `startIdx` — Start index of the requested calculation range.

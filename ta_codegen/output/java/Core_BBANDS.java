@@ -17,6 +17,17 @@
 
    public int bbandsLookback( int optInTimePeriod, double optInNbDevUp, double optInNbDevDn, MAType optInMAType )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
+      if( optInNbDevUp == -4e37 ) {
+         optInNbDevUp = 2e0;
+      }
+      if( optInNbDevDn == -4e37 ) {
+         optInNbDevDn = 2e0;
+      }
       /* The lookback is driven by the middle band moving average. */
       return movingAverageLookback(optInTimePeriod, optInMAType) ;
 
@@ -45,6 +56,17 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInNbDevUp == -4e37 ) {
+         optInNbDevUp = 2e0;
+      }
+      if( optInNbDevDn == -4e37 ) {
+         optInNbDevDn = 2e0;
       }
       /* Identify TWO temporary buffer among the outputs.
        *
@@ -331,6 +353,17 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInNbDevUp == -4e37 ) {
+         optInNbDevUp = 2e0;
+      }
+      if( optInNbDevDn == -4e37 ) {
+         optInNbDevDn = 2e0;
       }
       if( false ) {
          tempBuffer1 = outRealMiddleBand;

@@ -15,6 +15,16 @@
 
    public int adOscLookback( int optInFastPeriod, int optInSlowPeriod )
    {
+      if( optInFastPeriod == Integer.MIN_VALUE ) {
+         optInFastPeriod = 3;
+      } else if( optInFastPeriod < 2 || optInFastPeriod > 100000 ) {
+         return -1;
+      }
+      if( optInSlowPeriod == Integer.MIN_VALUE ) {
+         optInSlowPeriod = 10;
+      } else if( optInSlowPeriod < 2 || optInSlowPeriod > 100000 ) {
+         return -1;
+      }
       int slowestPeriod;
       /* Use the slowest EMA period to evaluate the total lookback. */
       if( optInFastPeriod < optInSlowPeriod ) {
@@ -58,6 +68,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastPeriod == Integer.MIN_VALUE ) {
+         optInFastPeriod = 3;
+      } else if( optInFastPeriod < 2 || optInFastPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowPeriod == Integer.MIN_VALUE ) {
+         optInSlowPeriod = 10;
+      } else if( optInSlowPeriod < 2 || optInSlowPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* Implementation Note:
        *     The fastEMA varaible is not neceseraly the
@@ -279,6 +299,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastPeriod == Integer.MIN_VALUE ) {
+         optInFastPeriod = 3;
+      } else if( optInFastPeriod < 2 || optInFastPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowPeriod == Integer.MIN_VALUE ) {
+         optInSlowPeriod = 10;
+      } else if( optInSlowPeriod < 2 || optInSlowPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       if( optInFastPeriod < optInSlowPeriod ) {
          slowestPeriod = optInSlowPeriod;

@@ -14,6 +14,11 @@
 
    public int cdlMatHoldLookback( double optInPenetration )
    {
+      if( optInPenetration == -4e37 ) {
+         optInPenetration = 5e-1;
+      } else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 ) {
+         return -1;
+      }
       int BodyLong_rangeType = this.candleSettings[CandleSettingType.BodyLong.ordinal()].rangeType.ordinal();
       int BodyLong_avgPeriod = this.candleSettings[CandleSettingType.BodyLong.ordinal()].avgPeriod;
       double BodyLong_factor = this.candleSettings[CandleSettingType.BodyLong.ordinal()].factor;
@@ -52,6 +57,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInPenetration == -4e37 ) {
+         optInPenetration = 5e-1;
+      } else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
       }
       /* Identify the minimum number of price bar needed
        * to calculate at least one output.
@@ -246,6 +256,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInPenetration == -4e37 ) {
+         optInPenetration = 5e-1;
+      } else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
       }
       lookbackTotal = cdlMatHoldLookback(optInPenetration);
       if( startIdx < lookbackTotal ) {

@@ -69,7 +69,7 @@ impl Core {
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` — EMA period used for all three passes (default 30, range 2..=100000)
+    /// * `optInTimePeriod` — EMA period used for all three passes (default 30, range 1..=100000)
     ///
     /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
     /// to select their default value.
@@ -77,7 +77,7 @@ impl Core {
     pub fn tema_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
         let mut retValue: usize = 0_usize;
@@ -95,12 +95,17 @@ impl Core {
     /// EMA1=EMA(t,period); EMA2=EMA(EMA1,period); EMA3=EMA(EMA2,period); TEMA = 3*EMA1 - 3*EMA2 + EMA3
     /// ```
     ///
+    /// # Notes
+    ///
+    /// * A period of 1 performs no smoothing: the output is a copy of the input. Allowed since
+    ///   0.6.5 (issues #48/#59).
+    ///
     /// # Arguments
     ///
     /// * `startIdx` — Start index of the requested calculation range.
     /// * `endIdx` — End index of the requested calculation range (inclusive).
     /// * `inReal` — Source price/data series.
-    /// * `optInTimePeriod` — EMA period used for all three passes (default 30, range 2..=100000)
+    /// * `optInTimePeriod` — EMA period used for all three passes (default 30, range 1..=100000)
     /// * `outBegIdx` — Set to the input index of the first output value.
     /// * `outNBElement` — Set to the number of output values written.
     /// * `outReal` — The TEMA line.
@@ -157,7 +162,7 @@ impl Core {
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
         let mut startIdx = startIdx;

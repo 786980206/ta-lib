@@ -7,17 +7,30 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
- *  062704 MF   Fix limit case to avoid divid by zero (or by
- *              a value close to zero induce by the imprecision
- *              of floating points).
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  062704 MF     Fix limit case to avoid divid by zero (or by
+ *                a value close to zero induce by the imprecision
+ *                of floating points).
+ *  070226 MF,CC  Allow period of 1: output is a copy of the input,
+ *                consistent with TA_MA (issues #48, #59). The natural
+ *                KAMA math at period=1 would be a fixed-alpha EMA
+ *                (efficiency ratio is always 1), which would disagree
+ *                with TA_MA's period-1 copy, so identity is explicit.
  */
 
    public int kamaLookback( int optInTimePeriod )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
+      if( optInTimePeriod == 1 ) {
+         return this.unstablePeriod[FuncUnstId.Kama.ordinal()] ;
+      }
       return optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()] ;
 
    }
@@ -48,11 +61,37 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
       constMax = 2.0 / (30.0 + 1.0);
       constDiff = 2.0 / (2.0 + 1.0) - constMax;
       /* Default return values */
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      /* No smoothing at period of 1: the output is a copy of the input
+       * (same convention as TA_MA for every MAType). The unstable period
+       * still delays the first output for API consistency.
+       */
+      if( optInTimePeriod == 1 ) {
+         lookbackTotal = this.unstablePeriod[FuncUnstId.Kama.ordinal()];
+         if( startIdx < lookbackTotal ) {
+            startIdx = lookbackTotal;
+         }
+         if( startIdx > endIdx ) {
+            return RetCode.Success ;
+         }
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
+         return RetCode.Success ;
+      }
       /* Identify the minimum number of price bar needed
        * to calculate at least one output.
        */
@@ -204,6 +243,23 @@
       constDiff = 2.0 / (2.0 + 1.0) - constMax;
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      if( optInTimePeriod == 1 ) {
+         lookbackTotal = this.unstablePeriod[FuncUnstId.Kama.ordinal()];
+         if( startIdx < lookbackTotal ) {
+            startIdx = lookbackTotal;
+         }
+         if( startIdx > endIdx ) {
+            return RetCode.Success ;
+         }
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
+         return RetCode.Success ;
+      }
       lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()];
       if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
@@ -301,10 +357,32 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
       constMax = 2.0 / (30.0 + 1.0);
       constDiff = 2.0 / (2.0 + 1.0) - constMax;
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      if( optInTimePeriod == 1 ) {
+         lookbackTotal = this.unstablePeriod[FuncUnstId.Kama.ordinal()];
+         if( startIdx < lookbackTotal ) {
+            startIdx = lookbackTotal;
+         }
+         if( startIdx > endIdx ) {
+            return RetCode.Success ;
+         }
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
+         return RetCode.Success ;
+      }
       lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()];
       if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
@@ -400,6 +478,23 @@
       constDiff = 2.0 / (2.0 + 1.0) - constMax;
       outBegIdx.value = 0;
       outNBElement.value = 0;
+      if( optInTimePeriod == 1 ) {
+         lookbackTotal = this.unstablePeriod[FuncUnstId.Kama.ordinal()];
+         if( startIdx < lookbackTotal ) {
+            startIdx = lookbackTotal;
+         }
+         if( startIdx > endIdx ) {
+            return RetCode.Success ;
+         }
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
+         return RetCode.Success ;
+      }
       lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.Kama.ordinal()];
       if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;

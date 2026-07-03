@@ -61,6 +61,16 @@
 
 TA_LIB_API int TA_BBANDS_Lookback( int optInTimePeriod, double optInNbDevUp, double optInNbDevDn, TA_MAType optInMAType )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 5;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return -1;
+   if( optInNbDevUp == -4e37 )
+      optInNbDevUp = 2;
+   if( optInNbDevDn == -4e37 )
+      optInNbDevDn = 2;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
    /* The lookback is driven by the middle band moving average. */
    return TA_MA_Lookback(optInTimePeriod,optInMAType);
 }

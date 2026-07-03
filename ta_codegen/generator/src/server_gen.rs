@@ -1503,8 +1503,11 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("                return $\"{{\\\"status\\\":\\\"ok\\\",\\\"n\\\":{refN}}}\";\n");
     s.push_str("            }\n\n");
 
-    s.push_str("            int startIdx = p.GetProperty(\"startIdx\").GetInt32();\n");
-    s.push_str("            int endIdx = p.GetProperty(\"endIdx\").GetInt32();\n");
+    // Tolerant extraction: state methods (set_unstable_period,
+    // set_compatibility, list_functions) have params without startIdx/endIdx
+    // and are dispatched further down.
+    s.push_str("            int startIdx = p.TryGetProperty(\"startIdx\", out var _startIdxEl) ? _startIdxEl.GetInt32() : 0;\n");
+    s.push_str("            int endIdx = p.TryGetProperty(\"endIdx\", out var _endIdxEl) ? _endIdxEl.GetInt32() : 0;\n");
     s.push_str("            int n = endIdx - startIdx + 1;\n\n");
 
     for (i, func) in funcs.iter().enumerate() {

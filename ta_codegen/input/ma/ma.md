@@ -8,6 +8,10 @@ Generic moving-average dispatcher that forwards the job to a concrete MA impleme
 
 outReal = MA_of_type(optInMAType)(inReal, optInTimePeriod); default type = SMA
 
+## Notes
+
+- A period of 1 performs no smoothing for every MAType: the output is a copy of the input.
+
 ## Inputs
 
 - `inReal` — Series to average

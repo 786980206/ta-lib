@@ -16,6 +16,16 @@
 
    public int sarLookback( double optInAcceleration, double optInMaximum )
    {
+      if( optInAcceleration == -4e37 ) {
+         optInAcceleration = 2e-2;
+      } else if( optInAcceleration < 0e0 || optInAcceleration > 1.7976931348623157e308 ) {
+         return -1;
+      }
+      if( optInMaximum == -4e37 ) {
+         optInMaximum = 2e-1;
+      } else if( optInMaximum < 0e0 || optInMaximum > 1.7976931348623157e308 ) {
+         return -1;
+      }
       /* SAR always sacrify one price bar to establish the
        * initial extreme price.
        */
@@ -50,6 +60,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInAcceleration == -4e37 ) {
+         optInAcceleration = 2e-2;
+      } else if( optInAcceleration < 0e0 || optInAcceleration > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
+      }
+      if( optInMaximum == -4e37 ) {
+         optInMaximum = 2e-1;
+      } else if( optInMaximum < 0e0 || optInMaximum > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
       }
       /* > 0 indicates long. == 0 indicates short */
       /* Implementation of the SAR has been a little bit open to interpretation
@@ -439,6 +459,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInAcceleration == -4e37 ) {
+         optInAcceleration = 2e-2;
+      } else if( optInAcceleration < 0e0 || optInAcceleration > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
+      }
+      if( optInMaximum == -4e37 ) {
+         optInMaximum = 2e-1;
+      } else if( optInMaximum < 0e0 || optInMaximum > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
       }
       if( startIdx < 1 ) {
          startIdx = 1;

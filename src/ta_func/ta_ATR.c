@@ -59,6 +59,10 @@
 
 TA_LIB_API int TA_ATR_Lookback( int optInTimePeriod )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 14;
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
+      return -1;
    /* The ATR lookback is the sum of:
     *    1 + (optInTimePeriod - 1)
     *

@@ -127,7 +127,8 @@ fn test_parse_sma_yaml() {
     assert_eq!(func.optional_inputs.len(), 1);
     assert_eq!(func.optional_inputs[0].name, "optInTimePeriod");
     assert_eq!(func.optional_inputs[0].default, Some(30.0));
-    assert_eq!(func.optional_inputs[0].range, Some((2.0, 100000.0)));
+    // Period 1 = "no smoothing" is allowed since 0.6.5 (issues #48/#59).
+    assert_eq!(func.optional_inputs[0].range, Some((1.0, 100000.0)));
     assert_eq!(
         func.optional_inputs[0].display_name.as_deref(),
         Some("Time Period")
@@ -137,7 +138,7 @@ fn test_parse_sma_yaml() {
         Some("Number of period")
     );
     assert!(func.outputs[0].flags.contains(&"line".to_string()));
-    assert_eq!(func.optional_inputs[0].suggested, Some((4.0, 200.0, 1.0)));
+    assert_eq!(func.optional_inputs[0].suggested, Some((1.0, 200.0, 1.0)));
 }
 
 #[test]

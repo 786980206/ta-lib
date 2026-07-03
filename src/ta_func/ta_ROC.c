@@ -59,6 +59,10 @@
 
 TA_LIB_API int TA_ROC_Lookback( int optInTimePeriod )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 10;
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
+      return -1;
    return optInTimePeriod;
 }
 

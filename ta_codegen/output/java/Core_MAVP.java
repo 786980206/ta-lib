@@ -13,6 +13,16 @@
 
    public int movingAverageVariablePeriodLookback( int optInMinPeriod, int optInMaxPeriod, MAType optInMAType )
    {
+      if( optInMinPeriod == Integer.MIN_VALUE ) {
+         optInMinPeriod = 2;
+      } else if( optInMinPeriod < 1 || optInMinPeriod > 100000 ) {
+         return -1;
+      }
+      if( optInMaxPeriod == Integer.MIN_VALUE ) {
+         optInMaxPeriod = 30;
+      } else if( optInMaxPeriod < 1 || optInMaxPeriod > 100000 ) {
+         return -1;
+      }
       return movingAverageLookback(optInMaxPeriod, optInMAType) ;
 
    }
@@ -43,6 +53,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInMinPeriod == Integer.MIN_VALUE ) {
+         optInMinPeriod = 2;
+      } else if( optInMinPeriod < 1 || optInMinPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInMaxPeriod == Integer.MIN_VALUE ) {
+         optInMaxPeriod = 30;
+      } else if( optInMaxPeriod < 1 || optInMaxPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* Identify the minimum number of price bar needed
        * to calculate at least one output.
@@ -227,6 +247,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInMinPeriod == Integer.MIN_VALUE ) {
+         optInMinPeriod = 2;
+      } else if( optInMinPeriod < 1 || optInMinPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInMaxPeriod == Integer.MIN_VALUE ) {
+         optInMaxPeriod = 30;
+      } else if( optInMaxPeriod < 1 || optInMaxPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       lookbackTotal = movingAverageLookback(optInMaxPeriod, optInMAType);
       if( startIdx < lookbackTotal ) {

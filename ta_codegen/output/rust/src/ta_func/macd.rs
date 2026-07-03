@@ -124,6 +124,9 @@ impl Core {
     ///   EMA is always the longer one.
     /// * Under Metastock compatibility mode the EMAs are seeded from the first value instead of a
     ///   simple moving average, which changes all outputs.
+    /// * A signal period of 1 disables signal-line smoothing: the signal equals the MACD line and
+    ///   the histogram is zero. Before 0.6.5 this parameter value produced misaligned output
+    ///   (issues #48/#59).
     ///
     /// # Arguments
     ///

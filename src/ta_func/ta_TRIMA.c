@@ -61,6 +61,10 @@
 
 TA_LIB_API int TA_TRIMA_Lookback( int optInTimePeriod )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 30;
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
+      return -1;
    return optInTimePeriod - 1;
 }
 
@@ -93,7 +97,7 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
       return TA_BAD_PARAM;
    if( (int)optInTimePeriod == (int)0x80000000 )
       optInTimePeriod = 30;
-   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
@@ -507,7 +511,7 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
       return TA_BAD_PARAM;
    if( (int)optInTimePeriod == (int)0x80000000 )
       optInTimePeriod = 30;
-   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;

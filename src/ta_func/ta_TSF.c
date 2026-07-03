@@ -58,6 +58,10 @@
 
 TA_LIB_API int TA_TSF_Lookback( int optInTimePeriod )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 14;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return -1;
    return optInTimePeriod - 1;
 }
 

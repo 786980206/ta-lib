@@ -16,6 +16,11 @@
 
    public int rsiLookback( int optInTimePeriod )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
       int retValue;
       retValue = optInTimePeriod + this.unstablePeriod[FuncUnstId.Rsi.ordinal()];
       if( this.compatibility == Compatibility.Metastock ) {
@@ -48,6 +53,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* The following algorithm is base on the original
        * work from Wilder's and shall represent the
@@ -403,6 +413,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       outBegIdx.value = 0;
       outNBElement.value = 0;

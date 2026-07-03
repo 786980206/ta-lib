@@ -1,4 +1,4 @@
-         static int T3Lookback( int           optInTimePeriod  /* From 2 to 100000 */, double           optInVFactor  /* From 0 to 1 */ );
+         static int T3Lookback( int           optInTimePeriod  /* From 1 to 100000 */, double           optInVFactor  /* From 0 to 1 */ );
 
 #if defined( _MANAGED ) && defined( USE_SUBARRAY )
          static enum class RetCode T3( int    startIdx,

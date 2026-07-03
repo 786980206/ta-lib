@@ -19,6 +19,11 @@
 
    public int movingAverageLookback( int optInTimePeriod, MAType optInMAType )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
       int retValue;
       if( optInTimePeriod <= 1 ) {
          return 0 ;
@@ -78,6 +83,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       if( optInTimePeriod == 1 ) {
          nbElement = endIdx - startIdx + 1;
@@ -206,6 +216,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 30;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       if( optInTimePeriod == 1 ) {
          nbElement = endIdx - startIdx + 1;

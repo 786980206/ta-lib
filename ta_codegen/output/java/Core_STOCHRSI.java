@@ -18,6 +18,21 @@
 
    public int stochRsiLookback( int optInTimePeriod, int optInFastK_Period, int optInFastD_Period, MAType optInFastD_MAType )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return -1;
+      }
+      if( optInFastD_Period == Integer.MIN_VALUE ) {
+         optInFastD_Period = 3;
+      } else if( optInFastD_Period < 1 || optInFastD_Period > 100000 ) {
+         return -1;
+      }
       int retValue;
       retValue = rsiLookback(optInTimePeriod) + stochFLookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
       return retValue ;
@@ -48,6 +63,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInFastD_Period == Integer.MIN_VALUE ) {
+         optInFastD_Period = 3;
+      } else if( optInFastD_Period < 1 || optInFastD_Period > 100000 ) {
+         return RetCode.BadParam;
       }
       /* Stochastic RSI
        *
@@ -178,6 +208,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInFastD_Period == Integer.MIN_VALUE ) {
+         optInFastD_Period = 3;
+      } else if( optInFastD_Period < 1 || optInFastD_Period > 100000 ) {
+         return RetCode.BadParam;
       }
       outBegIdx.value = 0;
       outNBElement.value = 0;

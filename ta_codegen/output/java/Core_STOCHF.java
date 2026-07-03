@@ -16,6 +16,16 @@
 
    public int stochFLookback( int optInFastK_Period, int optInFastD_Period, MAType optInFastD_MAType )
    {
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return -1;
+      }
+      if( optInFastD_Period == Integer.MIN_VALUE ) {
+         optInFastD_Period = 3;
+      } else if( optInFastD_Period < 1 || optInFastD_Period > 100000 ) {
+         return -1;
+      }
       int retValue;
       /* Account for the initial data needed for Fast-K. */
       retValue = optInFastK_Period - 1;
@@ -58,6 +68,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInFastD_Period == Integer.MIN_VALUE ) {
+         optInFastD_Period = 3;
+      } else if( optInFastD_Period < 1 || optInFastD_Period > 100000 ) {
+         return RetCode.BadParam;
       }
       /* With stochastic, there is a total of 4 different lines that
        * are defined: FASTK, FASTD, SLOWK and SLOWD.
@@ -383,6 +403,16 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInFastD_Period == Integer.MIN_VALUE ) {
+         optInFastD_Period = 3;
+      } else if( optInFastD_Period < 1 || optInFastD_Period > 100000 ) {
+         return RetCode.BadParam;
       }
       lookbackK = optInFastK_Period - 1;
       lookbackFastD = movingAverageLookback(optInFastD_Period, optInFastD_MAType);

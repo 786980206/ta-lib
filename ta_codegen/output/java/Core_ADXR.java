@@ -16,6 +16,11 @@
 
    public int adxrLookback( int optInTimePeriod )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
       if( optInTimePeriod > 1 ) {
          return optInTimePeriod + adxLookback(optInTimePeriod) - 1 ;
       } else {
@@ -45,6 +50,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* Original implementation from Wilder's book was doing some integer
        * rounding in its calculations.
@@ -152,6 +162,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       adxrLookback = adxrLookback(optInTimePeriod);
       if( startIdx < adxrLookback ) {

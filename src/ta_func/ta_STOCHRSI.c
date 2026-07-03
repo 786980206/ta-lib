@@ -63,6 +63,20 @@
 TA_LIB_API int TA_STOCHRSI_Lookback( int optInTimePeriod, int optInFastK_Period, int optInFastD_Period, TA_MAType optInFastD_MAType )
 {
    int retValue;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 14;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return -1;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return -1;
+   if( (int)optInFastD_Period == (int)0x80000000 )
+      optInFastD_Period = 3;
+   else if( (int)optInFastD_Period < 1 || (int)optInFastD_Period > 100000 )
+      return -1;
+   if( (int)optInFastD_MAType == (int)0x80000000 )
+      optInFastD_MAType = 0;
    retValue = TA_RSI_Lookback(optInTimePeriod) + TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType);
    return retValue;
 }

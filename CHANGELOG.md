@@ -26,6 +26,7 @@ See [github commits](https://github.com/TA-Lib/ta-lib/commits) for complete list
 - (#70) Documentation index updates. Thanks @kennethjor !
 
 ### Fixed
+- (#48, #59) Fixed period=1 handling. MACD/MACDFIX with `signalPeriod=1`, TRIX and ULTOSC with period 1 used to produce misaligned output (a garbage first value). A period of 1 now consistently means "no smoothing": SMA, EMA, WMA, DEMA, TEMA, TRIMA, KAMA, T3 and MAVP accept a minimum period of 1 and return the input unchanged, MACD-family signal lines with `signalPeriod=1` equal the MACD line (histogram 0). Lookback functions also regained their classic contract (`TA_INTEGER_DEFAULT` maps to the default period; out-of-range returns -1) uniformly across C, Rust, Java and .NET. A new `PERIOD1/BOUNDARY` regression-test group pins all of this, for every backend. Thanks @trufanov-nok for the original analysis and fix in ta-lib-rt!
 - (#68) Corrected a spelling error in the TA_LIB_NOT_INITIALIZE return-code message. Thanks @alteholz !
 - (#62) Fixed an out-of-bounds access in the regression test tooling. Thanks @Lqingyu !
 

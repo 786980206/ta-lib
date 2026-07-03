@@ -3067,8 +3067,8 @@ public class TaCodegenServe {
                 return $"{{\"status\":\"ok\",\"n\":{refN}}}";
             }
 
-            int startIdx = p.GetProperty("startIdx").GetInt32();
-            int endIdx = p.GetProperty("endIdx").GetInt32();
+            int startIdx = p.TryGetProperty("startIdx", out var _startIdxEl) ? _startIdxEl.GetInt32() : 0;
+            int endIdx = p.TryGetProperty("endIdx", out var _endIdxEl) ? _endIdxEl.GetInt32() : 0;
             int n = endIdx - startIdx + 1;
 
             if (method == "TA_ACCBANDS") {

@@ -17,6 +17,14 @@
 
    public int stdDevLookback( int optInTimePeriod, double optInNbDev )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
+      if( optInNbDev == -4e37 ) {
+         optInNbDev = 1e0;
+      }
       /* Lookback is driven by the variance. */
       return varianceLookback(optInTimePeriod, optInNbDev) ;
 
@@ -38,6 +46,14 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInNbDev == -4e37 ) {
+         optInNbDev = 1e0;
       }
       /* Calculate the variance. */
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
@@ -124,6 +140,14 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 2 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInNbDev == -4e37 ) {
+         optInNbDev = 1e0;
       }
       retCode = varianceUnguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( retCode != RetCode.Success ) {

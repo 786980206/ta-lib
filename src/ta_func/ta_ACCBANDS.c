@@ -59,6 +59,10 @@
 
 TA_LIB_API int TA_ACCBANDS_Lookback( int optInTimePeriod )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 20;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return -1;
    return TA_SMA_Lookback(optInTimePeriod);
 }
 

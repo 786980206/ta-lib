@@ -64,6 +64,10 @@ TA_LIB_API int TA_CDLEVENINGSTAR_Lookback( double optInPenetration )
    int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
    int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
    double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
+   if( optInPenetration == -4e37 )
+      optInPenetration = 0.3;
+   else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 )
+      return -1;
    return fmax(BodyShort_avgPeriod,BodyLong_avgPeriod) + 2;
 }
 

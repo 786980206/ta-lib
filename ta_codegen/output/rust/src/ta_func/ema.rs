@@ -70,7 +70,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` — number of bars in the average; sets smoothing k = 2/(period+1)
-    ///   (default 30, range 2..=100000)
+    ///   (default 30, range 1..=100000)
     ///
     /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
     /// to select their default value.
@@ -78,7 +78,7 @@ impl Core {
     pub fn ema_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
         return (optInTimePeriod - 1 + self.unstable_period[FuncUnstId::Ema as usize]) as usize;
@@ -98,6 +98,8 @@ impl Core {
     /// * In Metastock compatibility mode the average is seeded with the first price value and the
     ///   recursion starts at the second bar, rather than the default of seeding with a simple
     ///   average of the first period bars.
+    /// * A period of 1 performs no smoothing: the output is a copy of the input. Allowed since
+    ///   0.6.5 (issues #48/#59).
     ///
     /// # Arguments
     ///
@@ -105,7 +107,7 @@ impl Core {
     /// * `endIdx` — End index of the requested calculation range (inclusive).
     /// * `inReal` — price/data series to smooth.
     /// * `optInTimePeriod` — number of bars in the average; sets smoothing k = 2/(period+1)
-    ///   (default 30, range 2..=100000)
+    ///   (default 30, range 1..=100000)
     /// * `outBegIdx` — Set to the input index of the first output value.
     /// * `outNBElement` — Set to the number of output values written.
     /// * `outReal` — the exponential moving average.
@@ -165,7 +167,7 @@ impl Core {
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
         let mut optInK_1: f64 = 2.0 / ((optInTimePeriod + 1) as f64);

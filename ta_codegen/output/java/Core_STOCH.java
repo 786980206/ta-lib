@@ -15,6 +15,21 @@
 
    public int stochLookback( int optInFastK_Period, int optInSlowK_Period, MAType optInSlowK_MAType, int optInSlowD_Period, MAType optInSlowD_MAType )
    {
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return -1;
+      }
+      if( optInSlowK_Period == Integer.MIN_VALUE ) {
+         optInSlowK_Period = 3;
+      } else if( optInSlowK_Period < 1 || optInSlowK_Period > 100000 ) {
+         return -1;
+      }
+      if( optInSlowD_Period == Integer.MIN_VALUE ) {
+         optInSlowD_Period = 3;
+      } else if( optInSlowD_Period < 1 || optInSlowD_Period > 100000 ) {
+         return -1;
+      }
       int retValue;
       /* Account for the initial data needed for Fast-K. */
       retValue = optInFastK_Period - 1;
@@ -62,6 +77,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowK_Period == Integer.MIN_VALUE ) {
+         optInSlowK_Period = 3;
+      } else if( optInSlowK_Period < 1 || optInSlowK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowD_Period == Integer.MIN_VALUE ) {
+         optInSlowD_Period = 3;
+      } else if( optInSlowD_Period < 1 || optInSlowD_Period > 100000 ) {
+         return RetCode.BadParam;
       }
       /* With stochastic, there is a total of 4 different lines that
        * are defined: FASTK, FASTD, SLOWK and SLOWD.
@@ -402,6 +432,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastK_Period == Integer.MIN_VALUE ) {
+         optInFastK_Period = 5;
+      } else if( optInFastK_Period < 1 || optInFastK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowK_Period == Integer.MIN_VALUE ) {
+         optInSlowK_Period = 3;
+      } else if( optInSlowK_Period < 1 || optInSlowK_Period > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowD_Period == Integer.MIN_VALUE ) {
+         optInSlowD_Period = 3;
+      } else if( optInSlowD_Period < 1 || optInSlowD_Period > 100000 ) {
+         return RetCode.BadParam;
       }
       lookbackK = optInFastK_Period - 1;
       lookbackKSlow = movingAverageLookback(optInSlowK_Period, optInSlowK_MAType);

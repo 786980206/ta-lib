@@ -995,9 +995,10 @@ mod tests {
         assert_eq!(opt.param_type, "integer");
         assert_eq!(opt.display_name, "Time Period");
         assert_eq!(opt.hint, "Number of period");
-        assert_eq!(opt.range, Some((2.0, 100_000.0)));
+        // Period 1 = "no smoothing" is allowed since 0.6.5 (issues #48/#59).
+        assert_eq!(opt.range, Some((1.0, 100_000.0)));
         assert_eq!(opt.default, Some(30.0));
-        assert_eq!(opt.suggested, Some((4.0, 200.0, 1.0)));
+        assert_eq!(opt.suggested, Some((1.0, 200.0, 1.0)));
 
         // Outputs
         assert_eq!(sma.outputs.len(), 1);

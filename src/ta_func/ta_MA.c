@@ -64,6 +64,12 @@
 TA_LIB_API int TA_MA_Lookback( int optInTimePeriod, TA_MAType optInMAType )
 {
    int retValue;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 30;
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
+      return -1;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
    if( optInTimePeriod <= 1 )
    {
       return 0;

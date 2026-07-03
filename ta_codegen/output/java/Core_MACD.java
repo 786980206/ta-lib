@@ -16,6 +16,21 @@
 
    public int macdLookback( int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod )
    {
+      if( optInFastPeriod == Integer.MIN_VALUE ) {
+         optInFastPeriod = 12;
+      } else if( optInFastPeriod < 2 || optInFastPeriod > 100000 ) {
+         return -1;
+      }
+      if( optInSlowPeriod == Integer.MIN_VALUE ) {
+         optInSlowPeriod = 26;
+      } else if( optInSlowPeriod < 2 || optInSlowPeriod > 100000 ) {
+         return -1;
+      }
+      if( optInSignalPeriod == Integer.MIN_VALUE ) {
+         optInSignalPeriod = 9;
+      } else if( optInSignalPeriod < 1 || optInSignalPeriod > 100000 ) {
+         return -1;
+      }
       int tempInteger;
       /* The lookback is driven by the signal line output.
        *
@@ -66,6 +81,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastPeriod == Integer.MIN_VALUE ) {
+         optInFastPeriod = 12;
+      } else if( optInFastPeriod < 2 || optInFastPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowPeriod == Integer.MIN_VALUE ) {
+         optInSlowPeriod = 26;
+      } else if( optInSlowPeriod < 2 || optInSlowPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSignalPeriod == Integer.MIN_VALUE ) {
+         optInSignalPeriod = 9;
+      } else if( optInSignalPeriod < 1 || optInSignalPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /* !!! A lot of speed optimization could be done
        * !!! with this function.
@@ -337,6 +367,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInFastPeriod == Integer.MIN_VALUE ) {
+         optInFastPeriod = 12;
+      } else if( optInFastPeriod < 2 || optInFastPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSlowPeriod == Integer.MIN_VALUE ) {
+         optInSlowPeriod = 26;
+      } else if( optInSlowPeriod < 2 || optInSlowPeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInSignalPeriod == Integer.MIN_VALUE ) {
+         optInSignalPeriod = 9;
+      } else if( optInSignalPeriod < 1 || optInSignalPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       if( optInSlowPeriod < optInFastPeriod ) {
          tempInteger = optInSlowPeriod;

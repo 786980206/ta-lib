@@ -15,6 +15,21 @@
 
    public int ultOscLookback( int optInTimePeriod1, int optInTimePeriod2, int optInTimePeriod3 )
    {
+      if( optInTimePeriod1 == Integer.MIN_VALUE ) {
+         optInTimePeriod1 = 7;
+      } else if( optInTimePeriod1 < 1 || optInTimePeriod1 > 100000 ) {
+         return -1;
+      }
+      if( optInTimePeriod2 == Integer.MIN_VALUE ) {
+         optInTimePeriod2 = 14;
+      } else if( optInTimePeriod2 < 1 || optInTimePeriod2 > 100000 ) {
+         return -1;
+      }
+      if( optInTimePeriod3 == Integer.MIN_VALUE ) {
+         optInTimePeriod3 = 28;
+      } else if( optInTimePeriod3 < 1 || optInTimePeriod3 > 100000 ) {
+         return -1;
+      }
       int maxPeriod;
       /* Lookback for the Ultimate Oscillator is the lookback of the SMA with the longest
        * time period, plus 1 for the True Range.
@@ -67,6 +82,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod1 == Integer.MIN_VALUE ) {
+         optInTimePeriod1 = 7;
+      } else if( optInTimePeriod1 < 1 || optInTimePeriod1 > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInTimePeriod2 == Integer.MIN_VALUE ) {
+         optInTimePeriod2 = 14;
+      } else if( optInTimePeriod2 < 1 || optInTimePeriod2 > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInTimePeriod3 == Integer.MIN_VALUE ) {
+         optInTimePeriod3 = 28;
+      } else if( optInTimePeriod3 < 1 || optInTimePeriod3 > 100000 ) {
+         return RetCode.BadParam;
       }
       outBegIdx.value = 0;
       outNBElement.value = 0;
@@ -539,6 +569,21 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod1 == Integer.MIN_VALUE ) {
+         optInTimePeriod1 = 7;
+      } else if( optInTimePeriod1 < 1 || optInTimePeriod1 > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInTimePeriod2 == Integer.MIN_VALUE ) {
+         optInTimePeriod2 = 14;
+      } else if( optInTimePeriod2 < 1 || optInTimePeriod2 > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInTimePeriod3 == Integer.MIN_VALUE ) {
+         optInTimePeriod3 = 28;
+      } else if( optInTimePeriod3 < 1 || optInTimePeriod3 > 100000 ) {
+         return RetCode.BadParam;
       }
       outBegIdx.value = 0;
       outNBElement.value = 0;

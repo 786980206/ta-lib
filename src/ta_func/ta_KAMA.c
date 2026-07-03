@@ -51,17 +51,30 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
- *  062704 MF   Fix limit case to avoid divid by zero (or by
- *              a value close to zero induce by the imprecision
- *              of floating points).
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  062704 MF     Fix limit case to avoid divid by zero (or by
+ *                a value close to zero induce by the imprecision
+ *                of floating points).
+ *  070226 MF,CC  Allow period of 1: output is a copy of the input,
+ *                consistent with TA_MA (issues #48, #59). The natural
+ *                KAMA math at period=1 would be a fixed-alpha EMA
+ *                (efficiency ratio is always 1), which would disagree
+ *                with TA_MA's period-1 copy, so identity is explicit.
  */
 
 TA_LIB_API int TA_KAMA_Lookback( int optInTimePeriod )
 {
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 30;
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
+      return -1;
+   if( optInTimePeriod == 1 )
+   {
+      return TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+   }
    return optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
 }
 
@@ -96,7 +109,7 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
       return TA_BAD_PARAM;
    if( (int)optInTimePeriod == (int)0x80000000 )
       optInTimePeriod = 30;
-   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
@@ -106,6 +119,31 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
    /* Default return values */
    *outBegIdx= 0;
    *outNBElement= 0;
+   /* No smoothing at period of 1: the output is a copy of the input
+    * (same convention as TA_MA for every MAType). The unstable period
+    * still delays the first output for API consistency.
+    */
+   if( optInTimePeriod == 1 )
+   {
+      lookbackTotal = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+      if( startIdx < lookbackTotal )
+      {
+         startIdx = lookbackTotal;
+      }
+      if( startIdx > endIdx )
+      {
+         return TA_SUCCESS;
+      }
+      *outBegIdx= startIdx;
+      outIdx = 0;
+      today = startIdx;
+      while( today <= endIdx )
+      {
+         outReal[outIdx++] = inReal[today++];
+      }
+      *outNBElement= outIdx;
+      return TA_SUCCESS;
+   }
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
@@ -270,6 +308,27 @@ TA_LIB_API TA_RetCode TA_KAMA_Unguarded( int    startIdx,
    constDiff = 2.0 / (2.0 + 1.0) - constMax;
    *outBegIdx= 0;
    *outNBElement= 0;
+   if( optInTimePeriod == 1 )
+   {
+      lookbackTotal = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+      if( startIdx < lookbackTotal )
+      {
+         startIdx = lookbackTotal;
+      }
+      if( startIdx > endIdx )
+      {
+         return TA_SUCCESS;
+      }
+      *outBegIdx= startIdx;
+      outIdx = 0;
+      today = startIdx;
+      while( today <= endIdx )
+      {
+         outReal[outIdx++] = inReal[today++];
+      }
+      *outNBElement= outIdx;
+      return TA_SUCCESS;
+   }
    lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
    if( startIdx < lookbackTotal )
    {
@@ -383,7 +442,7 @@ TA_RetCode TA_S_KAMA( int    startIdx,
       return TA_BAD_PARAM;
    if( (int)optInTimePeriod == (int)0x80000000 )
       optInTimePeriod = 30;
-   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+   else if( (int)optInTimePeriod < 1 || (int)optInTimePeriod > 100000 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
@@ -392,6 +451,27 @@ TA_RetCode TA_S_KAMA( int    startIdx,
    constDiff = 2.0 / (2.0 + 1.0) - constMax;
    *outBegIdx= 0;
    *outNBElement= 0;
+   if( optInTimePeriod == 1 )
+   {
+      lookbackTotal = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+      if( startIdx < lookbackTotal )
+      {
+         startIdx = lookbackTotal;
+      }
+      if( startIdx > endIdx )
+      {
+         return TA_SUCCESS;
+      }
+      *outBegIdx= startIdx;
+      outIdx = 0;
+      today = startIdx;
+      while( today <= endIdx )
+      {
+         outReal[outIdx++] = inReal[today++];
+      }
+      *outNBElement= outIdx;
+      return TA_SUCCESS;
+   }
    lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
    if( startIdx < lookbackTotal )
    {
@@ -500,6 +580,27 @@ TA_RetCode TA_S_KAMA_Unguarded( int    startIdx,
    constDiff = 2.0 / (2.0 + 1.0) - constMax;
    *outBegIdx= 0;
    *outNBElement= 0;
+   if( optInTimePeriod == 1 )
+   {
+      lookbackTotal = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
+      if( startIdx < lookbackTotal )
+      {
+         startIdx = lookbackTotal;
+      }
+      if( startIdx > endIdx )
+      {
+         return TA_SUCCESS;
+      }
+      *outBegIdx= startIdx;
+      outIdx = 0;
+      today = startIdx;
+      while( today <= endIdx )
+      {
+         outReal[outIdx++] = inReal[today++];
+      }
+      *outNBElement= outIdx;
+      return TA_SUCCESS;
+   }
    lookbackTotal = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_KAMA,Kama);
    if( startIdx < lookbackTotal )
    {

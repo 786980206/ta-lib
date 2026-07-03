@@ -126,6 +126,8 @@ impl Core {
     ///
     /// * If the slow period is set smaller than the fast period, the fast and slow periods and
     ///   their MA types are swapped so the slow moving average is always the longer one.
+    /// * A signal period of 1 disables signal-line smoothing for every signal MAType: the signal
+    ///   equals the MACD line and the histogram is zero.
     ///
     /// # Arguments
     ///

@@ -371,6 +371,60 @@ fn java_type_str(var_type: &VarType) -> &'static str {
     }
 }
 
+/// Optional-parameter validation prologue (Java): map the Integer.MIN_VALUE /
+/// TA_REAL_DEFAULT sentinels to the documented default value, then reject
+/// out-of-range values. One source of truth for both variants: guarded
+/// functions fail with `RetCode.BadParam`, lookback functions fail with `-1`
+/// (the classic lookback bad-param contract). Enum params (e.g. MAType) need
+/// no validation in Java — the type system already constrains them.
+fn emit_opt_param_validation(func: &FuncDef, fail: &str) -> String {
+    let mut out = String::new();
+    for opt in &func.optional_inputs {
+        match &opt.param_type {
+            ParamType::Integer => {
+                if let Some(default_val) = opt.default {
+                    out.push_str(&format!(
+                        "      if( {name} == Integer.MIN_VALUE ) {{\n         {name} = {val};\n      }}",
+                        name = opt.name,
+                        val = default_val as i32
+                    ));
+                    if let Some((min, max)) = opt.range {
+                        let min_i = min as i32;
+                        let max_i = max as i32;
+                        out.push_str(&format!(
+                            " else if( {name} < {min_i} || {name} > {max_i} ) {{\n         return {fail};\n      }}",
+                            name = opt.name
+                        ));
+                    }
+                    out.push('\n');
+                }
+            }
+            ParamType::Real => {
+                if let Some(default_val) = opt.default {
+                    out.push_str(&format!(
+                        "      if( {name} == -4e37 ) {{\n         {name} = {val:e};\n      }}",
+                        name = opt.name,
+                        val = default_val
+                    ));
+                    if let Some((min, max)) = opt.range {
+                        // Skip unbounded ranges (f64::MIN/MAX = no real constraint)
+                        if min > f64::MIN / 2.0 || max < f64::MAX / 2.0 {
+                            out.push_str(&format!(
+                                " else if( {name} < {min:e} || {name} > {max:e} ) {{\n         return {fail};\n      }}",
+                                name = opt.name
+                            ));
+                        }
+                    }
+                    out.push('\n');
+                }
+            }
+            ParamType::Enum(_) => {}
+            ParamType::Price(_) => {}
+        }
+    }
+    out
+}
+
 fn gen_lookback(
     func: &FuncDef,
     enums: &HashMap<String, EnumDef>,
@@ -399,13 +453,19 @@ fn gen_lookback(
         format!(" {} ", params.join(", "))
     };
 
+    // Same param validation as the guarded function, with the lookback
+    // bad-param contract: out-of-range returns -1.
+    let validation = emit_opt_param_validation(func, "-1");
+
     let body = match &func.lookback {
-        Some(LookbackExpr::Literal(n)) => format!("      return {n};"),
+        Some(LookbackExpr::Literal(n)) => format!("{validation}      return {n};"),
         Some(LookbackExpr::ParamMinus(param, offset)) => {
-            format!("      return {param} - {offset};")
+            format!("{validation}      return {param} - {offset};")
         }
-        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts, enums, registry, helpers),
-        None => "      return 0;".to_string(),
+        Some(LookbackExpr::Code(stmts)) => {
+            format!("{validation}{}", render_lookback_code(stmts, enums, registry, helpers))
+        }
+        None => format!("{validation}      return 0;"),
     };
 
     format!(
@@ -694,6 +754,8 @@ fn gen_func_inner(
         out.push_str("      if( (endIdx < 0) || (endIdx < startIdx)) {\n");
         out.push_str("         return RetCode.OutOfRangeEndIndex ;\n");
         out.push_str("      }\n");
+        // Optional parameter validation (default + range)
+        out.push_str(&emit_opt_param_validation(func, "RetCode.BadParam"));
     }
 
     let inline_counter = Cell::new(0);

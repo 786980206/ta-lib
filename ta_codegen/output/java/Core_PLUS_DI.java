@@ -20,6 +20,11 @@
 
    public int plusDILookback( int optInTimePeriod )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
       if( optInTimePeriod > 1 ) {
          return optInTimePeriod + this.unstablePeriod[FuncUnstId.PlusDI.ordinal()] ;
       } else {
@@ -55,6 +60,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       /*
        * The DM1 (one period) is base on the largest part of
@@ -558,6 +568,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 14;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       if( optInTimePeriod > 1 ) {
          lookbackTotal = optInTimePeriod + this.unstablePeriod[FuncUnstId.PlusDI.ordinal()];

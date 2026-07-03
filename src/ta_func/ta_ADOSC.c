@@ -60,6 +60,14 @@
 TA_LIB_API int TA_ADOSC_Lookback( int optInFastPeriod, int optInSlowPeriod )
 {
    int slowestPeriod;
+   if( (int)optInFastPeriod == (int)0x80000000 )
+      optInFastPeriod = 3;
+   else if( (int)optInFastPeriod < 2 || (int)optInFastPeriod > 100000 )
+      return -1;
+   if( (int)optInSlowPeriod == (int)0x80000000 )
+      optInSlowPeriod = 10;
+   else if( (int)optInSlowPeriod < 2 || (int)optInSlowPeriod > 100000 )
+      return -1;
    /* Use the slowest EMA period to evaluate the total lookback. */
    if( optInFastPeriod < optInSlowPeriod )
    {

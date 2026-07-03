@@ -60,6 +60,22 @@
 TA_LIB_API int TA_STOCH_Lookback( int optInFastK_Period, int optInSlowK_Period, TA_MAType optInSlowK_MAType, int optInSlowD_Period, TA_MAType optInSlowD_MAType )
 {
    int retValue;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return -1;
+   if( (int)optInSlowK_Period == (int)0x80000000 )
+      optInSlowK_Period = 3;
+   else if( (int)optInSlowK_Period < 1 || (int)optInSlowK_Period > 100000 )
+      return -1;
+   if( (int)optInSlowK_MAType == (int)0x80000000 )
+      optInSlowK_MAType = 0;
+   if( (int)optInSlowD_Period == (int)0x80000000 )
+      optInSlowD_Period = 3;
+   else if( (int)optInSlowD_Period < 1 || (int)optInSlowD_Period > 100000 )
+      return -1;
+   if( (int)optInSlowD_MAType == (int)0x80000000 )
+      optInSlowD_MAType = 0;
    /* Account for the initial data needed for Fast-K. */
    retValue = optInFastK_Period - 1;
    /* Add the smoothing being done for %K slow */

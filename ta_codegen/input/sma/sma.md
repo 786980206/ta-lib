@@ -8,6 +8,10 @@ Simple Moving Average: the unweighted arithmetic mean of the last N input values
 
 SMA_t = (1/N) * sum_{i=t-N+1}^{t} inReal_i
 
+## Notes
+
+- A period of 1 performs no smoothing: the output is a copy of the input. Allowed since 0.6.5 (issues #48/#59).
+
 ## Inputs
 
 - `inReal` — Source series to average

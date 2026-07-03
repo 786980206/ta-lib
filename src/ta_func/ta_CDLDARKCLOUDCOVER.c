@@ -61,6 +61,10 @@ TA_LIB_API int TA_CDLDARKCLOUDCOVER_Lookback( double optInPenetration )
    int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
    int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
    double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   if( optInPenetration == -4e37 )
+      optInPenetration = 0.5;
+   else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 )
+      return -1;
    return BodyLong_avgPeriod + 1;
 }
 

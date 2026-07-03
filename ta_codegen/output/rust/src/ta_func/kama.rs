@@ -48,13 +48,18 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
- *  062704 MF   Fix limit case to avoid divid by zero (or by
- *              a value close to zero induce by the imprecision
- *              of floating points).
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  062704 MF     Fix limit case to avoid divid by zero (or by
+ *                a value close to zero induce by the imprecision
+ *                of floating points).
+ *  070226 MF,CC  Allow period of 1: output is a copy of the input,
+ *                consistent with TA_MA (issues #48, #59). The natural
+ *                KAMA math at period=1 would be a fixed-alpha EMA
+ *                (efficiency ratio is always 1), which would disagree
+ *                with TA_MA's period-1 copy, so identity is explicit.
  */
 
 // Import types from parent module
@@ -73,7 +78,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` — Lookback window for the efficiency ratio (default 30, range
-    ///   2..=100000)
+    ///   1..=100000)
     ///
     /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
     /// to select their default value.
@@ -81,8 +86,11 @@ impl Core {
     pub fn kama_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
+        }
+        if optInTimePeriod == 1 {
+            return (self.unstable_period[FuncUnstId::Kama as usize]) as usize;
         }
         return (optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize]) as usize;
     }
@@ -99,13 +107,20 @@ impl Core {
     /// KAMA[t] = KAMA[t-1] + SC*(price[t] - KAMA[t-1])
     /// ```
     ///
+    /// # Notes
+    ///
+    /// * A period of 1 performs no smoothing: the output is a copy of the input, consistent with
+    ///   `MA(period=1)` for every MAType. (The natural KAMA math at period 1 would degenerate to a
+    ///   fixed-alpha EMA because the efficiency ratio is always 1, so the copy is made explicit.)
+    ///   Allowed since 0.6.5.
+    ///
     /// # Arguments
     ///
     /// * `startIdx` — Start index of the requested calculation range.
     /// * `endIdx` — End index of the requested calculation range (inclusive).
     /// * `inReal` — Source price series.
     /// * `optInTimePeriod` — Lookback window for the efficiency ratio (default 30, range
-    ///   2..=100000)
+    ///   1..=100000)
     /// * `outBegIdx` — Set to the input index of the first output value.
     /// * `outNBElement` — Set to the number of output values written.
     /// * `outReal` — Adaptive moving average line.
@@ -163,7 +178,7 @@ impl Core {
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
         let mut startIdx = startIdx;
@@ -185,6 +200,27 @@ impl Core {
         // Default return values
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
+        // No smoothing at period of 1: the output is a copy of the input
+        // (same convention as TA_MA for every MAType). The unstable period
+        // still delays the first output for API consistency.
+        if optInTimePeriod == 1 {
+            lookbackTotal = (self.unstable_period[FuncUnstId::Kama as usize]) as usize;
+            if startIdx < lookbackTotal {
+                startIdx = lookbackTotal;
+            }
+            if startIdx > endIdx {
+                return RetCode::Success;
+            }
+            (*outBegIdx) = startIdx;
+            outIdx = 0;
+            today = startIdx;
+            while today <= endIdx {
+                outReal[outIdx] = ((inReal[{ let _v = today; today += 1; _v }]) as f64);
+                outIdx += 1;
+            }
+            (*outNBElement) = outIdx;
+            return RetCode::Success;
+        }
         // Identify the minimum number of price bar needed
         // to calculate at least one output.
         lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize]) as usize;
@@ -335,6 +371,24 @@ impl Core {
         constDiff = 2.0 / (2.0 + 1.0) - constMax;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
+        if optInTimePeriod == 1 {
+            lookbackTotal = (self.unstable_period[FuncUnstId::Kama as usize]) as usize;
+            if startIdx < lookbackTotal {
+                startIdx = lookbackTotal;
+            }
+            if startIdx > endIdx {
+                return RetCode::Success;
+            }
+            (*outBegIdx) = startIdx;
+            outIdx = 0;
+            today = startIdx;
+            while today <= endIdx {
+                *outReal.as_mut_ptr().add(outIdx) = ((*inReal.as_ptr().add({ let _v = today; today += 1; _v })) as f64);
+                outIdx += 1;
+            }
+            (*outNBElement) = outIdx;
+            return RetCode::Success;
+        }
         lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

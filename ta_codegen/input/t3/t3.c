@@ -7,15 +7,20 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  032003 MHL  Implementation of T3
- *  040503 MF   Adapt for compatibility with published code
- *              for TradeStation and Metastock.
- *              See "Smoothing Techniques For More Accurate Signals"
- *              from Tim Tillson in Stock&Commodities V16:1 Page 33-37
- *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  120802 MF     Template creation.
+ *  032003 MHL    Implementation of T3
+ *  040503 MF     Adapt for compatibility with published code
+ *                for TradeStation and Metastock.
+ *                See "Smoothing Techniques For More Accurate Signals"
+ *                from Tim Tillson in Stock&Commodities V16:1 Page 33-37
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070226 MF,CC  Allow period of 1: output is an exact copy of the
+ *                input, consistent with TA_MA (issues #48, #59). The
+ *                natural math is only near-identity at period=1: the
+ *                coefficients sum to 1 in real arithmetic but not in
+ *                floating point (~1e-14 drift), so the copy is explicit.
  */
 
 int t3_lookback(int           optInTimePeriod,                                           double        optInVFactor)
@@ -59,6 +64,22 @@ TA_RetCode t3(int startIdx, int endIdx, const double inReal[], int optInTimePeri
    {
       *outNBElement = 0;
       *outBegIdx = 0;
+      return TA_SUCCESS;
+   }
+
+   /* No smoothing at period of 1: the output is a copy of the input
+    * (same convention as TA_MA for every MAType). Explicit because the
+    * coefficients below sum to 1 only in real arithmetic; going through
+    * the math would leave ~1e-14 floating-point drift on every value.
+    */
+   if( optInTimePeriod == 1 )
+   {
+      *outBegIdx = startIdx;
+      outIdx = 0;
+      today = startIdx;
+      while( today <= endIdx )
+         outReal[outIdx++] = inReal[today++];
+      *outNBElement = outIdx;
       return TA_SUCCESS;
    }
 

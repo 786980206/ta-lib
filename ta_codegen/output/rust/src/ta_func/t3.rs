@@ -48,15 +48,20 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  032003 MHL  Implementation of T3
- *  040503 MF   Adapt for compatibility with published code
- *              for TradeStation and Metastock.
- *              See "Smoothing Techniques For More Accurate Signals"
- *              from Tim Tillson in Stock&Commodities V16:1 Page 33-37
- *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  120802 MF     Template creation.
+ *  032003 MHL    Implementation of T3
+ *  040503 MF     Adapt for compatibility with published code
+ *                for TradeStation and Metastock.
+ *                See "Smoothing Techniques For More Accurate Signals"
+ *                from Tim Tillson in Stock&Commodities V16:1 Page 33-37
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070226 MF,CC  Allow period of 1: output is an exact copy of the
+ *                input, consistent with TA_MA (issues #48, #59). The
+ *                natural math is only near-identity at period=1: the
+ *                coefficients sum to 1 in real arithmetic but not in
+ *                floating point (~1e-14 drift), so the copy is explicit.
  */
 
 // Import types from parent module
@@ -74,7 +79,7 @@ impl Core {
     ///
     /// # Arguments
     ///
-    /// * `optInTimePeriod` — EMA period for each of the six stages (default 5, range 2..=100000)
+    /// * `optInTimePeriod` — EMA period for each of the six stages (default 5, range 1..=100000)
     /// * `optInVFactor` — Volume factor weighting the coefficients (0 = plain triple EMA, higher
     ///   = more DEMA-like sharpening) (default 0.7, range 0..=1)
     ///
@@ -84,7 +89,7 @@ impl Core {
     pub fn t3_lookback(&self, mut optInTimePeriod: i32, mut optInVFactor: f64) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 5;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
         return (6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize]) as usize;
@@ -101,12 +106,17 @@ impl Core {
     /// T3 = c1*e6 + c2*e5 + c3*e4 + c4*e3
     /// ```
     ///
+    /// # Notes
+    ///
+    /// * A period of 1 performs no smoothing: the output is a copy of the input. Allowed since
+    ///   0.6.5 (issues #48/#59).
+    ///
     /// # Arguments
     ///
     /// * `startIdx` — Start index of the requested calculation range.
     /// * `endIdx` — End index of the requested calculation range (inclusive).
     /// * `inReal` — Source series to smooth.
-    /// * `optInTimePeriod` — EMA period for each of the six stages (default 5, range 2..=100000)
+    /// * `optInTimePeriod` — EMA period for each of the six stages (default 5, range 1..=100000)
     /// * `optInVFactor` — Volume factor weighting the coefficients (0 = plain triple EMA, higher
     ///   = more DEMA-like sharpening) (default 0.7, range 0..=1)
     /// * `outBegIdx` — Set to the input index of the first output value.
@@ -167,7 +177,7 @@ impl Core {
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 5;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
         let mut startIdx = startIdx;
@@ -211,6 +221,21 @@ impl Core {
         if startIdx > endIdx {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
+            return RetCode::Success;
+        }
+        // No smoothing at period of 1: the output is a copy of the input
+        // (same convention as TA_MA for every MAType). Explicit because the
+        // coefficients below sum to 1 only in real arithmetic; going through
+        // the math would leave ~1e-14 floating-point drift on every value.
+        if optInTimePeriod == 1 {
+            (*outBegIdx) = startIdx;
+            outIdx = 0;
+            today = startIdx;
+            while today <= endIdx {
+                outReal[outIdx] = ((inReal[{ let _v = today; today += 1; _v }]) as f64);
+                outIdx += 1;
+            }
+            (*outNBElement) = outIdx;
             return RetCode::Success;
         }
         (*outBegIdx) = startIdx;
@@ -367,6 +392,17 @@ impl Core {
         if startIdx > endIdx {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
+            return RetCode::Success;
+        }
+        if optInTimePeriod == 1 {
+            (*outBegIdx) = startIdx;
+            outIdx = 0;
+            today = startIdx;
+            while today <= endIdx {
+                *outReal.as_mut_ptr().add(outIdx) = ((*inReal.as_ptr().add({ let _v = today; today += 1; _v })) as f64);
+                outIdx += 1;
+            }
+            (*outNBElement) = outIdx;
             return RetCode::Success;
         }
         (*outBegIdx) = startIdx;

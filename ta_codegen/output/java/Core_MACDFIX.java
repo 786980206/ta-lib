@@ -15,6 +15,11 @@
 
    public int macdFixLookback( int optInSignalPeriod )
    {
+      if( optInSignalPeriod == Integer.MIN_VALUE ) {
+         optInSignalPeriod = 9;
+      } else if( optInSignalPeriod < 1 || optInSignalPeriod > 100000 ) {
+         return -1;
+      }
       /* The lookback is driven by the signal line output.
        *
        * (must also account for the initial data consume
@@ -38,6 +43,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInSignalPeriod == Integer.MIN_VALUE ) {
+         optInSignalPeriod = 9;
+      } else if( optInSignalPeriod < 1 || optInSignalPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
       /* 0 indicate fix 12 == 0.15  for optInFastPeriod */
@@ -70,6 +80,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInSignalPeriod == Integer.MIN_VALUE ) {
+         optInSignalPeriod = 9;
+      } else if( optInSignalPeriod < 1 || optInSignalPeriod > 100000 ) {
+         return RetCode.BadParam;
       }
       return macdUnguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
    }

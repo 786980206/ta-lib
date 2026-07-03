@@ -1,4 +1,4 @@
-         static int MavpLookback( int           optInMinPeriod  /* From 2 to 100000 */, int           optInMaxPeriod  /* From 2 to 100000 */, int           optInMAType );
+         static int MavpLookback( int           optInMinPeriod  /* From 1 to 100000 */, int           optInMaxPeriod  /* From 1 to 100000 */, int           optInMAType );
 
 #if defined( _MANAGED ) && defined( USE_SUBARRAY )
          static enum class RetCode Mavp( int    startIdx,

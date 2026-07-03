@@ -133,6 +133,10 @@ impl Core {
     /// outReal = MA_of_type(optInMAType)(inReal, optInTimePeriod); default type = SMA
     /// ```
     ///
+    /// # Notes
+    ///
+    /// * A period of 1 performs no smoothing for every MAType: the output is a copy of the input.
+    ///
     /// # Arguments
     ///
     /// * `startIdx` — Start index of the requested calculation range.

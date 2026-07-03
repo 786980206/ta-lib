@@ -60,6 +60,18 @@
 TA_LIB_API int TA_ULTOSC_Lookback( int optInTimePeriod1, int optInTimePeriod2, int optInTimePeriod3 )
 {
    int maxPeriod;
+   if( (int)optInTimePeriod1 == (int)0x80000000 )
+      optInTimePeriod1 = 7;
+   else if( (int)optInTimePeriod1 < 1 || (int)optInTimePeriod1 > 100000 )
+      return -1;
+   if( (int)optInTimePeriod2 == (int)0x80000000 )
+      optInTimePeriod2 = 14;
+   else if( (int)optInTimePeriod2 < 1 || (int)optInTimePeriod2 > 100000 )
+      return -1;
+   if( (int)optInTimePeriod3 == (int)0x80000000 )
+      optInTimePeriod3 = 28;
+   else if( (int)optInTimePeriod3 < 1 || (int)optInTimePeriod3 > 100000 )
+      return -1;
    /* Lookback for the Ultimate Oscillator is the lookback of the SMA with the longest
     * time period, plus 1 for the True Range.
     */

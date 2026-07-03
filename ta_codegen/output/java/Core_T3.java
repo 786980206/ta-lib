@@ -7,19 +7,34 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  032003 MHL  Implementation of T3
- *  040503 MF   Adapt for compatibility with published code
- *              for TradeStation and Metastock.
- *              See "Smoothing Techniques For More Accurate Signals"
- *              from Tim Tillson in Stock&Commodities V16:1 Page 33-37
- *  052603 MF   Adapt code to compile with .NET Managed C++
+ *  120802 MF     Template creation.
+ *  032003 MHL    Implementation of T3
+ *  040503 MF     Adapt for compatibility with published code
+ *                for TradeStation and Metastock.
+ *                See "Smoothing Techniques For More Accurate Signals"
+ *                from Tim Tillson in Stock&Commodities V16:1 Page 33-37
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  070226 MF,CC  Allow period of 1: output is an exact copy of the
+ *                input, consistent with TA_MA (issues #48, #59). The
+ *                natural math is only near-identity at period=1: the
+ *                coefficients sum to 1 in real arithmetic but not in
+ *                floating point (~1e-14 drift), so the copy is explicit.
  */
 
    public int t3Lookback( int optInTimePeriod, double optInVFactor )
    {
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return -1;
+      }
+      if( optInVFactor == -4e37 ) {
+         optInVFactor = 7e-1;
+      } else if( optInVFactor < 0e0 || optInVFactor > 1e0 ) {
+         return -1;
+      }
       return 6 * (optInTimePeriod - 1) + this.unstablePeriod[FuncUnstId.T3.ordinal()] ;
 
    }
@@ -55,6 +70,16 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInVFactor == -4e37 ) {
+         optInVFactor = 7e-1;
+      } else if( optInVFactor < 0e0 || optInVFactor > 1e0 ) {
+         return RetCode.BadParam;
+      }
       /* For an explanation of this function, please read:
        *
        * Magazine articles written by Tim Tillson
@@ -79,6 +104,21 @@
       if( startIdx > endIdx ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
+         return RetCode.Success ;
+      }
+      /* No smoothing at period of 1: the output is a copy of the input
+       * (same convention as TA_MA for every MAType). Explicit because the
+       * coefficients below sum to 1 only in real arithmetic; going through
+       * the math would leave ~1e-14 floating-point drift on every value.
+       */
+      if( optInTimePeriod == 1 ) {
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
@@ -206,6 +246,16 @@
          outBegIdx.value = 0;
          return RetCode.Success ;
       }
+      if( optInTimePeriod == 1 ) {
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
+         return RetCode.Success ;
+      }
       outBegIdx.value = startIdx;
       today = startIdx - lookbackTotal;
       k = 2.0 / (optInTimePeriod + 1.0);
@@ -314,6 +364,16 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
+      if( optInTimePeriod == Integer.MIN_VALUE ) {
+         optInTimePeriod = 5;
+      } else if( optInTimePeriod < 1 || optInTimePeriod > 100000 ) {
+         return RetCode.BadParam;
+      }
+      if( optInVFactor == -4e37 ) {
+         optInVFactor = 7e-1;
+      } else if( optInVFactor < 0e0 || optInVFactor > 1e0 ) {
+         return RetCode.BadParam;
+      }
       lookbackTotal = 6 * (optInTimePeriod - 1) + this.unstablePeriod[FuncUnstId.T3.ordinal()];
       if( startIdx <= lookbackTotal ) {
          startIdx = lookbackTotal;
@@ -321,6 +381,16 @@
       if( startIdx > endIdx ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
+         return RetCode.Success ;
+      }
+      if( optInTimePeriod == 1 ) {
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;
@@ -432,6 +502,16 @@
       if( startIdx > endIdx ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
+         return RetCode.Success ;
+      }
+      if( optInTimePeriod == 1 ) {
+         outBegIdx.value = startIdx;
+         outIdx = 0;
+         today = startIdx;
+         while( today <= endIdx ) {
+            outReal[outIdx++] = inReal[today++];
+         }
+         outNBElement.value = outIdx;
          return RetCode.Success ;
       }
       outBegIdx.value = startIdx;

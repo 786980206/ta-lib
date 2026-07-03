@@ -7,17 +7,25 @@
  *
  * Change history:
  *
- *  MMDDYY BY   Description
+ *  MMDDYY BY     Description
  *  -------------------------------------------------------------------
- *  120802 MF   Template creation.
- *  052603 MF   Adapt code to compile with .NET Managed C++
- *  062704 MF   Fix limit case to avoid divid by zero (or by
- *              a value close to zero induce by the imprecision
- *              of floating points).
+ *  120802 MF     Template creation.
+ *  052603 MF     Adapt code to compile with .NET Managed C++
+ *  062704 MF     Fix limit case to avoid divid by zero (or by
+ *                a value close to zero induce by the imprecision
+ *                of floating points).
+ *  070226 MF,CC  Allow period of 1: output is a copy of the input,
+ *                consistent with TA_MA (issues #48, #59). The natural
+ *                KAMA math at period=1 would be a fixed-alpha EMA
+ *                (efficiency ratio is always 1), which would disagree
+ *                with TA_MA's period-1 copy, so identity is explicit.
  */
 
 int kama_lookback(int           optInTimePeriod)
 {
+   if( optInTimePeriod == 1 )
+      return TA_GetUnstablePeriod(TA_FUNC_UNST_KAMA);
+
    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_KAMA);
 }
 
@@ -35,6 +43,27 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
    /* Default return values */
    *outBegIdx = 0;
    *outNBElement = 0;
+
+   /* No smoothing at period of 1: the output is a copy of the input
+    * (same convention as TA_MA for every MAType). The unstable period
+    * still delays the first output for API consistency.
+    */
+   if( optInTimePeriod == 1 )
+   {
+      lookbackTotal = TA_GetUnstablePeriod(TA_FUNC_UNST_KAMA);
+      if( startIdx < lookbackTotal )
+         startIdx = lookbackTotal;
+      if( startIdx > endIdx )
+         return TA_SUCCESS;
+
+      *outBegIdx = startIdx;
+      outIdx = 0;
+      today = startIdx;
+      while( today <= endIdx )
+         outReal[outIdx++] = inReal[today++];
+      *outNBElement = outIdx;
+      return TA_SUCCESS;
+   }
 
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.

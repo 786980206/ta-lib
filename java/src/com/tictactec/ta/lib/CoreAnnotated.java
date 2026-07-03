@@ -4609,9 +4609,9 @@ public RetCode dema(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -4779,9 +4779,9 @@ public RetCode ema(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -5242,9 +5242,9 @@ public RetCode kama(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -6143,9 +6143,9 @@ public RetCode movingAverageVariablePeriod(
             @IntegerRange(
                     paramName    = "optInMinPeriod",
                     defaultValue = 2,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -6160,9 +6160,9 @@ public RetCode movingAverageVariablePeriod(
             @IntegerRange(
                     paramName    = "optInMaxPeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -8067,9 +8067,9 @@ public RetCode sma(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -8730,9 +8730,9 @@ public RetCode t3(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 5,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -8890,9 +8890,9 @@ public RetCode tema(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -8994,9 +8994,9 @@ public RetCode trima(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )
@@ -9507,9 +9507,9 @@ public RetCode wma(
             @IntegerRange(
                     paramName    = "optInTimePeriod",
                     defaultValue = 30,
-                    min          = 2,
+                    min          = 1,
                     max          = 100000,
-                    suggested_start     = 4,
+                    suggested_start     = 1,
                     suggested_end       = 200,
                     suggested_increment = 1
             )

@@ -67,8 +67,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    /// * `optInMinPeriod` — lower clamp for per-bar period (default 2, range 2..=100000)
-    /// * `optInMaxPeriod` — upper clamp for per-bar period (default 30, range 2..=100000)
+    /// * `optInMinPeriod` — lower clamp for per-bar period (default 2, range 1..=100000)
+    /// * `optInMaxPeriod` — upper clamp for per-bar period (default 30, range 1..=100000)
     /// * `optInMAType` — moving-average type applied (default 0 = SMA, values: 0=SMA, 1=EMA,
     ///   2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
     ///
@@ -78,12 +78,12 @@ impl Core {
     pub fn mavp_lookback(&self, mut optInMinPeriod: i32, mut optInMaxPeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInMinPeriod) as i32) == (i32::MIN) {
             optInMinPeriod = 2;
-        } else if (((optInMinPeriod) as i32) < 2) || (((optInMinPeriod) as i32) > 100000) {
+        } else if (((optInMinPeriod) as i32) < 1) || (((optInMinPeriod) as i32) > 100000) {
             return usize::MAX;
         }
         if ((optInMaxPeriod) as i32) == (i32::MIN) {
             optInMaxPeriod = 30;
-        } else if (((optInMaxPeriod) as i32) < 2) || (((optInMaxPeriod) as i32) > 100000) {
+        } else if (((optInMaxPeriod) as i32) < 1) || (((optInMaxPeriod) as i32) > 100000) {
             return usize::MAX;
         }
         return self.ma_lookback(optInMaxPeriod, optInMAType);
@@ -101,6 +101,8 @@ impl Core {
     ///
     /// * Fractional per-bar periods are truncated to whole numbers before being clamped to the
     ///   minimum and maximum period.
+    /// * Period values of 1 perform no smoothing (the bar's output equals its input); the minimum
+    ///   allowed period is 1 since 0.6.5.
     ///
     /// # Arguments
     ///
@@ -108,8 +110,8 @@ impl Core {
     /// * `endIdx` — End index of the requested calculation range (inclusive).
     /// * `inReal` — series to be averaged.
     /// * `inPeriods` — per-bar desired MA period.
-    /// * `optInMinPeriod` — lower clamp for per-bar period (default 2, range 2..=100000)
-    /// * `optInMaxPeriod` — upper clamp for per-bar period (default 30, range 2..=100000)
+    /// * `optInMinPeriod` — lower clamp for per-bar period (default 2, range 1..=100000)
+    /// * `optInMaxPeriod` — upper clamp for per-bar period (default 30, range 1..=100000)
     /// * `optInMAType` — moving-average type applied (default 0 = SMA, values: 0=SMA, 1=EMA,
     ///   2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3)
     /// * `outBegIdx` — Set to the input index of the first output value.
@@ -176,12 +178,12 @@ impl Core {
         }
         if ((optInMinPeriod) as i32) == (i32::MIN) {
             optInMinPeriod = 2;
-        } else if (((optInMinPeriod) as i32) < 2) || (((optInMinPeriod) as i32) > 100000) {
+        } else if (((optInMinPeriod) as i32) < 1) || (((optInMinPeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
         if ((optInMaxPeriod) as i32) == (i32::MIN) {
             optInMaxPeriod = 30;
-        } else if (((optInMaxPeriod) as i32) < 2) || (((optInMaxPeriod) as i32) > 100000) {
+        } else if (((optInMaxPeriod) as i32) < 1) || (((optInMaxPeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
         let mut startIdx = startIdx;

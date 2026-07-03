@@ -63,6 +63,36 @@
 
 TA_LIB_API int TA_SAREXT_Lookback( double optInStartValue, double optInOffsetOnReverse, double optInAccelerationInitLong, double optInAccelerationLong, double optInAccelerationMaxLong, double optInAccelerationInitShort, double optInAccelerationShort, double optInAccelerationMaxShort )
 {
+   if( optInStartValue == -4e37 )
+      optInStartValue = 0;
+   if( optInOffsetOnReverse == -4e37 )
+      optInOffsetOnReverse = 0;
+   else if( optInOffsetOnReverse < 0e0 || optInOffsetOnReverse > 1.7976931348623157e308 )
+      return -1;
+   if( optInAccelerationInitLong == -4e37 )
+      optInAccelerationInitLong = 0.02;
+   else if( optInAccelerationInitLong < 0e0 || optInAccelerationInitLong > 1.7976931348623157e308 )
+      return -1;
+   if( optInAccelerationLong == -4e37 )
+      optInAccelerationLong = 0.02;
+   else if( optInAccelerationLong < 0e0 || optInAccelerationLong > 1.7976931348623157e308 )
+      return -1;
+   if( optInAccelerationMaxLong == -4e37 )
+      optInAccelerationMaxLong = 0.2;
+   else if( optInAccelerationMaxLong < 0e0 || optInAccelerationMaxLong > 1.7976931348623157e308 )
+      return -1;
+   if( optInAccelerationInitShort == -4e37 )
+      optInAccelerationInitShort = 0.02;
+   else if( optInAccelerationInitShort < 0e0 || optInAccelerationInitShort > 1.7976931348623157e308 )
+      return -1;
+   if( optInAccelerationShort == -4e37 )
+      optInAccelerationShort = 0.02;
+   else if( optInAccelerationShort < 0e0 || optInAccelerationShort > 1.7976931348623157e308 )
+      return -1;
+   if( optInAccelerationMaxShort == -4e37 )
+      optInAccelerationMaxShort = 0.2;
+   else if( optInAccelerationMaxShort < 0e0 || optInAccelerationMaxShort > 1.7976931348623157e308 )
+      return -1;
    /* SAR always sacrifices one price bar to establish the
     * initial extreme price.
     */

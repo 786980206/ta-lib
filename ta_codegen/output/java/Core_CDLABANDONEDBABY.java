@@ -14,6 +14,11 @@
 
    public int cdlAbandonedBabyLookback( double optInPenetration )
    {
+      if( optInPenetration == -4e37 ) {
+         optInPenetration = 3e-1;
+      } else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 ) {
+         return -1;
+      }
       int BodyDoji_rangeType = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].rangeType.ordinal();
       int BodyDoji_avgPeriod = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].avgPeriod;
       double BodyDoji_factor = this.candleSettings[CandleSettingType.BodyDoji.ordinal()].factor;
@@ -60,6 +65,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInPenetration == -4e37 ) {
+         optInPenetration = 3e-1;
+      } else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
       }
       /* Identify the minimum number of price bar needed
        * to calculate at least one output.
@@ -256,6 +266,11 @@
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
+      }
+      if( optInPenetration == -4e37 ) {
+         optInPenetration = 3e-1;
+      } else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 ) {
+         return RetCode.BadParam;
       }
       lookbackTotal = cdlAbandonedBabyLookback(optInPenetration);
       if( startIdx < lookbackTotal ) {

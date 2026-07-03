@@ -72,7 +72,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` — Number of bars in the averaging window (default 30, range
-    ///   2..=100000)
+    ///   1..=100000)
     ///
     /// Returns `usize::MAX` when a parameter is out of range. Integer parameters accept `i32::MIN`
     /// to select their default value.
@@ -80,7 +80,7 @@ impl Core {
     pub fn trima_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return usize::MAX;
         }
         return (optInTimePeriod - 1) as usize;
@@ -99,6 +99,8 @@ impl Core {
     ///
     /// * Follows the generally accepted (Metastock) definition rather than the TradeStation
     ///   variant.
+    /// * A period of 1 performs no smoothing: the output is a copy of the input. Allowed since
+    ///   0.6.5 (issues #48/#59).
     ///
     /// # Arguments
     ///
@@ -106,7 +108,7 @@ impl Core {
     /// * `endIdx` — End index of the requested calculation range (inclusive).
     /// * `inReal` — Source price series.
     /// * `optInTimePeriod` — Number of bars in the averaging window (default 30, range
-    ///   2..=100000)
+    ///   1..=100000)
     /// * `outBegIdx` — Set to the input index of the first output value.
     /// * `outNBElement` — Set to the number of output values written.
     /// * `outReal` — Triangular moving average.
@@ -163,7 +165,7 @@ impl Core {
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
         let mut startIdx = startIdx;

@@ -8,6 +8,10 @@ Triple Exponential Moving Average: a smoothed price overlay built from three suc
 
 EMA1=EMA(t,period); EMA2=EMA(EMA1,period); EMA3=EMA(EMA2,period); TEMA = 3*EMA1 - 3*EMA2 + EMA3
 
+## Notes
+
+- A period of 1 performs no smoothing: the output is a copy of the input. Allowed since 0.6.5 (issues #48/#59).
+
 ## Inputs
 
 - `inReal` — Source price/data series
