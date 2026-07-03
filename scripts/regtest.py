@@ -126,14 +126,13 @@ def ensure_reference_serve(root, bin_dir):
     """Build bin/ta_ref_serve, the frozen reference oracle for ta_regtest's
     cross-language codegen verification (canonical cutover task #7).
 
-    Preferred path: build from the pinned-tag worktree (../ta-lib-ref @ REF_TAG),
-    so the oracle is independent of this tree. The tag is immutable, so the
-    reference lib + server are built once and reused.
+    Builds from the pinned-tag worktree (../ta-lib-ref @ REF_TAG), so the
+    oracle is independent of this tree. The tag is immutable, so the reference
+    lib + server are built once and reused.
 
-    Fallback (loud warning): if the tag/worktree is unavailable, build from the
-    CURRENT tree. That is valid PRE-cutover (this tree IS the reference today),
-    but becomes circular once src/ta_func is symlinked to the generated code, so
-    the warning must be resolved by creating the tag."""
+    If the tag is unavailable the script ABORTS: post-cutover there is no
+    valid substitute — building the "reference" from the current tree would
+    compare the generated code against itself."""
     print("=== Building ta_ref_serve (frozen reference oracle) ===")
     ref_root = os.path.join(os.path.dirname(root), "ta-lib-ref")
     ref_build = os.path.join(ref_root, "cmake-build")
@@ -172,21 +171,19 @@ def ensure_reference_serve(root, bin_dir):
         rc = _compile_ta_ref_serve(serve_src, lib_a, includes, bin_dir)
         print("  ta_ref_serve:",
               "OK (from pinned-tag worktree)" if rc == 0 else f"FAILED (exit {rc})")
+        if rc != 0:
+            sys.exit(1)
         return
 
-    # --- Fallback: build from the CURRENT tree (pre-cutover only) ---
-    print(f"  WARNING: tag '{REF_TAG}' / worktree ../ta-lib-ref unavailable;")
-    print(f"  WARNING: building ta_ref_serve from the CURRENT tree. Valid only")
-    print(f"  WARNING: PRE-cutover — circular once src/ta_func is generated.")
-    print(f"  WARNING: create the tag (cutover Stage 0):  git tag {REF_TAG} <commit>")
-    serve_src, lib_a, includes = _ta_ref_serve_paths(
-        root, os.path.join(root, "cmake-build"))
-    if not os.path.exists(serve_src):
-        print(f"  ta_ref_serve: SKIPPED — {serve_src} not found")
-        return
-    rc = _compile_ta_ref_serve(serve_src, lib_a, includes, bin_dir)
-    print("  ta_ref_serve:",
-          "OK (from current tree — see warning)" if rc == 0 else f"FAILED (exit {rc})")
+    # --- No tag: fail loudly. Post-cutover, building the "reference" from the
+    # CURRENT tree is circular (the generated code would be compared against
+    # itself) and its include layout no longer matches — CI must fetch the
+    # pinned tag (actions/checkout fetch-depth: 0 + the tag pushed upstream).
+    print(f"  ERROR: tag '{REF_TAG}' unavailable — cannot build the frozen")
+    print(f"  ERROR: reference oracle. Fetch tags (git fetch --tags) or push")
+    print(f"  ERROR: the tag upstream. Aborting: codegen verification without")
+    print(f"  ERROR: the reference oracle would silently self-compare.")
+    sys.exit(1)
 
 
 def main():

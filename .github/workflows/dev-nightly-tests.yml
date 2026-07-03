@@ -62,19 +62,35 @@ jobs:
           :: echo VCVARSALL=%VCVARSALL% >> %GITHUB_ENV%
           echo PYTHON=python >> %GITHUB_ENV%
 
+      # NOTE: one command per step (or && chains). A multi-line `shell: cmd`
+      # script propagates only the LAST command's exit code, which masked
+      # every failure in this job for months (wix EULA errors, full MSVC
+      # build failures, dead MSI packaging) while the job stayed green.
+      # WiX is pinned: unpinned installs picked up wix 7.0.0 (2026-04-07),
+      # which refuses to run without accepting the OSMF EULA (WIX7015).
+      - name: Install WiX (Windows x64)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: dotnet tool install --global wix --version 5.0.2 && echo %USERPROFILE%\.dotnet\tools>>%GITHUB_PATH%
+
+      - name: Add WiX UI extension (Windows x64)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: wix extension add --global WixToolset.UI.wixext/5.0.2 && wix extension list --global
+
       - name: Build dist assets (Windows x64)
         if: runner.os == 'Windows'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: cmd
-        run: |
-          :: call "%VCVARSALL%" x64
-          dotnet tool install --global wix
-          set PATH=%PATH%;%USERPROFILE%\.dotnet\tools
-          wix extension add --global WixToolset.UI.wixext
-          wix extension list --global
-          %PYTHON% %GITHUB_WORKSPACE%\scripts\package.py
-          %PYTHON% %GITHUB_WORKSPACE%\scripts\test-dist.py
+        run: '%PYTHON% %GITHUB_WORKSPACE%\scripts\package.py'
+
+      - name: Test dist assets (Windows x64)
+        if: runner.os == 'Windows'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: cmd
+        run: '%PYTHON% %GITHUB_WORKSPACE%\scripts\test-dist.py'
 
       - name: Check for changes and commit if any
         env:
