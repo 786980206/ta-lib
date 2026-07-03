@@ -248,7 +248,9 @@ def update_vcpkg_files(vcpkg_root: Path, version: str, sha512: str) -> None:
 
     # Replace SHA512 in portfile.cmake (first SHA512 occurrence)
     text = portfile.read_text()
-    text_new = re.sub(r"(SHA512\s+)[0-9a-fA-F]{64,128}", rf"\1{sha512}", text, count=1)
+    # \g<1> (not \1): a SHA starting with a digit would otherwise merge into
+    # the group reference (\1 + "12..." parsed as \112 -> garbage in the file).
+    text_new = re.sub(r"(SHA512\s+)[0-9a-fA-F]{64,128}", rf"\g<1>{sha512}", text, count=1)
     if text_new == text:
         print("[warn] Could not auto-replace SHA512 in portfile.cmake. Update manually.")
     else:
