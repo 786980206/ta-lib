@@ -204,9 +204,11 @@ impl Core {
     ) -> RetCode {
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outMACD.len());
-        assert!(endIdx - startIdx < outMACDSignal.len());
-        assert!(endIdx - startIdx < outMACDHist.len());
+        let _assertLb = self.macdfix_lookback(optInSignalPeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMACD.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMACDSignal.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMACDHist.len());
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
         } // unsafe
     }

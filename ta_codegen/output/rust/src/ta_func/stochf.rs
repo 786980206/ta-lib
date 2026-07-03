@@ -428,8 +428,10 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outFastK.len());
-        assert!(endIdx - startIdx < outFastD.len());
+        let _assertLb = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outFastK.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outFastD.len());
         lookbackK = (optInFastK_Period - 1) as usize;
         lookbackFastD = self.ma_lookback(optInFastD_Period, optInFastD_MAType);
         lookbackTotal = lookbackK + lookbackFastD;

@@ -239,7 +239,9 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.mom_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }

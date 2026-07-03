@@ -289,7 +289,9 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.atr_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.atr_lookback(optInTimePeriod);

@@ -380,7 +380,9 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outInteger.len());
+        let _assertLb = self.cdlunique3river_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outInteger.len());
         lookbackTotal = self.cdlunique3river_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

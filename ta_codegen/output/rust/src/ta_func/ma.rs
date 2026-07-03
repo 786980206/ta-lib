@@ -289,7 +289,9 @@ impl Core {
         let mut todayIdx: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.ma_lookback(optInTimePeriod, optInMAType);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;

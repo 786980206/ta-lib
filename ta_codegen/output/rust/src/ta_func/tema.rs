@@ -293,7 +293,9 @@ impl Core {
         let mut retCode: RetCode = RetCode::Success;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.tema_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
         lookbackEMA = self.ema_lookback(optInTimePeriod);

@@ -175,7 +175,9 @@ impl Core {
         unsafe {
         assert!(endIdx < inReal0.len());
         assert!(endIdx < inReal1.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.mult_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         outIdx = 0;
         i = startIdx;
         while i <= endIdx {

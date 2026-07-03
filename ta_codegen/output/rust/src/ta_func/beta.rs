@@ -351,7 +351,9 @@ impl Core {
         unsafe {
         assert!(endIdx < inReal0.len());
         assert!(endIdx < inReal1.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.beta_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         S_xx = 0.0;
         S_xy = 0.0;
         S_x = 0.0;

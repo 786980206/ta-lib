@@ -235,7 +235,9 @@ impl Core {
         let mut tempReal: f64 = 0.0_f64;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.stddev_lookback(optInTimePeriod, optInNbDev);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         retCode = self.var_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
         if retCode != RetCode::Success {
             return retCode;

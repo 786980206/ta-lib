@@ -196,7 +196,9 @@ impl Core {
         let mut lookbackTotal: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.ema_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         // Internal implementation can be called from any other TA function.
         //
         // Faster because there is no parameter check, but it is a double
@@ -289,7 +291,9 @@ impl Core {
         let mut optInK_1: f64 = 0.0_f64;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.ema_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         optInK_1 = 2.0 / ((optInTimePeriod + 1) as f64);
         return self.ema_private(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal);
         } // unsafe

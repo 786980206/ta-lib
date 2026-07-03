@@ -405,7 +405,9 @@ impl Core {
         let mut tempValue4: f64 = 0.0_f64;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.cmo_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.cmo_lookback(optInTimePeriod);

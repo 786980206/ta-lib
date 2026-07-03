@@ -287,9 +287,11 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outRealUpperBand.len());
-        assert!(endIdx - startIdx < outRealMiddleBand.len());
-        assert!(endIdx - startIdx < outRealLowerBand.len());
+        let _assertLb = self.accbands_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outRealUpperBand.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outRealMiddleBand.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outRealLowerBand.len());
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

@@ -183,7 +183,9 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.wclprice_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
             *outReal.as_mut_ptr().add(outIdx) = ((((*inClose.as_ptr().add(i) as f64).mul_add(2.0, *inHigh.as_ptr().add(i) + *inLow.as_ptr().add(i))) / 4.0) as f64);

@@ -633,8 +633,10 @@ impl Core {
         let mut realPart: f64 = 0.0_f64;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outSine.len());
-        assert!(endIdx - startIdx < outLeadSine.len());
+        let _assertLb = self.ht_sine_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outSine.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outLeadSine.len());
         a = 0.0962;
         b = 0.5769;
         smoothPrice = vec![0.0_f64; maxIdx_smoothPrice + 1];

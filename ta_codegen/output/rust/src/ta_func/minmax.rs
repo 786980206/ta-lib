@@ -269,8 +269,10 @@ impl Core {
         let mut lowestIdx: i32 = 0_i32;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outMin.len());
-        assert!(endIdx - startIdx < outMax.len());
+        let _assertLb = self.minmax_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMin.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMax.len());
         nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;

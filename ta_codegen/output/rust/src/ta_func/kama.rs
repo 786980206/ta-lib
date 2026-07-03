@@ -366,7 +366,9 @@ impl Core {
         let mut trailingValue: f64 = 0.0_f64;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.kama_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         constMax = 2.0 / (30.0 + 1.0);
         constDiff = 2.0 / (2.0 + 1.0) - constMax;
         (*outBegIdx) = 0;

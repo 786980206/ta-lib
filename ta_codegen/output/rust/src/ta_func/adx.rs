@@ -571,7 +571,9 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.adx_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         lookbackTotal = (2 * optInTimePeriod + self.unstable_period[FuncUnstId::Adx as usize] - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

@@ -300,7 +300,9 @@ impl Core {
         unsafe {
         assert!(endIdx < inReal0.len());
         assert!(endIdx < inReal1.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.correl_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

@@ -226,7 +226,9 @@ impl Core {
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
         assert!(endIdx < inVolume.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.ad_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;

@@ -390,9 +390,11 @@ impl Core {
         let mut tempBuffer2: Vec<f64> = Vec::new();
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outRealUpperBand.len());
-        assert!(endIdx - startIdx < outRealMiddleBand.len());
-        assert!(endIdx - startIdx < outRealLowerBand.len());
+        let _assertLb = self.bbands_lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outRealUpperBand.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outRealMiddleBand.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outRealLowerBand.len());
         if inReal.as_ptr() == outRealUpperBand.as_ptr() {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealLowerBand.to_vec();

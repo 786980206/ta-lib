@@ -292,8 +292,10 @@ impl Core {
         unsafe {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
-        assert!(endIdx - startIdx < outAroonDown.len());
-        assert!(endIdx - startIdx < outAroonUp.len());
+        let _assertLb = self.aroon_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outAroonDown.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outAroonUp.len());
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }

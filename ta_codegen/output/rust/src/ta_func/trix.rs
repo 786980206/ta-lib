@@ -264,7 +264,9 @@ impl Core {
         let mut nbElementToOutput: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.trix_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         emaLookback = self.ema_lookback(optInTimePeriod);
         rocLookback = self.rocr_lookback(1);
         totalLookback = emaLookback * 3 + rocLookback;

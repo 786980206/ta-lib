@@ -182,7 +182,9 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.typprice_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
             *outReal.as_mut_ptr().add(outIdx) = (((*inHigh.as_ptr().add(i) + *inLow.as_ptr().add(i) + *inClose.as_ptr().add(i)) / 3.0) as f64);

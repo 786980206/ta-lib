@@ -463,8 +463,10 @@ impl Core {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
-        assert!(endIdx - startIdx < outSlowK.len());
-        assert!(endIdx - startIdx < outSlowD.len());
+        let _assertLb = self.stoch_lookback(optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outSlowK.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outSlowD.len());
         lookbackK = (optInFastK_Period - 1) as usize;
         lookbackKSlow = self.ma_lookback(optInSlowK_Period, optInSlowK_MAType);
         lookbackDSlow = self.ma_lookback(optInSlowD_Period, optInSlowD_MAType);

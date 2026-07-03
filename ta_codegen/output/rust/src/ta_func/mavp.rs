@@ -317,7 +317,9 @@ impl Core {
         unsafe {
         assert!(endIdx < inReal.len());
         assert!(endIdx < inPeriods.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.mavp_lookback(optInMinPeriod, optInMaxPeriod, optInMAType);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         lookbackTotal = self.ma_lookback(optInMaxPeriod, optInMAType);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

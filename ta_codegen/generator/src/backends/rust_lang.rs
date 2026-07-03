@@ -801,11 +801,29 @@ fn gen_unguarded_or_private_func(
                 "        assert!(endIdx < {}.len());\n", input.name
             ));
         }
-        for output in &func.outputs {
-            // Output arrays are sized by the caller — assert they have enough room
+        // Output arrays are sized by the caller for the elements actually
+        // written: endIdx - max(startIdx, lookback) + 1. Internal callers pass
+        // exactly-sized buffers with startIdx below the lookback (e.g. the
+        // re-based EMA chaining in TEMA/DEMA/T3 reached through MA/MACDEXT),
+        // so the bound must use the adjusted start — still exactly the proof
+        // LLVM needs to elide the write bounds checks. When the adjusted start
+        // exceeds endIdx the function writes nothing and any length is fine.
+        if !func.outputs.is_empty() {
+            let lb_args: Vec<String> =
+                func.optional_inputs.iter().map(|o| o.name.clone()).collect();
             out.push_str(&format!(
-                "        assert!(endIdx - startIdx < {}.len());\n", output.name
+                "        let _assertLb = self.{snake}_lookback({});\n",
+                lb_args.join(", ")
             ));
+            out.push_str(
+                "        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };\n",
+            );
+            for output in &func.outputs {
+                out.push_str(&format!(
+                    "        assert!(_assertStart > endIdx || endIdx - _assertStart < {}.len());\n",
+                    output.name
+                ));
+            }
         }
     }
 

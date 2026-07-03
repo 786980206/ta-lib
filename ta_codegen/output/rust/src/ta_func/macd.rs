@@ -412,9 +412,11 @@ impl Core {
         let mut i: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outMACD.len());
-        assert!(endIdx - startIdx < outMACDSignal.len());
-        assert!(endIdx - startIdx < outMACDHist.len());
+        let _assertLb = self.macd_lookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMACD.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMACDSignal.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMACDHist.len());
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;

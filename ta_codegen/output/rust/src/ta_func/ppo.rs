@@ -260,7 +260,9 @@ impl Core {
         let mut j: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.ppo_lookback(optInFastPeriod, optInSlowPeriod, optInMAType);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;

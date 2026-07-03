@@ -703,7 +703,9 @@ impl Core {
         let mut leadSine: f64 = 0.0_f64;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outInteger.len());
+        let _assertLb = self.ht_trendmode_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outInteger.len());
         a = 0.0962;
         b = 0.5769;
         smoothPrice = vec![0.0_f64; maxIdx_smoothPrice + 1];

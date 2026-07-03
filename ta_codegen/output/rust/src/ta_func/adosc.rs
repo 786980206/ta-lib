@@ -353,7 +353,9 @@ impl Core {
         assert!(endIdx < inLow.len());
         assert!(endIdx < inClose.len());
         assert!(endIdx < inVolume.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.adosc_lookback(optInFastPeriod, optInSlowPeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         if optInFastPeriod < optInSlowPeriod {
             slowestPeriod = (optInSlowPeriod) as usize;
         } else {

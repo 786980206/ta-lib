@@ -515,7 +515,9 @@ impl Core {
         unsafe {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.sarext_lookback(optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         if startIdx < 1 {
             startIdx = 1;
         }

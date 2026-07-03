@@ -222,7 +222,9 @@ impl Core {
         let mut lookback: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.avgdev_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         lookback = (optInTimePeriod - 1) as usize;
         if startIdx < lookback {
             startIdx = lookback;

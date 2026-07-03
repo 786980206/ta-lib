@@ -624,8 +624,10 @@ impl Core {
         let mut prevPhase: f64 = 0.0_f64;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outMAMA.len());
-        assert!(endIdx - startIdx < outFAMA.len());
+        let _assertLb = self.mama_lookback(optInFastLimit, optInSlowLimit);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outMAMA.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outFAMA.len());
         a = 0.0962;
         b = 0.5769;
         rad2Deg = 180.0 / (4.0 * (1_f64).atan());

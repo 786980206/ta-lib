@@ -308,8 +308,10 @@ impl Core {
         let mut outNbElement1: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outFastK.len());
-        assert!(endIdx - startIdx < outFastD.len());
+        let _assertLb = self.stochrsi_lookback(optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outFastK.len());
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outFastD.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);

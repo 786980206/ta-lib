@@ -165,7 +165,9 @@ impl Core {
         let mut i: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.floor_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         // for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
         i = startIdx;
         outIdx = 0;

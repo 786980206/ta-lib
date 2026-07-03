@@ -401,7 +401,9 @@ impl Core {
         unsafe {
         assert!(endIdx < inHigh.len());
         assert!(endIdx < inLow.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.plus_dm_lookback(optInTimePeriod);
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         if optInTimePeriod > 1 {
             lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::PlusDM as usize] - 1) as usize;
         } else {

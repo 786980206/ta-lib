@@ -190,7 +190,9 @@ impl Core {
         unsafe {
         assert!(endIdx < inReal.len());
         assert!(endIdx < inVolume.len());
-        assert!(endIdx - startIdx < outReal.len());
+        let _assertLb = self.obv_lookback();
+        let _assertStart = if startIdx > _assertLb { startIdx } else { _assertLb };
+        assert!(_assertStart > endIdx || endIdx - _assertStart < outReal.len());
         prevOBV = *inVolume.as_ptr().add(startIdx);
         prevReal = *inReal.as_ptr().add(startIdx);
         outIdx = 0;
