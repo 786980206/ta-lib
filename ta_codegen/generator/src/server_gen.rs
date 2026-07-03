@@ -262,7 +262,14 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     s.push_str("#endif\n\n");
 
     // Only _Unguarded forward declarations. Guarded/Lookback/S_ guarded are in ta_func.h.
-    s.push_str("/* Unguarded function forward declarations (same signature as guarded) */\n");
+    s.push_str("/* Unguarded function forward declarations (same signature as guarded).\n");
+    s.push_str(" *\n");
+    s.push_str(" * The double-precision TA_*_Unguarded functions are exported public API\n");
+    s.push_str(" * (TA_LIB_API). The single-precision TA_S_*_Unguarded declarations below\n");
+    s.push_str(" * are INTERNAL: they are not exported from the shared library (plain\n");
+    s.push_str(" * extern, for cross-TU calls within the library) and are not part of the\n");
+    s.push_str(" * public contract. Use the exported TA_S_* guarded functions instead.\n");
+    s.push_str(" */\n");
     for func in funcs {
         let upper = func.name.to_uppercase();
         let full_params = build_full_param_str(func);

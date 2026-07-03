@@ -13,7 +13,14 @@
    #include "ta_defs.h"
 #endif
 
-/* Unguarded function forward declarations (same signature as guarded) */
+/* Unguarded function forward declarations (same signature as guarded).
+ *
+ * The double-precision TA_*_Unguarded functions are exported public API
+ * (TA_LIB_API). The single-precision TA_S_*_Unguarded declarations below
+ * are INTERNAL: they are not exported from the shared library (plain
+ * extern, for cross-TU calls within the library) and are not part of the
+ * public contract. Use the exported TA_S_* guarded functions instead.
+ */
 TA_LIB_API TA_RetCode TA_ACCBANDS_Unguarded(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outRealUpperBand[], double outRealMiddleBand[], double outRealLowerBand[]);
 extern TA_RetCode TA_S_ACCBANDS_Unguarded(int startIdx, int endIdx, const float inHigh[], const float inLow[], const float inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outRealUpperBand[], double outRealMiddleBand[], double outRealLowerBand[]);
 TA_LIB_API TA_RetCode TA_ACOS_Unguarded(int startIdx, int endIdx, const double inReal[], int *outBegIdx, int *outNBElement, double outReal[]);
@@ -338,6 +345,8 @@ TA_LIB_API TA_RetCode TA_WMA_Unguarded(int startIdx, int endIdx, const double in
 extern TA_RetCode TA_S_WMA_Unguarded(int startIdx, int endIdx, const float inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[]);
 
 /* Private-variant forward declarations (custom signatures) */
+TA_LIB_API TA_RetCode TA_EMA_Private(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, double optInK_1, int *outBegIdx, int *outNBElement, double outReal[]);
+extern TA_RetCode TA_S_EMA_Private(int startIdx, int endIdx, const float inReal[], int optInTimePeriod, double optInK_1, int *outBegIdx, int *outNBElement, double outReal[]);
 
 /* Internal helper forward declarations */
 extern void stddev_using_precalc_ma(const double inReal[], const double inMovAvg[], int inMovAvgBegIdx, int inMovAvgNbElement, int timePeriod, double output[]);

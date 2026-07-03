@@ -546,7 +546,19 @@ fn load_all_yaml_defs(base: &Path) -> Vec<ir::FuncDef> {
 
         let yaml_path = dir.join(format!("{}.yaml", dir_name));
         if yaml_path.exists() {
-            funcs.push(parser::yaml::parse_yaml(&yaml_path));
+            let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+            // Wire the parsed .c source too: cross-function artifacts written
+            // from this list (ta_func_unguarded.h, ta_func_private.h) need the
+            // source-derived fields — has_explicit_private and the private
+            // extra params. A YAML-only def silently dropped the TA_*_Private
+            // declarations from the shared headers on every --func=X run
+            // (caught by clang: implicit declaration of TA_EMA_Private).
+            let c_path = dir.join(format!("{}.c", dir_name));
+            if c_path.exists() {
+                let parsed = parser::c_source::parse_c_source(&c_path);
+                wire_parsed_source(&mut func_def, &parsed);
+            }
+            funcs.push(func_def);
         }
     }
 
