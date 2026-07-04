@@ -7,9 +7,11 @@ Just re-install to upgrade. Older versions are automatically removed.
 See [github commits](https://github.com/TA-Lib/ta-lib/commits) for complete list of changes
 
 ## [0.7.2] Not Released Yet
+### Added
+- (#81) Microsoft VCPKG support. Thanks @greenTableWork !
 
 ### Fixed
-- (#57) Missing TA_GetVersionString function in Windows DLL
+- (#57) Missing TA_GetVersionString function in Windows DLL. Thanks @Youngv !
 
 ## [0.7.1] 2026-07-03
 ### Added
