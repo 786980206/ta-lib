@@ -6,6 +6,11 @@ Just re-install to upgrade. Older versions are automatically removed.
 
 See [github commits](https://github.com/TA-Lib/ta-lib/commits) for complete list of changes
 
+## [0.7.2] Not Released Yet
+
+### Fixed
+- (#57) Missing TA_GetVersionString function in Windows DLL
+
 ## [0.7.1] 2026-07-03
 ### Added
 - (#79) TA-Lib is now available as a GitHub Action: [setup-ta-lib](https://github.com/TA-Lib/setup-ta-lib). Thanks @mrjbq7 !

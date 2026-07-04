@@ -113,3 +113,14 @@ jobs:
             echo "The dev-nigthly-tests.yml should have updated these assets."
             exit 1
           fi
+
+      # Soft check only: the website (docs/install.md) is expected to lag briefly
+      # after a release until dev-nightly syncs it and it merges to main. Surface
+      # a warning if it is behind, but never fail -- keep the main badge green.
+      - name: Warn if website is out of date (soft)
+        if: runner.os == 'Linux'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          $PYTHON $GITHUB_WORKSPACE/scripts/sync-website.py --check --warn-only

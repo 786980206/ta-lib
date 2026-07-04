@@ -40,6 +40,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install Python dependencies
+        run: pip install PyGithub
+
       - name: Prepare shell envs (Linux)
         if: runner.os == 'Linux'
         shell: bash
@@ -115,9 +118,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
+          # Keep the website install page (docs/install.md) pointed at the latest
+          # published GitHub release, committing it alongside the dist assets so
+          # the repo and the deployed website always match. Linux-only so it is
+          # committed once; idempotent and a no-op if the GitHub API is
+          # unavailable (the update is eventual -- it retries next run).
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            $PYTHON $GITHUB_WORKSPACE/scripts/sync-website.py || true
+          fi
           dist_changes=$(git status --porcelain dist/)
           ta_common_changes=$(git status --porcelain include/ta_common.h)
-          if [ -n "$dist_changes" ] || [ -n "$ta_common_changes" ]; then
+          website_changes=$(git status --porcelain docs/install.md)
+          if [ -n "$dist_changes" ] || [ -n "$ta_common_changes" ] || [ -n "$website_changes" ]; then
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
             echo "Changes detected by git status:"
@@ -128,6 +140,10 @@ jobs:
             if [ -n "$ta_common_changes" ]; then
               echo "$ta_common_changes"
               git add include/ta_common.h
+            fi
+            if [ -n "$website_changes" ]; then
+              echo "$website_changes"
+              git add docs/install.md
             fi
 
             git commit -m "Update dist package (from ${{ matrix.os }})"
