@@ -157,6 +157,13 @@ impl Core {
     ///
     /// [`Core::apo`] · [`Core::macd`] · [`Core::ma`]
     ///
+    /// # References
+    ///
+    /// * Gerald Appel, creator of the PPO and MACD (MACD introduced 1979 in his *Systems and
+    ///   Forecasts* newsletter). The PPO is the MACD expressed as a percentage of the slow moving
+    ///   average. Appel's original definition uses **exponential** moving averages (periods 12,
+    ///   26).
+    ///
     /// Further reading: [ta-lib.org/functions/ppo](https://ta-lib.org/functions/ppo/)
     #[doc(alias = "PercentagePriceOscillator")]
     pub fn ppo(
